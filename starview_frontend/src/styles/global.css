@@ -134,8 +134,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  transition: color var(--transition),
-              background-color var(--transition),
+  transition: background-color var(--transition),
               border-color var(--transition),
               transform var(--transition);
 }
