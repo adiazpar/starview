@@ -1,3 +1,6 @@
+# Claude Code MCP config (local machine-specific)
+.mcp.json
+
 # Database
 *.sqlite3
 

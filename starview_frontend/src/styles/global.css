@@ -1,0 +1,336 @@
+/* Starview Global Styles
+ * Design tokens, CSS reset, and shared component classes.
+ */
+
+
+
+/* ============================================ */
+/* DESIGN TOKENS */
+/* ============================================ */
+
+:root {
+  /* Colors - Dark Theme (Default) */
+  --bg-primary:   hsl(221, 39%, 11%);
+  --bg-secondary: hsl(215, 28%, 17%);
+  --bg-elevated:  hsl(221, 39%, 11%);
+  --bg-hover:     #4b5563;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+
+  /* Colors - Semantic */
+  --accent:       #2563eb;
+  --accent-hover: #3b82f6;
+  --accent-light: #60a5fa;
+  --accent-bg:    #3b82f61a;
+
+  --border: #2f353e;
+  --border-focus: #3b82f6;
+
+  --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --success-border: rgba(34, 197, 94, 0.3);
+
+  --warning: #eab308;
+  --warning-bg: rgba(234, 179, 8, 0.1);
+  --warning-border: rgba(234, 179, 8, 0.3);
+
+  --error: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: rgba(239, 68, 68, 0.3);
+
+  --info: #0ea5e9;
+  --info-bg: rgba(14, 165, 233, 0.1);
+  --info-border: rgba(14, 165, 233, 0.3);
+
+  --star-filled: #fbbf24;
+  --star-empty: #4b5563;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Border Radius */
+  --radius: 8px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+
+  /* Transition */
+  --transition: 0.15s;
+
+  /* Z-Index */
+  --z-navbar: 30;
+  --z-modal: 50;
+
+  /* Typography */
+  --font-family: 'Inter', sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 36px;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  --font-medium: 500;
+  --font-semibold: 600;
+
+  --container-max: 1000px;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-elevated: #ffffff;
+  --bg-hover: #e5e7eb;
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  --accent:       hsl(35, 83%, 53%);
+  --accent-hover: hsl(35, 91%, 60%);
+  --accent-light: hsl(35, 94%, 68%);
+  --accent-bg:    hsla(35, 91%, 60%, 0.102);
+
+  --border: #d1d5db;
+  --border-focus: hsl(30, 91%, 60%);
+
+  --star-empty: #d1d5db;
+
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+
+
+/* ============================================ */
+/* CSS RESET */
+/* ============================================ */
+
+:root {
+  font-family: var(--font-family);
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: 'InterVariable', sans-serif;
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: color var(--transition),
+              background-color var(--transition),
+              border-color var(--transition),
+              transform var(--transition);
+}
+
+body {
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+
+
+/* ============================================ */
+/* LAYOUT */
+/* ============================================ */
+
+.page-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding: 0 var(--space-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding: 0 var(--space-xl);
+  }
+}
+
+
+
+/* ============================================ */
+/* BUTTONS */
+/* ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 500;
+  font-size: var(--text-sm);
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--text-primary);
+}
+
+.btn:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-light);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 500;
+  font-size: var(--text-sm);
+  padding: var(--space-sm);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--text-primary);
+}
+
+.btn-icon:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-light);
+}
+
+@media (max-width: 600px) {
+  .btn {
+    font-size: var(--text-xs);
+  }
+}
+
+
+
+/* ============================================ */
+/* CARDS */
+/* ============================================ */
+
+.card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+}
+
+.card-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.card-body {
+  color: var(--text-secondary);
+}
+
+
+
+/* ============================================ */
+/* FORMS */
+/* ============================================ */
+
+.form-group {
+  font-weight: 300;
+}
+
+.form-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--bg-hover);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.form-input.error,
+.form-textarea.error {
+  border-color: var(--error);
+}
+
+.form-textarea {
+  resize: none;
+  min-height: 120px;
+}
+
+.form-hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 300;
+  margin-top: var(--space-sm);
+  margin-bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.form-hint i {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+  margin-top: 2px;
+}

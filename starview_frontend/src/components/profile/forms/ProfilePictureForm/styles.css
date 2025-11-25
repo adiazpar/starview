@@ -1,0 +1,58 @@
+/* Profile Picture Form Styles */
+
+.profile-picture-section {
+  padding: var(--space-lg);
+}
+
+.profile-picture-upload {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: flex-start;
+}
+
+.profile-picture-preview {
+  flex-shrink: 0;
+}
+
+.profile-picture-preview img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-color);
+}
+
+.profile-picture-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.profile-picture-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.profile-file-input {
+  display: none;
+}
+
+.profile-picture-help {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .profile-picture-upload {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-picture-actions {
+    align-items: center;
+  }
+}

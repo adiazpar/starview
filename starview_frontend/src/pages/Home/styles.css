@@ -1,0 +1,59 @@
+/* Home Page Styles */
+
+.home-hero {
+  padding-top: 80px;
+  padding-bottom: 64px;
+  text-align: center;
+}
+
+.home-hero-title {
+  font-size: clamp(40px, 5vw, 60px);
+  margin-bottom: 24px;
+}
+
+.home-hero-title-accent {
+  display: block;
+  color: var(--accent-light);
+}
+
+.home-hero-text {
+  font-size: var(--text-xl);
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 672px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+}
+
+.home-hero-buttons .btn i {
+  margin-right: 8px;
+}
+
+.home-features {
+  padding-bottom: 64px;
+}
+
+.home-features-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .home-features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.home-feature-icon {
+  font-size: 48px;
+  color: var(--accent-light);
+  margin-bottom: 16px;
+  display: block;
+}

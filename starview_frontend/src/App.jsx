@@ -1,18 +1,18 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Navbar from './components/Navbar';
+import Navbar from './components/navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import EmailVerifiedPage from './pages/EmailVerifiedPage';
-import EmailConfirmErrorPage from './pages/EmailConfirmErrorPage';
-import SocialAccountExistsPage from './pages/SocialAccountExistsPage';
-import PasswordResetRequestPage from './pages/PasswordResetRequestPage';
-import PasswordResetConfirmPage from './pages/PasswordResetConfirmPage';
-import ProfilePage from './pages/ProfilePage';
-import PublicProfilePage from './pages/PublicProfilePage';
+import HomePage from './pages/Home';
+import LoginPage from './pages/Login';
+import RegisterPage from './pages/Register';
+import VerifyEmailPage from './pages/VerifyEmail';
+import EmailVerifiedPage from './pages/EmailVerified';
+import EmailConfirmErrorPage from './pages/EmailConfirmError';
+import SocialAccountExistsPage from './pages/SocialAccountExists';
+import PasswordResetRequestPage from './pages/PasswordResetRequest';
+import PasswordResetConfirmPage from './pages/PasswordResetConfirm';
+import ProfilePage from './pages/Profile';
+import PublicProfilePage from './pages/PublicProfile';
 
 function App() {
   return (

@@ -1,0 +1,17 @@
+/* Bio Form Styles */
+
+.bio-textarea-wrapper {
+  position: relative;
+}
+
+.bio-character-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}

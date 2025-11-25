@@ -147,7 +147,7 @@ Starview is a specialized, community-driven platform built specifically for the 
 
 ### Security Features
 
-**Grade: A+ (98/100)**
+**Grade: A+ on securityheaders.com**
 
 **Authentication & Access Control:**
 - Email verification required for all new accounts
@@ -176,11 +176,13 @@ Starview is a specialized, community-driven platform built specifically for the 
 - Automatic cleanup of unverified accounts after 7 days
 
 **Test Coverage:**
-- 80+ security and performance tests
-- Phase 1: 44 security tests
+- 140+ security and performance tests across 7 phases
+- Phase 1: 44+ security tests (rate limiting, XSS, file upload)
 - Phase 2: Performance optimization tests (query reduction verified)
-- Phase 4: 31 infrastructure tests (account lockout, audit logging, error handling)
-- Phase 5: 5 monitoring tests (health check endpoint)
+- Phase 4: 31+ infrastructure tests (account lockout, audit logging, Celery)
+- Phase 5: Monitoring tests (health check endpoint)
+- Phase 6: Authentication tests (password reset)
+- Phase 7: Badge system tests
 
 ### Performance Optimizations
 
@@ -246,17 +248,21 @@ Starview is a specialized, community-driven platform built specifically for the 
 
 ## Frontend
 
-**Status:** In Development
+**Status:** React application in active development
 
-**Planned Tech Stack:**
-- To be determined
+**Tech Stack:**
+- React 18 with React Router
+- CSS with custom variables (dark/light theme)
+- Mapbox GL JS for maps
+- Font Awesome icons
 
-**Features:**
+**Implemented Features:**
 - Interactive map interface for location discovery
-- Responsive design for mobile and desktop
+- User authentication (login, register, password reset)
+- Profile page with badge display
+- Settings page with tabbed interface
 - Photo gallery and review interfaces
-- User authentication and profile management
-- Real-time updates for votes and comments
+- Responsive design for mobile and desktop
 
 ---
 
@@ -330,12 +336,15 @@ Required variables in `.env`:
 # Django Core
 DJANGO_SECRET_KEY=your-secret-key-here
 DEBUG=True  # False in production
-ALLOWED_HOSTS=127.0.0.1,localhost
-CSRF_TRUSTED_ORIGINS=http://localhost:8000
+ALLOWED_HOSTS=127.0.0.1,localhost,testserver
+CSRF_TRUSTED_ORIGINS=  # Empty for dev, https://starview.app for production
+
+# CORS (for frontend dev server)
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 
 # Database
 DB_ENGINE=postgresql
-DB_NAME=starview_db
+DB_NAME=your_db_name
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 DB_HOST=localhost
@@ -347,7 +356,8 @@ CELERY_ENABLED=False  # True to enable async tasks
 
 # External APIs
 MAPBOX_TOKEN=your_mapbox_token
-TILE_SERVER_URL=http://your-tile-server:3001
+TILE_SERVER_URL=  # Optional: custom tile server
+DISABLE_EXTERNAL_APIS=False
 
 # Media Storage (Cloudflare R2)
 AWS_ACCESS_KEY_ID=your_r2_access_key
@@ -355,6 +365,7 @@ AWS_SECRET_ACCESS_KEY=your_r2_secret_key
 AWS_STORAGE_BUCKET_NAME=starview-media
 CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 R2_PUBLIC_URL=https://pub-xxxxx.r2.dev  # Dev: R2.dev URL, Prod: https://media.starview.app
+USE_R2_STORAGE=False  # False for local dev, True for R2
 
 # Email (AWS SES - separate credentials from R2)
 AWS_SES_ACCESS_KEY_ID=your_ses_access_key
@@ -376,29 +387,6 @@ python manage.py setup_google_oauth
 # Clean up unverified users after 7 days
 python manage.py cleanup_unverified_users --days=7
 ```
-
-### Running Tests
-
-```bash
-# Security tests (Phase 1)
-djvenv/bin/python test_rate_limiting.py
-djvenv/bin/python test_password_reset.py
-djvenv/bin/python test_file_upload.py
-djvenv/bin/python test_xss_sanitization.py
-
-# Performance tests (Phase 2)
-djvenv/bin/python test_query_optimization.py
-djvenv/bin/python test_redis_caching.py
-
-# Infrastructure tests (Phase 4)
-djvenv/bin/python test_account_lockout.py
-djvenv/bin/python test_celery_tasks.py
-
-# Health check tests (Phase 5)
-djvenv/bin/python test_health_check.py
-```
-
----
 
 ## Production Deployment
 
@@ -432,19 +420,22 @@ djvenv/bin/python test_health_check.py
 
 ## Project Status
 
-**Backend:** 96% Complete (20/22 items)
-- Production deployed and live
-- Security audit complete (Phases 1-3: 100%)
-- Infrastructure hardening (Phase 4: 83%)
-- Monitoring (Phase 5: 50%)
+**Backend:** 98% Complete (35/36 items)
+- Production deployed and live at https://starview.app
+- Security audit complete (Phases 1-7: 100%)
+- Infrastructure hardening (Phase 4: 100%)
+- Monitoring (Phase 5: 100%)
+- Authentication enhancements (Phase 6: 100%)
+- Email deliverability (Phase 7: 100%)
+- Optimization (Phase 8: 67%)
 
 **Remaining Backend Work:**
-- Database index optimization (2 hours)
-- Sentry integration for error tracking (1 hour, optional)
+- Database index optimization (2-3 hours)
+- Sentry integration for error tracking (optional)
 
-**Frontend:** Not started
-- Architecture planning in progress
-- Tech stack selection pending
+**Frontend:** React application in development
+- Profile page with badges implemented
+- Settings page with tabs
 
 ---
 
