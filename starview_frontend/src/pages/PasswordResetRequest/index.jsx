@@ -16,7 +16,7 @@ function PasswordResetRequestPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.requestPasswordReset({ email });
+      await authApi.requestPasswordReset({ email });
       setSuccess(true);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to send password reset email. Please try again.';
@@ -36,85 +36,87 @@ function PasswordResetRequestPage() {
 
         {/* Header */}
         <div className="password-reset-header">
-          <h1 className="password-reset-title">Forgot Password?</h1>
+          <h1 className="password-reset-title">Forgot password?</h1>
           <p className="password-reset-subtitle">
             No worries, we'll send you reset instructions.
           </p>
         </div>
 
-          {success ? (
-            <div className="success-message-box">
-              <h3 className="success-title">Check Your Email</h3>
-              <p className="success-description">
-                If an account exists with that email address, you will receive password reset instructions shortly.
-              </p>
-
-              <Link to="/login" className="btn" style={{ marginTop: '24px', display: 'inline-block' }}>
-                Back to Login
-              </Link>
-
-              <p className="success-description security">
-                The link will expire in 1 hour for security purposes.
-              </p>
-            </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="password-reset-form">
-            {error && (
-              <Alert
-                type="error"
-                message={error}
-                onClose={() => setError('')}
-              />
-            )}
-
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (error) setError('');
-                }}
-                className="form-input"
-                placeholder="your.email@example.com"
-                required
-                disabled={loading}
-              />
+        {success ? (
+          <div className="password-reset-success">
+            {/* Success Icon */}
+            <div className="password-reset-success-icon">
+              <i className="fa-solid fa-circle-check"></i>
             </div>
 
-            <button
-              type="submit"
-              className="btn password-reset-btn"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <i className="fa-solid fa-circle-notch fa-spin"></i>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  Send Reset Link
-                </>
-              )}
-            </button>
-          </form>
-        )}
+            <h2 className="password-reset-success-title">Check your email</h2>
+            <p className="password-reset-success-description">
+              If an account exists with that email address, you will receive password reset instructions shortly.
+            </p>
 
-        {!success && (
-          <div className="password-reset-footer">
-            <p className="password-reset-footer-text">
-              Remember your password?{' '}
-              <Link to="/login">
-                Back to Login
-              </Link>
+            <Link to="/login" className="password-reset-btn">
+              Back to login
+            </Link>
+
+            <p className="password-reset-success-note">
+              <i className="fa-solid fa-clock"></i>
+              The link will expire in 1 hour for security purposes.
             </p>
           </div>
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="password-reset-form">
+              {error && (
+                <Alert
+                  type="error"
+                  message={error}
+                  onClose={() => setError('')}
+                />
+              )}
+
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="form-input"
+                  placeholder="you@example.com"
+                  required
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="password-reset-btn"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner password-reset-spinner"></i>
+                    Sending...
+                  </>
+                ) : (
+                  'Send reset link'
+                )}
+              </button>
+            </form>
+
+            <div className="password-reset-footer">
+              <p className="password-reset-footer-text">
+                Remember your password? <Link to="/login">Back to login</Link>
+              </p>
+            </div>
+          </>
         )}
       </div>
     </div>

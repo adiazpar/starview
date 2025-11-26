@@ -1,38 +1,55 @@
-/**
- * PasswordResetConfirmPage.css
- *
- * Centered card layout for password reset confirmation page
- * Matches email verification page styling patterns
+/* Password Reset Confirm Page Styles
+ * Cosmic elegance design matching the Login/Register aesthetic.
+ * Features glass-morphic card with starfield visibility.
  */
 
-/* ============================================================================
-   CONTAINER & LAYOUT
-   ============================================================================ */
+/* ============================================ */
+/* CONTAINER & LAYOUT */
+/* ============================================ */
 
 .password-reset-confirm-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 65px); /* Account for navbar */
-  padding: var(--space-lg);
-  background-color: var(--bg-primary);
+  min-height: calc(100lvh - var(--navbar-height));
+  padding: var(--space-xl) var(--space-lg);
+  padding-top: calc(var(--navbar-height) + var(--space-xl));
 }
 
-/* ============================================================================
-   CARD
-   ============================================================================ */
+@media (max-width: 767px) {
+  .password-reset-confirm-container {
+    padding: var(--space-lg);
+    padding-top: calc(var(--navbar-height-mobile) + var(--space-lg));
+    min-height: calc(100lvh - var(--navbar-height-mobile));
+  }
+}
+
+/* ============================================ */
+/* CARD - Glass morphic style */
+/* ============================================ */
 
 .password-reset-confirm-card {
   width: 100%;
-  max-width: 480px;
-  padding: 40px;
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius);
+  max-width: 420px;
+  padding: var(--space-xl);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeInUp 0.6s ease-out backwards;
 }
 
-/* ============================================================================
-   ICON
-   ============================================================================ */
+@media (max-width: 767px) {
+  .password-reset-confirm-card {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+  }
+}
+
+/* ============================================ */
+/* ICON */
+/* ============================================ */
 
 .password-reset-confirm-icon {
   text-align: center;
@@ -41,185 +58,202 @@
 
 .password-reset-confirm-icon i {
   font-size: 48px;
-  color: var(--info);
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* ============================================================================
-   HEADER
-   ============================================================================ */
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
 
 .password-reset-confirm-header {
   text-align: center;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 .password-reset-confirm-title {
-  color: var(--text-primary);
   font-size: var(--text-2xl);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-md);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
 }
 
 .password-reset-confirm-subtitle {
   color: var(--text-muted);
   font-size: var(--text-sm);
-  font-weight: 300;
+  font-weight: 400;
   line-height: var(--leading-normal);
+  margin: 0;
 }
 
-/* ============================================================================
-   FORM
-   ============================================================================ */
+/* ============================================ */
+/* FORM */
+/* ============================================ */
 
 .password-reset-confirm-form {
-  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* Override default form-group margin since form uses gap */
+.password-reset-confirm-form .form-group {
+  margin-bottom: 0;
 }
 
 /* Alerts */
 .password-reset-confirm-form .alert {
-  margin-bottom: var(--space-md);
-  text-align: left;
+  margin-bottom: 0;
 }
 
-/* Button */
-.password-reset-confirm-btn {
-  width: 100%;
-  font-size: var(--text-sm);
-  font-weight: 500;
-}
+/* ============================================ */
+/* PASSWORD INPUT WRAPPER */
+/* ============================================ */
 
-/* ============================================================================
-   PASSWORD INPUT WRAPPER
-   ============================================================================ */
-
-.password-input-wrapper {
+.password-reset-confirm-input-wrapper {
   position: relative;
   width: 100%;
 }
 
-.password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: var(--space-sm);
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: var(--text-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.password-toggle:hover {
-  color: var(--text-primary);
-}
-
-/* Input with toggle button */
-.password-input-wrapper .form-input {
+.password-reset-confirm-form .form-input.has-toggle {
   padding-right: 48px;
 }
 
-/* ============================================================================
-   PASSWORD REQUIREMENTS
-   ============================================================================ */
-
-/* Password requirements list */
-.register-password-requirements {
-  margin-top: var(--space-sm);
-}
-
-.register-password-requirements ul {
-  list-style: none;
-  padding-left: 16px;
-  margin: 0;
-}
-
-.register-password-requirements li {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  font-weight: 300;
-  margin-bottom: 4px;
+.password-reset-confirm-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
 }
 
-.register-password-requirements li:last-child {
-  margin-bottom: 0;
+.password-reset-confirm-toggle:hover {
+  color: var(--text-secondary);
 }
 
-.register-password-requirements li i {
-  color: var(--error);
-  font-size: var(--text-xs);
-  flex-shrink: 0;
+/* ============================================ */
+/* SUBMIT BUTTON */
+/* ============================================ */
+
+.password-reset-confirm-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-accent);
+  text-decoration: none;
 }
 
-.register-password-requirements li.valid i {
+.password-reset-confirm-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent-hover);
+}
+
+.password-reset-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.password-reset-confirm-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================ */
+/* SUCCESS STATE */
+/* ============================================ */
+
+.password-reset-confirm-success {
+  text-align: center;
+  animation: fadeInUp 0.4s ease-out backwards;
+}
+
+.password-reset-confirm-success-icon {
+  margin-bottom: var(--space-lg);
+}
+
+.password-reset-confirm-success-icon i {
+  font-size: 56px;
   color: var(--success);
 }
 
-/* ============================================================================
-   SUCCESS MESSAGE BOX
-   ============================================================================ */
-
-.success-message-box {
-  text-align: center;
-  padding: var(--space-lg);
-  border-radius: var(--radius);
-}
-
-.success-title {
-  color: var(--text-primary);
+.password-reset-confirm-success-title {
   font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
 }
 
-.success-description {
+.password-reset-confirm-success-description {
   color: var(--text-secondary);
   font-size: var(--text-sm);
-  font-weight: 300;
+  font-weight: 400;
   line-height: var(--leading-normal);
-  margin: 0;
+  margin: 0 0 var(--space-lg) 0;
 }
 
-/* Button in success box */
-.success-message-box .btn {
-  margin-top: var(--space-lg);
-  font-size: var(--text-sm);
-  font-weight: 500;
-}
-
-/* ============================================================================
-   FOOTER
-   ============================================================================ */
+/* ============================================ */
+/* FOOTER */
+/* ============================================ */
 
 .password-reset-confirm-footer {
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--border);
   text-align: center;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--glass-border);
 }
 
 .password-reset-confirm-footer-text {
   color: var(--text-muted);
-  font-size: var(--text-xs);
-  font-weight: 300;
+  font-size: 14px;
+  font-weight: 400;
   margin: 0;
 }
 
 .password-reset-confirm-footer-text a {
-  color: var(--accent);
+  color: var(--accent-light);
   font-weight: 500;
-  text-decoration: underline;
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .password-reset-confirm-footer-text a:hover {
-  color: var(--accent-light);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .password-reset-confirm-card,
+  .password-reset-confirm-success {
+    animation: none;
+  }
 }

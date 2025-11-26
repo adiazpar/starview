@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import authApi from '../../services/auth';
 import Alert from '../../components/shared/Alert';
@@ -93,6 +93,12 @@ function PasswordResetConfirmPage() {
     }
   };
 
+  const isFormValid = passwordValidation.minLength &&
+    passwordValidation.hasUppercase &&
+    passwordValidation.hasNumber &&
+    passwordValidation.hasSpecial &&
+    passwordMatch;
+
   return (
     <div className="password-reset-confirm-container">
       <div className="password-reset-confirm-card">
@@ -103,24 +109,31 @@ function PasswordResetConfirmPage() {
 
         {/* Header */}
         <div className="password-reset-confirm-header">
-          <h1 className="password-reset-confirm-title">Create New Password</h1>
+          <h1 className="password-reset-confirm-title">Create new password</h1>
           <p className="password-reset-confirm-subtitle">
             Your password must be strong and unique.
           </p>
         </div>
 
-          {success ? (
-            <div className="success-message-box">
-              <h3 className="success-title">Password Reset Successful!</h3>
-              <p className="success-description">
-                Your password has been successfully changed. You can now log in with your new password.
-              </p>
-              <Link to="/login" className="btn" style={{ marginTop: '24px', display: 'inline-block' }}>
-                Go to Login
-              </Link>
+        {success ? (
+          <div className="password-reset-confirm-success">
+            {/* Success Icon */}
+            <div className="password-reset-confirm-success-icon">
+              <i className="fa-solid fa-circle-check"></i>
             </div>
+
+            <h2 className="password-reset-confirm-success-title">Password reset successful!</h2>
+            <p className="password-reset-confirm-success-description">
+              Your password has been successfully changed. You can now log in with your new password.
+            </p>
+
+            <Link to="/login" className="password-reset-confirm-btn">
+              Go to login
+            </Link>
+          </div>
         ) : (
-          <form onSubmit={handleSubmit} className="password-reset-confirm-form">
+          <>
+            <form onSubmit={handleSubmit} className="password-reset-confirm-form">
               {error && (
                 <Alert
                   type="error"
@@ -129,120 +142,116 @@ function PasswordResetConfirmPage() {
                 />
               )}
 
+              {/* New Password Field */}
               <div className="form-group">
                 <label htmlFor="password1" className="form-label">
-                  New Password
+                  New password
                 </label>
-                <div className="password-input-wrapper">
+                <div className="password-reset-confirm-input-wrapper">
                   <input
                     type={showPassword1 ? 'text' : 'password'}
                     id="password1"
                     name="password1"
                     value={formData.password1}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder="Enter new password"
                     required
                     disabled={loading}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
-                    className="password-toggle"
+                    className="password-reset-confirm-toggle"
                     onClick={() => setShowPassword1(!showPassword1)}
-                    tabIndex="-1"
+                    aria-label={showPassword1 ? "Hide password" : "Show password"}
+                    tabIndex={-1}
                   >
-                    <i className={`fa-solid fa-eye${showPassword1 ? '-slash' : ''}`}></i>
+                    <i className={`fa-solid ${showPassword1 ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                   </button>
                 </div>
 
                 {/* Password Requirements */}
-                <div className="register-password-requirements">
-                  <ul>
-                    <li className={passwordValidation.minLength ? 'valid' : ''}>
-                      <i className={`fa-solid ${passwordValidation.minLength ? 'fa-check' : 'fa-xmark'}`}></i>
-                      At least 8 characters long
-                    </li>
-                    <li className={passwordValidation.hasUppercase ? 'valid' : ''}>
-                      <i className={`fa-solid ${passwordValidation.hasUppercase ? 'fa-check' : 'fa-xmark'}`}></i>
-                      At least 1 uppercase letter
-                    </li>
-                    <li className={passwordValidation.hasNumber ? 'valid' : ''}>
-                      <i className={`fa-solid ${passwordValidation.hasNumber ? 'fa-check' : 'fa-xmark'}`}></i>
-                      At least 1 number
-                    </li>
-                    <li className={passwordValidation.hasSpecial ? 'valid' : ''}>
-                      <i className={`fa-solid ${passwordValidation.hasSpecial ? 'fa-check' : 'fa-xmark'}`}></i>
-                      At least 1 special character (!@#$%^&*(),.?":{}|&lt;&gt;)
-                    </li>
-                  </ul>
+                <div className="form-hints">
+                  <span className={`form-hint ${passwordValidation.minLength ? 'form-hint--valid' : 'form-hint--error'}`}>
+                    <i className={`fa-solid ${passwordValidation.minLength ? 'fa-check' : 'fa-xmark'}`}></i>
+                    At least 8 characters long
+                  </span>
+                  <span className={`form-hint ${passwordValidation.hasUppercase ? 'form-hint--valid' : 'form-hint--error'}`}>
+                    <i className={`fa-solid ${passwordValidation.hasUppercase ? 'fa-check' : 'fa-xmark'}`}></i>
+                    At least 1 uppercase letter
+                  </span>
+                  <span className={`form-hint ${passwordValidation.hasNumber ? 'form-hint--valid' : 'form-hint--error'}`}>
+                    <i className={`fa-solid ${passwordValidation.hasNumber ? 'fa-check' : 'fa-xmark'}`}></i>
+                    At least 1 number
+                  </span>
+                  <span className={`form-hint ${passwordValidation.hasSpecial ? 'form-hint--valid' : 'form-hint--error'}`}>
+                    <i className={`fa-solid ${passwordValidation.hasSpecial ? 'fa-check' : 'fa-xmark'}`}></i>
+                    At least 1 special character (!@#$%^&*(),.?":{}|&lt;&gt;)
+                  </span>
                 </div>
               </div>
 
+              {/* Confirm Password Field */}
               <div className="form-group">
                 <label htmlFor="password2" className="form-label">
-                  Confirm New Password
+                  Confirm new password
                 </label>
-                <div className="password-input-wrapper">
+                <div className="password-reset-confirm-input-wrapper">
                   <input
                     type={showPassword2 ? 'text' : 'password'}
                     id="password2"
                     name="password2"
                     value={formData.password2}
                     onChange={handleChange}
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder="Confirm new password"
                     required
                     disabled={loading}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
-                    className="password-toggle"
+                    className="password-reset-confirm-toggle"
                     onClick={() => setShowPassword2(!showPassword2)}
-                    tabIndex="-1"
+                    aria-label={showPassword2 ? "Hide password" : "Show password"}
+                    tabIndex={-1}
                   >
-                    <i className={`fa-solid fa-eye${showPassword2 ? '-slash' : ''}`}></i>
+                    <i className={`fa-solid ${showPassword2 ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                   </button>
                 </div>
 
                 {/* Password Match Requirement */}
-                <div className="register-password-requirements">
-                  <ul>
-                    <li className={passwordMatch ? 'valid' : ''}>
-                      <i className={`fa-solid ${passwordMatch ? 'fa-check' : 'fa-xmark'}`}></i>
-                      Passwords match
-                    </li>
-                  </ul>
+                <div className="form-hints">
+                  <span className={`form-hint ${passwordMatch ? 'form-hint--valid' : 'form-hint--error'}`}>
+                    <i className={`fa-solid ${passwordMatch ? 'fa-check' : 'fa-xmark'}`}></i>
+                    Passwords match
+                  </span>
                 </div>
               </div>
 
-            <button
-              type="submit"
-              className="btn password-reset-confirm-btn"
-              disabled={loading || !passwordValidation.minLength || !passwordValidation.hasUppercase || !passwordValidation.hasNumber || !passwordValidation.hasSpecial || !passwordMatch}
-            >
-              {loading ? (
-                <>
-                  <i className="fa-solid fa-circle-notch fa-spin"></i>
-                  Resetting Password...
-                </>
-              ) : (
-                <>
-                  Reset Password
-                </>
-              )}
-            </button>
-          </form>
-        )}
+              <button
+                type="submit"
+                className="password-reset-confirm-btn"
+                disabled={loading || !isFormValid}
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner password-reset-confirm-spinner"></i>
+                    Resetting password...
+                  </>
+                ) : (
+                  'Reset password'
+                )}
+              </button>
+            </form>
 
-        {!success && (
-          <div className="password-reset-confirm-footer">
-            <p className="password-reset-confirm-footer-text">
-              Remember your password?{' '}
-              <Link to="/login">
-                Back to Login
-              </Link>
-            </p>
-          </div>
+            <div className="password-reset-confirm-footer">
+              <p className="password-reset-confirm-footer-text">
+                Remember your password? <Link to="/login">Back to login</Link>
+              </p>
+            </div>
+          </>
         )}
       </div>
     </div>

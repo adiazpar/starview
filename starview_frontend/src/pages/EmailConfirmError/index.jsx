@@ -14,28 +14,34 @@ function EmailConfirmErrorPage() {
     if (errorType === 'expired') {
       return {
         icon: 'fa-solid fa-clock-rotate-left',
-        title: 'Link Expired',
+        iconClass: 'email-confirm-error-icon--expired',
+        title: 'Link expired',
         message: 'This email confirmation link has expired or is invalid. Email confirmation links expire after 3 days for security reasons.',
-        actionText: 'Go to Login',
-        actionLink: '/login'
+        actionText: 'Go to login',
+        actionLink: '/login',
+        showHelp: true
       };
     } else if (errorType === 'already_confirmed') {
       return {
         icon: 'fa-solid fa-triangle-exclamation',
-        title: 'Already Confirmed',
+        iconClass: '',
+        title: 'Already confirmed',
         message: 'This email address has already been confirmed by a different account. If you believe this is an error, please contact support.',
-        actionText: 'Go to Login',
-        actionLink: '/login'
+        actionText: 'Go to login',
+        actionLink: '/login',
+        showHelp: false
       };
     }
 
     // Default error
     return {
       icon: 'fa-solid fa-circle-exclamation',
-      title: 'Confirmation Error',
+      iconClass: 'email-confirm-error-icon--error',
+      title: 'Confirmation error',
       message: 'There was a problem confirming your email address. Please try again or contact support.',
-      actionText: 'Go to Login',
-      actionLink: '/login'
+      actionText: 'Go to login',
+      actionLink: '/login',
+      showHelp: true
     };
   };
 
@@ -45,7 +51,7 @@ function EmailConfirmErrorPage() {
     <div className="email-confirm-error-container">
       <div className="email-confirm-error-card">
         {/* Error Icon */}
-        <div className="email-confirm-error-icon">
+        <div className={`email-confirm-error-icon ${content.iconClass}`}>
           <i className={content.icon}></i>
         </div>
 
@@ -59,13 +65,13 @@ function EmailConfirmErrorPage() {
 
         {/* Actions */}
         <div className="email-confirm-error-actions">
-          <Link to={content.actionLink} className="btn">
-            <span>{content.actionText}</span>
+          <Link to={content.actionLink} className="email-confirm-error-btn">
+            {content.actionText}
           </Link>
         </div>
 
         {/* Additional Help */}
-        {errorType === 'expired' && (
+        {content.showHelp && (
           <p className="email-confirm-error-help">
             Please contact support if you need assistance.
           </p>

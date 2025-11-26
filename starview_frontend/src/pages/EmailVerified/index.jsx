@@ -20,7 +20,7 @@ function EmailVerifiedPage() {
         </div>
 
         {/* Title */}
-        <h1 className="email-verified-title">Email Verified!</h1>
+        <h1 className="email-verified-title">Email verified!</h1>
 
         {/* Message */}
         <p className="email-verified-message">
@@ -29,8 +29,8 @@ function EmailVerifiedPage() {
 
         {/* Actions */}
         <div className="email-verified-actions">
-          <Link to="/login" className="btn">
-            <span>Go to Login</span>
+          <Link to="/login" className="email-verified-btn">
+            Go to login
           </Link>
         </div>
 
