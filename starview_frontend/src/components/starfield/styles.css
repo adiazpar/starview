@@ -301,9 +301,19 @@
   }
 }
 
-/* Light theme - hide starfield */
+/* Light theme - invert colors for light background with dark stars */
 [data-theme="light"] .starfield {
-  opacity: 0;
+  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+}
+
+[data-theme="light"] .stars-sm,
+[data-theme="light"] .stars-md,
+[data-theme="light"] .stars-lg {
+  filter: invert(1) opacity(0.15);
+}
+
+[data-theme="light"] .shooting-star {
+  filter: invert(1) opacity(0.3);
 }
 
 /* Interactive canvas layer */

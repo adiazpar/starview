@@ -62,6 +62,9 @@ function Starfield() {
 
     const { x: mouseX, y: mouseY } = mouseRef.current;
 
+    // Check if light mode is active
+    const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
+
     starsRef.current.forEach(star => {
       // Calculate distance from mouse
       const dx = star.x - mouseX;
@@ -98,16 +101,20 @@ function Starfield() {
       // Draw star
       const size = star.baseSize * star.currentScale;
 
+      // Use dark colors for light mode, light colors for dark mode
+      const lightness = isLightMode ? 20 : star.lightness;
+      const alpha = isLightMode ? star.currentAlpha * 0.3 : star.currentAlpha;
+
       ctx.beginPath();
       ctx.arc(star.x, star.y, size / 2, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${star.hue}, ${star.saturation}%, ${star.lightness}%, ${star.currentAlpha})`;
+      ctx.fillStyle = `hsla(${star.hue}, ${star.saturation}%, ${lightness}%, ${alpha})`;
       ctx.fill();
 
       // Add glow effect for stars near cursor
       if (star.currentScale > 1.2) {
         ctx.beginPath();
         ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${star.hue}, ${star.saturation}%, ${star.lightness}%, ${star.currentAlpha * 0.3})`;
+        ctx.fillStyle = `hsla(${star.hue}, ${star.saturation}%, ${lightness}%, ${alpha * 0.3})`;
         ctx.fill();
       }
     });

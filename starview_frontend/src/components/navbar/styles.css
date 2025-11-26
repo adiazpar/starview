@@ -305,3 +305,7 @@
 [data-theme="light"] .navbar__hamburger-line::after {
   background: var(--text-secondary);
 }
+
+[data-theme="light"] .navbar__hamburger-line.open {
+  background: transparent;
+}
