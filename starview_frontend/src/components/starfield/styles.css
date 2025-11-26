@@ -13,6 +13,8 @@
   pointer-events: none;
   z-index: -1;
   background: linear-gradient(to bottom, #0d1117 0%, #0f172a 50%, #1a1a2e 100%);
+  /* Ensure touch events fire while allowing scrolling */
+  touch-action: manipulation;
 }
 
 /* Star layers - each moves at different speed for parallax */
@@ -309,11 +311,11 @@
 [data-theme="light"] .stars-sm,
 [data-theme="light"] .stars-md,
 [data-theme="light"] .stars-lg {
-  filter: invert(1) opacity(0.15);
+  filter: invert(1);
 }
 
 [data-theme="light"] .shooting-star {
-  filter: invert(1) opacity(0.3);
+  filter: invert(1);
 }
 
 /* Interactive canvas layer */
@@ -325,4 +327,6 @@
   height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
   pointer-events: none;
   z-index: 20;
+  /* Allow touch interaction while preserving vertical scroll */
+  touch-action: pan-y;
 }
