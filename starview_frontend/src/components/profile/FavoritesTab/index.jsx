@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profileApi from '../../../services/profile';
-import Alert from '../../shared/alert';
+import Alert from '../../shared/Alert';
 import './styles.css';
 
 /**

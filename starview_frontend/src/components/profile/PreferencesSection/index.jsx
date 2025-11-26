@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTheme } from '../../../hooks/useTheme';
-import Alert from '../../shared/alert';
+import Alert from '../../shared/Alert';
 import CollapsibleSection from '../CollapsibleSection';
 import './styles.css';
 

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import profileApi from '../../services/profile';
 import { mapBadgeIdsToBadges } from '../../utils/badges';
 import usePinnedBadges from '../../hooks/usePinnedBadges';
-import Alert from '../../components/shared/alert';
+import Alert from '../../components/shared/Alert';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import SettingsTab from '../../components/profile/SettingsTab';
 import BadgesTab from '../../components/profile/BadgesTab';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Alert from '../../components/shared/alert';
+import Alert from '../../components/shared/Alert';
 import './styles.css';
 
 function VerifyEmailPage() {

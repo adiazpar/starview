@@ -7,7 +7,7 @@ import { mapBadgeIdsToBadges } from '../../utils/badges';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileStats from '../../components/profile/ProfileStats';
 import BadgeSection from '../../components/badges/BadgeSection';
-import Alert from '../../components/shared/alert';
+import Alert from '../../components/shared/Alert';
 import './styles.css';
 
 /**

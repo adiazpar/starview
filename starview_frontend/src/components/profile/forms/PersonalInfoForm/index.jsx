@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/alert';
+import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
 
 function PersonalInfoForm({ user, refreshAuth }) {

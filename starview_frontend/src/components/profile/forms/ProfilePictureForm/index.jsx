@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/alert';
+import Alert from '../../../shared/Alert';
 import './styles.css';
 
 function ProfilePictureForm({ user, refreshAuth }) {

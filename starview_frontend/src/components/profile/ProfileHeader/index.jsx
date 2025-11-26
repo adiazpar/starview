@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { publicUserApi } from '../../../services/profile';
-import Alert from '../../shared/alert';
+import Alert from '../../shared/Alert';
 import PinnedBadges from '../../badges/PinnedBadges';
 import BadgeModal from '../../badges/BadgeModal';
 import './styles.css';

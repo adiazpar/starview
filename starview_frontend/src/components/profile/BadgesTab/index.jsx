@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Alert from '../../shared/alert';
+import Alert from '../../shared/Alert';
 import BadgeCard from '../../badges/BadgeCard';
 import './styles.css';
 

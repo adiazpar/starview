@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/alert';
+import Alert from '../../../shared/Alert';
 
 function EmailForm({ user, refreshAuth }) {
   const [email, setEmail] = useState(user?.email || '');

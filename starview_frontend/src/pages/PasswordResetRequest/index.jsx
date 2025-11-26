@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import authApi from '../../services/auth';
-import Alert from '../../components/shared/alert';
+import Alert from '../../components/shared/Alert';
 import './styles.css';
 
 function PasswordResetRequestPage() {
