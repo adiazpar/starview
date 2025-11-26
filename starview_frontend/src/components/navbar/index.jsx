@@ -1,3 +1,8 @@
+/* Navbar Component
+ * Minimal inline navigation with logo left, links right.
+ * Features transparent background with subtle blur and accent CTA.
+ */
+
 import { Link, NavLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
@@ -14,82 +19,67 @@ function Navbar() {
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
-  // Listen for system theme changes (only needed for auto mode logo switching)
+  // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      setSystemPrefersDark(e.matches);
-    };
+    const handleChange = (e) => setSystemPrefersDark(e.matches);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Determine which logo to show based on theme setting and system preference
   const effectiveTheme = theme === 'auto'
     ? (systemPrefersDark ? 'dark' : 'light')
     : theme;
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
-  };
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   // Handle backdrop visibility with delay for fade-out animation
   useEffect(() => {
     if (mobileMenuOpen) {
-      // Show backdrop immediately when opening
       setBackdropVisible(true);
       setBackdropClosing(false);
     } else if (backdropVisible) {
-      // Start closing animation
       setBackdropClosing(true);
-      // When closing, wait for animation to finish before hiding
       const timer = setTimeout(() => {
         setBackdropVisible(false);
         setBackdropClosing(false);
-      }, 300); // Match animation duration
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [mobileMenuOpen, backdropVisible]);
 
   return (
     <nav className="navbar">
-      <div className="navbar-container">
-
+      <div className="navbar__container">
         {/* Logo */}
-        <Link to="/" className="navbar-logo">
+        <Link to="/" className="navbar__logo">
           <img
             src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
-            alt="Starview Logo"
-            className="logo-size"
+            alt="Starview"
+            className="navbar__logo-img"
           />
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <div className="navbar-nav">
-          <NavLink to="/" className="navbar-link" end>Home</NavLink>
-          <NavLink to="/map" className="navbar-link">Map</NavLink>
-          <NavLink to="/explore" className="navbar-link">Explore</NavLink>
+        {/* Desktop Navigation */}
+        <div className="navbar__nav">
+          <NavLink to="/" className="navbar__link" end>Home</NavLink>
+          <NavLink to="/map" className="navbar__link">Map</NavLink>
+          <NavLink to="/explore" className="navbar__link">Explore</NavLink>
 
           {isAuthenticated ? (
-            // Authenticated: Show Profile and Logout
             <>
-              <NavLink to={`/users/${user?.username}`} className="navbar-link">Profile</NavLink>
-              <button onClick={logout} className="navbar-link login-btn">
+              <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
+              <button onClick={logout} className="navbar__link navbar__link--cta">
                 <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                Logout
+                <span>Logout</span>
               </button>
             </>
           ) : (
-            // Not authenticated: Show Register and Login
             <>
-              <NavLink to="/register" className="navbar-link">Register</NavLink>
-              <NavLink to="/login" className="navbar-link login-btn">
-                <i className="fa-solid fa-arrow-right-to-bracket"></i>
-                Login
+              <NavLink to="/login" className="navbar__link">Login</NavLink>
+              <NavLink to="/register" className="navbar__link navbar__link--cta">
+                Get Started
               </NavLink>
             </>
           )}
@@ -97,56 +87,52 @@ function Navbar() {
 
         {/* Hamburger Button */}
         <button
-          className="navbar-hamburger"
+          className="navbar__hamburger"
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
         >
-          <i className={mobileMenuOpen ? "fa-solid fa-xmark" : "fa-solid fa-bars"}></i>
+          <span className={`navbar__hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
         </button>
 
         {/* Mobile Menu */}
-        <div className={`navbar-mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-          <NavLink to="/" className="navbar-mobile-link" onClick={closeMobileMenu} end>
+        <div className={`navbar__mobile ${mobileMenuOpen ? 'navbar__mobile--open' : ''}`}>
+          <NavLink to="/" className="navbar__mobile-link" onClick={closeMobileMenu} end>
             <i className="fa-regular fa-house"></i>
             Home
           </NavLink>
-          <NavLink to="/map" className="navbar-mobile-link" onClick={closeMobileMenu}>
+          <NavLink to="/map" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-solid fa-earth-europe"></i>
             Map
           </NavLink>
-          <NavLink to="/explore" className="navbar-mobile-link" onClick={closeMobileMenu}>
+          <NavLink to="/explore" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-solid fa-magnifying-glass"></i>
             Explore
           </NavLink>
 
           {isAuthenticated ? (
-            // Authenticated: Show Profile and Logout
             <>
-              <NavLink to={`/users/${user?.username}`} className="navbar-mobile-link" onClick={closeMobileMenu}>
+              <NavLink to={`/users/${user?.username}`} className="navbar__mobile-link" onClick={closeMobileMenu}>
                 <i className="fa-regular fa-user"></i>
                 Profile
               </NavLink>
               <button
-                onClick={() => {
-                  closeMobileMenu();
-                  logout();
-                }}
-                className="navbar-mobile-link"
+                onClick={() => { closeMobileMenu(); logout(); }}
+                className="navbar__mobile-link"
               >
                 <i className="fa-solid fa-arrow-right-from-bracket"></i>
                 Logout
               </button>
             </>
           ) : (
-            // Not authenticated: Show Register and Login
             <>
-              <NavLink to="/register" className="navbar-mobile-link" onClick={closeMobileMenu}>
-                <i className="fa-regular fa-user"></i>
-                Register
-              </NavLink>
-              <NavLink to="/login" className="navbar-mobile-link" onClick={closeMobileMenu}>
+              <NavLink to="/login" className="navbar__mobile-link" onClick={closeMobileMenu}>
                 <i className="fa-solid fa-arrow-right-to-bracket"></i>
                 Login
+              </NavLink>
+              <NavLink to="/register" className="navbar__mobile-link navbar__mobile-link--cta" onClick={closeMobileMenu}>
+                <i className="fa-regular fa-user"></i>
+                Get Started
               </NavLink>
             </>
           )}
@@ -155,7 +141,7 @@ function Navbar() {
         {/* Mobile Menu Backdrop */}
         {backdropVisible && (
           <div
-            className={`navbar-mobile-backdrop ${backdropClosing ? 'closing' : ''}`}
+            className={`navbar__backdrop ${backdropClosing ? 'navbar__backdrop--closing' : ''}`}
             onClick={closeMobileMenu}
           ></div>
         )}

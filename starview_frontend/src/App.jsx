@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/navbar';
+import Starfield from './components/starfield';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/Home';
 import LoginPage from './pages/Login';
@@ -18,6 +19,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Starfield />
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />

@@ -143,8 +143,13 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   color: var(--text-primary);
-  background-color: var(--bg-primary);
+  background-color: transparent;
   min-height: 100vh;
+}
+
+/* Root element needs the background for light theme fallback */
+#root {
+  background-color: transparent;
 }
 
 img {
