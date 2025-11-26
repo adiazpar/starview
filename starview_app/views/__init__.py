@@ -66,6 +66,11 @@ from .views_health import (
     health_check,
 )
 
+# Stats views:
+from .views_stats import (
+    get_platform_stats,
+)
+
 # Expose all views for easier imports:
 __all__ = [
     # Location views
@@ -103,4 +108,7 @@ __all__ = [
 
     # Health check views
     'health_check',
+
+    # Stats views
+    'get_platform_stats',
 ]

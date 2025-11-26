@@ -52,6 +52,8 @@ from .views import (
     confirm_password_reset,
     # Health check views
     health_check,
+    # Stats views
+    get_platform_stats,
 )
 
 router = DefaultRouter()
@@ -71,6 +73,9 @@ reviews_router.register(r'comments', CommentViewSet, basename='review-comments')
 urlpatterns = [
     # Health check (for load balancer monitoring):
     path('health/', health_check, name='health_check'),
+
+    # Platform stats (for home page):
+    path('api/stats/', get_platform_stats, name='platform_stats'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),

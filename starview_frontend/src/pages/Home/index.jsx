@@ -1,12 +1,43 @@
 /* Home Page
  * Landing page with cosmic elegance design.
- * Features animated hero, stat badges, and feature highlights.
+ * Features animated hero, real platform stats, and feature highlights.
  */
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import statsApi from '../../services/stats';
 import './styles.css';
 
+// Minimum threshold to show stats (hide if below this)
+const STATS_THRESHOLD = 10;
+
 function HomePage() {
+  const [stats, setStats] = useState(null);
+  const [showStats, setShowStats] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await statsApi.getPlatformStats();
+        setStats(data);
+
+        // Only show stats if all counts are above threshold
+        const meetsThreshold =
+          data.locations.count >= STATS_THRESHOLD &&
+          data.reviews.count >= STATS_THRESHOLD &&
+          data.stargazers.count >= STATS_THRESHOLD;
+
+        setShowStats(meetsThreshold);
+      } catch (error) {
+        // Silently fail - stats are not critical
+        console.error('Failed to fetch stats:', error);
+        setShowStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <main className="home">
       {/* Hero Section */}
@@ -36,23 +67,29 @@ function HomePage() {
             </Link>
           </div>
 
-          {/* Stats */}
-          <div className="hero__stats">
-            <div className="hero__stat">
-              <span className="hero__stat-value">2.4k+</span>
-              <span className="hero__stat-label">Locations</span>
+          {/* Stats - only shown if above threshold */}
+          {showStats && stats ? (
+            <div className="hero__stats">
+              <div className="hero__stat">
+                <span className="hero__stat-value">{stats.locations.formatted}</span>
+                <span className="hero__stat-label">Locations</span>
+              </div>
+              <div className="hero__stat-divider"></div>
+              <div className="hero__stat">
+                <span className="hero__stat-value">{stats.reviews.formatted}</span>
+                <span className="hero__stat-label">Reviews</span>
+              </div>
+              <div className="hero__stat-divider"></div>
+              <div className="hero__stat">
+                <span className="hero__stat-value">{stats.stargazers.formatted}</span>
+                <span className="hero__stat-label">Stargazers</span>
+              </div>
             </div>
-            <div className="hero__stat-divider"></div>
-            <div className="hero__stat">
-              <span className="hero__stat-value">12k+</span>
-              <span className="hero__stat-label">Reviews</span>
-            </div>
-            <div className="hero__stat-divider"></div>
-            <div className="hero__stat">
-              <span className="hero__stat-value">8.5k+</span>
-              <span className="hero__stat-label">Stargazers</span>
-            </div>
-          </div>
+          ) : (
+            <p className="hero__community-note">
+              Join our growing community of stargazers
+            </p>
+          )}
         </div>
 
         {/* Decorative glow */}

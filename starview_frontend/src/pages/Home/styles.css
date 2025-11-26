@@ -126,6 +126,13 @@
   animation: fadeInUp 0.6s ease-out 0.4s backwards;
 }
 
+/* Fallback message when stats are below threshold */
+.hero__community-note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
 .hero__stat {
   text-align: center;
 }
