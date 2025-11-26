@@ -8,7 +8,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(100lvh + 100px); /* Extra height to prevent gradient lag on mobile browser bar retraction */
+  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
   overflow: hidden;
   pointer-events: none;
   z-index: -1;
@@ -322,7 +322,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(100lvh + 100px); /* Match starfield height */
+  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
   pointer-events: none;
   z-index: 20;
 }

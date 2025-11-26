@@ -140,8 +140,7 @@ function Starfield() {
     if (!canvas) return;
 
     const newWidth = window.innerWidth;
-    // Add extra height buffer to prevent gradient lag on mobile browser bar retraction
-    const newHeight = window.innerHeight + 100;
+    const newHeight = window.innerHeight;
     const widthChanged = newWidth !== lastWidthRef.current;
 
     // Always update canvas dimensions for proper rendering
