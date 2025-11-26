@@ -1,29 +1,34 @@
-/* ProfileStats Component Styles */
+/* ProfileStats Component Styles
+ * Glass-morphic stat cards matching the new design system.
+ */
 
 .profile-stats {
   margin-bottom: var(--space-lg);
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
 .profile-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-md);
 }
 
+/* Stat Card - Glass style */
 .profile-stat-card {
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-lg);
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  box-shadow: var(--shadow);
-  transition: transform var(--transition) ease, box-shadow var(--transition) ease;
+  transition: all 0.2s ease;
 }
 
 .profile-stat-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
 }
 
 .profile-stat-icon {
@@ -32,9 +37,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  background: var(--bg-primary);
-  border-radius: var(--radius);
+  font-size: var(--text-xl);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
   flex-shrink: 0;
 }
 
@@ -45,19 +51,21 @@
 
 .profile-stat-value {
   font-size: var(--text-2xl);
-  font-weight: 700;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
 }
 
 .profile-stat-label {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin-top: var(--space-sm);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .profile-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -65,20 +73,35 @@
 
 @media (max-width: 480px) {
   .profile-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
   }
 
   .profile-stat-card {
     padding: var(--space-md);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
   }
 
   .profile-stat-icon {
     width: 40px;
     height: 40px;
-    font-size: 20px;
+    font-size: var(--text-lg);
   }
 
   .profile-stat-value {
     font-size: var(--text-xl);
+  }
+
+  .profile-stat-label {
+    font-size: var(--text-xs);
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .profile-stats {
+    animation: none;
   }
 }

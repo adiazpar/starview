@@ -21,7 +21,7 @@
   grid-template-rows: 1fr;
   transition: grid-template-rows 0.2s ease-in-out, opacity 0.2s ease-in-out;
   opacity: 1;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 
 .badge-section-content.collapsing {
@@ -30,11 +30,14 @@
   margin-top: 0;
 }
 
-/* Inner wrapper to handle overflow during animation */
+/* Inner wrapper to handle overflow during animation - Glass style */
 .badge-section-content-inner {
   overflow: hidden;
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Padding wrapper - keeps padding constant, hidden by overflow */
@@ -49,14 +52,14 @@
 .badge-section-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 16px;
+  gap: var(--space-md);
   margin-bottom: var(--space-md);
 }
 
 @media (min-width: 768px) {
   .badge-section-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 140px));
-    gap: 20px;
+    gap: var(--space-lg);
   }
 }
 
@@ -91,14 +94,14 @@
 .badge-section-hint {
   color: var(--text-muted);
   font-size: var(--text-xs);
-  font-weight: 300;
+  font-weight: 400;
   padding-top: var(--space-md);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
 
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-xs);
 }
 
 /* ========================================================================
@@ -107,6 +110,6 @@
 
 @media (max-width: 768px) {
   .badge-section-grid {
-    gap: 12px;
+    gap: var(--space-sm);
   }
 }

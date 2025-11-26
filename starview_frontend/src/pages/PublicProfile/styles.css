@@ -1,26 +1,46 @@
-/* PublicProfilePage Component Styles */
+/* PublicProfilePage Component Styles
+ * Uses glass-morphic design matching Login/Register pages.
+ * Background is transparent to show starfield.
+ */
 
 .public-profile-page {
-  min-height: calc(100vh - 64px);
-  background-color: var(--bg-primary);
-  padding: var(--space-xl) 5%;
+  min-height: calc(100lvh - var(--navbar-height));
+  padding-top: var(--navbar-height);
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+  padding-bottom: var(--space-xl);
+}
+
+@media (max-width: 767px) {
+  .public-profile-page {
+    padding-top: var(--navbar-height-mobile);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
 }
 
 .public-profile-container {
   max-width: var(--container-max);
   margin: 0 auto;
+  padding-top: var(--space-xl);
 }
 
+/* Reviews Section - Glass card style */
 .public-profile-reviews {
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
   padding: var(--space-xl);
-  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
 }
 
+/* Section Title */
 .section-title {
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0 0 var(--space-lg) 0;
   display: flex;
@@ -29,7 +49,7 @@
 }
 
 .section-title i {
-  color: var(--accent);
+  color: var(--accent-light);
 }
 
 /* Reviews List */
@@ -39,16 +59,18 @@
   gap: var(--space-md);
 }
 
+/* Review Card - Glass style */
 .review-card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-lg);
-  transition: box-shadow var(--transition) ease, transform var(--transition) ease;
+  transition: all 0.2s ease;
 }
 
 .review-card:hover {
-  box-shadow: var(--shadow);
+  background: var(--glass-border);
+  border-color: var(--glass-border-hover);
   transform: translateY(-2px);
 }
 
@@ -62,7 +84,7 @@
 
 .review-location-name {
   font-size: var(--text-lg);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   margin: 0;
 }
 
@@ -78,7 +100,7 @@
 
 .review-rating {
   display: flex;
-  gap: 4px;
+  gap: var(--space-xs);
   flex-shrink: 0;
 }
 
@@ -126,16 +148,17 @@
 .empty-state i {
   font-size: 48px;
   color: var(--text-muted);
+  opacity: 0.5;
   margin-bottom: var(--space-md);
 }
 
 .empty-state p {
   margin: var(--space-sm) 0;
+  color: var(--text-muted);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-
   .public-profile-reviews {
     padding: var(--space-lg);
   }
@@ -152,5 +175,12 @@
   .review-metadata {
     flex-direction: column;
     gap: var(--space-sm);
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .public-profile-reviews {
+    animation: none;
   }
 }

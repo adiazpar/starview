@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import BadgeCard from '../BadgeCard';
 import './styles.css';
 
@@ -6,7 +7,8 @@ import './styles.css';
  * BadgeModal - Modal overlay showing full badge details
  *
  * Displays a BadgeCard component in a centered modal with dark overlay.
- * Allows user to view detailed badge information (description, earned date, etc.)
+ * Uses React Portal to render at document.body level, escaping any
+ * backdrop-filter containing blocks that would break fixed positioning.
  *
  * Props:
  * - badge: Badge object to display
@@ -30,6 +32,7 @@ function BadgeModal({ badge, state, earnedAt, progress, onClose }) {
 
   // Prevent body scroll when modal is open
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -42,7 +45,9 @@ function BadgeModal({ badge, state, earnedAt, progress, onClose }) {
     }
   };
 
-  return (
+  // Use Portal to render modal at document.body level
+  // This escapes backdrop-filter containing blocks in parent components
+  return createPortal(
     <div className="badge-modal-overlay" onClick={handleOverlayClick}>
       <div className="badge-modal-content">
         {/* Close button */}
@@ -63,7 +68,8 @@ function BadgeModal({ badge, state, earnedAt, progress, onClose }) {
           canPin={false}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
