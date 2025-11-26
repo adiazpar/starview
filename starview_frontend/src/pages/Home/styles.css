@@ -5,7 +5,7 @@
 
 .home {
   position: relative;
-  min-height: 100vh;
+  min-height: 100lvh;
 }
 
 /* ============================================ */
@@ -14,11 +14,11 @@
 
 .hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 100lvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px var(--space-lg) 80px;
+  padding: 200px var(--space-lg) 80px;
   overflow: hidden;
 }
 
@@ -369,7 +369,7 @@
 
 @media (max-width: 768px) {
   .hero {
-    padding: 100px var(--space-xl) 60px;
+    padding: 200px var(--space-xl) 60px;
     min-height: auto;
   }
 
