@@ -110,6 +110,7 @@
 }
 
 .navbar__hamburger.open span:nth-child(2) {
+  transform: translateX(-20px);
   opacity: 0;
 }
 
