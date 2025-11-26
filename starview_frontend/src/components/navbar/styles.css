@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  background: rgba(15, 23, 42, 0.7);
+  background: lch(7.96% 14.45 283.28 / 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -19,10 +19,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 72px;
+  height: var(--navbar-height);
 }
 
 /* Logo */
@@ -273,7 +273,7 @@
 
   .navbar__container {
     padding: 0 16px;
-    height: 64px;
+    height: var(--navbar-height-mobile);
   }
 
   .navbar__logo-img {

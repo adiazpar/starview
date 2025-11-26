@@ -61,12 +61,26 @@
   /* Shadow */
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 
+  /* Glass Card - Transparent elevation (Linear-inspired) */
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(255, 255, 255, 0.1);
+
+  /* Decorative Glow */
+  --glow-primary: rgba(37, 99, 235, 0.15);
+  --glow-secondary: rgba(139, 92, 246, 0.08);
+
   /* Transition */
   --transition: 0.15s;
 
   /* Z-Index */
   --z-navbar: 30;
   --z-modal: 50;
+
+  /* Layout - Navbar */
+  --navbar-height: 72px;
+  --navbar-height-mobile: 64px;
 
   /* Typography */
   --font-family: 'Inter', sans-serif;
@@ -111,6 +125,16 @@
   --star-empty: #d1d5db;
 
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* Glass Card - Light theme */
+  --glass-bg: rgba(0, 0, 0, 0.02);
+  --glass-bg-hover: rgba(0, 0, 0, 0.04);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.1);
+
+  /* Decorative Glow - Light theme */
+  --glow-primary: rgba(217, 119, 6, 0.1);
+  --glow-secondary: rgba(234, 88, 12, 0.05);
 }
 
 
@@ -269,20 +293,40 @@ button {
   color: var(--text-secondary);
 }
 
+/* Glass Card - Transparent/frosted style (Linear-inspired) */
+.card-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
+  padding: var(--space-xl);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.card-glass:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.card-glass--interactive:hover {
+  transform: translateY(-4px);
+}
+
 
 
 /* ============================================ */
-/* FORMS */
+/* FORMS - Glass-morphic style (Linear-inspired) */
 /* ============================================ */
 
 .form-group {
-  font-weight: 300;
+  margin-bottom: var(--space-lg);
 }
 
 .form-label {
   display: block;
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
+  font-size: 13px;
+  font-weight: var(--font-medium);
   color: var(--text-secondary);
   margin-bottom: var(--space-sm);
 }
@@ -290,24 +334,39 @@ button {
 .form-input,
 .form-textarea {
   width: 100%;
-  padding: 10px 16px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border-hover);
   border-radius: var(--radius);
   color: var(--text-primary);
   font-family: inherit;
+  font-size: 15px;
+  line-height: 22px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+.form-input:hover,
+.form-textarea:hover {
+  border-color: var(--glass-border-hover);
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--border-focus);
+  border-color: var(--accent);
+  background: var(--glass-bg-hover);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.form-input:disabled,
+.form-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .form-input.error,
@@ -323,13 +382,13 @@ button {
 .form-hint {
   color: var(--text-muted);
   font-size: var(--text-xs);
-  font-weight: 300;
+  font-weight: 400;
   margin-top: var(--space-sm);
   margin-bottom: 0;
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 0 16px;
+  padding: 0;
 }
 
 .form-hint i {
@@ -337,4 +396,111 @@ button {
   font-size: var(--text-xs);
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+/* Checkbox - Custom glass-morphic style */
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.form-checkbox input[type="checkbox"]:hover {
+  border-color: var(--accent);
+}
+
+.form-checkbox input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.form-checkbox input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.form-checkbox input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.form-checkbox input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-checkbox-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation utility classes with staggered delays */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.animate-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-3 {
+  animation-delay: 0.3s;
+}
+
+.animate-delay-4 {
+  animation-delay: 0.4s;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  [class*="animate-delay-"] {
+    animation: none;
+  }
 }

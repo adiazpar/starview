@@ -158,7 +158,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Decorative glow */
+/* Decorative glow - Uses global glow tokens */
 .hero__glow {
   position: absolute;
   top: 20%;
@@ -168,8 +168,8 @@
   height: 400px;
   background: radial-gradient(
     ellipse at center,
-    rgba(37, 99, 235, 0.15) 0%,
-    rgba(139, 92, 246, 0.08) 40%,
+    var(--glow-primary) 0%,
+    var(--glow-secondary) 40%,
     transparent 70%
   );
   filter: blur(60px);
@@ -220,19 +220,19 @@
   gap: var(--space-lg);
 }
 
-/* Feature Card */
+/* Feature Card - Uses global .card-glass tokens */
 .feature-card {
   position: relative;
   padding: var(--space-xl);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: calc(var(--radius) * 2);
   transition: all 0.3s ease;
 }
 
 .feature-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
   transform: translateY(-4px);
 }
 
@@ -284,10 +284,10 @@
   padding: calc(var(--space-xl) * 2) 48px;
   background: linear-gradient(
     135deg,
-    rgba(37, 99, 235, 0.1) 0%,
-    rgba(139, 92, 246, 0.1) 100%
+    var(--glow-primary) 0%,
+    var(--glow-secondary) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
   border-radius: calc(var(--radius) * 3);
   overflow: hidden;
 }
@@ -301,7 +301,7 @@
   height: 200%;
   background: radial-gradient(
     circle at 30% 30%,
-    rgba(37, 99, 235, 0.15) 0%,
+    var(--glow-primary) 0%,
     transparent 50%
   );
   pointer-events: none;
@@ -353,21 +353,6 @@
 
 .cta__btn:hover i {
   transform: translateX(3px);
-}
-
-/* ============================================ */
-/* ANIMATIONS */
-/* ============================================ */
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ============================================ */
@@ -468,41 +453,7 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .hero__glow {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(217, 119, 6, 0.1) 0%,
-    rgba(234, 88, 12, 0.05) 40%,
-    transparent 70%
-  );
-}
-
-[data-theme="light"] .feature-card {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .feature-card:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .cta__content {
-  background: linear-gradient(
-    135deg,
-    rgba(217, 119, 6, 0.08) 0%,
-    rgba(234, 88, 12, 0.08) 100%
-  );
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .cta__content::before {
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(217, 119, 6, 0.1) 0%,
-    transparent 50%
-  );
-}
+/* Light theme overrides now handled by CSS variables in global.css */
 
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {

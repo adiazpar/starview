@@ -91,14 +91,14 @@ function LoginPage() {
     <div className="login-container">
       {/* Hero Panel (Desktop Only) */}
       <div className="login-hero">
-        <div className="login-hero-attribution">
-          Designed by Freepik
-        </div>
         <div className="login-hero-overlay">
-          <h1 className="login-hero-title">Discover The Universe</h1>
+          <h1 className="login-hero-title">
+            Find Your Perfect
+            <span className="login-hero-title-accent"> Dark Sky</span>
+          </h1>
           <p className="login-hero-subtitle">
-            Explore breathtaking stargazing locations, share your cosmic discoveries,
-            and connect with fellow astronomy enthusiasts around the world.
+            Join a community of astronomers sharing the best locations
+            for observing the night sky. Rate, review, and explore.
           </p>
         </div>
       </div>
@@ -108,9 +108,9 @@ function LoginPage() {
         <div className="login-form-content">
           {/* Header */}
           <div className="login-form-header">
-            <h2 className="login-form-title">Your Gateway To The Stars</h2>
+            <h2 className="login-form-title">Welcome back</h2>
             <p className="login-form-subtitle">
-              Ready to embark on your next stargazing adventure? Log in now and start your next journey.
+              Sign in to continue exploring the cosmos
             </p>
           </div>
 
@@ -128,14 +128,14 @@ function LoginPage() {
             {/* Username/Email Field */}
             <div className="form-group">
               <label htmlFor="username" className="form-label">
-                Username or Email
+                Email or username
               </label>
               <input
                 type="text"
                 id="username"
                 name="username"
                 className="form-input"
-                placeholder="Enter your username or email"
+                placeholder="you@example.com"
                 value={formData.username}
                 onChange={handleChange}
                 required
@@ -155,7 +155,7 @@ function LoginPage() {
                   id="password"
                   name="password"
                   className="form-input has-toggle"
-                  placeholder="Enter your password"
+                  placeholder="Your password"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -176,7 +176,7 @@ function LoginPage() {
 
             {/* Form Options */}
             <div className="login-form-options">
-              <div className="login-remember-me">
+              <label className="form-checkbox">
                 <input
                   type="checkbox"
                   id="remember"
@@ -189,8 +189,8 @@ function LoginPage() {
                   }}
                   disabled={loading}
                 />
-                <label htmlFor="remember">Remember me</label>
-              </div>
+                <span className="form-checkbox-label">Remember me</span>
+              </label>
               <Link to="/password-reset" className="login-forgot-password">
                 Forgot your password?
               </Link>
@@ -199,18 +199,16 @@ function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="btn login-btn-submit"
+              className="login-btn-submit"
               disabled={loading}
             >
               {loading ? (
                 <>
                   <i className="fa-solid fa-spinner login-spinner"></i>
-                  <span>Logging in...</span>
+                  Signing in...
                 </>
               ) : (
-                <>
-                  <span>Login</span>
-                </>
+                'Sign in'
               )}
             </button>
           </form>
@@ -218,7 +216,7 @@ function LoginPage() {
           {/* Divider */}
           <div className="login-divider">
             <div className="login-divider-line"></div>
-            <span className="login-divider-text">Or</span>
+            <span className="login-divider-text">or</span>
             <div className="login-divider-line"></div>
           </div>
 
@@ -254,7 +252,7 @@ function LoginPage() {
           {/* Signup Link */}
           <div className="login-signup-link">
             <p className="login-signup-text">
-              New to Starview? <Link to="/register">Create an Account</Link>
+              Don't have an account? <Link to="/register">Sign up</Link>
             </p>
           </div>
         </div>
