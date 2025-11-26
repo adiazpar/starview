@@ -491,23 +491,52 @@ button {
   min-height: 120px;
 }
 
+.form-hints {
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: var(--space-sm);
+}
+
 .form-hint {
   color: var(--text-muted);
   font-size: var(--text-xs);
   font-weight: 400;
-  margin-top: var(--space-sm);
-  margin-bottom: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 0;
+  align-items: center;
+  gap: var(--space-sm);
+  transition: color 0.15s ease;
 }
 
 .form-hint i {
+  font-size: 10px;
+  width: 14px;
+  text-align: center;
   color: var(--text-muted);
-  font-size: var(--text-xs);
+  transition: color 0.15s ease;
   flex-shrink: 0;
-  margin-top: 2px;
+}
+
+/* Validation states */
+.form-hint--valid {
+  color: var(--success);
+}
+
+.form-hint--valid i {
+  color: var(--success);
+}
+
+.form-hint--error {
+  color: var(--error);
+}
+
+.form-hint--error i {
+  color: var(--error);
+}
+
+.form-hint--info i {
+  color: var(--info);
 }
 
 /* Checkbox - Custom glass-morphic style */

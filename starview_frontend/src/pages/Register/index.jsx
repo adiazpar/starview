@@ -186,9 +186,12 @@ function RegisterPage() {
                 disabled={loading}
                 autoComplete="username"
               />
-              <p className="form-hint">
-                <i className="fa-solid fa-circle-info"></i> Leave blank to auto-generate a unique username (e.g., user7a3f9b2). You can change it later from your profile.
-              </p>
+              <div className="form-hints">
+                <span className="form-hint form-hint--info">
+                  <i className="fa-solid fa-circle-info"></i>
+                  Leave blank to auto-generate a unique username.
+                </span>
+              </div>
             </div>
 
             {/* Email Field */}
@@ -236,25 +239,23 @@ function RegisterPage() {
               </div>
 
               {/* Password Requirements */}
-              <div className="register-password-requirements">
-                <ul>
-                  <li className={passwordValidation.minLength ? 'valid' : ''}>
-                    <i className={`fa-solid ${passwordValidation.minLength ? 'fa-check' : 'fa-xmark'}`}></i>
-                    At least 8 characters long
-                  </li>
-                  <li className={passwordValidation.hasUppercase ? 'valid' : ''}>
-                    <i className={`fa-solid ${passwordValidation.hasUppercase ? 'fa-check' : 'fa-xmark'}`}></i>
-                    At least 1 uppercase letter
-                  </li>
-                  <li className={passwordValidation.hasNumber ? 'valid' : ''}>
-                    <i className={`fa-solid ${passwordValidation.hasNumber ? 'fa-check' : 'fa-xmark'}`}></i>
-                    At least 1 number
-                  </li>
-                  <li className={passwordValidation.hasSpecial ? 'valid' : ''}>
-                    <i className={`fa-solid ${passwordValidation.hasSpecial ? 'fa-check' : 'fa-xmark'}`}></i>
-                    At least 1 special character (!@#$%^&*(),.?":{}|&lt;&gt;)
-                  </li>
-                </ul>
+              <div className="form-hints">
+                <span className={`form-hint ${passwordValidation.minLength ? 'form-hint--valid' : 'form-hint--error'}`}>
+                  <i className={`fa-solid ${passwordValidation.minLength ? 'fa-check' : 'fa-xmark'}`}></i>
+                  At least 8 characters long
+                </span>
+                <span className={`form-hint ${passwordValidation.hasUppercase ? 'form-hint--valid' : 'form-hint--error'}`}>
+                  <i className={`fa-solid ${passwordValidation.hasUppercase ? 'fa-check' : 'fa-xmark'}`}></i>
+                  At least 1 uppercase letter
+                </span>
+                <span className={`form-hint ${passwordValidation.hasNumber ? 'form-hint--valid' : 'form-hint--error'}`}>
+                  <i className={`fa-solid ${passwordValidation.hasNumber ? 'fa-check' : 'fa-xmark'}`}></i>
+                  At least 1 number
+                </span>
+                <span className={`form-hint ${passwordValidation.hasSpecial ? 'form-hint--valid' : 'form-hint--error'}`}>
+                  <i className={`fa-solid ${passwordValidation.hasSpecial ? 'fa-check' : 'fa-xmark'}`}></i>
+                  At least 1 special character (!@#$%^&*(),.?":{}|&lt;&gt;)
+                </span>
               </div>
             </div>
 
@@ -286,13 +287,11 @@ function RegisterPage() {
               </div>
 
               {/* Password Match Requirement */}
-              <div className="register-password-requirements">
-                <ul>
-                  <li className={passwordMatch ? 'valid' : ''}>
-                    <i className={`fa-solid ${passwordMatch ? 'fa-check' : 'fa-xmark'}`}></i>
-                    Passwords match
-                  </li>
-                </ul>
+              <div className="form-hints">
+                <span className={`form-hint ${passwordMatch ? 'form-hint--valid' : 'form-hint--error'}`}>
+                  <i className={`fa-solid ${passwordMatch ? 'fa-check' : 'fa-xmark'}`}></i>
+                  Passwords match
+                </span>
               </div>
             </div>
 

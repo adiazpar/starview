@@ -256,48 +256,6 @@
 }
 
 /* ============================================ */
-/* PASSWORD REQUIREMENTS */
-/* ============================================ */
-
-.register-password-requirements {
-  margin-top: var(--space-sm);
-}
-
-.register-password-requirements ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.register-password-requirements li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  transition: color 0.15s ease;
-}
-
-.register-password-requirements li i {
-  font-size: 10px;
-  width: 14px;
-  text-align: center;
-  color: var(--text-muted);
-  transition: color 0.15s ease;
-}
-
-.register-password-requirements li.valid {
-  color: var(--success);
-}
-
-.register-password-requirements li.valid i {
-  color: var(--success);
-}
-
-/* ============================================ */
 /* SUBMIT BUTTON */
 /* ============================================ */
 
