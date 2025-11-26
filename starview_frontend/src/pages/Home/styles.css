@@ -42,7 +42,7 @@
 
 .hero__title-accent {
   display: block;
-  background: linear-gradient(135deg, var(--accent-light) 0%, #a78bfa 100%);
+  background: var(--gradient-accent);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -72,7 +72,7 @@
 .hero__btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
   padding: 14px 28px;
   font-size: 15px;
   font-weight: var(--font-medium);
@@ -84,13 +84,13 @@
 .hero__btn--primary {
   background: var(--accent);
   color: white;
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-accent);
 }
 
 .hero__btn--primary:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 32px rgba(37, 99, 235, 0.4);
+  box-shadow: var(--shadow-accent-hover);
 }
 
 .hero__btn--primary i {
@@ -98,14 +98,14 @@
 }
 
 .hero__btn--secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   color: var(--text-primary);
 }
 
 .hero__btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
 }
 
 .hero__btn--secondary i {
@@ -155,7 +155,7 @@
 .hero__stat-divider {
   width: 1px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--glass-border-hover);
 }
 
 /* Decorative glow - Uses global glow tokens */
@@ -328,7 +328,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
   font-size: 15px;
   font-weight: var(--font-medium);
@@ -337,13 +337,13 @@
   color: white;
   border-radius: calc(var(--radius) * 1.5);
   transition: all 0.2s ease;
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-accent);
 }
 
 .cta__btn:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 32px rgba(37, 99, 235, 0.4);
+  box-shadow: var(--shadow-accent-hover);
 }
 
 .cta__btn i {
@@ -439,21 +439,8 @@
 /* LIGHT THEME */
 /* ============================================ */
 
-[data-theme="light"] .hero__btn--secondary {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .hero__btn--secondary:hover {
-  background: rgba(0, 0, 0, 0.1);
-  border-color: rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .hero__stat-divider {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-/* Light theme overrides now handled by CSS variables in global.css */
+/* Light theme handled by CSS variables in global.css */
+/* --glass-bg, --glass-border, --gradient-accent, --shadow-accent all adapt automatically */
 
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {

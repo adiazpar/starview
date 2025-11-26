@@ -224,28 +224,28 @@ function LoginPage() {
           <div className="login-social-buttons">
             <button
               type="button"
-              className="btn login-btn-social login-btn-google"
+              className="btn-social btn-social--google"
               onClick={() => handleSocialLogin('Google')}
             >
-              <i className="login-social-icon fa-brands fa-google"></i>
+              <i className="btn-social__icon fa-brands fa-google"></i>
             </button>
 
             <button
               type="button"
-              className="btn login-btn-social login-btn-apple"
+              className="btn-social btn-social--apple"
               onClick={() => handleSocialLogin('Apple')}
               disabled
             >
-              <i className="login-social-icon fa-brands fa-apple"></i>
+              <i className="btn-social__icon fa-brands fa-apple"></i>
             </button>
 
             <button
               type="button"
-              className="btn login-btn-social login-btn-microsoft"
+              className="btn-social btn-social--microsoft"
               onClick={() => handleSocialLogin('Microsoft')}
               disabled
             >
-              <i className="login-social-icon fa-brands fa-microsoft"></i>
+              <i className="btn-social__icon fa-brands fa-microsoft"></i>
             </button>
           </div>
 

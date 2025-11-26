@@ -71,6 +71,13 @@
   --glow-primary: rgba(37, 99, 235, 0.15);
   --glow-secondary: rgba(139, 92, 246, 0.08);
 
+  /* Accent Gradient (blue to purple) */
+  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, #a78bfa 100%);
+
+  /* Accent Shadows */
+  --shadow-accent: 0 4px 24px rgba(37, 99, 235, 0.3);
+  --shadow-accent-hover: 0 6px 32px rgba(37, 99, 235, 0.4);
+
   /* Transition */
   --transition: 0.15s;
 
@@ -135,6 +142,13 @@
   /* Decorative Glow - Light theme */
   --glow-primary: rgba(217, 119, 6, 0.1);
   --glow-secondary: rgba(234, 88, 12, 0.05);
+
+  /* Accent Gradient - Light theme (orange) */
+  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+
+  /* Accent Shadows - Light theme */
+  --shadow-accent: 0 4px 24px rgba(217, 119, 6, 0.25);
+  --shadow-accent-hover: 0 6px 32px rgba(217, 119, 6, 0.35);
 }
 
 
@@ -268,6 +282,104 @@ button {
     font-size: var(--text-xs);
   }
 }
+
+/* Primary Button - Solid accent with glow */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-accent);
+  text-decoration: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary Button - Full width variant */
+.btn-primary--full {
+  width: 100%;
+}
+
+/* Secondary Button - Glass style */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Social Button - Icon-only glass style */
+.btn-social {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-social:hover:not(:disabled) {
+  background: var(--glass-border);
+  border-color: var(--glass-border-hover);
+}
+
+.btn-social:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-social__icon {
+  font-size: var(--text-lg);
+}
+
+/* Social icon brand colors */
+.btn-social--google .btn-social__icon { color: #ea4335; }
+.btn-social--apple .btn-social__icon { color: var(--text-primary); }
+.btn-social--microsoft .btn-social__icon { color: #00a4ef; }
 
 
 
@@ -497,9 +609,20 @@ button {
   animation-delay: 0.4s;
 }
 
+/* Spin animation for loading spinners */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
+  .animate-spin,
   [class*="animate-delay-"] {
     animation: none;
   }
