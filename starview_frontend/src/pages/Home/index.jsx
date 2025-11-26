@@ -12,14 +12,6 @@ function HomePage() {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero__container">
-          {/* Badge */}
-          <div className="hero__badge">
-            <span className="hero__badge-icon">
-              <i className="fa-solid fa-sparkles"></i>
-            </span>
-            <span className="hero__badge-text">Find the darkest skies</span>
-          </div>
-
           {/* Headline */}
           <h1 className="hero__title">
             Discover Your Perfect
