@@ -221,12 +221,13 @@ function Starfield() {
     window.addEventListener('pointerleave', handlePointerLeave);
     window.addEventListener('pointercancel', handlePointerCancel);
 
-    // Fallback touch events for iOS Safari and older browsers
-    // These provide more reliable touch tracking on mobile
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    // Touch events with passive: false to ensure touchmove fires during scroll
+    // Without this, Chrome/Safari optimize for scroll and skip touchmove events
+    // We don't call preventDefault(), so scrolling still works
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
 
     return () => {
       if (animationRef.current) {
