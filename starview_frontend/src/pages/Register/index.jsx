@@ -105,11 +105,11 @@ function RegisterPage() {
     <div className="register-container">
       {/* Hero Panel (Desktop Only) */}
       <div className="register-hero">
-        <div className="register-hero-attribution">
-          Designed by Freepik
-        </div>
         <div className="register-hero-overlay">
-          <h1 className="register-hero-title">Join Starview</h1>
+          <h1 className="register-hero-title">
+            Join the
+            <span className="register-hero-title-accent"> Community</span>
+          </h1>
           <p className="register-hero-subtitle">
             Create an account to share your stargazing discoveries, save favorite
             locations, and connect with astronomy enthusiasts around the world.
@@ -299,10 +299,17 @@ function RegisterPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="btn register-btn-submit"
+              className="register-btn-submit"
               disabled={loading}
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? (
+                <>
+                  <i className="fa-solid fa-spinner register-spinner"></i>
+                  Creating account...
+                </>
+              ) : (
+                'Create account'
+              )}
             </button>
           </form>
 
