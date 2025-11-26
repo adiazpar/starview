@@ -21,7 +21,7 @@
   justify-content: space-between;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--space-lg);
   height: var(--navbar-height);
 }
 
@@ -52,7 +52,6 @@
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 6px;
-  transition: color 0.2s ease, background-color 0.2s ease;
   border: none;
   background: none;
   cursor: pointer;
@@ -79,7 +78,7 @@
   color: white;
   font-weight: 500;
   border-radius: 8px;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .navbar__link--cta:hover {
@@ -112,7 +111,6 @@
   height: 2px;
   background: var(--text-secondary);
   transform: translate(-50%, -50%);
-  transition: background-color 0.3s ease;
 }
 
 .navbar__hamburger-line::before,
@@ -140,12 +138,10 @@
 
 .navbar__hamburger-line.open::before {
   transform: rotate(45deg);
-  background: var(--text-primary);
 }
 
 .navbar__hamburger-line.open::after {
   transform: rotate(-45deg);
-  background: var(--text-primary);
 }
 
 /* Mobile Menu */
@@ -181,7 +177,6 @@
   text-decoration: none;
   padding: 14px 16px;
   border-radius: 8px;
-  transition: color 0.2s ease, background-color 0.2s ease;
   border: none;
   background: none;
   cursor: pointer;
@@ -272,7 +267,6 @@
   }
 
   .navbar__container {
-    padding: 0 16px;
     height: var(--navbar-height-mobile);
   }
 

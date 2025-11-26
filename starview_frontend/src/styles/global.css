@@ -79,7 +79,7 @@
   --shadow-accent-hover: 0 6px 32px rgba(37, 99, 235, 0.4);
 
   /* Transition */
-  --transition: 0.15s;
+  --transition: 0.3s;
 
   /* Z-Index */
   --z-navbar: 30;
@@ -172,7 +172,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  transition: background-color var(--transition),
+  transition: color var(--transition),
+              background-color var(--transition),
               border-color var(--transition),
               transform var(--transition);
 }
