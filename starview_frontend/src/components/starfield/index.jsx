@@ -24,8 +24,7 @@ function Starfield() {
   const starsRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const animationRef = useRef(null);
-  const lastWidthRef = useRef(0); // Track width to avoid mobile viewport jitter
-  const isTouchingRef = useRef(false); // Track active touch state
+  const initializedRef = useRef(false); // Track if canvas has been initialized
 
   // Generate random stars based on screen size
   const generateStars = useCallback(() => {
@@ -123,81 +122,42 @@ function Starfield() {
     animationRef.current = requestAnimationFrame(render);
   }, []);
 
-  // Handle pointer down - track when any pointer (mouse or touch) starts
-  const handlePointerDown = useCallback((e) => {
-    // Track touch interactions specifically
-    if (e.pointerType === 'touch') {
-      isTouchingRef.current = true;
-    }
+  // Handle mouse movement (desktop only)
+  const handleMouseMove = useCallback((e) => {
     mouseRef.current = { x: e.clientX, y: e.clientY };
   }, []);
 
-  // Handle pointer movement (works for both mouse and touch)
-  const handlePointerMove = useCallback((e) => {
-    mouseRef.current = { x: e.clientX, y: e.clientY };
-  }, []);
-
-  // Handle pointer up - reset when pointer is released
-  const handlePointerUp = useCallback((e) => {
-    if (e.pointerType === 'touch') {
-      isTouchingRef.current = false;
-      mouseRef.current = { x: -1000, y: -1000 };
-    }
-  }, []);
-
-  // Handle pointer leave - reset position to off-screen (mouse only)
-  const handlePointerLeave = useCallback((e) => {
-    if (e.pointerType === 'mouse') {
-      mouseRef.current = { x: -1000, y: -1000 };
-    }
-  }, []);
-
-  // Handle pointer cancel - reset on interrupted touch
-  const handlePointerCancel = useCallback(() => {
-    isTouchingRef.current = false;
+  // Handle mouse leave - reset position to off-screen
+  const handleMouseLeave = useCallback(() => {
     mouseRef.current = { x: -1000, y: -1000 };
   }, []);
 
-  // Fallback touch handlers for older browsers and iOS Safari
-  const handleTouchStart = useCallback((e) => {
-    isTouchingRef.current = true;
-    const touch = e.touches[0];
-    if (touch) {
-      mouseRef.current = { x: touch.clientX, y: touch.clientY };
-    }
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    if (!isTouchingRef.current) return;
-    const touch = e.touches[0];
-    if (touch) {
-      mouseRef.current = { x: touch.clientX, y: touch.clientY };
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    isTouchingRef.current = false;
-    mouseRef.current = { x: -1000, y: -1000 };
-  }, []);
-
-  // Handle canvas resize
-  // Only regenerate stars when width changes to avoid mobile viewport jitter
-  // Mobile browsers change height when URL bar/toolbar appears/disappears
+  // Handle canvas initialization and resize
+  // Only resize on width changes (device rotation) to avoid mobile viewport jitter
+  // Mobile browsers constantly change height when URL bar/toolbar appears/disappears
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const newWidth = window.innerWidth;
-    const newHeight = window.innerHeight;
-    const widthChanged = newWidth !== lastWidthRef.current;
 
-    // Always update canvas dimensions for proper rendering
-    canvas.width = newWidth;
-    canvas.height = newHeight;
+    // First initialization - set canvas size once with extra height buffer
+    if (!initializedRef.current) {
+      // Use larger of screen dimensions to ensure coverage during rotation
+      const maxDimension = Math.max(window.screen.width, window.screen.height);
+      canvas.width = newWidth;
+      canvas.height = maxDimension + 200; // Extra buffer for toolbar areas
+      initializedRef.current = true;
+      generateStars();
+      return;
+    }
 
-    // Only regenerate stars if width changed (actual resize, not mobile toolbar)
-    if (widthChanged) {
-      lastWidthRef.current = newWidth;
+    // Only resize if width changed (device rotation, not toolbar)
+    // Changing canvas dimensions clears the buffer, so avoid unnecessary changes
+    if (newWidth !== canvas.width) {
+      const maxDimension = Math.max(window.screen.width, window.screen.height);
+      canvas.width = newWidth;
+      canvas.height = maxDimension + 200;
       generateStars();
     }
   }, [generateStars]);
@@ -213,38 +173,20 @@ function Starfield() {
     // Start animation loop
     animationRef.current = requestAnimationFrame(render);
 
-    // Pointer events (unified mouse + touch API)
+    // Event listeners - mouse only (no touch interaction on mobile)
     window.addEventListener('resize', handleResize);
-    window.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointerleave', handlePointerLeave);
-    window.addEventListener('pointercancel', handlePointerCancel);
-
-    // Touch events with passive: false to ensure touchmove fires during scroll
-    // Without this, Chrome/Safari optimize for scroll and skip touchmove events
-    // We don't call preventDefault(), so scrolling still works
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd, { passive: false });
-    window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointerleave', handlePointerLeave);
-      window.removeEventListener('pointercancel', handlePointerCancel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('touchcancel', handleTouchEnd);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [handleResize, render, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerLeave, handlePointerCancel, handleTouchStart, handleTouchMove, handleTouchEnd]);
+  }, [handleResize, render, handleMouseMove, handleMouseLeave]);
 
   return (
     <div className="starfield" aria-hidden="true">

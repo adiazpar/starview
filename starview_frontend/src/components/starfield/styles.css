@@ -5,16 +5,11 @@
 
 .starfield {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
+  inset: 0; /* Covers entire viewport without height calculations */
   overflow: hidden;
   pointer-events: none;
   z-index: -1;
   background: linear-gradient(to bottom, #0d1117 0%, #0f172a 50%, #1a1a2e 100%);
-  /* Ensure touch events fire while allowing scrolling */
-  touch-action: manipulation;
 }
 
 /* Star layers - each moves at different speed for parallax */
@@ -318,15 +313,10 @@
   filter: invert(1);
 }
 
-/* Interactive canvas layer */
+/* Interactive canvas layer - mouse hover only on desktop */
 .starfield-canvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
+  inset: 0;
   pointer-events: none;
   z-index: 20;
-  /* Allow touch interaction while preserving vertical scroll */
-  touch-action: pan-y;
 }
