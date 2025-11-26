@@ -140,6 +140,7 @@
   -webkit-backdrop-filter: blur(12px);
   animation: fadeInUp 0.6s ease-out 0.2s backwards;
   overflow-y: auto;
+  container-type: inline-size;
 }
 
 /* Scrollbar styling for form content */
@@ -261,7 +262,8 @@
   color: var(--accent-light);
 }
 
-@media (max-width: 900px) {
+/* Stack when form container is narrow (desktop split view) */
+@container (max-width: 320px) {
   .login-form-options {
     flex-direction: column;
     align-items: flex-start;
