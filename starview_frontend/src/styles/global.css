@@ -524,17 +524,9 @@ button {
   flex-shrink: 0;
 }
 
-/* Validation states */
-.form-hint--valid {
-  color: var(--success);
-}
-
+/* Validation states - only icons are colored, text stays muted */
 .form-hint--valid i {
   color: var(--success);
-}
-
-.form-hint--error {
-  color: var(--error);
 }
 
 .form-hint--error i {
