@@ -3,40 +3,12 @@
  * Features animated hero, real platform stats, and feature highlights.
  */
 
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import statsApi from '../../services/stats';
+import { usePlatformStats } from '../../hooks/useStats';
 import './styles.css';
 
-// Minimum threshold to show stats (hide if below this)
-const STATS_THRESHOLD = 10;
-
 function HomePage() {
-  const [stats, setStats] = useState(null);
-  const [showStats, setShowStats] = useState(false);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await statsApi.getPlatformStats();
-        setStats(data);
-
-        // Only show stats if all counts are above threshold
-        const meetsThreshold =
-          data.locations.count >= STATS_THRESHOLD &&
-          data.reviews.count >= STATS_THRESHOLD &&
-          data.stargazers.count >= STATS_THRESHOLD;
-
-        setShowStats(meetsThreshold);
-      } catch (error) {
-        // Silently fail - stats are not critical
-        console.error('Failed to fetch stats:', error);
-        setShowStats(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  const { stats, showStats } = usePlatformStats();
 
   return (
     <main className="home">

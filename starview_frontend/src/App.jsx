@@ -1,19 +1,22 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/navbar';
 import Starfield from './components/starfield';
 import ProtectedRoute from './components/ProtectedRoute';
-import HomePage from './pages/Home';
-import LoginPage from './pages/Login';
-import RegisterPage from './pages/Register';
-import VerifyEmailPage from './pages/VerifyEmail';
-import EmailVerifiedPage from './pages/EmailVerified';
-import EmailConfirmErrorPage from './pages/EmailConfirmError';
-import SocialAccountExistsPage from './pages/SocialAccountExists';
-import PasswordResetRequestPage from './pages/PasswordResetRequest';
-import PasswordResetConfirmPage from './pages/PasswordResetConfirm';
-import ProfilePage from './pages/Profile';
-import PublicProfilePage from './pages/PublicProfile';
+
+// Lazy load all page components for code splitting
+const HomePage = lazy(() => import('./pages/Home'));
+const LoginPage = lazy(() => import('./pages/Login'));
+const RegisterPage = lazy(() => import('./pages/Register'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmail'));
+const EmailVerifiedPage = lazy(() => import('./pages/EmailVerified'));
+const EmailConfirmErrorPage = lazy(() => import('./pages/EmailConfirmError'));
+const SocialAccountExistsPage = lazy(() => import('./pages/SocialAccountExists'));
+const PasswordResetRequestPage = lazy(() => import('./pages/PasswordResetRequest'));
+const PasswordResetConfirmPage = lazy(() => import('./pages/PasswordResetConfirm'));
+const ProfilePage = lazy(() => import('./pages/Profile'));
+const PublicProfilePage = lazy(() => import('./pages/PublicProfile'));
 
 function App() {
   return (
@@ -21,19 +24,21 @@ function App() {
       <BrowserRouter>
         <Starfield />
         <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/email-verified" element={<EmailVerifiedPage />} />
-          <Route path="/email-confirm-error" element={<EmailConfirmErrorPage />} />
-          <Route path="/social-account-exists" element={<SocialAccountExistsPage />} />
-          <Route path="/password-reset" element={<PasswordResetRequestPage />} />
-          <Route path="/password-reset-confirm/:uidb64/:token" element={<PasswordResetConfirmPage />} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/users/:username" element={<PublicProfilePage />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/email-verified" element={<EmailVerifiedPage />} />
+            <Route path="/email-confirm-error" element={<EmailConfirmErrorPage />} />
+            <Route path="/social-account-exists" element={<SocialAccountExistsPage />} />
+            <Route path="/password-reset" element={<PasswordResetRequestPage />} />
+            <Route path="/password-reset-confirm/:uidb64/:token" element={<PasswordResetConfirmPage />} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/users/:username" element={<PublicProfilePage />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );
