@@ -49,7 +49,9 @@ function EmailConfirmErrorPage() {
 
   return (
     <div className="email-confirm-error-container">
-      <div className="email-confirm-error-card">
+      <div className="email-confirm-error-navbar-spacer"></div>
+      <div className="email-confirm-error-content">
+        <div className="email-confirm-error-card">
         {/* Error Icon */}
         <div className={`email-confirm-error-icon ${content.iconClass}`}>
           <i className={content.icon}></i>
@@ -65,7 +67,7 @@ function EmailConfirmErrorPage() {
 
         {/* Actions */}
         <div className="email-confirm-error-actions">
-          <Link to={content.actionLink} className="email-confirm-error-btn">
+          <Link to={content.actionLink} className="btn-primary btn-primary--full">
             {content.actionText}
           </Link>
         </div>
@@ -76,6 +78,7 @@ function EmailConfirmErrorPage() {
             Please contact support if you need assistance.
           </p>
         )}
+      </div>
       </div>
     </div>
   );

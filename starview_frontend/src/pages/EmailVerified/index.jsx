@@ -13,7 +13,9 @@ function EmailVerifiedPage() {
 
   return (
     <div className="email-verified-container">
-      <div className="email-verified-card">
+      <div className="email-verified-navbar-spacer"></div>
+      <div className="email-verified-content">
+        <div className="email-verified-card">
         {/* Success Icon */}
         <div className="email-verified-icon">
           <i className="fa-solid fa-circle-check"></i>
@@ -29,7 +31,7 @@ function EmailVerifiedPage() {
 
         {/* Actions */}
         <div className="email-verified-actions">
-          <Link to="/login" className="email-verified-btn">
+          <Link to="/login" className="btn-primary btn-primary--full">
             Go to login
           </Link>
         </div>
@@ -38,6 +40,7 @@ function EmailVerifiedPage() {
         <p className="email-verified-close-text">
           You may also close this window and return to the login page.
         </p>
+      </div>
       </div>
     </div>
   );

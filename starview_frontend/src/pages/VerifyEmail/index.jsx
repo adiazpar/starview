@@ -30,9 +30,7 @@ function VerifyEmailPage() {
 
   // Get context message based on where user came from
   const getMessage = () => {
-    if (alreadyVerified) {
-      return 'This email address is already verified! You can now log in to your account.';
-    } else if (fromPage === 'register') {
+    if (fromPage === 'register') {
       return 'We sent a verification link to your email address. Click the link to activate your account.';
     } else if (fromPage === 'login') {
       return "Your account isn't verified yet. Check your email for the verification link or request a new one below.";
@@ -99,39 +97,40 @@ function VerifyEmailPage() {
 
   return (
     <div className="verify-email-container">
-      <div className="verify-email-card">
-        {/* Icon */}
-        <div className="verify-email-icon">
-          <i className="fa-solid fa-envelope"></i>
-        </div>
-
-        {/* Header */}
-        <div className="verify-email-header">
-          <h1 className="verify-email-title">Verify your email</h1>
-          <p className="verify-email-subtitle">{getMessage()}</p>
-        </div>
-
-        {/* Email Display/Input */}
-        <div className="verify-email-form">
-          {alreadyVerified ? (
-            // Show success state for already verified email
-            <div className="verify-email-verified">
-              <div className="verify-email-verified-icon">
-                <i className="fa-solid fa-circle-check"></i>
-              </div>
-
-              <h2 className="verify-email-verified-title">Already verified</h2>
-              <p className="verify-email-verified-description">
-                Your email is already verified. You can log in now!
-              </p>
-
-              <Link to="/login" className="verify-email-btn">
-                Go to login
-              </Link>
+      <div className="verify-email-navbar-spacer"></div>
+      <div className="verify-email-content">
+        <div className="verify-email-card">
+        {alreadyVerified ? (
+          // Show success state for already verified email
+          <div className="verify-email-verified">
+            <div className="verify-email-verified-icon">
+              <i className="fa-solid fa-circle-check"></i>
             </div>
-          ) : (
-            // Show normal verify email flow
-            <>
+
+            <h2 className="verify-email-verified-title">Already verified</h2>
+            <p className="verify-email-verified-description">
+              Your email is already verified. You can log in now!
+            </p>
+
+            <Link to="/login" className="btn-primary btn-primary--full">
+              Go to login
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Icon */}
+            <div className="verify-email-icon">
+              <i className="fa-solid fa-envelope"></i>
+            </div>
+
+            {/* Header */}
+            <div className="verify-email-header">
+              <h1 className="verify-email-title">Verify your email</h1>
+              <p className="verify-email-subtitle">{getMessage()}</p>
+            </div>
+
+            {/* Email Display/Input */}
+            <div className="verify-email-form">
               {emailFromUrl ? (
                 // Show email as read-only display
                 <div className="verify-email-display">
@@ -177,12 +176,12 @@ function VerifyEmailPage() {
               {/* Resend Button */}
               <button
                 onClick={handleResendEmail}
-                className="verify-email-btn"
+                className="btn-primary btn-primary--full"
                 disabled={loading || !canResend}
               >
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner verify-email-spinner"></i>
+                    <i className="fa-solid fa-spinner animate-spin"></i>
                     Sending...
                   </>
                 ) : !canResend ? (
@@ -191,20 +190,19 @@ function VerifyEmailPage() {
                   'Resend verification email'
                 )}
               </button>
-            </>
-          )}
-        </div>
+            </div>
 
-        {/* Helper Section */}
-        {!alreadyVerified && (
-          <div className="verify-email-footer">
-            <p className="verify-email-help-text">Didn't receive the email?</p>
-            <p className="verify-email-help-text">Check your spam folder or try resending.</p>
-            <Link to="/login" className="verify-email-back-link">
-              Back to login
-            </Link>
-          </div>
+            {/* Helper Section */}
+            <div className="verify-email-footer">
+              <p className="verify-email-help-text">Didn't receive the email?</p>
+              <p className="verify-email-help-text">Check your spam folder or try resending.</p>
+              <Link to="/login" className="verify-email-back-link">
+                Back to login
+              </Link>
+            </div>
+          </>
         )}
+        </div>
       </div>
     </div>
   );

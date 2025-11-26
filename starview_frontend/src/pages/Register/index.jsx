@@ -298,12 +298,12 @@ function RegisterPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="register-btn-submit"
+              className="btn-primary btn-primary--full"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <i className="fa-solid fa-spinner register-spinner"></i>
+                  <i className="fa-solid fa-spinner animate-spin"></i>
                   Creating account...
                 </>
               ) : (

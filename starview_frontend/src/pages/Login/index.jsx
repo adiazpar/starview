@@ -199,12 +199,12 @@ function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="login-btn-submit"
+              className="btn-primary btn-primary--full"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <i className="fa-solid fa-spinner login-spinner"></i>
+                  <i className="fa-solid fa-spinner animate-spin"></i>
                   Signing in...
                 </>
               ) : (

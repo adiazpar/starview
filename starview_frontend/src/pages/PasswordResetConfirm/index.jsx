@@ -101,20 +101,9 @@ function PasswordResetConfirmPage() {
 
   return (
     <div className="password-reset-confirm-container">
-      <div className="password-reset-confirm-card">
-        {/* Icon */}
-        <div className="password-reset-confirm-icon">
-          <i className="fa-solid fa-lock-open"></i>
-        </div>
-
-        {/* Header */}
-        <div className="password-reset-confirm-header">
-          <h1 className="password-reset-confirm-title">Create new password</h1>
-          <p className="password-reset-confirm-subtitle">
-            Your password must be strong and unique.
-          </p>
-        </div>
-
+      <div className="password-reset-confirm-navbar-spacer"></div>
+      <div className="password-reset-confirm-content">
+        <div className="password-reset-confirm-card">
         {success ? (
           <div className="password-reset-confirm-success">
             {/* Success Icon */}
@@ -127,12 +116,25 @@ function PasswordResetConfirmPage() {
               Your password has been successfully changed. You can now log in with your new password.
             </p>
 
-            <Link to="/login" className="password-reset-confirm-btn">
+            <Link to="/login" className="btn-primary btn-primary--full">
               Go to login
             </Link>
           </div>
         ) : (
           <>
+            {/* Icon */}
+            <div className="password-reset-confirm-icon">
+              <i className="fa-solid fa-lock-open"></i>
+            </div>
+
+            {/* Header */}
+            <div className="password-reset-confirm-header">
+              <h1 className="password-reset-confirm-title">Create new password</h1>
+              <p className="password-reset-confirm-subtitle">
+                Your password must be strong and unique.
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="password-reset-confirm-form">
               {error && (
                 <Alert
@@ -232,12 +234,12 @@ function PasswordResetConfirmPage() {
 
               <button
                 type="submit"
-                className="password-reset-confirm-btn"
+                className="btn-primary btn-primary--full"
                 disabled={loading || !isFormValid}
               >
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner password-reset-confirm-spinner"></i>
+                    <i className="fa-solid fa-spinner animate-spin"></i>
                     Resetting password...
                   </>
                 ) : (
@@ -253,6 +255,7 @@ function PasswordResetConfirmPage() {
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

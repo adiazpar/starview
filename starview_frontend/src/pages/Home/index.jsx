@@ -29,11 +29,11 @@ function HomePage() {
 
           {/* CTA Buttons */}
           <div className="hero__actions">
-            <Link to="/map" className="hero__btn hero__btn--primary">
+            <Link to="/map" className="btn-primary">
               <i className="fa-solid fa-map"></i>
               Explore Map
             </Link>
-            <Link to="/register" className="hero__btn hero__btn--secondary">
+            <Link to="/register" className="btn-secondary">
               Create Account
               <i className="fa-solid fa-arrow-right"></i>
             </Link>
@@ -136,7 +136,7 @@ function HomePage() {
             <p className="cta__text">
               Join thousands of stargazers finding the perfect night sky.
             </p>
-            <Link to="/register" className="cta__btn">
+            <Link to="/register" className="btn-primary">
               Get Started Free
               <i className="fa-solid fa-arrow-right"></i>
             </Link>

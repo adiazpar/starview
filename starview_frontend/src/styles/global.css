@@ -305,7 +305,6 @@ button {
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-accent-hover);
 }
 
@@ -318,6 +317,12 @@ button {
 /* Primary Button - Full width variant */
 .btn-primary--full {
   width: 100%;
+}
+
+/* Primary Button - Small variant for navbars and compact UI */
+.btn-primary--sm {
+  padding: 8px 20px;
+  font-size: 14px;
 }
 
 /* Secondary Button - Glass style */

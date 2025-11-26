@@ -70,7 +70,7 @@ function Navbar() {
           {isAuthenticated ? (
             <>
               <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
-              <button onClick={logout} className="navbar__link navbar__link--cta">
+              <button onClick={logout} className="navbar__cta btn-primary btn-primary--sm">
                 <i className="fa-solid fa-arrow-right-from-bracket"></i>
                 <span>Logout</span>
               </button>
@@ -78,7 +78,7 @@ function Navbar() {
           ) : (
             <>
               <NavLink to="/login" className="navbar__link">Login</NavLink>
-              <NavLink to="/register" className="navbar__link navbar__link--cta">
+              <NavLink to="/register" className="navbar__cta btn-primary btn-primary--sm">
                 Get Started
               </NavLink>
             </>
@@ -130,7 +130,7 @@ function Navbar() {
                 <i className="fa-solid fa-arrow-right-to-bracket"></i>
                 Login
               </NavLink>
-              <NavLink to="/register" className="navbar__mobile-link navbar__mobile-link--cta" onClick={closeMobileMenu}>
+              <NavLink to="/register" className="navbar__mobile-cta btn-primary btn-primary--full" onClick={closeMobileMenu}>
                 <i className="fa-regular fa-user"></i>
                 Get Started
               </NavLink>

@@ -28,20 +28,9 @@ function PasswordResetRequestPage() {
 
   return (
     <div className="password-reset-container">
-      <div className="password-reset-card">
-        {/* Icon */}
-        <div className="password-reset-icon">
-          <i className="fa-solid fa-key"></i>
-        </div>
-
-        {/* Header */}
-        <div className="password-reset-header">
-          <h1 className="password-reset-title">Forgot password?</h1>
-          <p className="password-reset-subtitle">
-            No worries, we'll send you reset instructions.
-          </p>
-        </div>
-
+      <div className="password-reset-navbar-spacer"></div>
+      <div className="password-reset-content">
+        <div className="password-reset-card">
         {success ? (
           <div className="password-reset-success">
             {/* Success Icon */}
@@ -54,7 +43,7 @@ function PasswordResetRequestPage() {
               If an account exists with that email address, you will receive password reset instructions shortly.
             </p>
 
-            <Link to="/login" className="password-reset-btn">
+            <Link to="/login" className="btn-primary btn-primary--full">
               Back to login
             </Link>
 
@@ -65,6 +54,19 @@ function PasswordResetRequestPage() {
           </div>
         ) : (
           <>
+            {/* Icon */}
+            <div className="password-reset-icon">
+              <i className="fa-solid fa-key"></i>
+            </div>
+
+            {/* Header */}
+            <div className="password-reset-header">
+              <h1 className="password-reset-title">Forgot password?</h1>
+              <p className="password-reset-subtitle">
+                No worries, we'll send you reset instructions.
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="password-reset-form">
               {error && (
                 <Alert
@@ -97,12 +99,12 @@ function PasswordResetRequestPage() {
 
               <button
                 type="submit"
-                className="password-reset-btn"
+                className="btn-primary btn-primary--full"
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner password-reset-spinner"></i>
+                    <i className="fa-solid fa-spinner animate-spin"></i>
                     Sending...
                   </>
                 ) : (
@@ -118,6 +120,7 @@ function PasswordResetRequestPage() {
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

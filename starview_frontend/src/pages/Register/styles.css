@@ -255,44 +255,7 @@
   color: var(--text-secondary);
 }
 
-/* ============================================ */
-/* SUBMIT BUTTON */
-/* ============================================ */
-
-.register-btn-submit {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  padding: 14px 28px;
-  font-size: 15px;
-  font-weight: var(--font-medium);
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: calc(var(--radius) * 1.5);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-accent);
-}
-
-.register-btn-submit:hover:not(:disabled) {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-accent-hover);
-}
-
-.register-btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Spinner uses global animation */
-.register-spinner {
-  animation: spin 1s linear infinite;
-}
+/* Submit button uses global .btn-primary .btn-primary--full */
 
 /* ============================================ */
 /* LOGIN LINK */

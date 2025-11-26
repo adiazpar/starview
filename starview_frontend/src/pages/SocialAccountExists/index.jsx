@@ -4,7 +4,9 @@ import './styles.css';
 function SocialAccountExistsPage() {
   return (
     <div className="social-account-exists-container">
-      <div className="social-account-exists-card">
+      <div className="social-account-exists-navbar-spacer"></div>
+      <div className="social-account-exists-content">
+        <div className="social-account-exists-card">
         {/* Icon */}
         <div className="social-account-exists-icon">
           <i className="fa-solid fa-circle-info"></i>
@@ -21,11 +23,11 @@ function SocialAccountExistsPage() {
 
         {/* Actions */}
         <div className="social-account-exists-actions">
-          <Link to="/login" className="social-account-exists-btn">
+          <Link to="/login" className="btn-primary btn-primary--full">
             <i className="fa-solid fa-right-to-bracket"></i>
             Sign in with password
           </Link>
-          <Link to="/password-reset" className="social-account-exists-btn social-account-exists-btn--secondary">
+          <Link to="/password-reset" className="btn-secondary" style={{ width: '100%' }}>
             <i className="fa-solid fa-key"></i>
             Forgot password?
           </Link>
@@ -40,6 +42,7 @@ function SocialAccountExistsPage() {
             your Google account from your Profile page.
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

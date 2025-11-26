@@ -122,13 +122,34 @@ function Starfield() {
     animationRef.current = requestAnimationFrame(render);
   }, []);
 
-  // Handle mouse movement
+  // Handle mouse/pointer movement
   const handleMouseMove = useCallback((e) => {
     mouseRef.current = { x: e.clientX, y: e.clientY };
   }, []);
 
   // Handle mouse leave - reset position to off-screen
   const handleMouseLeave = useCallback(() => {
+    mouseRef.current = { x: -1000, y: -1000 };
+  }, []);
+
+  // Handle touch movement for mobile - continuous interaction while finger is down
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      mouseRef.current = { x: touch.clientX, y: touch.clientY };
+    }
+  }, []);
+
+  // Handle touch start - begin interaction when finger touches screen
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      mouseRef.current = { x: touch.clientX, y: touch.clientY };
+    }
+  }, []);
+
+  // Handle touch end - reset position when finger lifts
+  const handleTouchEnd = useCallback(() => {
     mouseRef.current = { x: -1000, y: -1000 };
   }, []);
 
@@ -170,6 +191,12 @@ function Starfield() {
     document.addEventListener('pointermove', handleMouseMove);
     document.addEventListener('pointerleave', handleMouseLeave);
 
+    // Touch event listeners for mobile - passive to allow scrolling
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -177,8 +204,12 @@ function Starfield() {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('pointermove', handleMouseMove);
       document.removeEventListener('pointerleave', handleMouseLeave);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [handleResize, render, handleMouseMove, handleMouseLeave]);
+  }, [handleResize, render, handleMouseMove, handleMouseLeave, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return (
     <div className="starfield" aria-hidden="true">

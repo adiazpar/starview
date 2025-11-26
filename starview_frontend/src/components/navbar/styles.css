@@ -67,27 +67,12 @@
   color: var(--text-primary);
 }
 
-/* CTA Button */
-.navbar__link--cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+/* CTA Button - Uses global .btn-primary .btn-primary--sm */
+.navbar__cta {
   margin-left: 8px;
-  padding: 8px 20px;
-  background: var(--accent);
-  color: white;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
 }
 
-.navbar__link--cta:hover {
-  background: var(--accent-hover);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.navbar__link--cta i {
+.navbar__cta i {
   font-size: 12px;
 }
 
@@ -210,21 +195,12 @@
   color: var(--accent-light);
 }
 
-/* Mobile CTA */
-.navbar__mobile-link--cta {
+/* Mobile CTA - Uses global .btn-primary .btn-primary--full */
+.navbar__mobile-cta {
   margin-top: auto;
-  background: var(--accent);
-  color: white;
-  justify-content: center;
-  font-weight: 500;
 }
 
-.navbar__mobile-link--cta i {
-  color: white;
-}
-
-.navbar__mobile-link--cta:hover {
-  background: var(--accent-hover);
+.navbar__mobile-cta i {
   color: white;
 }
 
