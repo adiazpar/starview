@@ -5,11 +5,14 @@
 
 .starfield {
   position: fixed;
-  inset: 0; /* Covers entire viewport without height calculations */
+  inset: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: -1;
   background: linear-gradient(to bottom, #0d1117 0%, #0f172a 50%, #1a1a2e 100%);
+  /* Lock gradient size to prevent shifting when mobile toolbar appears/disappears */
+  background-size: 100% 100lvh;
+  background-repeat: no-repeat;
 }
 
 /* Star layers - each moves at different speed for parallax */
@@ -301,6 +304,8 @@
 /* Light theme - invert colors for light background with dark stars */
 [data-theme="light"] .starfield {
   background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 100% 100lvh;
+  background-repeat: no-repeat;
 }
 
 [data-theme="light"] .stars-sm,
