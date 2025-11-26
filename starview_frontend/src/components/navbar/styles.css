@@ -79,54 +79,42 @@
 /* Hamburger Button */
 .navbar__hamburger {
   display: none;
-  position: relative;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
   width: 32px;
   height: 32px;
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
   z-index: calc(var(--z-navbar) + 2);
 }
 
-.navbar__hamburger-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+.navbar__hamburger span {
+  display: block;
   width: 20px;
   height: 2px;
   background: var(--text-secondary);
-  transform: translate(-50%, -50%);
+  transition: transform 0.3s ease, opacity 0.3s ease, background 0.2s ease;
 }
 
-.navbar__hamburger-line::before,
-.navbar__hamburger-line::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 2px;
-  background: var(--text-secondary);
-  transition: transform 0.3s ease;
+.navbar__hamburger:hover span {
+  background: var(--text-primary);
 }
 
-.navbar__hamburger-line::before {
-  transform: translateY(-6px);
+/* Hamburger animation - transforms into X */
+.navbar__hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
 }
 
-.navbar__hamburger-line::after {
-  transform: translateY(6px);
+.navbar__hamburger.open span:nth-child(2) {
+  opacity: 0;
 }
 
-/* Hamburger animation */
-.navbar__hamburger-line.open {
-  background: transparent;
-}
-
-.navbar__hamburger-line.open::before {
-  transform: rotate(45deg);
-}
-
-.navbar__hamburger-line.open::after {
-  transform: rotate(-45deg);
+.navbar__hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* Mobile Menu */
@@ -239,7 +227,7 @@
   }
 
   .navbar__hamburger {
-    display: block;
+    display: flex;
   }
 
   .navbar__container {
@@ -270,12 +258,10 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="light"] .navbar__hamburger-line,
-[data-theme="light"] .navbar__hamburger-line::before,
-[data-theme="light"] .navbar__hamburger-line::after {
+[data-theme="light"] .navbar__hamburger span {
   background: var(--text-secondary);
 }
 
-[data-theme="light"] .navbar__hamburger-line.open {
-  background: transparent;
+[data-theme="light"] .navbar__hamburger:hover span {
+  background: var(--text-primary);
 }

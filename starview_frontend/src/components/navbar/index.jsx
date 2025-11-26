@@ -87,12 +87,14 @@ function Navbar() {
 
         {/* Hamburger Button */}
         <button
-          className="navbar__hamburger"
+          className={`navbar__hamburger ${mobileMenuOpen ? 'open' : ''}`}
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
           aria-expanded={mobileMenuOpen}
         >
-          <span className={`navbar__hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
 
         {/* Mobile Menu */}
