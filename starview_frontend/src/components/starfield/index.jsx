@@ -24,6 +24,7 @@ function Starfield() {
   const starsRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const animationRef = useRef(null);
+  const lastWidthRef = useRef(0); // Track width to avoid mobile viewport jitter
 
   // Generate random stars based on screen size
   const generateStars = useCallback(() => {
@@ -125,13 +126,25 @@ function Starfield() {
   }, []);
 
   // Handle canvas resize
+  // Only regenerate stars when width changes to avoid mobile viewport jitter
+  // Mobile browsers change height when URL bar/toolbar appears/disappears
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    generateStars();
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+    const widthChanged = newWidth !== lastWidthRef.current;
+
+    // Always update canvas dimensions for proper rendering
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    // Only regenerate stars if width changed (actual resize, not mobile toolbar)
+    if (widthChanged) {
+      lastWidthRef.current = newWidth;
+      generateStars();
+    }
   }, [generateStars]);
 
   // Initialize canvas and start animation

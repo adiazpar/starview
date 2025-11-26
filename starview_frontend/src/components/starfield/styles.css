@@ -8,7 +8,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
   overflow: hidden;
   pointer-events: none;
   z-index: -1;
@@ -312,7 +312,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
   pointer-events: none;
   z-index: 20;
 }
