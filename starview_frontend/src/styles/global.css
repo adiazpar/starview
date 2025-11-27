@@ -233,57 +233,6 @@ button {
 /* BUTTONS */
 /* ============================================ */
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  font-weight: 500;
-  font-size: var(--text-sm);
-  gap: var(--space-xs);
-  padding: var(--space-sm);
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-decoration: none;
-
-  background-color: var(--accent-bg);
-  border: 1px solid var(--accent);
-  color: var(--text-primary);
-}
-
-.btn:hover {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-light);
-}
-
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  font-weight: 500;
-  font-size: var(--text-sm);
-  padding: var(--space-sm);
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-decoration: none;
-
-  background-color: var(--accent-bg);
-  border: 1px solid var(--accent);
-  color: var(--text-primary);
-}
-
-.btn-icon:hover {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-light);
-}
-
-@media (max-width: 600px) {
-  .btn {
-    font-size: var(--text-xs);
-  }
-}
-
 /* Primary Button - Solid accent with glow */
 .btn-primary {
   display: inline-flex;
@@ -351,6 +300,12 @@ button {
 .btn-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Secondary Button - Icon-only variant */
+.btn-secondary--icon {
+  padding: var(--space-sm);
+  aspect-ratio: 1;
 }
 
 /* Social Button - Icon-only glass style */
@@ -653,4 +608,21 @@ button {
   [class*="animate-delay-"] {
     animation: none;
   }
+}
+
+/* ============================================ */
+/* GLOBAL LOADING OVERLAY */
+/* ============================================ */
+
+.global-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  z-index: 9999;
 }

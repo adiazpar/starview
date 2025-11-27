@@ -85,7 +85,7 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
               <div className="connected-account-actions">
                 <button
                   onClick={() => handleDisconnect(account.id, account.provider_name)}
-                  className="btn"
+                  className="btn-secondary"
                   style={{ padding: '6px 12px', fontSize: 'var(--text-sm)' }}
                 >
                   <i className="fa-solid fa-unlink"></i>
@@ -113,7 +113,7 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
           </p>
           <a
             href="/accounts/google/login/?process=connect"
-            className="btn"
+            className="btn-secondary"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
             <i className="fa-brands fa-google"></i>

@@ -1,71 +1,14 @@
 /* ============================================ */
-/* PROFILE SETTINGS SECTION */
+/* PROFILE SETTINGS SECTION - Glass-morphic */
 /* ============================================ */
 
+/* Layout grid for settings */
 .profile-settings-grid {
   display: grid;
   gap: var(--space-lg);
 }
 
-/* Form Helpers */
-.form-info {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-md);
-}
-
-/* Profile Picture Upload */
-.profile-picture-section {
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--border);
-}
-
-.profile-picture-section:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.profile-picture-upload {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 16px;
-}
-
-.profile-picture-preview {
-  flex-shrink: 0;
-}
-
-.profile-picture-preview img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border);
-}
-
-.profile-picture-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.profile-picture-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.profile-picture-help {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-}
-
-/* Hidden file input */
-.profile-file-input {
-  display: none;
-}
-
+/* Shared form styles used by all form components */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -74,7 +17,7 @@
 
 .profile-form-section {
   padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .profile-form-section:last-child {
@@ -82,18 +25,77 @@
   border-bottom: none;
 }
 
+/* Section header with edit button */
+.profile-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.profile-form-header-content {
+  flex: 1;
+}
+
 .profile-form-title {
   font-size: var(--text-lg);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--space-xs) 0;
 }
 
 .profile-form-description {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  margin: 0 0 16px 0;
-  font-weight: 300;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Edit button - icon only, subtle */
+.profile-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.profile-edit-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.profile-edit-btn i {
+  font-size: var(--text-sm);
+}
+
+/* View mode - display current values */
+.profile-view-content {
+  margin-top: var(--space-sm);
+}
+
+.profile-view-value {
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.profile-view-value--empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Edit mode - form fields */
+.profile-edit-content {
+  margin-top: var(--space-md);
 }
 
 .profile-form-row {
@@ -104,105 +106,34 @@
 
 .profile-form-actions {
   display: flex;
-  gap: 12px;
-}
-
-/* Password Form */
-.profile-password-input-wrapper {
-  position: relative;
-}
-
-.profile-password-input-wrapper input {
-  padding-right: 40px;
-}
-
-.profile-password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px 8px;
-  transition: color var(--transition);
-}
-
-.profile-password-toggle:hover {
-  color: var(--text-primary);
-}
-
-/* Password Requirements (same as RegisterPage) */
-.password-requirements-list {
+  gap: var(--space-sm);
   margin-top: var(--space-sm);
 }
 
-.password-requirements-list ul {
-  list-style: none;
-  padding-left: 16px;
-  margin: 0;
-}
-
-.password-requirements-list li {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  font-weight: 300;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.password-requirements-list li:last-child {
-  margin-bottom: 0;
-}
-
-.password-requirements-list li i {
-  color: var(--error);
-  font-size: var(--text-xs);
-  flex-shrink: 0;
-}
-
-.password-requirements-list li.valid i {
-  color: var(--success);
-}
-
-/* Bio Textarea with Character Count */
-.bio-textarea-wrapper {
-  position: relative;
-}
-
-.bio-textarea-wrapper textarea {
-  padding-bottom: 32px;
-}
-
-.bio-character-count {
-  position: absolute;
-  bottom: var(--space-md);
-  right: var(--space-md);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  font-weight: 300;
-  pointer-events: none;
-  user-select: none;
+/* Compact buttons in form actions - uses global btn-primary and btn-secondary */
+.profile-form-actions .btn-primary,
+.profile-form-actions .btn-secondary {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
 }
 
 /* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
 
-@media (max-width: 768px) {
-  .profile-picture-upload {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 767px) {
+  .profile-form-row {
+    grid-template-columns: 1fr;
   }
 
   .profile-form-actions {
     flex-direction: column;
   }
 
-  .profile-form-actions button {
+  .profile-form-actions button,
+  .profile-form-actions label,
+  .profile-form-actions .btn-primary,
+  .profile-form-actions .btn-secondary {
     width: 100%;
   }
 }

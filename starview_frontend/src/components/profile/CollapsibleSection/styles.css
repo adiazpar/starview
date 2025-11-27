@@ -1,9 +1,9 @@
 /* ============================================ */
-/* COLLAPSIBLE SECTIONS */
+/* COLLAPSIBLE SECTIONS - Glass-morphic style */
 /* ============================================ */
 
 .collapsible-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .collapsible-section:last-child {
@@ -15,30 +15,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-md);
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s ease;
 }
 
 .collapsible-section-header:hover {
-  background-color: var(--bg-hover);
-  border-color: var(--accent);
+  background: var(--glass-border);
+  border-color: var(--glass-border-hover);
 }
 
 .collapsible-section-header h3 {
-  font-size: var(--text-lg);
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
   color: var(--text-primary);
   margin: 0;
 }
 
 .collapsible-section-header i {
-  color: var(--text-secondary);
-  font-size: var(--text-base);
-  transition: transform var(--transition);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  transition: transform 0.2s ease;
 }
 
 /* Collapsible Content - Using CSS Grid for smooth height animation */
@@ -63,5 +63,5 @@
 
 /* Padding wrapper - keeps padding constant, hidden by overflow */
 .collapsible-section-content-padded {
-  /* Content inside here will have its own padding */
+  padding: var(--space-lg);
 }

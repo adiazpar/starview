@@ -181,24 +181,24 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
           {onEditPage ? (
             // On edit page: Show "Back to Profile" button
-            <a href={`/users/${user?.username}`} className="btn">
+            <a href={`/users/${user?.username}`} className="btn-secondary">
               <i className="fa-solid fa-caret-left"></i>
               Back
             </a>
           ) : (
             // On public profile: Show "Edit Profile" button
-            <a href="/profile" className="btn">
+            <a href="/profile" className="btn-secondary">
               <i className="fa-solid fa-gear"></i>
               Edit Profile
             </a>
           )}
           {onShowBadgesClick && (
-            <button onClick={onShowBadgesClick} className="btn">
+            <button onClick={onShowBadgesClick} className="btn-secondary">
               <i className="fa-solid fa-ranking-star"></i>
               {badgesVisible ? 'Hide' : 'Show'} Badges
             </button>
           )}
-          <a href="/profile" className="btn-icon">
+          <a href="/profile" className="btn-secondary btn-secondary--icon">
             <i className="fa-solid fa-ellipsis-vertical"></i>
           </a>
         </div>
@@ -207,7 +207,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         currentUser && (
           <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
             <button
-              className='btn'
+              className="btn-secondary"
               onClick={handleFollowToggle}
               disabled={isLoadingFollow}
             >
@@ -224,12 +224,12 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
               )}
             </button>
             {onShowBadgesClick && (
-              <button onClick={onShowBadgesClick} className="btn">
+              <button onClick={onShowBadgesClick} className="btn-secondary">
                 <i className="fa-solid fa-ranking-star"></i>
                 {badgesVisible ? 'Hide' : 'Show'} Badges
               </button>
             )}
-            <button className="btn-icon">
+            <button className="btn-secondary btn-secondary--icon">
               <i className="fa-solid fa-ellipsis-vertical"></i>
             </button>
           </div>

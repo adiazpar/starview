@@ -1,59 +1,72 @@
 /* ============================================ */
-/* PROFILE PAGE */
+/* PROFILE PAGE - Glass-morphic design system */
 /* ============================================ */
 
 .profile-page {
-  background-color: var(--bg-primary);
-  padding: var(--space-xl) 5%;
+  min-height: calc(100lvh - var(--navbar-height));
+  padding-top: var(--navbar-height);
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+  padding-bottom: var(--space-xl);
 }
 
 .profile-container {
   max-width: var(--container-max);
   margin: 0 auto;
+  padding-top: var(--space-xl);
 }
 
-/* Tab Navigation */
+/* Tab Navigation - Glass style */
 .profile-tabs {
   display: flex;
   margin-bottom: var(--space-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  padding: var(--space-xs);
+  gap: var(--space-xs);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .profile-tab {
-  background: none;
+  background: transparent;
   color: var(--text-secondary);
-  font-size: var(--text-base);
-  font-weight: 300;
-  padding: 12px 24px;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  padding: var(--space-sm) var(--space-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-sm);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
 }
 
 .profile-tab:hover {
   color: var(--text-primary);
-  background-color: var(--bg-hover);
+  background: var(--glass-bg-hover);
 }
 
 .profile-tab.active {
-  color: var(--accent-hover);
-  border-bottom: 2px solid var(--accent);
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
 }
 
-.profile-tab:first-child {
-  border-top-left-radius: var(--radius);
-}
-.profile-tab:last-child {
-  border-top-right-radius: var(--radius);
+.profile-tab.active i {
+  color: var(--accent);
 }
 
-/* Tab Content */
+/* Tab Content - Glass card */
 .profile-content {
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius);
-  padding: 32px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
+  padding: var(--space-xl);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
 .profile-section {
@@ -62,32 +75,65 @@
 
 .profile-section-title {
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
 }
 
 .profile-section-description {
   font-size: var(--text-sm);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--text-muted);
   padding-bottom: var(--space-md);
   margin-bottom: var(--space-md);
+  border-bottom: 1px solid var(--glass-border);
+}
 
-  border-bottom: 1px solid var(--border);
+/* Empty State - Shared across tabs */
+.profile-empty-state {
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  color: var(--text-muted);
+}
+
+.profile-empty-state i {
+  font-size: 48px;
+  margin: 0 auto var(--space-md) auto;
+  display: block;
+  opacity: 0.3;
+}
+
+.profile-empty-state p {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0;
+  opacity: 0.3;
+}
+
+.profile-empty-state-description {
+  font-size: var(--text-sm);
+  margin-top: var(--space-xs);
+  color: var(--text-muted);
 }
 
 /* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .profile-page {
-    padding: var(--space-lg) var(--space-md);
+    padding-top: var(--navbar-height-mobile);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .profile-tabs {
+    padding: var(--space-xs);
   }
 
   .profile-tab {
-    padding: 12px 8px;
+    padding: var(--space-sm);
     flex: 1;
     display: flex;
     align-items: center;
@@ -97,11 +143,19 @@
   .profile-tab-text {
     display: none;
   }
+
   .profile-tab i {
     font-size: var(--text-lg);
   }
 
   .profile-content {
-    padding: var(--space-md);
+    padding: var(--space-lg);
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .profile-content {
+    animation: none;
   }
 }

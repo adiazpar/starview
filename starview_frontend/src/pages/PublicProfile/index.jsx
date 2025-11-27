@@ -8,6 +8,7 @@ import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileStats from '../../components/profile/ProfileStats';
 import BadgeSection from '../../components/badges/BadgeSection';
 import Alert from '../../components/shared/Alert';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 /**
@@ -118,16 +119,7 @@ function PublicProfilePage() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="public-profile-page">
-        <div className="public-profile-container">
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-secondary)' }}>
-            <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
-            <p style={{ marginTop: '16px' }}>Loading profile...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" fullPage />;
   }
 
   // Error state
@@ -137,7 +129,7 @@ function PublicProfilePage() {
         <div className="public-profile-container">
           <Alert type="error" message={error} />
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button className="btn" onClick={() => navigate('/')}>
+            <button className="btn-secondary" onClick={() => navigate('/')}>
               <i className="fa-solid fa-home"></i>
               Go Home
             </button>
@@ -233,7 +225,7 @@ function PublicProfilePage() {
               {hasMore && (
                 <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
                   <button
-                    className="btn"
+                    className="btn-secondary"
                     onClick={() => setPage(prev => prev + 1)}
                     disabled={reviewsLoading}
                   >

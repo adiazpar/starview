@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import profileApi from '../../services/profile';
-import { mapBadgeIdsToBadges } from '../../utils/badges';
-import usePinnedBadges from '../../hooks/usePinnedBadges';
+import useProfileData from '../../hooks/useProfileData';
 import Alert from '../../components/shared/Alert';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import SettingsTab from '../../components/profile/SettingsTab';
 import BadgesTab from '../../components/profile/BadgesTab';
@@ -13,69 +12,26 @@ import FavoritesTab from '../../components/profile/FavoritesTab';
 import './styles.css';
 
 function ProfilePage() {
-  const { user, refreshAuth } = useAuth();
+  const { user, refreshAuth, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('settings');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [badgeData, setBadgeData] = useState(null);
-  const [socialAccounts, setSocialAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Use the pinned badges hook in operation-only mode (no auto-fetch)
-  const pinnedBadgesHook = usePinnedBadges(false);
+  // Use React Query hook for profile data (cached, deduplicated)
+  const {
+    badgeData,
+    pinnedBadges,
+    socialAccounts,
+    isLoading: dataLoading,
+    refreshSocialAccounts,
+    pinnedBadgesHook,
+  } = useProfileData();
 
-  // Derive pinned badges from badgeData and pinnedBadgeIds (computed value, not state)
-  const pinnedBadges = useMemo(() => {
-    if (!badgeData || !pinnedBadgesHook.pinnedBadgeIds) return [];
-    const earnedBadges = badgeData.earned || [];
-    return mapBadgeIdsToBadges(pinnedBadgesHook.pinnedBadgeIds, earnedBadges);
-  }, [badgeData, pinnedBadgesHook.pinnedBadgeIds]);
-
-  // Fetch all profile data once on mount
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      setLoading(true);
-      try {
-        // Fetch badges and social accounts in parallel
-        const [badgesResponse, socialResponse] = await Promise.all([
-          profileApi.getMyBadgeCollection(),
-          profileApi.getSocialAccounts()
-        ]);
-
-        // Store full badge data for BadgesTab
-        setBadgeData(badgesResponse.data);
-
-        // Extract pinned badge IDs from the badge response
-        const pinnedBadgeIds = badgesResponse.data.pinned_badge_ids || [];
-
-        // Initialize the hook with the pinned badge IDs (without fetching)
-        // The useMemo above will automatically compute pinnedBadges when this updates
-        pinnedBadgesHook.updatePinnedBadgeIds(pinnedBadgeIds);
-
-        // Store social accounts for ConnectedAccountsSection
-        setSocialAccounts(socialResponse.data.social_accounts || []);
-      } catch (err) {
-        console.error('Error fetching profile data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
-
-  // Refresh social accounts after connect/disconnect
-  const refreshSocialAccounts = async () => {
-    try {
-      const response = await profileApi.getSocialAccounts();
-      setSocialAccounts(response.data.social_accounts || []);
-    } catch (err) {
-      console.error('Error refreshing social accounts:', err);
-    }
-  };
+  // Combined loading state - shows spinner for BOTH auth and data loading
+  // This prevents the flash between auth spinner and data spinner
+  const isLoading = authLoading || dataLoading;
 
   // Check for social account connection success/errors
   useEffect(() => {
@@ -98,18 +54,9 @@ function ProfilePage() {
     }
   }, [location.search, navigate]);
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="profile-page">
-        <div className="profile-container">
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-secondary)' }}>
-            <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
-            <p style={{ marginTop: '16px' }}>Loading profile...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // Loading state - uses same LoadingSpinner as ProtectedRoute for seamless transition
+  if (isLoading) {
+    return <LoadingSpinner size="lg" fullPage />;
   }
 
   return (
@@ -142,7 +89,7 @@ function ProfilePage() {
         )}
 
         {/* Tab Navigation */}
-        <div className="profile-tabs">
+        <div className="profile-tabs animate-fade-in-up animate-delay-1">
           <button
             className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}

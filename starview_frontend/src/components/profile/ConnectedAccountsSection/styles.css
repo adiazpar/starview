@@ -1,26 +1,27 @@
 /* ============================================ */
-/* CONNECTED ACCOUNTS SECTION */
+/* CONNECTED ACCOUNTS SECTION - Glass-morphic */
 /* ============================================ */
 
 .connected-accounts-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .connected-account-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  transition: all var(--transition);
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  transition: all 0.2s ease;
 }
 
 .connected-account-item:hover {
-  border-color: var(--accent);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
 }
 
 .connected-account-icon {
@@ -30,10 +31,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border);
   border-radius: 50%;
-  font-size: 20px;
+  font-size: var(--text-lg);
   color: var(--accent);
 }
 
@@ -43,15 +44,15 @@
 
 .connected-account-info h4 {
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: var(--font-medium);
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--space-xs) 0;
 }
 
 .connected-account-email {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--space-xs) 0;
 }
 
 .connected-account-date {
@@ -67,20 +68,31 @@
 .connected-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: var(--success-bg);
-  border: 1px solid var(--success-border);
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
-  font-weight: 500;
+  font-weight: var(--font-medium);
   color: var(--success);
 }
 
 .connected-accounts-empty {
   text-align: center;
-  padding: 48px 24px;
-  background-color: var(--bg-secondary);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  color: var(--text-muted);
+}
+
+.connected-accounts-empty p {
+  margin: 0 0 var(--space-md) 0;
+  font-size: var(--text-sm);
+}
+
+.connected-accounts-empty p:first-child {
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
 }

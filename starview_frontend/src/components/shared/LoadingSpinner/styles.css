@@ -10,22 +10,22 @@
 }
 
 .loading-spinner-container.full-page {
-  min-height: 60vh;
+  min-height: 100lvh;
 }
 
 .loading-spinner-sm {
   font-size: 1rem;
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .loading-spinner-md {
   font-size: 1.5rem;
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .loading-spinner-lg {
   font-size: 2.5rem;
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .loading-spinner-message {

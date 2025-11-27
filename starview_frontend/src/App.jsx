@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/navbar';
 import Starfield from './components/starfield';
 import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/shared/LoadingSpinner';
 
 // Lazy load all page components for code splitting
 const HomePage = lazy(() => import('./pages/Home'));
@@ -24,7 +25,7 @@ function App() {
       <BrowserRouter>
         <Starfield />
         <Navbar />
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner size="lg" fullPage />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />

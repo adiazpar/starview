@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Alert from '../../shared/Alert';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import BadgeCard from '../../badges/BadgeCard';
 import './styles.css';
 
@@ -31,10 +32,7 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
   if (!badgeData) {
     return (
       <div className="profile-section">
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-secondary)' }}>
-          <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
-          <p style={{ marginTop: '16px' }}>Loading badges...</p>
-        </div>
+        <LoadingSpinner size="lg" message="Loading badges..." />
       </div>
     );
   }

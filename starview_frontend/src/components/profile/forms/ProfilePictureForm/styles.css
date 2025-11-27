@@ -1,13 +1,10 @@
 /* Profile Picture Form Styles */
 
-.profile-picture-section {
-  padding: var(--space-lg);
-}
-
 .profile-picture-upload {
   display: flex;
-  gap: var(--space-xl);
-  align-items: flex-start;
+  align-items: center;
+  gap: var(--space-lg);
+  min-height: 80px;
 }
 
 .profile-picture-preview {
@@ -15,24 +12,22 @@
 }
 
 .profile-picture-preview img {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--border-color);
+  border: 2px solid var(--glass-border-hover);
 }
 
 .profile-picture-actions {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
-.profile-picture-buttons {
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
+/* Compact buttons for profile picture form */
+.profile-picture-actions .profile-form-actions {
+  margin-top: 0;
 }
 
 .profile-file-input {
@@ -40,19 +35,31 @@
 }
 
 .profile-picture-help {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: var(--space-sm) 0 0 0;
 }
 
-@media (max-width: 768px) {
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 767px) {
   .profile-picture-upload {
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: stretch;
   }
 
   .profile-picture-actions {
-    align-items: center;
+    width: 100%;
+  }
+
+  .profile-picture-actions .profile-form-actions {
+    flex-direction: column;
+  }
+
+  .profile-picture-actions .btn-primary,
+  .profile-picture-actions .btn-secondary {
+    width: 100%;
   }
 }

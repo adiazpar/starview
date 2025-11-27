@@ -14,19 +14,10 @@ function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  // Show nothing while checking authentication
+  // While loading, render children - they will see auth loading state via useAuth
+  // This prevents spinner flash - ProfilePage shows one unified spinner for both auth and data loading
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '50vh',
-        color: 'var(--text-secondary)'
-      }}>
-        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
-      </div>
-    );
+    return children;
   }
 
   // Redirect to login if not authenticated

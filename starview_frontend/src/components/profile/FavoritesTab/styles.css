@@ -1,5 +1,5 @@
 /* ============================================ */
-/* FAVORITES TAB */
+/* FAVORITES TAB - Glass-morphic */
 /* ============================================ */
 
 .profile-items-grid {
@@ -8,16 +8,17 @@
 }
 
 .profile-item-card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-md);
-  transition: all var(--transition);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 1.5);
+  padding: var(--space-lg);
+  transition: all 0.2s ease;
 }
 
 .profile-item-card:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
+  transform: translateY(-2px);
 }
 
 .favorite-card-header {
@@ -33,7 +34,7 @@
 
 .favorite-location-title {
   font-size: var(--text-lg);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
 }
@@ -75,37 +76,4 @@
 
 .btn-icon-only {
   padding: var(--space-xs) var(--space-sm);
-}
-
-.profile-empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text-muted);
-}
-
-.profile-empty-state i {
-  font-size: 48px;
-  margin: 0 auto var(--space-md) auto;
-  display: block;
-  opacity: 0.5;
-}
-
-.profile-empty-state p {
-  font-size: var(--text-lg);
-  margin: 0;
-}
-
-.profile-empty-state-description {
-  font-size: var(--text-sm);
-  margin-top: var(--space-xs);
-}
-
-.profile-loading-state {
-  text-align: center;
-  padding: 48px;
-  color: var(--text-secondary);
-}
-
-.profile-loading-state i {
-  font-size: 2rem;
 }

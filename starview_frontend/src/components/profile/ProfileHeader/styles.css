@@ -155,43 +155,16 @@
   border-top: 1px solid var(--glass-border);
 }
 
-/* Action buttons use glass style */
-.profile-actions .btn {
+/* Action buttons - override global btn-secondary for profile header layout */
+.profile-actions .btn-secondary {
   flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  padding: 12px var(--space-lg);
+  padding: 10px var(--space-md);
   font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border-hover);
-  border-radius: calc(var(--radius) * 1.5);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
 }
 
-.profile-actions .btn:hover {
-  background: var(--glass-border);
-  border-color: var(--glass-border-hover);
-}
-
-.profile-actions .btn-icon {
+.profile-actions .btn-secondary--icon {
   flex: 0;
-  padding: 12px;
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border-hover);
-  border-radius: calc(var(--radius) * 1.5);
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.profile-actions .btn-icon:hover {
-  background: var(--glass-border);
-  color: var(--text-primary);
+  padding: 10px;
 }
 
 /* Responsive Design */
@@ -235,13 +208,13 @@
     font-size: var(--text-xs);
   }
 
-  .profile-actions .btn {
-    padding: 10px var(--space-md);
+  .profile-actions .btn-secondary {
+    padding: 8px var(--space-sm);
     font-size: 13px;
   }
 
-  .profile-actions .btn-icon {
-    padding: 10px;
+  .profile-actions .btn-secondary--icon {
+    padding: 8px;
   }
 }
 

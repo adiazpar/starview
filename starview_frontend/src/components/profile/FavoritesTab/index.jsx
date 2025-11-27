@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profileApi from '../../../services/profile';
 import Alert from '../../shared/Alert';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
 
 /**
@@ -85,9 +86,7 @@ function FavoritesTab() {
       )}
 
       {loading ? (
-        <div className="profile-loading-state">
-          <i className="fa-solid fa-spinner fa-spin"></i>
-        </div>
+        <LoadingSpinner size="lg" message="Loading favorites..." />
       ) : favorites.length === 0 ? (
         <div className="profile-empty-state">
           <i className="fa-solid fa-heart"></i>
