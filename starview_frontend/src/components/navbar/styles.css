@@ -200,9 +200,7 @@
   left: 0;
   width: 100%;
   height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.8);
   z-index: var(--z-navbar);
   animation: fadeIn 0.3s ease forwards;
 }

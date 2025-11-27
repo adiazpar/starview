@@ -1,0 +1,91 @@
+/* ========================================================================
+   ProfilePictureModal Component Styles - Modal overlay for profile picture
+   ======================================================================== */
+
+.profile-picture-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-lg);
+  animation: profilePictureModalFadeIn 0.2s ease;
+}
+
+@keyframes profilePictureModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.profile-picture-modal-content {
+  position: relative;
+  max-width: 500px;
+  width: 100%;
+  animation: profilePictureModalFadeIn 0.3s ease;
+}
+
+/* Close button */
+.profile-picture-modal-close {
+  position: absolute;
+  padding: var(--space-sm);
+  top: -40px;
+  right: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: color 0.2s ease;
+}
+
+.profile-picture-modal-close:hover {
+  color: var(--text-primary);
+}
+
+/* Image container */
+.profile-picture-modal-image-container {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-xs);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.profile-picture-modal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .profile-picture-modal-overlay {
+    padding: var(--space-md);
+  }
+
+  .profile-picture-modal-content {
+    max-width: 300px;
+  }
+
+  .profile-picture-modal-close {
+    top: -36px;
+    font-size: var(--text-lg);
+  }
+}
