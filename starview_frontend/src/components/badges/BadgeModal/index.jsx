@@ -30,14 +30,6 @@ function BadgeModal({ badge, state, earnedAt, progress, onClose }) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []);
-
   // Handle click on overlay (outside modal content)
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
