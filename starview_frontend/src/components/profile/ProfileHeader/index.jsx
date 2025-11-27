@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { publicUserApi } from '../../../services/profile';
@@ -53,6 +53,11 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
       setFollowerCount(user.stats?.follower_count || 0);
     }
   }, [user?.is_following, user?.stats?.follower_count]);
+
+  // Handle badge click - memoized to prevent unnecessary PinnedBadges re-renders
+  const handleBadgeClick = useCallback((badge) => {
+    setSelectedBadge(badge);
+  }, []);
 
   // Handle follow/unfollow action
   const handleFollowToggle = async () => {
@@ -173,7 +178,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
             <div className="profile-badges-container">
               <PinnedBadges
                 pinnedBadges={pinnedBadges}
-                onBadgeClick={(badge) => setSelectedBadge(badge)}
+                onBadgeClick={handleBadgeClick}
               />
             </div>
           )}

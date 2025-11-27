@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Alert from '../../shared/Alert';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import BadgeCard from '../../badges/BadgeCard';
@@ -23,10 +23,10 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
     clearMessages
   } = pinnedBadgesHook;
 
-  // Handle pin/unpin
-  const handlePinToggle = async (badgeId) => {
+  // Handle pin/unpin - memoized to prevent unnecessary BadgeCard re-renders
+  const handlePinToggle = useCallback(async (badgeId) => {
     await togglePin(badgeId);
-  };
+  }, [togglePin]);
 
   // Show loading if badge data hasn't been passed yet
   if (!badgeData) {
