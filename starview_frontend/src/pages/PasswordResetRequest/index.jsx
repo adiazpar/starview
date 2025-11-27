@@ -28,7 +28,6 @@ function PasswordResetRequestPage() {
 
   return (
     <div className="password-reset-container">
-      <div className="password-reset-navbar-spacer"></div>
       <div className="password-reset-content">
         <div className="password-reset-card">
         {success ? (

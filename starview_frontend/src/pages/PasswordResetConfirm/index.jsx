@@ -101,7 +101,6 @@ function PasswordResetConfirmPage() {
 
   return (
     <div className="password-reset-confirm-container">
-      <div className="password-reset-confirm-navbar-spacer"></div>
       <div className="password-reset-confirm-content">
         <div className="password-reset-confirm-card">
         {success ? (

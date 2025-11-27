@@ -4,7 +4,6 @@ import './styles.css';
 function SocialAccountExistsPage() {
   return (
     <div className="social-account-exists-container">
-      <div className="social-account-exists-navbar-spacer"></div>
       <div className="social-account-exists-content">
         <div className="social-account-exists-card">
         {/* Icon */}

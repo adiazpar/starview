@@ -49,7 +49,6 @@ function EmailConfirmErrorPage() {
 
   return (
     <div className="email-confirm-error-container">
-      <div className="email-confirm-error-navbar-spacer"></div>
       <div className="email-confirm-error-content">
         <div className="email-confirm-error-card">
         {/* Error Icon */}

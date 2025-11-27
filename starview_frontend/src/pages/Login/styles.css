@@ -10,13 +10,12 @@
 .login-container {
   display: flex;
   min-height: calc(100lvh - var(--navbar-height));
-  padding-top: var(--navbar-height);
 }
 
 @media (max-width: 767px) {
   .login-container {
-    padding-top: var(--navbar-height-mobile);
-    padding: calc(var(--navbar-height-mobile) + var(--space-lg)) var(--space-lg) var(--space-lg);
+    min-height: calc(100lvh - var(--navbar-height-mobile));
+    padding: var(--space-lg);
     flex-direction: column;
   }
 }

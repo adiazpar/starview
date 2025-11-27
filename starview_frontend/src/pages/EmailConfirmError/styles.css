@@ -10,12 +10,7 @@
 .email-confirm-error-container {
   display: flex;
   flex-direction: column;
-  min-height: 100lvh;
-}
-
-.email-confirm-error-navbar-spacer {
-  height: var(--navbar-height);
-  flex-shrink: 0;
+  min-height: calc(100lvh - var(--navbar-height));
 }
 
 .email-confirm-error-content {
@@ -27,8 +22,8 @@
 }
 
 @media (max-width: 767px) {
-  .email-confirm-error-navbar-spacer {
-    height: var(--navbar-height-mobile);
+  .email-confirm-error-container {
+    min-height: calc(100lvh - var(--navbar-height-mobile));
   }
 
   .email-confirm-error-content {

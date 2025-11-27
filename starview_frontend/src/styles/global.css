@@ -2,50 +2,62 @@
  * Design tokens, CSS reset, and shared component classes.
  */
 
-
-
 /* ============================================ */
-/* DESIGN TOKENS */
+/* DARK THEME (Default) */
 /* ============================================ */
 
 :root {
-  /* Colors - Dark Theme (Default) */
-  --bg-primary:   hsl(221, 39%, 11%);
-  --bg-secondary: hsl(215, 28%, 17%);
-  --bg-elevated:  hsl(221, 39%, 11%);
-  --bg-hover:     #4b5563;
+  /* Background */
+  --bg-base: #111827;
+  --starfield-gradient: linear-gradient(to top, transparent 0%, #0f172a 20%, #1a1a2e 100%);
+  --navbar-bg: hsla(221, 39%, 11%, 0.7);
 
+  /* Text */
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --text-muted: #9ca3af;
 
-  /* Colors - Semantic */
-  --accent:       #2563eb;
+  /* Accent (Blue) */
+  --accent: #2563eb;
   --accent-hover: #3b82f6;
   --accent-light: #60a5fa;
-  --accent-bg:    #3b82f61a;
+  --accent-bg: #3b82f61a;
 
+  /* Borders */
   --border: #2f353e;
   --border-focus: #3b82f6;
 
+  /* Status Colors */
   --success: #22c55e;
   --success-bg: rgba(34, 197, 94, 0.1);
   --success-border: rgba(34, 197, 94, 0.3);
-
   --warning: #eab308;
   --warning-bg: rgba(234, 179, 8, 0.1);
   --warning-border: rgba(234, 179, 8, 0.3);
-
   --error: #ef4444;
   --error-bg: rgba(239, 68, 68, 0.1);
   --error-border: rgba(239, 68, 68, 0.3);
-
   --info: #0ea5e9;
   --info-bg: rgba(14, 165, 233, 0.1);
   --info-border: rgba(14, 165, 233, 0.3);
 
+  /* Stars */
   --star-filled: #fbbf24;
   --star-empty: #4b5563;
+
+  /* Glass Card */
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(255, 255, 255, 0.1);
+
+  /* Decorative */
+  --glow-primary: rgba(37, 99, 235, 0.15);
+  --glow-secondary: rgba(139, 92, 246, 0.08);
+  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, #a78bfa 100%);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-accent: 0 4px 24px rgba(37, 99, 235, 0.3);
+  --shadow-accent-hover: 0 6px 32px rgba(37, 99, 235, 0.4);
 
   /* Spacing */
   --space-xs: 4px;
@@ -58,26 +70,6 @@
   --radius: 8px;
   --radius-full: 9999px;
 
-  /* Shadow */
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-
-  /* Glass Card - Transparent elevation (Linear-inspired) */
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-bg-hover: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-border-hover: rgba(255, 255, 255, 0.1);
-
-  /* Decorative Glow */
-  --glow-primary: rgba(37, 99, 235, 0.15);
-  --glow-secondary: rgba(139, 92, 246, 0.08);
-
-  /* Accent Gradient (blue to purple) */
-  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, #a78bfa 100%);
-
-  /* Accent Shadows */
-  --shadow-accent: 0 4px 24px rgba(37, 99, 235, 0.3);
-  --shadow-accent-hover: 0 6px 32px rgba(37, 99, 235, 0.4);
-
   /* Transition */
   --transition: 0.3s;
 
@@ -85,13 +77,13 @@
   --z-navbar: 30;
   --z-modal: 50;
 
-  /* Layout - Navbar */
+  /* Layout */
   --navbar-height: 72px;
   --navbar-height-mobile: 64px;
+  --container-max: 1000px;
 
   /* Typography */
   --font-family: 'Inter', sans-serif;
-
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;
@@ -100,53 +92,43 @@
   --text-2xl: 24px;
   --text-3xl: 28px;
   --text-4xl: 36px;
-
   --leading-tight: 1.25;
   --leading-normal: 1.5;
-
   --font-medium: 500;
   --font-semibold: 600;
-
-  --container-max: 1000px;
 }
 
-/* Light Theme */
+/* ============================================ */
+/* LIGHT THEME (via data-theme attribute set by JS) */
+/* ============================================ */
+
 [data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f4f6;
-  --bg-elevated: #ffffff;
-  --bg-hover: #e5e7eb;
+  --bg-base: #ffffff;
+  --starfield-gradient: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --navbar-bg: rgba(255, 255, 255, 0.85);
 
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-muted: #6b7280;
 
-  --accent:       hsl(35, 83%, 53%);
+  --accent: hsl(35, 83%, 53%);
   --accent-hover: hsl(35, 91%, 60%);
   --accent-light: hsl(35, 94%, 68%);
-  --accent-bg:    hsla(35, 91%, 60%, 0.102);
+  --accent-bg: hsla(35, 91%, 60%, 0.102);
 
   --border: #d1d5db;
   --border-focus: hsl(30, 91%, 60%);
-
   --star-empty: #d1d5db;
 
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-
-  /* Glass Card - Light theme */
   --glass-bg: rgba(0, 0, 0, 0.02);
   --glass-bg-hover: rgba(0, 0, 0, 0.04);
   --glass-border: rgba(0, 0, 0, 0.06);
   --glass-border-hover: rgba(0, 0, 0, 0.1);
 
-  /* Decorative Glow - Light theme */
   --glow-primary: rgba(217, 119, 6, 0.1);
   --glow-secondary: rgba(234, 88, 12, 0.05);
-
-  /* Accent Gradient - Light theme (orange) */
   --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
-
-  /* Accent Shadows - Light theme */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-accent: 0 4px 24px rgba(217, 119, 6, 0.25);
   --shadow-accent-hover: 0 6px 32px rgba(217, 119, 6, 0.35);
 }
@@ -168,6 +150,11 @@
   }
 }
 
+/* Base background - applied before JS runs, preventing flash */
+html {
+  background-color: var(--bg-base);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -186,7 +173,6 @@ body {
   min-height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
 }
 
-/* Root element needs the background for light theme fallback */
 #root {
   background-color: transparent;
 }
@@ -208,6 +194,17 @@ button {
 /* ============================================ */
 /* LAYOUT */
 /* ============================================ */
+
+.main-content {
+  padding-top: var(--navbar-height);
+  min-height: 100lvh;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: var(--navbar-height-mobile);
+  }
+}
 
 .page-container {
   max-width: var(--container-max);
@@ -344,47 +341,6 @@ button {
 
 
 
-/* ============================================ */
-/* CARDS */
-/* ============================================ */
-
-.card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-lg);
-}
-
-.card-title {
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-sm);
-}
-
-.card-body {
-  color: var(--text-secondary);
-}
-
-/* Glass Card - Transparent/frosted style (Linear-inspired) */
-.card-glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  padding: var(--space-xl);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
-}
-
-.card-glass:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-}
-
-.card-glass--interactive:hover {
-  transform: translateY(-4px);
-}
 
 
 
@@ -610,19 +566,3 @@ button {
   }
 }
 
-/* ============================================ */
-/* GLOBAL LOADING OVERLAY */
-/* ============================================ */
-
-.global-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-primary);
-  z-index: 9999;
-}

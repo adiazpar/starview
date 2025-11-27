@@ -25,6 +25,18 @@
   margin: 0;
   padding: 0;
   align-self: flex-start; /* Force avatar to top of flex container */
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.profile-avatar-large:hover {
+  transform: scale(1.05);
+}
+
+.profile-avatar-large:active {
+  transform: scale(0.98);
 }
 
 .profile-avatar-img {
@@ -129,7 +141,7 @@
   font-size: var(--text-sm);
   font-weight: 400;
   line-height: var(--leading-normal);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin-top: var(--space-lg);
   padding-top: var(--space-lg);
   border-top: 1px solid var(--glass-border);
@@ -139,7 +151,7 @@
 .profile-bio span {
   color: var(--text-primary);
   font-weight: var(--font-medium);
-  font-size: 13px;
+  font-size: var(--text-sm);
   display: flex;
   margin-bottom: var(--space-sm);
 }
@@ -204,13 +216,14 @@
     gap: var(--space-sm);
   }
 
-  .profile-bio {
+  .profile-bio,
+  .profile-bio span {
     font-size: var(--text-xs);
   }
 
   .profile-actions .btn-secondary {
     padding: 8px var(--space-sm);
-    font-size: 13px;
+    font-size: var(--text-xs);
   }
 
   .profile-actions .btn-secondary--icon {

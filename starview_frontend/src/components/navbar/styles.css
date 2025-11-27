@@ -9,10 +9,10 @@
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  background: lch(7.96% 14.45 283.28 / 0.7);
+  background: var(--navbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .navbar__container {
@@ -60,7 +60,7 @@
 
 .navbar__link:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg-hover);
 }
 
 .navbar__link.active {
@@ -125,10 +125,10 @@
   right: -100%;
   width: 280px;
   height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
-  background: rgba(15, 23, 42, 0.95);
+  background: var(--navbar-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid var(--glass-border-hover);
   padding: 88px 16px 24px;
   display: flex;
   flex-direction: column;
@@ -168,7 +168,7 @@
 
 .navbar__mobile-link:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg-hover);
 }
 
 .navbar__mobile-link:hover i {
@@ -240,29 +240,7 @@
   }
 }
 
-/* Light Theme Adjustments */
-[data-theme="light"] .navbar {
-  background: rgba(255, 255, 255, 0.85);
-  border-bottom-color: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] .navbar__mobile {
-  background: rgba(255, 255, 255, 0.95);
-  border-left-color: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] .navbar__link:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .navbar__mobile-link:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .navbar__hamburger span {
-  background: var(--text-secondary);
-}
-
-[data-theme="light"] .navbar__hamburger:hover span {
-  background: var(--text-primary);
-}
+/* Light Theme Adjustments
+ * Most styles now handled by CSS variables in global.css:
+ * --navbar-bg, --glass-bg-hover, --glass-border
+ */

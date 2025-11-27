@@ -10,12 +10,7 @@
 .verify-email-container {
   display: flex;
   flex-direction: column;
-  min-height: 100lvh;
-}
-
-.verify-email-navbar-spacer {
-  height: var(--navbar-height);
-  flex-shrink: 0;
+  min-height: calc(100lvh - var(--navbar-height));
 }
 
 .verify-email-content {
@@ -27,8 +22,8 @@
 }
 
 @media (max-width: 767px) {
-  .verify-email-navbar-spacer {
-    height: var(--navbar-height-mobile);
+  .verify-email-container {
+    min-height: calc(100lvh - var(--navbar-height-mobile));
   }
 
   .verify-email-content {

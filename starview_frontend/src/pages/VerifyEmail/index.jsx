@@ -97,7 +97,6 @@ function VerifyEmailPage() {
 
   return (
     <div className="verify-email-container">
-      <div className="verify-email-navbar-spacer"></div>
       <div className="verify-email-content">
         <div className="verify-email-card">
         {alreadyVerified ? (

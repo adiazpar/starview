@@ -4,8 +4,6 @@
  */
 
 .public-profile-page {
-  min-height: calc(100lvh - var(--navbar-height));
-  padding-top: var(--navbar-height);
   padding-left: var(--space-lg);
   padding-right: var(--space-lg);
   padding-bottom: var(--space-xl);
@@ -13,7 +11,6 @@
 
 @media (max-width: 767px) {
   .public-profile-page {
-    padding-top: var(--navbar-height-mobile);
     padding-left: var(--space-md);
     padding-right: var(--space-md);
   }

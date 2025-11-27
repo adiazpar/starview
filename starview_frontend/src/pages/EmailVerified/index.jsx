@@ -13,7 +13,6 @@ function EmailVerifiedPage() {
 
   return (
     <div className="email-verified-container">
-      <div className="email-verified-navbar-spacer"></div>
       <div className="email-verified-content">
         <div className="email-verified-card">
         {/* Success Icon */}

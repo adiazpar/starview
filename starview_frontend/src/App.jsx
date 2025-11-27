@@ -25,21 +25,23 @@ function App() {
       <BrowserRouter>
         <Starfield />
         <Navbar />
-        <Suspense fallback={<LoadingSpinner size="lg" fullPage />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/email-verified" element={<EmailVerifiedPage />} />
-            <Route path="/email-confirm-error" element={<EmailConfirmErrorPage />} />
-            <Route path="/social-account-exists" element={<SocialAccountExistsPage />} />
-            <Route path="/password-reset" element={<PasswordResetRequestPage />} />
-            <Route path="/password-reset-confirm/:uidb64/:token" element={<PasswordResetConfirmPage />} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/users/:username" element={<PublicProfilePage />} />
-          </Routes>
-        </Suspense>
+        <main className="main-content">
+          <Suspense fallback={<LoadingSpinner size="lg" fullPage />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/email-verified" element={<EmailVerifiedPage />} />
+              <Route path="/email-confirm-error" element={<EmailConfirmErrorPage />} />
+              <Route path="/social-account-exists" element={<SocialAccountExistsPage />} />
+              <Route path="/password-reset" element={<PasswordResetRequestPage />} />
+              <Route path="/password-reset-confirm/:uidb64/:token" element={<PasswordResetConfirmPage />} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/users/:username" element={<PublicProfilePage />} />
+            </Routes>
+          </Suspense>
+        </main>
       </BrowserRouter>
     </AuthProvider>
   );

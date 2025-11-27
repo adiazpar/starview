@@ -3,22 +3,17 @@
  * Uses CSS variables from global.css for consistent design tokens.
  */
 
-.home {
-  position: relative;
-  min-height: 100lvh;
-}
-
 /* ============================================ */
 /* HERO SECTION */
 /* ============================================ */
 
 .hero {
   position: relative;
-  min-height: 100lvh;
+  min-height: calc(100lvh - var(--navbar-height));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 200px var(--space-lg) 80px;
+  padding: 128px var(--space-lg) 80px;
   overflow: hidden;
 }
 
@@ -306,7 +301,7 @@
 
 @media (max-width: 768px) {
   .hero {
-    padding: 200px var(--space-xl) 60px;
+    padding: 128px var(--space-xl) 60px;
     min-height: auto;
   }
 

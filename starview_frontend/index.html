@@ -17,8 +17,9 @@
           document.documentElement.setAttribute('data-theme', 'light');
         }
 
-        // Set background color immediately to prevent white flash
-        document.documentElement.style.backgroundColor = theme === 'light' ? '#ffffff' : '#111827';
+        // SYNC WITH: global.css --bg-base variable
+        const bgBase = { dark: '#111827', light: '#ffffff' };
+        document.documentElement.style.backgroundColor = bgBase[theme];
       })();
     </script>
 

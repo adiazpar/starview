@@ -10,12 +10,7 @@
 .social-account-exists-container {
   display: flex;
   flex-direction: column;
-  min-height: 100lvh;
-}
-
-.social-account-exists-navbar-spacer {
-  height: var(--navbar-height);
-  flex-shrink: 0;
+  min-height: calc(100lvh - var(--navbar-height));
 }
 
 .social-account-exists-content {
@@ -27,8 +22,8 @@
 }
 
 @media (max-width: 767px) {
-  .social-account-exists-navbar-spacer {
-    height: var(--navbar-height-mobile);
+  .social-account-exists-container {
+    min-height: calc(100lvh - var(--navbar-height-mobile));
   }
 
   .social-account-exists-content {

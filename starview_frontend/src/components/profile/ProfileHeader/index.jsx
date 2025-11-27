@@ -4,6 +4,7 @@ import { publicUserApi } from '../../../services/profile';
 import Alert from '../../shared/Alert';
 import PinnedBadges from '../../badges/PinnedBadges';
 import BadgeModal from '../../badges/BadgeModal';
+import ProfilePictureModal from '../../shared/ProfilePictureModal';
 import './styles.css';
 
 /**
@@ -29,6 +30,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedBadge, setSelectedBadge] = useState(null);
+  const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
 
   // Get profile picture URL (use default if none set)
   const profilePictureUrl = user?.profile_picture_url || '/images/default_profile_pic.jpg';
@@ -110,13 +112,17 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
 
       <div className="profile-header-content">
         {/* Profile Picture */}
-        <div className="profile-avatar-large">
+        <button
+          className="profile-avatar-large"
+          onClick={() => setShowProfilePictureModal(true)}
+          aria-label="View profile picture"
+        >
           <img
             src={profilePictureUrl}
             alt={`${user?.username}'s profile`}
             className="profile-avatar-img"
           />
-        </div>
+        </button>
 
         {/* User Info and Badges Wrapper - No gap between them */}
         <div className="profile-info-badges-wrapper">
@@ -252,6 +258,15 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
           state="earned"
           earnedAt={selectedBadge.earned_at}
           onClose={() => setSelectedBadge(null)}
+        />
+      )}
+
+      {/* Profile Picture Modal */}
+      {showProfilePictureModal && (
+        <ProfilePictureModal
+          imageUrl={profilePictureUrl}
+          username={user?.username}
+          onClose={() => setShowProfilePictureModal(false)}
         />
       )}
     </div>

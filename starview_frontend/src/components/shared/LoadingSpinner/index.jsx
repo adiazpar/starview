@@ -18,7 +18,7 @@ function LoadingSpinner({ size = 'md', message = '', fullPage = false }) {
 
   return (
     <div className={containerClass}>
-      <i className={`fa-solid fa-spinner fa-spin ${sizeClass}`}></i>
+      <i className={`fa-solid fa-spinner fa-spin-pulse ${sizeClass}`}></i>
       {message && <p className="loading-spinner-message">{message}</p>}
     </div>
   );

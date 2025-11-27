@@ -10,12 +10,7 @@
 .password-reset-confirm-container {
   display: flex;
   flex-direction: column;
-  min-height: 100lvh;
-}
-
-.password-reset-confirm-navbar-spacer {
-  height: var(--navbar-height);
-  flex-shrink: 0;
+  min-height: calc(100lvh - var(--navbar-height));
 }
 
 .password-reset-confirm-content {
@@ -27,8 +22,8 @@
 }
 
 @media (max-width: 767px) {
-  .password-reset-confirm-navbar-spacer {
-    height: var(--navbar-height-mobile);
+  .password-reset-confirm-container {
+    min-height: calc(100lvh - var(--navbar-height-mobile));
   }
 
   .password-reset-confirm-content {

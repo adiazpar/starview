@@ -9,7 +9,7 @@
   overflow: hidden;
   pointer-events: none;
   z-index: -1;
-  background: linear-gradient(to top, #0d1117 0%, #0f172a 50%, #1a1a2e 100%);
+  background: var(--starfield-gradient);
   /* Lock gradient size to prevent shifting when mobile toolbar appears/disappears */
   background-size: 100% 100lvh;
   background-repeat: no-repeat;
@@ -301,12 +301,7 @@
   }
 }
 
-/* Light theme - invert colors for light background with dark stars */
-[data-theme="light"] .starfield {
-  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  background-size: 100% 100lvh;
-  background-repeat: no-repeat;
-}
+/* Light theme - handled by --starfield-gradient variable in global.css */
 
 [data-theme="light"] .stars-sm,
 [data-theme="light"] .stars-md,
