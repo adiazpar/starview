@@ -24,31 +24,46 @@ export function useTheme() {
 
   // Apply theme to document when theme changes
   useEffect(() => {
+    // SYNC WITH: index.html bgBase values
+    const bgBase = { dark: '#111827', light: '#ffffff' };
+
+    let effectiveTheme;
     if (theme === 'auto') {
       // Auto mode: detect system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      effectiveTheme = prefersDark ? 'dark' : 'light';
       if (prefersDark) {
         document.documentElement.removeAttribute('data-theme');
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
       }
     } else if (theme === 'light') {
+      effectiveTheme = 'light';
       document.documentElement.setAttribute('data-theme', 'light');
     } else {
+      effectiveTheme = 'dark';
       document.documentElement.removeAttribute('data-theme');
     }
+
+    // Update inline background color to match theme (prevents flash artifacts)
+    document.documentElement.style.backgroundColor = bgBase[effectiveTheme];
   }, [theme]);
 
   // Listen for system theme changes when in auto mode
   useEffect(() => {
     if (theme !== 'auto') return;
 
+    // SYNC WITH: index.html bgBase values
+    const bgBase = { dark: '#111827', light: '#ffffff' };
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
       if (e.matches) {
         document.documentElement.removeAttribute('data-theme');
+        document.documentElement.style.backgroundColor = bgBase.dark;
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.style.backgroundColor = bgBase.light;
       }
     };
 
