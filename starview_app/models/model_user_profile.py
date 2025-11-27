@@ -17,6 +17,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from starview_app.utils.validators import validate_latitude, validate_longitude
 
 
 
@@ -41,6 +42,18 @@ class UserProfile(models.Model):
         blank=True,
         default='',
         help_text="User's location (e.g., 'Seattle, WA')"
+    )
+    location_latitude = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[validate_latitude],
+        help_text="User's location latitude (private - never exposed in API)"
+    )
+    location_longitude = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[validate_longitude],
+        help_text="User's location longitude (private - never exposed in API)"
     )
     is_verified = models.BooleanField(
         default=False,

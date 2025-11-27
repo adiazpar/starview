@@ -17,7 +17,7 @@ import './styles.css';
 
 function ProfileSettings({ user, refreshAuth }) {
   return (
-    <CollapsibleSection title="Profile Settings" defaultExpanded={false}>
+    <CollapsibleSection title="Profile Settings" defaultExpanded={false} resetOnCollapse>
       <div className="profile-settings-grid">
         <ProfilePictureForm user={user} refreshAuth={refreshAuth} />
         <PersonalInfoForm user={user} refreshAuth={refreshAuth} />

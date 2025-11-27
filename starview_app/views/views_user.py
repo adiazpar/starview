@@ -521,32 +521,51 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Update user's location text.                                                  #
+    # Update user's location with optional coordinates.                             #
     #                                                                               #
-    # Location appears on public profile (e.g., "Seattle, WA").                     #
+    # Location text appears on public profile (e.g., "Seattle, Washington, US").    #
+    # Coordinates are stored privately and never exposed in API responses.          #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-location/                                      #
     # Authentication: Required                                                      #
-    # Body: JSON with location (max 100 characters)                                 #
-    # Returns: DRF Response with success status and updated location                #
+    # Body: JSON with location (max 100 chars), optional latitude/longitude         #
+    # Returns: DRF Response with success status and updated location text only      #
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-location')
     def update_location(self, request):
         location = request.data.get('location', '').strip()
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
 
-        # Validate length
+        # Validate location text length
         if len(location) > 100:
             raise exceptions.ValidationError('Location must be 100 characters or less.')
 
-        # Update location
         profile = request.user.userprofile
-        profile.location = location
+
+        # Handle clearing location (empty string clears everything)
+        if not location:
+            profile.location = ''
+            profile.location_latitude = None
+            profile.location_longitude = None
+        else:
+            profile.location = location
+            # Store coordinates if provided (model validators handle range validation)
+            if latitude is not None and longitude is not None:
+                profile.location_latitude = float(latitude)
+                profile.location_longitude = float(longitude)
+            else:
+                # Location text without coordinates (fallback for manual entry)
+                profile.location_latitude = None
+                profile.location_longitude = None
+
         profile.save()
 
+        # Only return location text - coordinates are private
         return Response({
             'detail': 'Location updated successfully.',
-            'location': location
+            'location': profile.location
         }, status=status.HTTP_200_OK)
 
 

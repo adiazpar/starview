@@ -1,29 +1,37 @@
 /**
  * LocationForm Component
  *
- * Form component for updating user location.
+ * Form component for updating user location with Mapbox autocomplete.
+ * Stores location text (public) and coordinates (private).
  * Uses view/edit mode pattern for cleaner UX.
- * Max 100 characters.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
+import LocationAutocomplete from '../../../shared/LocationAutocomplete';
 
 function LocationForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [location, setLocation] = useState(user?.location || '');
+  const [locationData, setLocationData] = useState({
+    location: user?.location || '',
+    latitude: null,
+    longitude: null
+  });
 
   // Update location when user data changes
   useEffect(() => {
     if (user?.location !== undefined) {
-      setLocation(user.location || '');
+      setLocationData(prev => ({
+        ...prev,
+        location: user.location || ''
+      }));
     }
   }, [user?.location]);
 
   const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
-    onSubmit: async () => await profileApi.updateLocation({ location }),
+    onSubmit: async () => await profileApi.updateLocation(locationData),
     onSuccess: () => {
       refreshAuth();
       setIsEditing(false);
@@ -31,14 +39,31 @@ function LocationForm({ user, refreshAuth }) {
     successMessage: 'Location updated successfully!',
   });
 
+  // Handle location selection from autocomplete
+  const handleLocationSelect = useCallback((data) => {
+    setLocationData({
+      location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude
+    });
+  }, []);
+
   const handleCancel = () => {
-    setLocation(user?.location || '');
+    setLocationData({
+      location: user?.location || '',
+      latitude: null,
+      longitude: null
+    });
     setIsEditing(false);
     clearMessages();
   };
 
   return (
     <div className="profile-form-section">
+      {/* Alerts above section title */}
+      {success && <Alert type="success" message={success} onClose={clearMessages} />}
+      {error && <Alert type="error" message={error} onClose={clearMessages} />}
+
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">
@@ -63,9 +88,6 @@ function LocationForm({ user, refreshAuth }) {
         </button>
       </div>
 
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
-
       {/* View Mode */}
       {!isEditing && (
         <div className="profile-view-content">
@@ -80,20 +102,19 @@ function LocationForm({ user, refreshAuth }) {
         <div className="profile-edit-content">
           <form onSubmit={handleSubmit} className="profile-form">
             <div className="form-group">
-              <input
-                type="text"
-                id="location"
-                className="form-input"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                maxLength="100"
-                placeholder="e.g., Seattle, WA"
+              <LocationAutocomplete
+                value={locationData.location}
+                onSelect={handleLocationSelect}
+                placeholder="Search for a city or region..."
                 disabled={loading}
-                aria-label="Location"
               />
             </div>
             <div className="profile-form-actions">
-              <button type="submit" className="btn-primary" disabled={loading}>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <i className="fa-solid fa-spinner fa-spin"></i>

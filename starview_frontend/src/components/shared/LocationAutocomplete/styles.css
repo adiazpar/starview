@@ -1,0 +1,91 @@
+/* LocationAutocomplete Styles
+ * Input styling matches .form-input from global.css
+ * Dropdown uses default Mapbox styling
+ */
+
+.location-autocomplete {
+  width: 100%;
+  position: relative;
+}
+
+.location-autocomplete--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Prevent parent containers from clipping the dropdown - only when dropdown is open */
+.collapsible-section-content-inner:has(.location-autocomplete [aria-expanded="true"]) {
+  overflow: visible !important;
+}
+
+/* Constrain dropdown height to stay within form section */
+.location-autocomplete [class*="--Results"],
+.location-autocomplete [class*="--ResultsList"] {
+  max-height: 200px !important;
+}
+
+/* Hide Mapbox attribution */
+.location-autocomplete [class*="--Attribution"],
+.location-autocomplete [class*="attribution"],
+.location-autocomplete [class*="--PoweredBy"],
+.location-autocomplete a[href*="mapbox.com"] {
+  display: none !important;
+}
+
+/* Reset Mapbox container */
+.location-autocomplete [class*="Geocoder"],
+.location-autocomplete [class*="geocoder"],
+.location-autocomplete [class*="MapboxSearch"] {
+  width: 100%;
+  font-family: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* === HIDE SEARCH ICON AND CLEAR BUTTON === */
+.location-autocomplete [class*="--SearchIcon"],
+.location-autocomplete [class*="search-icon"],
+.location-autocomplete [class*="SearchIcon"],
+.location-autocomplete svg[class*="icon"],
+.location-autocomplete [class*="--Icon"],
+.location-autocomplete button[class*="clear"],
+.location-autocomplete button[class*="Clear"],
+.location-autocomplete [class*="--ActionButton"],
+.location-autocomplete [class*="--ClearButton"],
+.location-autocomplete [class*="close"],
+.location-autocomplete [class*="Close"] {
+  display: none !important;
+}
+
+/* === INPUT FIELD - Match .form-input from global.css exactly === */
+.location-autocomplete input,
+.location-autocomplete input[type="text"] {
+  width: 100%;
+  height: 48px !important;
+  padding: 12px 16px !important;
+  background: var(--glass-bg-hover) !important;
+  border: 1px solid var(--glass-border-hover) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text-primary) !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 400 !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.location-autocomplete input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.location-autocomplete input:hover {
+  border-color: var(--glass-border-hover) !important;
+}
+
+.location-autocomplete input:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  background: var(--glass-bg-hover) !important;
+  box-shadow: 0 0 0 3px var(--accent-bg) !important;
+}

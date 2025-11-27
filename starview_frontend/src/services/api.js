@@ -12,7 +12,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: '/api',
   withCredentials: true, // Important: sends cookies for Django session auth
   headers: {
     'Content-Type': 'application/json',

@@ -34,6 +34,9 @@ const copyPublicPlugin = () => ({
 export default defineConfig({
   plugins: [react(), copyPublicPlugin()],
 
+  // Load environment variables from root directory (shared with Django)
+  envDir: '..',
+
   // Development server configuration
   server: {
     port: 5173,

@@ -266,6 +266,9 @@ frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
+starview_frontend/.env
+starview_frontend/.env.local
+starview_frontend/.env.*
 
 # Logs
 npm-debug.log*
