@@ -31,21 +31,12 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.profile-avatar-large:hover {
-  transform: scale(1.05);
-}
-
-.profile-avatar-large:active {
-  transform: scale(0.98);
-}
-
 .profile-avatar-img {
   width: 120px;
   height: 120px;
   border-radius: var(--radius-full);
   object-fit: cover;
   border: 3px solid var(--glass-border-hover);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   display: block;
   margin: 0;
   padding: 0;
