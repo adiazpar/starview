@@ -72,6 +72,7 @@ if DEBUG:
 SECURE_BROWSER_XSS_FILTER = True        # Browser XSS filtering
 X_FRAME_OPTIONS = 'DENY'                # Prevent clickjacking
 SECURE_CONTENT_TYPE_NOSNIFF = True      # Prevent MIME sniffing
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'  # Send origin on cross-origin requests (needed for Mapbox URL restrictions)
 
 # Production-only HTTPS settings (enabled when DEBUG=False)
 if not DEBUG:
