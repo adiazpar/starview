@@ -46,11 +46,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - clear auth state and redirect to login
     if (error.response?.status === 401) {
-      console.warn('Unauthorized - redirecting to login');
-      // You can redirect here or let components handle it
-      // window.location.href = '/login';
+      // Skip redirect for auth-check endpoints (prevents redirect loops)
+      const isAuthCheck = error.config?.url?.includes('/auth/status');
+
+      if (!isAuthCheck) {
+        // Emit event so AuthContext can clear state
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+
+        // Redirect to login with expired flag
+        window.location.href = '/login?expired=true';
+
+        // Return a rejected promise that won't trigger component error handling
+        return new Promise(() => {});
+      }
     }
 
     // Handle 403 Forbidden

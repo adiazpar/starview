@@ -1,0 +1,119 @@
+/* NotFound Page - "Lost in Space" Theme */
+
+.not-found {
+  min-height: calc(100vh - var(--navbar-offset, 70px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.not-found-content {
+  max-width: 600px;
+}
+
+/* Large 404 Code */
+.not-found-code {
+  font-size: clamp(8rem, 25vw, 14rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  user-select: none;
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.not-found-4 {
+  color: var(--text-primary, #f9fafb);
+  opacity: 0.9;
+}
+
+.not-found-0 {
+  display: inline-block;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: pulse-glow 3s ease-in-out infinite;
+  position: relative;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(99, 102, 241, 0.6));
+    transform: scale(1.02);
+  }
+}
+
+/* Title */
+.not-found-title {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-primary, #f9fafb);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.1;
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.not-found-highlight {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Message */
+.not-found-message {
+  font-size: 1.125rem;
+  color: var(--text-secondary, #d1d5db);
+  line-height: 1.6;
+  margin: 0 0 2.5rem 0;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+/* Button animation */
+.not-found-content .btn-primary {
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+}
+
+/* Hint */
+.not-found-hint {
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-muted, #9ca3af);
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .not-found {
+    padding: 1.5rem;
+  }
+
+  .not-found-message {
+    font-size: 1rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .not-found-code,
+  .not-found-title,
+  .not-found-message,
+  .not-found-content .btn-primary,
+  .not-found-hint {
+    animation: none;
+  }
+
+  .not-found-0 {
+    animation: none;
+  }
+}

@@ -23,6 +23,10 @@ function LoginPage() {
   // Get the redirect URL from query params (e.g., /login?next=/profile)
   const nextUrl = searchParams.get('next') || '/';
 
+  // Check if redirected due to session expiry
+  const sessionExpired = searchParams.get('expired') === 'true';
+  const [showExpiredAlert, setShowExpiredAlert] = useState(sessionExpired);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -113,6 +117,15 @@ function LoginPage() {
               Sign in to continue exploring the cosmos
             </p>
           </div>
+
+          {/* Session Expired Message */}
+          {showExpiredAlert && !error && (
+            <Alert
+              type="warning"
+              message="Your session has expired. Please sign in again."
+              onClose={() => setShowExpiredAlert(false)}
+            />
+          )}
 
           {/* Error Message */}
           {error && (

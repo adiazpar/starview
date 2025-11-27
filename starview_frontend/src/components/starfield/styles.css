@@ -3,6 +3,16 @@
  * Based on SCSS technique using box-shadows for star positions.
  */
 
+/* Exclude starfield from global transitions - box-shadow transitions are expensive on mobile */
+.starfield,
+.starfield *,
+.stars-sm,
+.stars-md,
+.stars-lg,
+.shooting-star {
+  transition: none !important;
+}
+
 .starfield {
   position: fixed;
   inset: 0;

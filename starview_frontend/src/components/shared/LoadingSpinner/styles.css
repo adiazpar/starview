@@ -10,7 +10,7 @@
 }
 
 .loading-spinner-container.full-page {
-  min-height: 100lvh;
+  min-height: calc(100lvh - var(--navbar-offset, 70px));
 }
 
 .loading-spinner-sm {

@@ -62,7 +62,7 @@
   border: 1px solid var(--glass-border);
   border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-lg);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .review-card:hover {

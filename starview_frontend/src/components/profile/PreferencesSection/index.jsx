@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useTheme } from '../../../hooks/useTheme';
-import Alert from '../../shared/Alert';
 import CollapsibleSection from '../CollapsibleSection';
 import './styles.css';
 
@@ -11,11 +9,9 @@ import './styles.css';
  */
 function PreferencesSection() {
   const { theme, setThemeMode } = useTheme();
-  const [success, setSuccess] = useState('');
 
   const handleThemeChange = (newTheme) => {
     setThemeMode(newTheme);
-    setSuccess(`Theme changed to ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode`);
   };
 
   return (
@@ -25,15 +21,6 @@ function PreferencesSection() {
         <div className="profile-form-section">
           <h3 className="profile-form-title">Theme</h3>
           <p className="profile-form-description">Choose how Starview looks to you. Select a theme or sync with your system preferences.</p>
-
-          {/* Success Message */}
-          {success && (
-            <Alert
-              type="success"
-              message={success}
-              onClose={() => setSuccess('')}
-            />
-          )}
 
           <div className="theme-selector">
             <button

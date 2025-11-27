@@ -71,7 +71,6 @@ function Navbar() {
             <>
               <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
               <button onClick={logout} className="navbar__cta btn-primary btn-primary--sm">
-                <i className="fa-solid fa-arrow-right-from-bracket"></i>
                 <span>Logout</span>
               </button>
             </>

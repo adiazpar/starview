@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/navbar';
 import Starfield from './components/starfield';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 import LoadingSpinner from './components/shared/LoadingSpinner';
 
 // Lazy load all page components for code splitting
@@ -18,6 +19,7 @@ const PasswordResetRequestPage = lazy(() => import('./pages/PasswordResetRequest
 const PasswordResetConfirmPage = lazy(() => import('./pages/PasswordResetConfirm'));
 const ProfilePage = lazy(() => import('./pages/Profile'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile'));
+const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
   return (
@@ -29,8 +31,8 @@ function App() {
           <Suspense fallback={<LoadingSpinner size="lg" fullPage />}>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+              <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/email-verified" element={<EmailVerifiedPage />} />
               <Route path="/email-confirm-error" element={<EmailConfirmErrorPage />} />
@@ -39,6 +41,7 @@ function App() {
               <Route path="/password-reset-confirm/:uidb64/:token" element={<PasswordResetConfirmPage />} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/users/:username" element={<PublicProfilePage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </main>

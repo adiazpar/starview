@@ -89,6 +89,17 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Listen for 401 unauthorized events from API interceptor
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setIsAuthenticated(false);
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
   const value = {
     isAuthenticated,
     user,
