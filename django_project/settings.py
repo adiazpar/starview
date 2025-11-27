@@ -102,6 +102,7 @@ CONTENT_SECURITY_POLICY = {
             "https://cdn.jsdelivr.net",                 # CDN styles
             "https://rsms.me",                          # Inter font CSS
             "https://kit.fontawesome.com",              # Font Awesome kit styles
+            "https://fonts.googleapis.com",             # Google Fonts CSS
         ),
         'img-src': (
             "'self'",
