@@ -167,7 +167,8 @@
   border-top: 1px solid var(--glass-border);
 }
 
-/* Action buttons - override global btn-secondary for profile header layout */
+/* Action buttons - override global styles for profile header layout */
+.profile-actions .btn-primary,
 .profile-actions .btn-secondary {
   flex: 1;
   padding: 10px var(--space-md);
@@ -221,6 +222,7 @@
     font-size: var(--text-xs);
   }
 
+  .profile-actions .btn-primary,
   .profile-actions .btn-secondary {
     padding: 8px var(--space-sm);
     font-size: var(--text-xs);

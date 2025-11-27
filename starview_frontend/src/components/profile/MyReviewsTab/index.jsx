@@ -15,9 +15,9 @@ function MyReviewsTab() {
 
       <div className="profile-empty-state">
         <i className="fa-solid fa-star"></i>
-        <p>Coming Soon!</p>
+        <p>No reviews yet</p>
         <p className="profile-empty-state-description">
-          Your review history will appear here. This feature requires a backend endpoint for fetching user reviews.
+          You haven't reviewed any locations yet. Start exploring!
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { publicUserApi } from '../../../services/profile';
 import Alert from '../../shared/Alert';
@@ -20,9 +21,11 @@ import './styles.css';
  * - onShowBadgesClick: Optional callback function for "Show Badges" button click
  * - badgesVisible: Optional boolean to show if badges are currently visible
  * - pinnedBadges: Optional array of pinned badge objects to display
+ * - onFollowChange: Optional callback when follow status changes (receives delta: +1 or -1)
  */
-function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowBadgesClick, badgesVisible = false, pinnedBadges = [] }) {
+function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowBadgesClick, badgesVisible = false, pinnedBadges = [], onFollowChange }) {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   // Use the is_following value from the user object (from API)
   const [isFollowing, setIsFollowing] = useState(user?.is_following || false);
   const [isLoadingFollow, setIsLoadingFollow] = useState(false);
@@ -55,7 +58,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
   const handleFollowToggle = async () => {
     if (!currentUser) {
       // Redirect to login if not authenticated
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
@@ -71,12 +74,16 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         setIsFollowing(false);
         setFollowerCount(prev => prev - 1);
         setSuccessMessage(response.data.detail || `You have unfollowed ${user.username}.`);
+        // Notify parent of follower count change
+        onFollowChange?.(-1);
       } else {
         // Follow
         const response = await publicUserApi.followUser(user.username);
         setIsFollowing(true);
         setFollowerCount(prev => prev + 1);
         setSuccessMessage(response.data.detail || `You are now following ${user.username}.`);
+        // Notify parent of follower count change
+        onFollowChange?.(1);
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
@@ -187,16 +194,16 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
           {onEditPage ? (
             // On edit page: Show "Back to Profile" button
-            <a href={`/users/${user?.username}`} className="btn-secondary">
+            <Link to={`/users/${user?.username}`} className="btn-primary">
               <i className="fa-solid fa-caret-left"></i>
               Back
-            </a>
+            </Link>
           ) : (
             // On public profile: Show "Edit Profile" button
-            <a href="/profile" className="btn-secondary">
+            <Link to="/profile" className="btn-primary">
               <i className="fa-solid fa-gear"></i>
               Edit Profile
-            </a>
+            </Link>
           )}
           {onShowBadgesClick && (
             <button onClick={onShowBadgesClick} className="btn-secondary">
@@ -204,16 +211,16 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
               {badgesVisible ? 'Hide' : 'Show'} Badges
             </button>
           )}
-          <a href="/profile" className="btn-secondary btn-secondary--icon">
+          <Link to="/profile" className="btn-secondary btn-secondary--icon">
             <i className="fa-solid fa-ellipsis-vertical"></i>
-          </a>
+          </Link>
         </div>
       ) : (
         // Other user's profile: Show follow button (if logged in)
         currentUser && (
           <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
             <button
-              className="btn-secondary"
+              className="btn-primary"
               onClick={handleFollowToggle}
               disabled={isLoadingFollow}
             >

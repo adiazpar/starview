@@ -59,7 +59,7 @@ function HomePage() {
             </div>
           ) : (
             <p className="hero__community-note">
-              Join our growing community of stargazers
+              Your stargazing adventure begins here
             </p>
           )}
         </div>

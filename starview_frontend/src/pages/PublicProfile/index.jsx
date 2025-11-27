@@ -45,6 +45,18 @@ function PublicProfilePage() {
     setBadgesVisible(!badgesVisible);
   };
 
+  // Handle follow/unfollow - update stats in real-time
+  const handleFollowChange = (delta) => {
+    setProfileUser(prev => ({
+      ...prev,
+      is_following: delta > 0, // true if followed, false if unfollowed
+      stats: {
+        ...prev.stats,
+        follower_count: (prev.stats?.follower_count || 0) + delta
+      }
+    }));
+  };
+
   // Fetch user profile and badges
   useEffect(() => {
     const fetchProfile = async () => {
@@ -149,6 +161,7 @@ function PublicProfilePage() {
           onShowBadgesClick={handleToggleBadges}
           badgesVisible={badgesVisible}
           pinnedBadges={pinnedBadges}
+          onFollowChange={handleFollowChange}
         />
 
         {/* Badge Section */}

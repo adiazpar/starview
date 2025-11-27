@@ -82,7 +82,7 @@
 
 .password-reset-title {
   font-size: var(--text-2xl);
-  font-weight: var(--font-semibold);
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: var(--leading-tight);
   color: var(--text-primary);
@@ -138,7 +138,7 @@
 
 .password-reset-success-title {
   font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0 0 var(--space-sm) 0;

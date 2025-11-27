@@ -83,7 +83,7 @@
 
 .email-confirm-error-title {
   font-size: var(--text-2xl);
-  font-weight: var(--font-semibold);
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: var(--leading-tight);
   color: var(--text-primary);

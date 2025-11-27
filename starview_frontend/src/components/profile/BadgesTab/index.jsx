@@ -63,6 +63,21 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
         <Alert type="success" message={pinSuccess} onClose={clearMessages} />
       )}
 
+      {/* Inline Badge Stats */}
+      <div className="badge-inline-stats">
+        <span className="badge-inline-stat">
+          <strong>{earned?.length || 0}</strong> earned
+        </span>
+        <span className="badge-inline-divider">·</span>
+        <span className="badge-inline-stat">
+          <strong>{in_progress?.length || 0}</strong> in progress
+        </span>
+        <span className="badge-inline-divider">·</span>
+        <span className="badge-inline-stat">
+          <strong>{locked?.length || 0}</strong> locked
+        </span>
+      </div>
+
       {/* Pinned Badges Summary */}
       {pinnedBadgeIds.length > 0 && (
         <div className="badge-pinned-summary">
@@ -73,32 +88,10 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
         </div>
       )}
 
-      {/* Badge Summary Stats */}
-      <div className="badge-summary-stats">
-        <div className="badge-stat-card">
-          <span className="badge-stat-value">{earned?.length || 0}</span>
-          <span className="badge-stat-label">Earned</span>
-        </div>
-        <div className="badge-stat-card">
-          <span className="badge-stat-value">{in_progress?.length || 0}</span>
-          <span className="badge-stat-label">In Progress</span>
-        </div>
-        <div className="badge-stat-card">
-          <span className="badge-stat-value">{locked?.length || 0}</span>
-          <span className="badge-stat-label">Locked</span>
-        </div>
-        <div className="badge-stat-card">
-          <span className="badge-stat-value">{totalBadges}</span>
-          <span className="badge-stat-label">Total</span>
-        </div>
-      </div>
-
       {/* Earned Badges */}
       {earned && earned.length > 0 && (
         <div className="badge-collection-section">
-          <h3>
-            <i className="fa-solid fa-check-circle"></i> Earned Badges ({earned.length})
-          </h3>
+          <h3>Earned Badges ({earned.length})</h3>
           <p>Badges you have unlocked</p>
           <div className="badge-grid">
             {earned.map(item => (
@@ -128,9 +121,7 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
       {/* In-Progress Badges */}
       {in_progress && in_progress.length > 0 && (
         <div className="badge-collection-section">
-          <h3>
-            <i className="fa-solid fa-spinner"></i> In-Progress Badges ({in_progress.length})
-          </h3>
+          <h3>In Progress ({in_progress.length})</h3>
           <p>Badges with partial progress toward completion</p>
           <div className="badge-grid">
             {in_progress.map(item => (
@@ -161,9 +152,7 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
       {/* Locked Badges */}
       {locked && locked.length > 0 && (
         <div className="badge-collection-section">
-          <h3>
-            <i className="fa-solid fa-lock"></i> Locked Badges ({locked.length})
-          </h3>
+          <h3>Locked ({locked.length})</h3>
           <p>Badges that haven't been started yet</p>
           <div className="badge-grid">
             {locked.map(item => (
