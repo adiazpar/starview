@@ -1,12 +1,7 @@
-# Claude Code MCP config (local machine-specific)
-.mcp.json
-
 # Database
 *.sqlite3
 
 .DS_Store
-CLAUDE.md
-.claude
 .vscode
 celery_worker.log
 logs/
