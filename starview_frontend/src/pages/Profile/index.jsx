@@ -89,7 +89,7 @@ function ProfilePage() {
         )}
 
         {/* Tab Navigation */}
-        <div className="profile-tabs animate-fade-in-up animate-delay-1">
+        <div className="profile-tabs glass-card animate-fade-in-up animate-delay-1">
           <button
             className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
@@ -121,7 +121,7 @@ function ProfilePage() {
         </div>
 
         {/* Tab Content */}
-        <div className="profile-content">
+        <div className="profile-content glass-card">
           {activeTab === 'settings' && (
             <SettingsTab
               user={user}

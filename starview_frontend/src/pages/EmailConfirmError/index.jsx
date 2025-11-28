@@ -48,9 +48,9 @@ function EmailConfirmErrorPage() {
   const content = getErrorContent();
 
   return (
-    <div className="email-confirm-error-container">
-      <div className="email-confirm-error-content">
-        <div className="email-confirm-error-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {/* Error Icon */}
         <div className={`email-confirm-error-icon ${content.iconClass}`}>
           <i className={content.icon}></i>

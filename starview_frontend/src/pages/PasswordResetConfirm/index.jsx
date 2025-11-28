@@ -100,9 +100,9 @@ function PasswordResetConfirmPage() {
     passwordMatch;
 
   return (
-    <div className="password-reset-confirm-container">
-      <div className="password-reset-confirm-content">
-        <div className="password-reset-confirm-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {success ? (
           <div className="password-reset-confirm-success">
             {/* Success Icon */}
@@ -163,7 +163,7 @@ function PasswordResetConfirmPage() {
                   />
                   <button
                     type="button"
-                    className="password-reset-confirm-toggle"
+                    className="password-toggle"
                     onClick={() => setShowPassword1(!showPassword1)}
                     aria-label={showPassword1 ? "Hide password" : "Show password"}
                     tabIndex={-1}
@@ -213,7 +213,7 @@ function PasswordResetConfirmPage() {
                   />
                   <button
                     type="button"
-                    className="password-reset-confirm-toggle"
+                    className="password-toggle"
                     onClick={() => setShowPassword2(!showPassword2)}
                     aria-label={showPassword2 ? "Hide password" : "Show password"}
                     tabIndex={-1}

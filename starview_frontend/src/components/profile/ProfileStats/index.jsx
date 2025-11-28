@@ -48,7 +48,7 @@ function ProfileStats({ stats }) {
     <div className="profile-stats">
       <div className="profile-stats-grid">
         {statItems.map((item, index) => (
-          <div key={index} className="profile-stat-card">
+          <div key={index} className="profile-stat-card glass-card glass-card--interactive">
             <div className="profile-stat-icon" style={{ color: item.color }}>
               <i className={`fa-solid ${item.icon}`}></i>
             </div>

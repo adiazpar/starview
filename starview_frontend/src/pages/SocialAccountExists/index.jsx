@@ -3,9 +3,9 @@ import './styles.css';
 
 function SocialAccountExistsPage() {
   return (
-    <div className="social-account-exists-container">
-      <div className="social-account-exists-content">
-        <div className="social-account-exists-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {/* Icon */}
         <div className="social-account-exists-icon">
           <i className="fa-solid fa-circle-info"></i>

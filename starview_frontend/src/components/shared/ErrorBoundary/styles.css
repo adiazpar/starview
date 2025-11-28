@@ -1,0 +1,180 @@
+/* ErrorBoundary - "Houston, We Have a Problem" Theme */
+/* Matches NotFound page design for consistency */
+
+.error-boundary {
+  min-height: 100vh;
+  padding-top: var(--navbar-height, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: var(--space-xl);
+  padding-right: var(--space-xl);
+  padding-bottom: var(--space-xl);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.error-boundary-content {
+  max-width: 600px;
+}
+
+/* Large Error Symbol */
+.error-boundary-code {
+  font-size: clamp(8rem, 25vw, 14rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-md);
+  user-select: none;
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.error-boundary-bracket {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--error) 0%, #f87171 50%, var(--warning) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: error-pulse 3s ease-in-out infinite;
+  position: relative;
+}
+
+@keyframes error-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--error) 40%, transparent));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 40px color-mix(in srgb, var(--error) 60%, transparent));
+    transform: scale(1.02);
+  }
+}
+
+/* Title */
+.error-boundary-title {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-lg) 0;
+  line-height: 1.1;
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.error-boundary-highlight {
+  background: linear-gradient(135deg, var(--error) 0%, #f87171 50%, var(--warning) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Message */
+.error-boundary-message {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 calc(var(--space-xl) + var(--space-sm)) 0;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+/* Actions */
+.error-boundary-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+}
+
+@media (min-width: 480px) {
+  .error-boundary-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* Hint */
+.error-boundary-hint {
+  margin-top: var(--space-xl);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+/* Error Details (Dev Only) */
+.error-boundary-details {
+  margin-top: 2.5rem;
+  text-align: left;
+  animation: fadeInUp 0.6s ease-out 0.5s backwards;
+}
+
+.error-boundary-details summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  user-select: none;
+  text-align: center;
+}
+
+.error-boundary-details summary:hover {
+  color: var(--text-secondary);
+}
+
+.error-boundary-stack {
+  display: block;
+  padding: var(--space-md);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+  max-height: 200px;
+  text-align: left;
+}
+
+.error-boundary-stack strong {
+  display: block;
+  margin-bottom: var(--space-sm);
+  color: var(--error);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .error-boundary {
+    padding-top: var(--navbar-height-mobile, 64px);
+  }
+}
+
+@media (max-width: 640px) {
+  .error-boundary {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .error-boundary-message {
+    font-size: 1rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .error-boundary-code,
+  .error-boundary-title,
+  .error-boundary-message,
+  .error-boundary-actions,
+  .error-boundary-hint,
+  .error-boundary-details {
+    animation: none;
+  }
+
+  .error-boundary-bracket {
+    animation: none;
+  }
+}

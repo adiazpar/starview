@@ -33,13 +33,13 @@ function BadgeSection({ badges = [], alwaysExpanded = false, isVisible = true })
   return (
     <div className={`badge-section ${!isVisible ? 'collapsed' : ''}`}>
       <div className={`badge-section-content ${!isVisible ? 'collapsing' : ''}`}>
-        <div className="badge-section-content-inner">
+        <div className="badge-section-content-inner glass-card">
           <div className="badge-section-content-padded">
             {badgeCount === 0 ? (
-              <p className="badge-section-empty">
-                <i className="fa-solid fa-trophy"></i>
-                No badges earned yet
-              </p>
+              <div className="empty-state">
+                <i className="fa-solid fa-trophy empty-state__icon"></i>
+                <p className="empty-state__title">No badges earned yet</p>
+              </div>
             ) : (
               <>
                 <div className="badge-section-grid">

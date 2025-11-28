@@ -6,11 +6,13 @@
  * Uses view/edit mode pattern for cleaner UX.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
-import LocationAutocomplete from '../../../shared/LocationAutocomplete';
+
+// Lazy load Mapbox autocomplete (185 kB) - only loads when user clicks Edit
+const LocationAutocomplete = lazy(() => import('../../../shared/LocationAutocomplete'));
 
 function LocationForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -102,12 +104,18 @@ function LocationForm({ user, refreshAuth }) {
         <div className="profile-edit-content">
           <form onSubmit={handleSubmit} className="profile-form">
             <div className="form-group">
-              <LocationAutocomplete
-                value={locationData.location}
-                onSelect={handleLocationSelect}
-                placeholder="Search for a city or region..."
-                disabled={loading}
-              />
+              <Suspense fallback={
+                <div className="form-input" style={{ color: 'var(--text-muted)' }}>
+                  <i className="fa-solid fa-spinner fa-spin"></i> Loading location search...
+                </div>
+              }>
+                <LocationAutocomplete
+                  value={locationData.location}
+                  onSelect={handleLocationSelect}
+                  placeholder="Search for a city or region..."
+                  disabled={loading}
+                />
+              </Suspense>
             </div>
             <div className="profile-form-actions">
               <button

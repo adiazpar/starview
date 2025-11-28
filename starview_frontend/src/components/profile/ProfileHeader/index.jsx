@@ -105,7 +105,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
   };
 
   return (
-    <div className="profile-header">
+    <div className="profile-header glass-card">
       {/* Success/Error Messages */}
       {successMessage && (
         <Alert

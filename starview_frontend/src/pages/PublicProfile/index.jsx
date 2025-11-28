@@ -171,7 +171,7 @@ function PublicProfilePage() {
         {profileUser?.stats && <ProfileStats stats={profileUser.stats} />}
 
         {/* Reviews Section */}
-        <div className="public-profile-reviews">
+        <div className="public-profile-reviews glass-card">
           <h2 className="section-title">
             <i className="fa-solid fa-star"></i>
             Reviews by {profileUser?.username}
@@ -179,9 +179,9 @@ function PublicProfilePage() {
 
           {reviews.length === 0 && !reviewsLoading ? (
             <div className="empty-state">
-              <i className="fa-solid fa-star"></i>
-              <p>No reviews yet</p>
-              <p style={{ fontSize: 'var(--text-sm)', marginTop: '8px', color: 'var(--text-muted)' }}>
+              <i className="fa-solid fa-star empty-state__icon"></i>
+              <p className="empty-state__title">No reviews yet</p>
+              <p className="empty-state__description">
                 {isOwnProfile
                   ? "You haven't reviewed any locations yet. Start exploring!"
                   : `${profileUser?.username} hasn't reviewed any locations yet.`

@@ -16,16 +16,12 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-md) var(--space-lg);
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .collapsible-section-header:hover {
   background: var(--glass-border);
-  border-color: var(--glass-border-hover);
 }
 
 .collapsible-section-header h3 {

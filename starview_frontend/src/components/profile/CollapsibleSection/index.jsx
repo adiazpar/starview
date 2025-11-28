@@ -24,7 +24,7 @@ function CollapsibleSection({ title, defaultExpanded = true, resetOnCollapse = f
   return (
     <div className="collapsible-section">
       <button
-        className="collapsible-section-header"
+        className="collapsible-section-header glass-card"
         onClick={handleToggle}
         type="button"
       >

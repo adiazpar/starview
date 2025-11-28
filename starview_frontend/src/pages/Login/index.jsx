@@ -109,7 +109,7 @@ function LoginPage() {
 
       {/* Form Panel */}
       <div className="login-form-panel">
-        <div className="login-form-content">
+        <div className="login-form-content glass-card">
           {/* Header */}
           <div className="login-form-header">
             <h2 className="login-form-title">Welcome back</h2>
@@ -177,7 +177,7 @@ function LoginPage() {
                 />
                 <button
                   type="button"
-                  className="login-password-toggle"
+                  className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   tabIndex={-1}

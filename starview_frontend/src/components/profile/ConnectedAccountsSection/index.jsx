@@ -71,7 +71,7 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
       {socialAccounts.length > 0 ? (
         <div className="connected-accounts-list">
           {socialAccounts.map((account) => (
-            <div key={account.id} className="connected-account-item">
+            <div key={account.id} className="connected-account-item glass-card">
               <div className="connected-account-icon">
                 <i className={getProviderIcon(account.provider)}></i>
               </div>
@@ -103,7 +103,7 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
           </div>
         </div>
       ) : (
-        <div className="connected-accounts-empty">
+        <div className="connected-accounts-empty glass-card">
           <i className="fa-solid fa-link-slash" style={{ fontSize: '2rem', color: 'var(--text-muted)', marginBottom: '12px' }}></i>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
             No connected accounts yet

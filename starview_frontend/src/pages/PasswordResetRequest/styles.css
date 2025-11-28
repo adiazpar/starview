@@ -1,58 +1,7 @@
 /* Password Reset Request Page Styles
- * Cosmic elegance design matching the Login/Register aesthetic.
- * Features glass-morphic card with starfield visibility.
+ * Page-specific styles for password reset request functionality.
+ * Layout uses global .auth-page utilities.
  */
-
-/* ============================================ */
-/* CONTAINER & LAYOUT */
-/* ============================================ */
-
-.password-reset-container {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100lvh - var(--navbar-height));
-}
-
-.password-reset-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl) var(--space-lg);
-}
-
-@media (max-width: 767px) {
-  .password-reset-container {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-  }
-
-  .password-reset-content {
-    padding: var(--space-lg);
-  }
-}
-
-/* ============================================ */
-/* CARD - Glass morphic style */
-/* ============================================ */
-
-.password-reset-card {
-  width: 100%;
-  max-width: 420px;
-  padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: fadeInUp 0.6s ease-out backwards;
-}
-
-@media (max-width: 767px) {
-  .password-reset-card {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-  }
-}
 
 /* ============================================ */
 /* ICON */
@@ -195,13 +144,4 @@
   color: var(--text-primary);
 }
 
-/* ============================================ */
-/* REDUCED MOTION */
-/* ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  .password-reset-card,
-  .password-reset-success {
-    animation: none;
-  }
-}
+/* No reduced motion needed - handled by global utilities */

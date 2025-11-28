@@ -1,59 +1,7 @@
 /* Email Confirm Error Page Styles
- * Cosmic elegance design matching the Login/Register aesthetic.
- * Features glass-morphic card with starfield visibility.
+ * Page-specific styles for email confirmation error states.
+ * Layout uses global .auth-page utilities.
  */
-
-/* ============================================ */
-/* CONTAINER & LAYOUT */
-/* ============================================ */
-
-.email-confirm-error-container {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100lvh - var(--navbar-height));
-}
-
-.email-confirm-error-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl) var(--space-lg);
-}
-
-@media (max-width: 767px) {
-  .email-confirm-error-container {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-  }
-
-  .email-confirm-error-content {
-    padding: var(--space-lg);
-  }
-}
-
-/* ============================================ */
-/* CARD - Glass morphic style */
-/* ============================================ */
-
-.email-confirm-error-card {
-  width: 100%;
-  max-width: 420px;
-  padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  text-align: center;
-  animation: fadeInUp 0.6s ease-out backwards;
-}
-
-@media (max-width: 767px) {
-  .email-confirm-error-card {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-  }
-}
 
 /* ============================================ */
 /* ICON */
@@ -119,12 +67,4 @@
   margin: 0;
 }
 
-/* ============================================ */
-/* REDUCED MOTION */
-/* ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  .email-confirm-error-card {
-    animation: none;
-  }
-}
+/* No reduced motion needed - handled by global utilities */

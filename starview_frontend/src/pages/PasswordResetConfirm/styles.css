@@ -1,58 +1,7 @@
 /* Password Reset Confirm Page Styles
- * Cosmic elegance design matching the Login/Register aesthetic.
- * Features glass-morphic card with starfield visibility.
+ * Page-specific styles for password reset confirmation form.
+ * Layout uses global .auth-page utilities.
  */
-
-/* ============================================ */
-/* CONTAINER & LAYOUT */
-/* ============================================ */
-
-.password-reset-confirm-container {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100lvh - var(--navbar-height));
-}
-
-.password-reset-confirm-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl) var(--space-lg);
-}
-
-@media (max-width: 767px) {
-  .password-reset-confirm-container {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-  }
-
-  .password-reset-confirm-content {
-    padding: var(--space-lg);
-  }
-}
-
-/* ============================================ */
-/* CARD - Glass morphic style */
-/* ============================================ */
-
-.password-reset-confirm-card {
-  width: 100%;
-  max-width: 420px;
-  padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: fadeInUp 0.6s ease-out backwards;
-}
-
-@media (max-width: 767px) {
-  .password-reset-confirm-card {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-  }
-}
 
 /* ============================================ */
 /* ICON */
@@ -130,27 +79,6 @@
   padding-right: 48px;
 }
 
-.password-reset-confirm-toggle {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: color 0.15s ease;
-}
-
-.password-reset-confirm-toggle:hover {
-  color: var(--text-secondary);
-}
 
 
 /* ============================================ */
@@ -216,13 +144,4 @@
   color: var(--text-primary);
 }
 
-/* ============================================ */
-/* REDUCED MOTION */
-/* ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  .password-reset-confirm-card,
-  .password-reset-confirm-success {
-    animation: none;
-  }
-}
+/* No reduced motion needed - handled by global utilities */

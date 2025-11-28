@@ -119,7 +119,7 @@ function RegisterPage() {
 
       {/* Registration Form Panel */}
       <div className="register-form-panel">
-        <div className="register-form-content">
+        <div className="register-form-content glass-card">
           {/* Header */}
           <div className="register-form-header">
             <h2 className="register-form-title">Create Account</h2>
@@ -229,7 +229,7 @@ function RegisterPage() {
                 />
                 <button
                   type="button"
-                  className="register-password-toggle"
+                  className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   tabIndex={-1}
@@ -277,7 +277,7 @@ function RegisterPage() {
                 />
                 <button
                   type="button"
-                  className="register-password-toggle"
+                  className="password-toggle"
                   onClick={() => setShowPassword2(!showPassword2)}
                   aria-label={showPassword2 ? "Hide password" : "Show password"}
                   tabIndex={-1}

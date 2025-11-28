@@ -22,6 +22,7 @@
   --accent-hover: #3b82f6;
   --accent-light: #60a5fa;
   --accent-bg: #3b82f61a;
+  --accent-border: rgba(37, 99, 235, 0.2);
 
   /* Borders */
   --border: #2f353e;
@@ -63,8 +64,26 @@
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
+  --space-20: 20px;
   --space-lg: 24px;
   --space-xl: 32px;
+
+  /* Badge Tier Colors */
+  --tier-bronze: #cd7f32;
+  --tier-silver: #c0c0c0;
+  --tier-gold: #ffd700;
+  --tier-diamond: hsl(191, 100%, 86%);
+  --tier-elite: hsl(23, 100%, 50%);
+  --tier-purple: hsl(271, 91%, 65%);
+
+  /* Badge Category Colors */
+  --category-exploration: #3b82f6;
+  --category-contribution: #10b981;
+  --category-quality: #f59e0b;
+  --category-review: #8b5cf6;
+  --category-community: #f97316;
+  --category-special: #ec4899;
+  --category-tenure: #a78bfa;
 
   /* Border Radius */
   --radius: 8px;
@@ -87,6 +106,7 @@
   --font-display: 'Montserrat', sans-serif;
 
   --text-xs: 12px;
+  --text-label: 13px;
   --text-sm: 14px;
   --text-base: 16px;
   --text-lg: 18px;
@@ -117,6 +137,7 @@
   --accent-hover: hsl(35, 91%, 60%);
   --accent-light: hsl(35, 94%, 68%);
   --accent-bg: hsla(35, 91%, 60%, 0.102);
+  --accent-border: hsla(35, 91%, 60%, 0.2);
 
   --border: #d1d5db;
   --border-focus: hsl(30, 91%, 60%);
@@ -606,5 +627,181 @@ h3 {
   [class*="animate-delay-"] {
     animation: none;
   }
+}
+
+
+
+/* ============================================ */
+/* GLASS CARD UTILITY */
+/* ============================================ */
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Interactive variant - adds hover effects for clickable/interactive cards */
+.glass-card--interactive {
+  transition: all 0.2s ease;
+}
+
+.glass-card--interactive:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+}
+
+
+
+/* ============================================ */
+/* AUTH PAGE LAYOUT */
+/* ============================================ */
+
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100lvh - var(--navbar-height));
+}
+
+.auth-page__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.auth-page__card {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-xl);
+}
+
+@media (max-width: 767px) {
+  .auth-page {
+    min-height: calc(100lvh - var(--navbar-height-mobile));
+  }
+
+  .auth-page__content {
+    padding: var(--space-lg);
+  }
+
+  .auth-page__card {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+  }
+}
+
+
+
+/* ============================================ */
+/* PASSWORD TOGGLE */
+/* ============================================ */
+
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius) / 2);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color var(--transition) ease;
+}
+
+.password-toggle:hover {
+  color: var(--text-secondary);
+}
+
+
+
+/* ============================================ */
+/* EMPTY STATE */
+/* ============================================ */
+
+.empty-state {
+  text-align: center;
+  padding: calc(var(--space-xl) * 2);
+  color: var(--text-secondary);
+}
+
+.empty-state__icon {
+  font-size: 48px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-bottom: var(--space-md);
+}
+
+.empty-state__title {
+  margin: var(--space-sm) 0;
+  color: var(--text-secondary);
+}
+
+.empty-state__description {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+
+
+/* ============================================ */
+/* ICON BUTTON */
+/* ============================================ */
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+
+
+/* ============================================ */
+/* SECTION DIVIDER */
+/* ============================================ */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+}
+
+.section-divider__line {
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.section-divider__text {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  text-transform: lowercase;
 }
 

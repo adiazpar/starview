@@ -28,59 +28,59 @@
 
 /* Bronze - Tier 1 */
 .badge-compact.badge-tier-bronze {
-  border-color: #cd7f32;
+  border-color: var(--tier-bronze);
 }
 
 .badge-compact.badge-tier-bronze .badge-compact-name {
-  color: #cd7f32;
+  color: var(--tier-bronze);
 }
 
 /* Silver - Tier 2 */
 .badge-compact.badge-tier-silver {
-  border-color: #c0c0c0;
+  border-color: var(--tier-silver);
 }
 
 .badge-compact.badge-tier-silver .badge-compact-name {
-  color: #c0c0c0;
+  color: var(--tier-silver);
 }
 
 /* Gold - Tier 3 */
 .badge-compact.badge-tier-gold {
-  border-color: #ffd700;
+  border-color: var(--tier-gold);
 }
 
 .badge-compact.badge-tier-gold .badge-compact-name {
-  color: #ffd700;
+  color: var(--tier-gold);
 }
 
 /* Diamond - Tier 4 */
 .badge-compact.badge-tier-diamond {
-  border-color: hsl(191, 100%, 86%);
+  border-color: var(--tier-diamond);
   box-shadow: 0 0 8px hsla(191, 100%, 86%, 0.3);
 }
 
 .badge-compact.badge-tier-diamond .badge-compact-name {
-  color: hsl(191, 100%, 86%);
+  color: var(--tier-diamond);
 }
 
 /* Elite - Tier 5 */
 .badge-compact.badge-tier-elite {
-  border-color: hsl(23, 100%, 50%);
+  border-color: var(--tier-elite);
   box-shadow: 0 0 8px hsla(23, 100%, 50%, 0.3);
 }
 
 .badge-compact.badge-tier-elite .badge-compact-name {
-  color: hsl(23, 100%, 50%);
+  color: var(--tier-elite);
 }
 
 /* Purple - ALL rare badges */
 .badge-compact.badge-tier-purple {
-  border-color: hsl(271, 91%, 65%);
+  border-color: var(--tier-purple);
   box-shadow: 0 0 8px hsla(271, 91%, 65%, 0.3);
 }
 
 .badge-compact.badge-tier-purple .badge-compact-name {
-  color: hsl(271, 91%, 65%);
+  color: var(--tier-purple);
   font-weight: 600;
 }
 

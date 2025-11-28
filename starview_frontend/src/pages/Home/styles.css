@@ -107,7 +107,7 @@
 }
 
 .hero__stat-label {
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 400;
   color: var(--text-muted);
   letter-spacing: 0.02em;
@@ -181,20 +181,10 @@
   gap: var(--space-lg);
 }
 
-/* Feature Card - Uses global .card-glass tokens */
+/* Feature Card - hover handled by .glass-card--interactive */
 .feature-card {
   position: relative;
   padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-  transform: translateY(-4px);
 }
 
 .feature-card__icon {
@@ -204,7 +194,7 @@
   width: 48px;
   height: 48px;
   background: var(--accent-bg);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid var(--accent-border);
   border-radius: calc(var(--radius) * 1.5);
   margin-bottom: var(--space-xl);
   font-size: var(--text-xl);

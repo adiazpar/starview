@@ -13,15 +13,7 @@
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-md);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
   transition: all 0.2s ease;
-}
-
-.connected-account-item:hover {
-  border-color: var(--glass-border-hover);
-  background: var(--glass-bg-hover);
 }
 
 .connected-account-icon {
@@ -81,9 +73,7 @@
 .connected-accounts-empty {
   text-align: center;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--glass-bg);
   border: 1px dashed var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
   color: var(--text-muted);
 }
 

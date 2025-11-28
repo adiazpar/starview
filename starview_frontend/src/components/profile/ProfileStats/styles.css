@@ -13,24 +13,12 @@
   gap: var(--space-md);
 }
 
-/* Stat Card - Glass style */
+/* Stat Card - Glass style (hover handled by .glass-card--interactive) */
 .profile-stat-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-lg);
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  transition: all 0.2s ease;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.profile-stat-card:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-  transform: translateY(-2px);
 }
 
 .profile-stat-icon {

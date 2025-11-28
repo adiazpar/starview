@@ -27,9 +27,9 @@ function PasswordResetRequestPage() {
   };
 
   return (
-    <div className="password-reset-container">
-      <div className="password-reset-content">
-        <div className="password-reset-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {success ? (
           <div className="password-reset-success">
             {/* Success Icon */}

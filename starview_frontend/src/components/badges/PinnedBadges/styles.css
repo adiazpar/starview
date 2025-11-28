@@ -5,7 +5,7 @@
 .pinned-badges {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
   align-items: center;
   justify-content: center;
 
@@ -46,7 +46,7 @@
 
 @media (min-width: 768px) {
   .pinned-badges {
-    gap: 6px;
+    gap: var(--space-sm);
   }
 
   .pinned-badge {

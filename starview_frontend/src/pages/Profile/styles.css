@@ -18,13 +18,8 @@
 .profile-tabs {
   display: flex;
   margin-bottom: var(--space-lg);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-xs);
   gap: var(--space-sm);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .profile-tab {
@@ -61,12 +56,7 @@
 
 /* Tab Content - Glass card */
 .profile-content {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
   padding: var(--space-xl);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
@@ -88,31 +78,6 @@
   padding-bottom: var(--space-md);
   margin-bottom: var(--space-md);
   border-bottom: 1px solid var(--glass-border);
-}
-
-/* Empty State - Shared across tabs (matches PublicProfile .empty-state) */
-.profile-empty-state {
-  text-align: center;
-  padding: calc(var(--space-xl) * 2);
-  color: var(--text-secondary);
-}
-
-.profile-empty-state i {
-  font-size: 48px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  margin-bottom: var(--space-md);
-}
-
-.profile-empty-state p {
-  margin: var(--space-sm) 0;
-  color: var(--text-muted);
-}
-
-.profile-empty-state-description {
-  font-size: var(--text-sm);
-  margin-top: var(--space-sm);
-  color: var(--text-muted);
 }
 
 /* ============================================ */

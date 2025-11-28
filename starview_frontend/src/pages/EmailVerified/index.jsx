@@ -12,9 +12,9 @@ function EmailVerifiedPage() {
   }
 
   return (
-    <div className="email-verified-container">
-      <div className="email-verified-content">
-        <div className="email-verified-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {/* Success Icon */}
         <div className="email-verified-icon">
           <i className="fa-solid fa-circle-check"></i>

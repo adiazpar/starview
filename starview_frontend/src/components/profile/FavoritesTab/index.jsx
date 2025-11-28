@@ -88,10 +88,10 @@ function FavoritesTab() {
       {loading ? (
         <LoadingSpinner size="lg" message="Loading favorites..." />
       ) : favorites.length === 0 ? (
-        <div className="profile-empty-state">
-          <i className="fa-solid fa-heart"></i>
-          <p>No favorites yet</p>
-          <p className="profile-empty-state-description">
+        <div className="empty-state">
+          <i className="fa-solid fa-heart empty-state__icon"></i>
+          <p className="empty-state__title">No favorites yet</p>
+          <p className="empty-state__description">
             Start exploring locations and save your favorites!
           </p>
         </div>

@@ -33,11 +33,6 @@
 /* Inner wrapper to handle overflow during animation - Glass style */
 .badge-section-content-inner {
   overflow: hidden;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Padding wrapper - keeps padding constant, hidden by overflow */
@@ -61,30 +56,6 @@
     grid-template-columns: repeat(auto-fill, minmax(120px, 140px));
     gap: var(--space-lg);
   }
-}
-
-/* ========================================================================
-   Empty State
-   ======================================================================== */
-
-.badge-section-empty {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  gap: var(--space-md);
-
-  color: var(--text-muted);
-  padding: var(--space-xl);
-  font-size: var(--text-sm);
-  font-weight: 300;
-}
-
-.badge-section-empty i {
-  font-size: 48px;
-  color: var(--text-muted);
-  opacity: 0.3;
 }
 
 /* ========================================================================

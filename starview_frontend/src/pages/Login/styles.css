@@ -132,11 +132,6 @@
   max-width: 420px;
   max-height: calc(100lvh - var(--navbar-height) - var(--space-xl) * 2);
   padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   animation: fadeInUp 0.6s ease-out 0.2s backwards;
   overflow-y: auto;
   container-type: inline-size;
@@ -164,8 +159,6 @@
   .login-form-content {
     max-width: 100%;
     max-height: none;
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
   }
 }
 
@@ -216,27 +209,6 @@
   padding-right: 48px;
 }
 
-.login-password-toggle {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: color 0.15s ease;
-}
-
-.login-password-toggle:hover {
-  color: var(--text-secondary);
-}
 
 /* ============================================ */
 /* FORM OPTIONS */

@@ -1,58 +1,7 @@
 /* Verify Email Page Styles
- * Cosmic elegance design matching the Login/Register aesthetic.
- * Features glass-morphic card with starfield visibility.
+ * Page-specific styles for verify email functionality.
+ * Layout uses global .auth-page utilities.
  */
-
-/* ============================================ */
-/* CONTAINER & LAYOUT */
-/* ============================================ */
-
-.verify-email-container {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100lvh - var(--navbar-height));
-}
-
-.verify-email-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl) var(--space-lg);
-}
-
-@media (max-width: 767px) {
-  .verify-email-container {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-  }
-
-  .verify-email-content {
-    padding: var(--space-lg);
-  }
-}
-
-/* ============================================ */
-/* CARD - Glass morphic style */
-/* ============================================ */
-
-.verify-email-card {
-  width: 100%;
-  max-width: 420px;
-  padding: var(--space-xl);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: fadeInUp 0.6s ease-out backwards;
-}
-
-@media (max-width: 767px) {
-  .verify-email-card {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-  }
-}
 
 /* ============================================ */
 /* ICON */

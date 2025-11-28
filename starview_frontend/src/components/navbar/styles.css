@@ -41,7 +41,7 @@
 .navbar__nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .navbar__link {
@@ -50,8 +50,8 @@
   font-size: 14px;
   font-weight: 400;
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
   border: none;
   background: none;
   cursor: pointer;
@@ -69,11 +69,11 @@
 
 /* CTA Button - Uses global .btn-primary .btn-primary--sm */
 .navbar__cta {
-  margin-left: 8px;
+  margin-left: var(--space-sm);
 }
 
 .navbar__cta i {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 /* Hamburger Button */
@@ -82,7 +82,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-xs);
   width: 32px;
   height: 32px;
   padding: 0;
@@ -105,8 +105,9 @@
 }
 
 /* Hamburger animation - transforms into X */
+/* translateY = span height (2px) / 2 + gap (4px) + span height (2px) / 2 = 6px */
 .navbar__hamburger.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+  transform: translateY(6px) rotate(45deg);
 }
 
 .navbar__hamburger.open span:nth-child(2) {
@@ -115,7 +116,7 @@
 }
 
 .navbar__hamburger.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 /* Mobile Menu */
@@ -129,10 +130,10 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-left: 1px solid var(--glass-border-hover);
-  padding: 88px 16px 24px;
+  padding: 88px var(--space-md) var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
   transition: right 0.3s ease;
   z-index: calc(var(--z-navbar) + 1);
 }
@@ -144,13 +145,13 @@
 .navbar__mobile-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-md);
   color: var(--text-secondary);
   font-size: 15px;
   font-weight: 400;
   text-decoration: none;
-  padding: 14px 16px;
-  border-radius: 8px;
+  padding: 14px var(--space-md);
+  border-radius: var(--radius);
   border: none;
   background: none;
   cursor: pointer;

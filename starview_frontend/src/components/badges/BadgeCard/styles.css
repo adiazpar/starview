@@ -18,11 +18,11 @@
   background-color: var(--badge-bg-muted);
   border: 1px solid;
   border-radius: var(--radius);
-  padding: 20px;
+  padding: var(--space-20);
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 /* ========================================================================
@@ -31,59 +31,59 @@
 
 /* Bronze - Tier 1 */
 .badge-tier-bronze.badge-card-earned {
-  border-color: #cd7f32;
+  border-color: var(--tier-bronze);
 }
 
 .badge-tier-bronze .badge-card-name {
-  color: #cd7f32;
+  color: var(--tier-bronze);
 }
 
 /* Silver - Tier 2 */
 .badge-tier-silver.badge-card-earned {
-  border-color: #c0c0c0;
+  border-color: var(--tier-silver);
 }
 
 .badge-tier-silver .badge-card-name {
-  color: #c0c0c0;
+  color: var(--tier-silver);
 }
 
 /* Gold - Tier 3 */
 .badge-tier-gold.badge-card-earned {
-  border-color: #ffd700;
+  border-color: var(--tier-gold);
 }
 
 .badge-tier-gold .badge-card-name {
-  color: #ffd700;
+  color: var(--tier-gold);
 }
 
 /* Diamond - Tier 4 */
 .badge-tier-diamond.badge-card-earned {
-  border-color: hsl(191, 100%, 86%);
+  border-color: var(--tier-diamond);
   box-shadow: 0 0 16px hsla(191, 100%, 86%, 0.4);
 }
 
 .badge-tier-diamond .badge-card-name {
-  color: hsl(191, 100%, 86%);
+  color: var(--tier-diamond);
 }
 
 /* Elite - Tier 5 */
 .badge-tier-elite.badge-card-earned {
-  border-color: hsl(23, 100%, 50%);
+  border-color: var(--tier-elite);
   box-shadow: 0 0 16px hsla(23, 100%, 50%, 0.4);
 }
 
 .badge-tier-elite .badge-card-name {
-  color: hsl(23, 100%, 50%);;
+  color: var(--tier-elite);
 }
 
 /* Purple - ALL rare badges */
 .badge-tier-purple.badge-card-earned {
-  border-color: hsl(271, 91%, 65%);
+  border-color: var(--tier-purple);
   box-shadow: 0 0 16px hsla(271, 91%, 65%, 0.4);
 }
 
 .badge-tier-purple .badge-card-name {
-  color: hsl(271, 91%, 65%);
+  color: var(--tier-purple);
   font-weight: 600;
 }
 
@@ -150,7 +150,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 /* ========================================================================
@@ -160,14 +160,14 @@
 .badge-card-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
   text-align: center;
 }
 
 .badge-card-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
   align-items: center;
 }
 
@@ -200,37 +200,37 @@
 /* Category colors based on badge_system docs */
 .badge-category-exploration {
   background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  color: var(--category-exploration);
 }
 
 .badge-category-contribution {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--category-contribution);
 }
 
 .badge-category-quality {
   background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  color: var(--category-quality);
 }
 
 .badge-category-review {
   background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: var(--category-review);
 }
 
 .badge-category-community {
   background: rgba(249, 115, 22, 0.15);
-  color: #f97316;
+  color: var(--category-community);
 }
 
 .badge-category-special {
   background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
+  color: var(--category-special);
 }
 
 .badge-category-tenure {
   background: rgba(167, 139, 250, 0.15);
-  color: #a78bfa;
+  color: var(--category-tenure);
 }
 
 /* ========================================================================
@@ -240,15 +240,15 @@
 .badge-card-progress {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
 }
 
 .badge-card-progress-bar {
   width: 100%;
   height: 8px;
   background: var(--badge-bg-muted);
-  border-radius: 4px;
+  border-radius: calc(var(--radius) / 2);
   overflow: hidden;
 }
 
@@ -256,12 +256,12 @@
   height: 100%;
   background: var(--success);
   transition: width 0.3s ease;
-  border-radius: 4px;
-  min-width: 4px; /* Ensure fill is visible even at low percentages */
+  border-radius: calc(var(--radius) / 2);
+  min-width: var(--space-xs); /* Ensure fill is visible even at low percentages */
 }
 
 .badge-card-progress-text {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -276,9 +276,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 400;
-  margin-top: 4px;
+  margin-top: var(--space-xs);
 }
 
 .badge-card-earned-date {

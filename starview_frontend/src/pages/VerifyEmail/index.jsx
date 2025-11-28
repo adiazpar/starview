@@ -96,9 +96,9 @@ function VerifyEmailPage() {
   };
 
   return (
-    <div className="verify-email-container">
-      <div className="verify-email-content">
-        <div className="verify-email-card">
+    <div className="auth-page">
+      <div className="auth-page__content">
+        <div className="auth-page__card glass-card">
         {alreadyVerified ? (
           // Show success state for already verified email
           <div className="verify-email-verified">
