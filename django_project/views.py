@@ -22,6 +22,7 @@
 
 # Django imports:
 from django.views.generic import TemplateView
+from django.http import HttpResponse
 from django.conf import settings
 import os
 
@@ -58,3 +59,48 @@ class ReactAppView(TemplateView):
         # Development fallback: React build doesn't exist
         # User should run `npm run dev` instead of accessing via Django
         return ['dev_placeholder.html']
+
+
+# ----------------------------------------------------------------------------- #
+# robots.txt view for controlling search engine and AI crawler access.          #
+#                                                                               #
+# Environment-aware behavior:                                                   #
+# - Production (starview.app): Allow all crawlers for maximum visibility        #
+# - Staging/Dev: Block all crawlers to prevent duplicate content issues         #
+#                                                                               #
+# This prevents staging environments from being indexed by Google, which would  #
+# cause SEO problems (duplicate content, leaked preview features).              #
+# ----------------------------------------------------------------------------- #
+def robots_txt(request):
+    # Check if this is the production domain
+    host = request.get_host().split(':')[0]  # Remove port if present
+    is_production = host in ['starview.app', 'www.starview.app']
+
+    if is_production:
+        # Production: Allow all crawlers for SEO and AI visibility
+        content = """# Starview robots.txt
+# https://starview.app
+
+# Allow all crawlers (Googlebot, Bingbot, GPTBot, ClaudeBot, etc.)
+User-agent: *
+Allow: /
+
+# Block admin and internal endpoints
+Disallow: /admin/
+Disallow: /api/
+Disallow: /accounts/
+
+# Sitemap
+Sitemap: https://starview.app/sitemap.xml
+"""
+    else:
+        # Staging/Development: Block all crawlers
+        content = f"""# Starview robots.txt (non-production)
+# Host: {host}
+
+# Block all crawlers on staging/development
+User-agent: *
+Disallow: /
+"""
+
+    return HttpResponse(content, content_type="text/plain")

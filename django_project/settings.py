@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.sitemaps',
 
     # Project apps (MUST be before allauth to override templates)
     'starview_app',

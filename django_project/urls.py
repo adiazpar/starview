@@ -19,13 +19,15 @@ from django.urls import path, include, re_path
 from django.views.static import serve as static_serve
 from django.views.decorators.cache import cache_control
 from django.http import FileResponse
+from django.contrib.sitemaps.views import sitemap
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 import os
 
-from .views import ReactAppView
+from .views import ReactAppView, robots_txt
+from starview_app.sitemaps import sitemaps
 from starview_app.utils.adapters import CustomConfirmEmailView, CustomConnectionsView
 from starview_app.views.views_webhooks import ses_bounce_webhook, ses_complaint_webhook
 
@@ -94,6 +96,18 @@ urlpatterns += [
         serve_static_with_cache,
         {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist/badges')},
     ),
+]
+
+# SEO: robots.txt for search engines and AI crawlers
+# Environment-aware: allows crawlers on production, blocks on staging/dev
+urlpatterns += [
+    path('robots.txt', robots_txt, name='robots_txt'),
+]
+
+# SEO: XML sitemap for search engine discovery
+# Helps Google, Bing, and AI crawlers find all pages
+urlpatterns += [
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 # Catch-all: serve React app for any non-API/admin/accounts routes
