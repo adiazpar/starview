@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "generate-icons": "python3 scripts/generate-icons.py"
   },
   "dependencies": {
     "@mapbox/search-js-react": "^1.5.0",
