@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------------------------------------- #
 # This build.sh script runs on Render during deployment to set up the Django + React application.       #
+# Location: builds/build.sh                                                                             #
 #                                                                                                       #
 # Purpose:                                                                                              #
 # Automates deployment tasks that would normally require shell access: installing dependencies,         #
@@ -30,8 +31,12 @@
 # Exit on error
 set -o errexit
 
+# Navigate to project root (parent of builds/ directory)
+cd "$(dirname "$0")/.."
+
 echo "===================================="
 echo "Starting Render build script..."
+echo "Working directory: $(pwd)"
 echo "===================================="
 
 # Install Python dependencies

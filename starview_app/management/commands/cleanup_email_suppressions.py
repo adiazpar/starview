@@ -22,7 +22,7 @@
 #   --email-report EMAIL    Email address to send weekly report to                                      #
 #                                                                                                       #
 # Render Cronjob Configuration:                                                                         #
-#   Build Command: ./build-cron.sh                                                                      #
+#   Build Command: ./builds/build-cron.sh                                                               #
 #   Start Command: python manage.py cleanup_email_suppressions --email-report user@example.com          #
 #   Schedule: 0 3 * * 0 (Every Sunday at 3 AM)                                                          #
 # ----------------------------------------------------------------------------------------------------- #

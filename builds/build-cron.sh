@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------------------------------------- #
 # This build-cron.sh script runs on Render for cron job deployments.                                   #
+# Location: builds/build-cron.sh                                                                       #
 #                                                                                                       #
 # Purpose:                                                                                              #
 # Minimal build script for cron jobs that only installs Python dependencies.                            #
@@ -17,8 +18,12 @@
 # Exit on error
 set -o errexit
 
+# Navigate to project root (parent of builds/ directory)
+cd "$(dirname "$0")/.."
+
 echo "===================================="
 echo "Starting Cron Job build script..."
+echo "Working directory: $(pwd)"
 echo "===================================="
 
 # Install Python dependencies
