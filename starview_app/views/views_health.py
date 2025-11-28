@@ -59,7 +59,7 @@ def health_check(request):
         checks["database"] = "error"
         errors.append(f"Database connection failed: {str(e)}")
         is_healthy = False
-        logger.error(f"Health check - Database failure: {e}", exc_info=True)
+        logger.error("Health check - Database failure: %s", e, exc_info=True)
 
     # 2. Redis Cache Health Check (CRITICAL)
     try:
@@ -80,7 +80,7 @@ def health_check(request):
         checks["cache"] = "error"
         errors.append(f"Cache connection failed: {str(e)}")
         is_healthy = False
-        logger.error(f"Health check - Cache failure: {e}", exc_info=True)
+        logger.error("Health check - Cache failure: %s", e, exc_info=True)
 
     # 3. Celery Worker Health Check (CONDITIONAL)
     celery_enabled = getattr(settings, 'CELERY_ENABLED', False)
@@ -111,7 +111,7 @@ def health_check(request):
             checks["celery"] = "error"
             errors.append(f"Celery broker connection failed: {str(e)}")
             is_healthy = False
-            logger.error(f"Health check - Celery failure: {e}", exc_info=True)
+            logger.error("Health check - Celery failure: %s", e, exc_info=True)
 
     # Build response
     response_data = {

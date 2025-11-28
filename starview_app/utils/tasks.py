@@ -63,7 +63,7 @@ def enrich_location_data(self, location_id):
     from starview_app.models import Location
     from starview_app.services.location_service import LocationService
 
-    logger.info(f"Starting enrichment for location ID: {location_id}")
+    logger.info("Starting enrichment for location ID: %s", location_id)
 
     try:
         # Get the location object
@@ -71,7 +71,7 @@ def enrich_location_data(self, location_id):
 
         # Skip if external APIs are disabled (testing mode)
         if getattr(settings, 'DISABLE_EXTERNAL_APIS', False):
-            logger.info(f"Skipping enrichment for location {location_id} (APIs disabled)")
+            logger.info("Skipping enrichment for location %s (APIs disabled)", location_id)
             return {
                 'status': 'skipped',
                 'location_id': location_id,
@@ -86,11 +86,11 @@ def enrich_location_data(self, location_id):
             address_success = LocationService.update_address_from_coordinates(location)
             if address_success:
                 enriched_fields.append('address')
-                logger.info(f"Address enriched for location {location_id}: {location.formatted_address}")
+                logger.info("Address enriched for location %s: %s", location_id, location.formatted_address)
             else:
-                logger.warning(f"Address enrichment failed for location {location_id}")
+                logger.warning("Address enrichment failed for location %s", location_id)
         except Exception as e:
-            logger.error(f"Error enriching address for location {location_id}: {str(e)}")
+            logger.error("Error enriching address for location %s: %s", location_id, e)
             # Don't fail the entire task if address fails, continue to elevation
 
         # Enrich elevation from Mapbox
@@ -98,11 +98,11 @@ def enrich_location_data(self, location_id):
             elevation_success = LocationService.update_elevation_from_mapbox(location)
             if elevation_success:
                 enriched_fields.append('elevation')
-                logger.info(f"Elevation enriched for location {location_id}: {location.elevation}m")
+                logger.info("Elevation enriched for location %s: %sm", location_id, location.elevation)
             else:
-                logger.warning(f"Elevation enrichment failed for location {location_id}")
+                logger.warning("Elevation enrichment failed for location %s", location_id)
         except Exception as e:
-            logger.error(f"Error enriching elevation for location {location_id}: {str(e)}")
+            logger.error("Error enriching elevation for location %s: %s", location_id, e)
 
         # Return success with enriched fields
         result = {
@@ -114,12 +114,12 @@ def enrich_location_data(self, location_id):
             'elevation': location.elevation
         }
 
-        logger.info(f"Enrichment complete for location {location_id}: {enriched_fields}")
+        logger.info("Enrichment complete for location %s: %s", location_id, enriched_fields)
         return result
 
     except Location.DoesNotExist:
         # Location was deleted before enrichment could complete
-        logger.error(f"Location {location_id} not found - may have been deleted")
+        logger.error("Location %s not found - may have been deleted", location_id)
         return {
             'status': 'error',
             'location_id': location_id,
@@ -128,13 +128,13 @@ def enrich_location_data(self, location_id):
 
     except Exception as exc:
         # Unexpected error - retry the task
-        logger.error(f"Unexpected error enriching location {location_id}: {str(exc)}")
+        logger.error("Unexpected error enriching location %s: %s", location_id, exc)
 
         # Retry the task (up to max_retries times)
         try:
             raise self.retry(exc=exc)
         except self.MaxRetriesExceededError:
-            logger.error(f"Max retries exceeded for location {location_id}")
+            logger.error("Max retries exceeded for location %s", location_id)
             return {
                 'status': 'failed',
                 'location_id': location_id,
@@ -152,5 +152,5 @@ def enrich_location_data(self, location_id):
 # ----------------------------------------------------------------------------- #
 @shared_task
 def test_celery(message):
-    logger.info(f"Test task received message: {message}")
+    logger.info("Test task received message: %s", message)
     return f"Task completed successfully: {message}"

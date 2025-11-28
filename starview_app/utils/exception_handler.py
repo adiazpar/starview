@@ -292,7 +292,7 @@ def log_security_exception(exc, request, status_code):
             )
     except Exception as e:
         # Never let audit logging break the request
-        logger.error(f"Failed to log security exception to AuditLog: {e}")
+        logger.error("Failed to log security exception to AuditLog: %s", e)
 
 
 # ----------------------------------------------------------------------------- #
@@ -333,7 +333,7 @@ def log_suspicious_error(exc, request, view):
         )
     except Exception as e:
         # Never let audit logging break the request
-        logger.error(f"Failed to log suspicious error to AuditLog: {e}")
+        logger.error("Failed to log suspicious error to AuditLog: %s", e)
 
 
 # ----------------------------------------------------------------------------- #

@@ -73,7 +73,7 @@ def verify_sns_message(message_dict):
         # Get signing certificate URL
         cert_url = message_dict.get('SigningCertURL')
         if not cert_url or not cert_url.startswith('https://sns.'):
-            logger.warning(f"Invalid certificate URL: {cert_url}")
+            logger.warning("Invalid certificate URL: %s", cert_url)
             return False
 
         # Download and load certificate
@@ -106,7 +106,7 @@ def verify_sns_message(message_dict):
                 f"Type\n{message_dict['Type']}\n"
             )
         else:
-            logger.warning(f"Unknown message type: {message_type}")
+            logger.warning("Unknown message type: %s", message_type)
             return False
 
         # Verify signature
@@ -120,7 +120,7 @@ def verify_sns_message(message_dict):
         return True
 
     except Exception as e:
-        logger.error(f"SNS signature verification failed: {str(e)}")
+        logger.error("SNS signature verification failed: %s", e)
         return False
 
 
@@ -167,7 +167,7 @@ def ses_bounce_webhook(request):
             if subscribe_url:
                 import requests
                 response = requests.get(subscribe_url, timeout=10)
-                logger.info(f"SNS subscription confirmed: {response.status_code}")
+                logger.info("SNS subscription confirmed: %s", response.status_code)
                 return HttpResponse('Subscription confirmed', status=200)
 
         # Verify SNS signature
@@ -180,7 +180,7 @@ def ses_bounce_webhook(request):
         notification_type = message.get('notificationType')
 
         if notification_type != 'Bounce':
-            logger.warning(f"Unexpected notification type: {notification_type}")
+            logger.warning("Unexpected notification type: %s", notification_type)
             return JsonResponse({'error': 'Not a bounce notification'}, status=400)
 
         # Extract bounce details
@@ -218,7 +218,7 @@ def ses_bounce_webhook(request):
                 existing_bounce.raw_notification = message
                 existing_bounce.save()
 
-                logger.info(f"Updated bounce record for {email}: {existing_bounce.bounce_count}x")
+                logger.info("Updated bounce record for %s: %dx", email, existing_bounce.bounce_count)
                 bounce_record = existing_bounce
             else:
                 # Find user if exists
@@ -240,7 +240,7 @@ def ses_bounce_webhook(request):
                     raw_notification=message,
                 )
 
-                logger.info(f"Created bounce record for {email}: {bounce_type}")
+                logger.info("Created bounce record for %s: %s", email, bounce_type)
 
             # Check if should suppress
             if bounce_record.should_suppress() and not bounce_record.suppressed:
@@ -257,7 +257,7 @@ def ses_bounce_webhook(request):
                 bounce_record.suppressed = True
                 bounce_record.save()
 
-                logger.warning(f"Email suppressed due to bounces: {email} ({reason})")
+                logger.warning("Email suppressed due to bounces: %s (%s)", email, reason)
 
         return JsonResponse({
             'status': 'success',
@@ -265,7 +265,7 @@ def ses_bounce_webhook(request):
         }, status=200)
 
     except Exception as e:
-        logger.error(f"Error processing bounce webhook: {str(e)}", exc_info=True)
+        logger.error("Error processing bounce webhook: %s", e, exc_info=True)
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
@@ -312,7 +312,7 @@ def ses_complaint_webhook(request):
             if subscribe_url:
                 import requests
                 response = requests.get(subscribe_url, timeout=10)
-                logger.info(f"SNS subscription confirmed: {response.status_code}")
+                logger.info("SNS subscription confirmed: %s", response.status_code)
                 return HttpResponse('Subscription confirmed', status=200)
 
         # Verify SNS signature
@@ -325,7 +325,7 @@ def ses_complaint_webhook(request):
         notification_type = message.get('notificationType')
 
         if notification_type != 'Complaint':
-            logger.warning(f"Unexpected notification type: {notification_type}")
+            logger.warning("Unexpected notification type: %s", notification_type)
             return JsonResponse({'error': 'Not a complaint notification'}, status=400)
 
         # Extract complaint details
@@ -369,7 +369,7 @@ def ses_complaint_webhook(request):
                 raw_notification=message,
             )
 
-            logger.warning(f"Email complaint received: {email} ({complaint_type})")
+            logger.warning("Email complaint received: %s (%s)", email, complaint_type)
 
             # IMMEDIATELY add to suppression list (complaints are serious)
             if not complaint_record.suppressed:
@@ -384,7 +384,7 @@ def ses_complaint_webhook(request):
                 complaint_record.suppressed = True
                 complaint_record.save()
 
-                logger.critical(f"Email suppressed due to complaint: {email}")
+                logger.critical("Email suppressed due to complaint: %s", email)
 
         return JsonResponse({
             'status': 'success',
@@ -392,5 +392,5 @@ def ses_complaint_webhook(request):
         }, status=200)
 
     except Exception as e:
-        logger.error(f"Error processing complaint webhook: {str(e)}", exc_info=True)
+        logger.error("Error processing complaint webhook: %s", e, exc_info=True)
         return JsonResponse({'error': 'Internal server error'}, status=500)

@@ -92,7 +92,7 @@ def send_email_safe(subject, text_content, html_content, recipient_email, from_e
     # Check suppression list
     is_suppressed, reason = is_email_suppressed(recipient_email)
     if is_suppressed:
-        logger.warning(f"Email blocked by suppression list: {recipient_email} - {reason}")
+        logger.warning("Email blocked by suppression list: %s - %s", recipient_email, reason)
         return False, f"Email suppressed: {reason}"
 
     # Send email
@@ -109,11 +109,11 @@ def send_email_safe(subject, text_content, html_content, recipient_email, from_e
         email.attach_alternative(html_content, "text/html")
         email.send(fail_silently=fail_silently)
 
-        logger.info(f"Email sent successfully to: {recipient_email}")
+        logger.info("Email sent successfully to: %s", recipient_email)
         return True, "Email sent successfully"
 
     except Exception as e:
-        logger.error(f"Error sending email to {recipient_email}: {str(e)}")
+        logger.error("Error sending email to %s: %s", recipient_email, e)
         if not fail_silently:
             raise
         return False, f"Error sending email: {str(e)}"
@@ -224,7 +224,7 @@ def bulk_suppress_emails(email_list, reason='manual', notes=''):
             suppressed += 1
 
         except Exception as e:
-            logger.error(f"Error suppressing {email}: {str(e)}")
+            logger.error("Error suppressing %s: %s", email, e)
             failed.append(email)
 
     return {
