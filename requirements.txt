@@ -17,7 +17,6 @@ Django==5.1.13
 django-allauth==65.13.0
 django-axes==8.0.0
 django-cors-headers==4.9.0
-django-crontab==0.7.1
 django-csp==4.0
 django-debug-toolbar==6.0.0
 django-filter==24.3
@@ -39,14 +38,12 @@ pycparser==2.23
 PyJWT==2.10.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
-python-http-client==3.3.7
 pytz==2024.2
 redis==7.0.0
 requests==2.32.3
 s3transfer==0.14.0
 six==1.17.0
 sqlparse==0.5.3
-starkbank-ecdsa==2.2.0
 tzdata==2025.2
 urllib3==2.5.0
 vine==5.1.0

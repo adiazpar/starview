@@ -171,7 +171,6 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
-    'django_crontab',
     'django_filters',
     'storages',                 # django-storages for S3/R2 (media storage)
     'corsheaders',              # CORS support (Phase 2)
@@ -682,18 +681,6 @@ CELERY_TASK_SEND_SENT_EVENT = True # Send event when task is sent to broker
 # Worker settings
 CELERY_WORKER_PREFETCH_MULTIPLIER = 4  # How many tasks each worker prefetches
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Restart worker after 1000 tasks (prevent memory leaks)
-
-# =============================================================================
-# CRON JOBS
-# =============================================================================
-
-# Automated tasks via django-crontab
-CRONJOBS = [
-    # Commands:
-    # python manage.py crontab show     - Show all cronjobs
-    # python manage.py crontab add      - Add all cronjobs
-    # python manage.py crontab remove   - Remove all cronjobs
-]
 
 # =============================================================================
 # LOGGING CONFIGURATION
