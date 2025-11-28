@@ -28,7 +28,27 @@ import os
 
 from .views import ReactAppView, robots_txt
 from starview_app.sitemaps import sitemaps
-from starview_app.utils.adapters import CustomConfirmEmailView, CustomConnectionsView
+from starview_app.utils.adapters import (
+    CustomConfirmEmailView,
+    CustomConnectionsView,
+    # Redirect views for allauth HTML pages
+    EmailManagementRedirectView,
+    PasswordChangeRedirectView,
+    PasswordSetRedirectView,
+    LoginRedirectView,
+    SignupRedirectView,
+    LogoutRedirectView,
+    PasswordResetRedirectView,
+    PasswordResetDoneRedirectView,
+    PasswordResetKeyDoneRedirectView,
+    EmailVerificationSentRedirectView,
+    InactiveAccountRedirectView,
+    ReauthenticateRedirectView,
+    LoginCodeConfirmRedirectView,
+    SocialLoginCancelledRedirectView,
+    SocialLoginErrorRedirectView,
+    SocialSignupRedirectView,
+)
 from starview_app.views.views_webhooks import ses_bounce_webhook, ses_complaint_webhook
 
 
@@ -48,11 +68,50 @@ urlpatterns = [
     # AWS SNS webhook endpoints (must be accessible without CSRF)
     path('api/webhooks/ses-bounce/', ses_bounce_webhook, name='ses_bounce_webhook'),
     path('api/webhooks/ses-complaint/', ses_complaint_webhook, name='ses_complaint_webhook'),
-    # Custom email confirmation view (must be before allauth.urls to override)
+
+    # -------------------------------------------------------------------------
+    # Allauth HTML page redirects (must be BEFORE allauth.urls to override)
+    # These redirect users to React frontend pages instead of Django templates
+    # -------------------------------------------------------------------------
+    # Custom views (already existed)
     path('accounts/confirm-email/<str:key>/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
-    # Custom social account connections view (must be before allauth.urls to override)
     path('accounts/3rdparty/', CustomConnectionsView.as_view(), name='socialaccount_connections'),
-    path('accounts/', include('allauth.urls')),  # django-allauth URLs (must be before starview_app.urls)
+
+    # Account management redirects → /profile
+    path('accounts/email/', EmailManagementRedirectView.as_view(), name='account_email'),
+    path('accounts/password/change/', PasswordChangeRedirectView.as_view(), name='account_change_password'),
+    path('accounts/password/set/', PasswordSetRedirectView.as_view(), name='account_set_password'),
+
+    # Auth page redirects → React equivalents
+    path('accounts/login/', LoginRedirectView.as_view(), name='account_login'),
+    path('accounts/signup/', SignupRedirectView.as_view(), name='account_signup'),
+    path('accounts/logout/', LogoutRedirectView.as_view(), name='account_logout'),
+
+    # Password reset redirects
+    path('accounts/password/reset/', PasswordResetRedirectView.as_view(), name='account_reset_password'),
+    path('accounts/password/reset/done/', PasswordResetDoneRedirectView.as_view(), name='account_reset_password_done'),
+    path('accounts/password/reset/key/done/', PasswordResetKeyDoneRedirectView.as_view(), name='account_reset_password_from_key_done'),
+
+    # Email verification redirect
+    path('accounts/confirm-email/', EmailVerificationSentRedirectView.as_view(), name='account_email_verification_sent'),
+
+    # Misc account redirects
+    path('accounts/inactive/', InactiveAccountRedirectView.as_view(), name='account_inactive'),
+    path('accounts/reauthenticate/', ReauthenticateRedirectView.as_view(), name='account_reauthenticate'),
+    path('accounts/login/code/confirm/', LoginCodeConfirmRedirectView.as_view(), name='account_confirm_login_code'),
+
+    # Social account redirects
+    path('accounts/3rdparty/login/cancelled/', SocialLoginCancelledRedirectView.as_view(), name='socialaccount_login_cancelled'),
+    path('accounts/3rdparty/login/error/', SocialLoginErrorRedirectView.as_view(), name='socialaccount_login_error'),
+    path('accounts/3rdparty/signup/', SocialSignupRedirectView.as_view(), name='socialaccount_signup'),
+    path('accounts/social/login/cancelled/', SocialLoginCancelledRedirectView.as_view()),
+    path('accounts/social/login/error/', SocialLoginErrorRedirectView.as_view()),
+    path('accounts/social/signup/', SocialSignupRedirectView.as_view()),
+
+    # -------------------------------------------------------------------------
+    # Allauth URLs (for OAuth callbacks and other functional endpoints)
+    # -------------------------------------------------------------------------
+    path('accounts/', include('allauth.urls')),
     path('', include('starview_app.urls')),
 ]
 

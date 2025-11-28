@@ -24,7 +24,134 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.views.generic import View
+from django.views import View as BaseView
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
+from django.conf import settings
+
+
+# ----------------------------------------------------------------------------- #
+# Helper function to build React frontend URLs.                                 #
+#                                                                               #
+# In development, prepends the Vite dev server URL (localhost:5173).            #
+# In production, returns the relative path (Django serves React build).         #
+# ----------------------------------------------------------------------------- #
+def get_frontend_url(path, query_params=None):
+    """Build a frontend URL with optional query parameters."""
+    if query_params:
+        query_string = '&'.join(f'{k}={v}' for k, v in query_params.items())
+        path = f'{path}?{query_string}'
+
+    if settings.DEBUG:
+        return f'http://localhost:5173{path}'
+    return path
+
+
+# ----------------------------------------------------------------------------- #
+# Redirect views for django-allauth HTML pages.                                 #
+#                                                                               #
+# These views intercept allauth's default HTML pages and redirect users to      #
+# the equivalent React frontend pages, ensuring a seamless SPA experience.      #
+# ----------------------------------------------------------------------------- #
+class AllAuthRedirectView(BaseView):
+    """Base class for allauth redirect views."""
+    redirect_path = '/'
+    query_params = None
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponseRedirect(get_frontend_url(self.redirect_path, self.query_params))
+
+
+class EmailManagementRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/email/ to /profile (Settings tab)."""
+    redirect_path = '/profile'
+
+
+class PasswordChangeRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/password/change/ to /profile (Settings tab)."""
+    redirect_path = '/profile'
+
+
+class PasswordSetRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/password/set/ to /profile (Settings tab)."""
+    redirect_path = '/profile'
+
+
+class LoginRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/login/ to /login."""
+    redirect_path = '/login'
+
+
+class SignupRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/signup/ to /register."""
+    redirect_path = '/register'
+
+
+class LogoutRedirectView(BaseView):
+    """Handle /accounts/logout/ - perform logout and redirect to home."""
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return HttpResponseRedirect(get_frontend_url('/'))
+
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return HttpResponseRedirect(get_frontend_url('/'))
+
+
+class PasswordResetRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/password/reset/ to /password-reset."""
+    redirect_path = '/password-reset'
+
+
+class PasswordResetDoneRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/password/reset/done/ to /password-reset with sent indicator."""
+    redirect_path = '/password-reset'
+    query_params = {'sent': 'true'}
+
+
+class PasswordResetKeyDoneRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/password/reset/key/done/ to /login with success message."""
+    redirect_path = '/login'
+    query_params = {'password_reset': 'success'}
+
+
+class EmailVerificationSentRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/confirm-email/ (no key) to /verify-email."""
+    redirect_path = '/verify-email'
+
+
+class InactiveAccountRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/inactive/ to /login with inactive message."""
+    redirect_path = '/login'
+    query_params = {'error': 'inactive'}
+
+
+class ReauthenticateRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/reauthenticate/ to /login."""
+    redirect_path = '/login'
+    query_params = {'reauth': 'required'}
+
+
+class LoginCodeConfirmRedirectView(AllAuthRedirectView):
+    """Redirect /accounts/login/code/confirm/ to /login."""
+    redirect_path = '/login'
+
+
+class SocialLoginCancelledRedirectView(AllAuthRedirectView):
+    """Redirect OAuth cancelled pages to /login with error."""
+    redirect_path = '/login'
+    query_params = {'error': 'oauth_cancelled'}
+
+
+class SocialLoginErrorRedirectView(AllAuthRedirectView):
+    """Redirect OAuth error pages to /login with error."""
+    redirect_path = '/login'
+    query_params = {'error': 'oauth_error'}
+
+
+class SocialSignupRedirectView(AllAuthRedirectView):
+    """Redirect social signup to /register."""
+    redirect_path = '/register'
 
 
 # ----------------------------------------------------------------------------- #
