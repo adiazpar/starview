@@ -678,6 +678,8 @@ h3 {
   width: 100%;
   max-width: 420px;
   padding: var(--space-xl);
+  text-align: center;
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 @media (max-width: 767px) {
@@ -687,11 +689,6 @@ h3 {
 
   .auth-page__content {
     padding: var(--space-lg);
-  }
-
-  .auth-page__card {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
   }
 }
 
