@@ -1,0 +1,374 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light only">
+    <title>{% trans "Email Cleanup Report" %} - Starview</title>
+    <style>
+        /* Force light mode - prevent email client auto-inversion */
+        :root {
+            color-scheme: light only;
+        }
+
+        /* Starview Email Design System - Matches App Variables */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+        }
+        .email-wrapper {
+            background-color: #f3f4f6 !important;
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff !important;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .header {
+            background-color: #f9fafb !important;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .header h1 {
+            margin: 0;
+            color: #111827 !important;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            color: #6b7280 !important;
+            font-size: 14px;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .report-date {
+            font-size: 14px;
+            color: #6b7280 !important;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 32px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+        .stats-grid {
+            display: table;
+            width: 100%;
+            margin: 16px 0;
+        }
+        .stat-row {
+            display: table-row;
+        }
+        .stat-label {
+            display: table-cell;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #6b7280 !important;
+        }
+        .stat-value {
+            display: table-cell;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827 !important;
+            text-align: right;
+        }
+        .stat-indent {
+            padding-left: 16px;
+            color: #9ca3af !important;
+        }
+        .info-box {
+            background-color: rgba(14, 165, 233, 0.1);
+            border-left: 4px solid #0ea5e9;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+        .info-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0ea5e9 !important;
+            margin-bottom: 8px;
+        }
+        .info-box-text {
+            font-size: 14px;
+            color: #6b7280 !important;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .success-box {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22c55e;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+        .success-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #22c55e !important;
+            margin-bottom: 8px;
+        }
+        .success-box-text {
+            font-size: 14px;
+            color: #6b7280 !important;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .warning-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+        .warning-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ef4444 !important;
+            margin-bottom: 8px;
+        }
+        .warning-box-text {
+            font-size: 14px;
+            color: #6b7280 !important;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .warning-list {
+            margin: 8px 0 0 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        .warning-list li {
+            padding: 4px 0;
+            font-size: 14px;
+            color: #6b7280 !important;
+        }
+        .warning-list li:before {
+            content: "⚠ ";
+            color: #ef4444 !important;
+        }
+        .recovered-list {
+            background-color: #f9fafb !important;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .recovered-list-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151 !important;
+            margin-bottom: 12px;
+        }
+        .recovered-item {
+            font-size: 13px;
+            color: #6b7280 !important;
+            padding: 4px 0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        }
+        .cta-container {
+            text-align: center;
+            margin: 32px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 32px;
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .cta-button:hover {
+            background-color: #3b82f6 !important;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb !important;
+            margin: 32px 0;
+        }
+        .footer {
+            background-color: #f9fafb !important;
+            padding: 32px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer-text {
+            color: #6b7280 !important;
+            font-size: 14px;
+            margin: 0 0 8px 0;
+        }
+        .footer-link {
+            color: #60a5fa !important;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .footer-link:hover {
+            color: #3b82f6 !important;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            .content {
+                padding: 30px 20px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <div class="header">
+                <img src="https://media.starview.app/email-assets/logo-light.png" alt="Starview" style="max-width: 300px; height: auto; margin: 0 auto 16px auto; display: block;">
+                <p>{% trans "Email Cleanup Report" %}</p>
+            </div>
+
+            <div class="content">
+                <div class="report-date">
+                    {{ report_date }}
+                </div>
+
+                <!-- Cleanup Summary -->
+                <div class="section-title">{% trans "Cleanup Summary" %}</div>
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Soft Bounces Recovered" %}</span>
+                        <span class="stat-value">{{ soft_bounces_recovered }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Stale Bounces Deleted" %}</span>
+                        <span class="stat-value">{{ stale_bounces_deleted }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Transient Bounces Deleted" %}</span>
+                        <span class="stat-value">{{ transient_bounces_deleted }}</span>
+                    </div>
+                </div>
+
+                {% if recovered_emails %}
+                <div class="recovered-list">
+                    <div class="recovered-list-title">{% trans "Recovered Emails (can now receive emails):" %}</div>
+                    {% for email_info in recovered_emails %}
+                    <div class="recovered-item">{{ email_info.email }} <span style="color: #9ca3af;">({{ email_info.last_bounce|date:"M d, Y" }})</span></div>
+                    {% endfor %}
+                    {% if recovered_emails_truncated %}
+                    <div class="recovered-item" style="color: #9ca3af; font-style: italic;">... {% blocktrans with count=recovered_emails_remaining %}and {{ count }} more{% endblocktrans %}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Email Health Statistics -->
+                <div class="section-title">{% trans "Current Email Health Statistics" %}</div>
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Total Bounces" %}</span>
+                        <span class="stat-value">{{ total_bounces }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label stat-indent">{% trans "Hard Bounces (permanent)" %}</span>
+                        <span class="stat-value">{{ hard_bounces }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label stat-indent">{% trans "Soft Bounces (temporary)" %}</span>
+                        <span class="stat-value">{{ soft_bounces }}</span>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Total Complaints" %}</span>
+                        <span class="stat-value">{{ total_complaints }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "Active Suppressions" %}</span>
+                        <span class="stat-value">{{ suppressed_emails }}</span>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-title">{% trans "Recent Activity (Last 7 Days)" %}</div>
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "New Bounces" %}</span>
+                        <span class="stat-value">{{ recent_bounces }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">{% trans "New Complaints" %}</span>
+                        <span class="stat-value">{{ recent_complaints }}</span>
+                    </div>
+                </div>
+
+                <!-- Health Status -->
+                <div class="section-title">{% trans "Health Status" %}</div>
+                {% if warnings %}
+                <div class="warning-box">
+                    <div class="warning-box-title">{% trans "Warnings Detected" %}</div>
+                    <ul class="warning-list">
+                        {% for warning in warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <div class="success-box">
+                    <div class="success-box-title">{% trans "All Clear" %}</div>
+                    <div class="success-box-text">{% trans "Email deliverability is healthy. No issues detected." %}</div>
+                </div>
+                {% endif %}
+
+                <div class="divider"></div>
+
+                <div class="cta-container">
+                    <a href="{{ admin_url }}" class="cta-button">{% trans "View Detailed Records" %}</a>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">{% trans "AWS SES Monitoring" %}</div>
+                    <div class="info-box-text">{% trans "Monitor your email reputation in the AWS SES Console under Reputation dashboard." %}</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p class="footer-text">
+                    <strong>{{ site_name }}</strong> - {% trans "Find Your Perfect Night Sky" %}
+                </p>
+                <p class="footer-text">
+                    {% trans "This is an automated weekly report. Please do not reply." %}
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

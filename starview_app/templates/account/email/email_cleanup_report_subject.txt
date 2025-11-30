@@ -1,0 +1,1 @@
+{% load i18n %}{% autoescape off %}{% blocktrans with site_name=site_name report_date=report_date %}{{ site_name }} Email Cleanup Report - {{ report_date }}{% endblocktrans %}{% endautoescape %}

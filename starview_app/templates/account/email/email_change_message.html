@@ -5,13 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light only">
-    <meta name="supported-color-schemes" content="light" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Password Reset Request" %} - Starview</title>
+    <title>{% trans "Email Change Request" %} - Starview</title>
     <style>
         /* Force light mode - prevent email client auto-inversion */
         :root {
             color-scheme: light only;
-            supported-color-schemes: light;
         }
 
         /* Starview Email Design System - Matches App Variables */
@@ -35,7 +33,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #111827 !important;
+            background-color: #f9fafb !important;
             padding: 40px 30px;
             text-align: center;
             border-bottom: 1px solid #e5e7eb;
@@ -49,7 +47,7 @@
         }
         .header p {
             margin: 8px 0 0 0;
-            color: #374151 !important;
+            color: #6b7280 !important;
             font-size: 14px;
             font-weight: 300;
             text-transform: uppercase;
@@ -70,22 +68,26 @@
             color: #374151 !important;
             margin-bottom: 24px;
         }
-        .cta-container {
-            text-align: center;
-            margin: 32px 0;
-        }
-        .cta-button {
-            display: inline-block;
-            padding: 12px 32px;
-            background-color: #2563eb !important;
-            color: #ffffff !important;
-            text-decoration: none;
+        .info-box {
+            background-color: rgba(14, 165, 233, 0.1);
+            border-left: 4px solid #0ea5e9;
             border-radius: 4px;
-            font-weight: 600;
-            font-size: 16px;
+            padding: 16px;
+            margin: 24px 0;
         }
-        .cta-button:hover {
-            background-color: #3b82f6 !important;
+        .info-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0ea5e9 !important;
+            margin-bottom: 8px;
+        }
+        .info-box p {
+            margin: 6px 0;
+            font-size: 14px;
+            color: #6b7280 !important;
+        }
+        .info-box strong {
+            color: #374151 !important;
         }
         .warning-box {
             background-color: rgba(239, 68, 68, 0.1);
@@ -106,44 +108,14 @@
             margin: 0;
             line-height: 1.5;
         }
-        .info-box {
-            background-color: rgba(14, 165, 233, 0.1);
-            border-left: 4px solid #0ea5e9;
-            border-radius: 4px;
-            padding: 16px;
-            margin: 24px 0;
-        }
-        .info-box-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #0ea5e9 !important;
-            margin-bottom: 4px;
-        }
-        .info-box-text {
-            font-size: 14px;
+        .warning-box ul {
+            margin: 12px 0 0 0;
+            padding-left: 20px;
             color: #6b7280 !important;
-            margin: 0;
-        }
-        .security-details {
-            background-color: #111827 !important;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            padding: 16px;
-            margin: 24px 0;
-        }
-        .security-details h4 {
-            margin: 0 0 12px 0;
-            color: #111827 !important;
             font-size: 14px;
-            font-weight: 600;
         }
-        .security-details p {
+        .warning-box li {
             margin: 6px 0;
-            font-size: 13px;
-            color: #6b7280 !important;
-        }
-        .security-details strong {
-            color: #374151 !important;
         }
         .divider {
             height: 1px;
@@ -151,7 +123,7 @@
             margin: 32px 0;
         }
         .footer {
-            background-color: #f3f4f6 !important;
+            background-color: #f9fafb !important;
             padding: 32px 30px;
             text-align: center;
             border-top: 1px solid #e5e7eb;
@@ -169,11 +141,6 @@
         .footer-link:hover {
             color: #3b82f6 !important;
         }
-        .muted-text {
-            font-size: 14px;
-            color: #6b7280 !important;
-            line-height: 1.5;
-        }
         @media only screen and (max-width: 600px) {
             .email-wrapper {
                 padding: 20px 10px;
@@ -187,10 +154,6 @@
             .header h1 {
                 font-size: 24px;
             }
-            .cta-button {
-                padding: 10px 24px;
-                font-size: 15px;
-            }
         }
     </style>
 </head>
@@ -199,7 +162,7 @@
         <div class="email-container">
             <div class="header">
                 <img src="https://media.starview.app/email-assets/logo-light.png" alt="Starview" style="max-width: 300px; height: auto; margin: 0 auto 16px auto; display: block;">
-                <p>{% trans "Password Reset" %}</p>
+                <p>{% trans "Email Change Request" %}</p>
             </div>
 
             <div class="content">
@@ -208,36 +171,33 @@
                 </div>
 
                 <div class="message">
-                    {% blocktrans with site_name=site_name user_email=user.email %}We received a request to reset the password for your <strong>{{ site_name }}</strong> account (<strong>{{ user_email }}</strong>).{% endblocktrans %}
-                </div>
-
-                <div class="message">
-                    {% trans "If you requested this password reset, click the button below to set a new password:" %}
-                </div>
-
-                <div class="cta-container">
-                    <a href="{{ reset_url }}" class="cta-button">{% trans "Reset My Password" %}</a>
+                    {% blocktrans with site_name=site_name %}A request has been made to change the email address associated with your <strong>{{ site_name }}</strong> account.{% endblocktrans %}
                 </div>
 
                 <div class="info-box">
-                    <div class="info-box-title">{% trans "Important" %}</div>
-                    <div class="info-box-text">{% blocktrans with hours=expiration_hours %}This link will expire in {{ hours }} hour for security purposes. If it expires, you'll need to request a new password reset.{% endblocktrans %}</div>
+                    <div class="info-box-title">{% trans "Email Address Change Details" %}</div>
+                    <p><strong>{% trans "Current email:" %}</strong> {{ old_email }}</p>
+                    <p><strong>{% trans "New email:" %}</strong> {{ new_email }}</p>
                 </div>
 
-                <div class="security-details">
-                    <h4>{% trans "Security Information" %}</h4>
-                    <p><strong>{% trans "Request IP:" %}</strong> {{ client_ip }}</p>
-                    <p><strong>{% trans "Account:" %}</strong> {{ user.username }}</p>
-                    <p><strong>{% trans "Email:" %}</strong> {{ user.email }}</p>
+                <div class="message">
+                    {% blocktrans with new_email=new_email %}A verification email has been sent to <strong>{{ new_email }}</strong>. Your email address will <strong>not change</strong> until the new address is verified by clicking the link in that email.{% endblocktrans %}
                 </div>
 
                 <div class="warning-box">
-                    <div class="warning-box-title">{% trans "Didn't request this?" %}</div>
+                    <div class="warning-box-title">{% trans "Didn't make this request?" %}</div>
                     <div class="warning-box-text">
-                        {% blocktrans %}If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged, and your account is secure.{% endblocktrans %}
-                        <br><br>
-                        {% trans "However, if you're concerned about unauthorized access attempts, we recommend reviewing your account security settings." %}
+                        {% trans "If you did NOT request this change, please secure your account immediately by:" %}
+                        <ul>
+                            <li>{% trans "Changing your password" %}</li>
+                            <li>{% trans "Reviewing recent account activity" %}</li>
+                            <li>{% trans "Contacting support if you notice suspicious activity" %}</li>
+                        </ul>
                     </div>
+                </div>
+
+                <div class="message">
+                    {% trans "If you initiated this change, please check your new email inbox and click the verification link to complete the process." %}
                 </div>
 
                 <div class="divider"></div>

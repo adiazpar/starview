@@ -278,116 +278,72 @@ class Command(BaseCommand):
 
     # Send email report with cleanup results and health statistics
     def send_email_report(self, soft_bounce_results, stale_bounce_results, transient_bounce_results):
-        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
         from django.utils import timezone
 
         # Get email statistics
         stats = get_email_statistics()
 
-        # Build email subject
-        subject = f'Starview Email Cleanup Report - {timezone.now().strftime("%B %d, %Y")}'
-
-        # Build email body
-        message_lines = [
-            'EMAIL CLEANUP REPORT',
-            '=' * 80,
-            '',
-            f'Report Date: {timezone.now().strftime("%B %d, %Y at %I:%M %p")}',
-            '',
-            'CLEANUP SUMMARY',
-            '-' * 80,
-            f'Soft Bounces Recovered: {soft_bounce_results["count"]}',
-            f'Stale Bounces Deleted: {stale_bounce_results["count"]}',
-            f'Transient Bounces Deleted: {transient_bounce_results["count"]}',
-            '',
-        ]
-
-        # Add recovered emails detail if any
-        if soft_bounce_results['count'] > 0:
-            message_lines.extend([
-                'RECOVERED EMAILS (can now receive marketing emails):',
-                '-' * 80,
-            ])
-            for email_info in soft_bounce_results['emails'][:10]:  # Show first 10
-                message_lines.append(f"  - {email_info['email']} (last bounce: {email_info['last_bounce'].strftime('%Y-%m-%d')})")
-
-            if soft_bounce_results['count'] > 10:
-                message_lines.append(f"  ... and {soft_bounce_results['count'] - 10} more")
-            message_lines.append('')
-
-        # Add current statistics
-        message_lines.extend([
-            'CURRENT EMAIL HEALTH STATISTICS',
-            '-' * 80,
-            f'Total Bounces: {stats["total_bounces"]}',
-            f'  - Hard Bounces (permanent): {stats["hard_bounces"]}',
-            f'  - Soft Bounces (temporary): {stats["soft_bounces"]}',
-            '',
-            f'Total Complaints: {stats["total_complaints"]}',
-            f'Active Suppressions: {stats["suppressed_emails"]}',
-            '',
-        ])
-
-        # Add recent activity
+        # Get recent activity
         seven_days_ago = timezone.now() - timedelta(days=7)
         recent_bounces = EmailBounce.objects.filter(last_bounce_date__gte=seven_days_ago).count()
         recent_complaints = EmailComplaint.objects.filter(complaint_date__gte=seven_days_ago).count()
 
-        message_lines.extend([
-            'RECENT ACTIVITY (Last 7 Days)',
-            '-' * 80,
-            f'New Bounces: {recent_bounces}',
-            f'New Complaints: {recent_complaints}',
-            '',
-        ])
-
-        # Add health warnings
+        # Build health warnings
         warnings = []
         if stats['hard_bounces'] > 100:
-            warnings.append('⚠ WARNING: High number of hard bounces - review email collection process')
+            warnings.append('High number of hard bounces - review email collection process')
         if stats['total_complaints'] > 10:
-            warnings.append('⚠ WARNING: Complaints detected - review email content and frequency')
+            warnings.append('Complaints detected - review email content and frequency')
         if recent_bounces > 50:
-            warnings.append('⚠ WARNING: High recent bounce rate - check email service health')
+            warnings.append('High recent bounce rate - check email service health')
         if stats['soft_bounces'] > 200:
-            warnings.append('⚠ WARNING: High soft bounce count - some mailboxes may be full')
+            warnings.append('High soft bounce count - some mailboxes may be full')
 
-        if warnings:
-            message_lines.extend([
-                'HEALTH WARNINGS',
-                '-' * 80,
-            ])
-            message_lines.extend(warnings)
-            message_lines.append('')
-        else:
-            message_lines.extend([
-                'HEALTH STATUS',
-                '-' * 80,
-                '✓ Email deliverability is healthy',
-                '',
-            ])
+        # Prepare recovered emails list (limit to 10 for display)
+        recovered_emails = soft_bounce_results.get('emails', [])[:10]
+        recovered_emails_truncated = soft_bounce_results['count'] > 10
+        recovered_emails_remaining = soft_bounce_results['count'] - 10 if recovered_emails_truncated else 0
 
-        # Add footer
-        message_lines.extend([
-            '=' * 80,
-            '',
-            'View detailed records: https://www.starview.app/admin/starview_app/emailbounce/',
-            'Monitor AWS SES reputation: AWS SES Console → Reputation dashboard',
-            '',
-            'This is an automated weekly report from Starview.',
-        ])
+        # Build template context
+        context = {
+            'site_name': 'Starview',
+            'report_date': timezone.now().strftime('%B %d, %Y at %I:%M %p'),
+            'soft_bounces_recovered': soft_bounce_results['count'],
+            'stale_bounces_deleted': stale_bounce_results['count'],
+            'transient_bounces_deleted': transient_bounce_results['count'],
+            'recovered_emails': recovered_emails,
+            'recovered_emails_truncated': recovered_emails_truncated,
+            'recovered_emails_remaining': recovered_emails_remaining,
+            'total_bounces': stats['total_bounces'],
+            'hard_bounces': stats['hard_bounces'],
+            'soft_bounces': stats['soft_bounces'],
+            'total_complaints': stats['total_complaints'],
+            'suppressed_emails': stats['suppressed_emails'],
+            'recent_bounces': recent_bounces,
+            'recent_complaints': recent_complaints,
+            'warnings': warnings,
+            'admin_url': 'https://www.starview.app/admin/starview_app/emailbounce/',
+        }
 
-        message = '\n'.join(message_lines)
+        # Render email subject and body from templates
+        subject = render_to_string('account/email/email_cleanup_report_subject.txt', context).strip()
+        text_message = render_to_string('account/email/email_cleanup_report_message.txt', context)
+        html_message = render_to_string('account/email/email_cleanup_report_message.html', context)
 
-        # Send email (this is a transactional/monitoring email, not marketing)
+        # Send email with HTML and plain text alternatives
         try:
-            send_mail(
+            email_msg = EmailMultiAlternatives(
                 subject=subject,
-                message=message,
-                from_email='noreply@starview.app',
-                recipient_list=[self.email_report_to],
-                fail_silently=False,
+                body=text_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[self.email_report_to]
             )
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send(fail_silently=False)
+
             self.stdout.write(self.style.SUCCESS(f'\nEmail report sent to {self.email_report_to}'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'\nFailed to send email report: {str(e)}'))

@@ -475,7 +475,6 @@ def request_password_reset(request):
             from django.contrib.sites.shortcuts import get_current_site
 
             current_site = get_current_site(request)
-            subject = f'{current_site.name} - Password Reset Request'
 
             # Email context
             context = {
@@ -486,9 +485,10 @@ def request_password_reset(request):
                 'expiration_hours': 1,
             }
 
-            # Render email body (we'll create the template next)
-            html_message = render_to_string('starview_app/auth/email/password_reset_email.html', context)
-            text_message = render_to_string('starview_app/auth/email/password_reset_email.txt', context)
+            # Render email subject and body from templates
+            subject = render_to_string('account/email/password_reset_subject.txt', context).strip()
+            html_message = render_to_string('account/email/password_reset_message.html', context)
+            text_message = render_to_string('account/email/password_reset_message.txt', context)
 
             # Create email message
             email_msg = EmailMultiAlternatives(
@@ -636,7 +636,6 @@ def confirm_password_reset(request, uidb64, token):
             client_ip = request.META.get('REMOTE_ADDR', 'Unknown')
 
         current_site = get_current_site(request)
-        subject = f'{current_site.name} - Password Changed Successfully'
 
         # Email context
         context = {
@@ -645,9 +644,10 @@ def confirm_password_reset(request, uidb64, token):
             'client_ip': client_ip,
         }
 
-        # Render email body (we'll create the template next)
-        html_message = render_to_string('starview_app/auth/email/password_changed_email.html', context)
-        text_message = render_to_string('starview_app/auth/email/password_changed_email.txt', context)
+        # Render email subject and body from templates
+        subject = render_to_string('account/email/password_changed_subject.txt', context).strip()
+        html_message = render_to_string('account/email/password_changed_message.html', context)
+        text_message = render_to_string('account/email/password_changed_message.txt', context)
 
         # Create email message
         email_msg = EmailMultiAlternatives(

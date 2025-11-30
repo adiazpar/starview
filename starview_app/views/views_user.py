@@ -389,7 +389,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             from django.contrib.sites.shortcuts import get_current_site
 
             current_site = get_current_site(request)
-            subject = f'Email Address Change Request - {current_site.name}'
             context = {
                 'user': request.user,
                 'old_email': old_email,
@@ -397,8 +396,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 'site_name': current_site.name,
             }
 
-            html_content = render_to_string('starview_app/auth/email/email_change_notification.html', context)
-            text_content = render_to_string('starview_app/auth/email/email_change_notification.txt', context)
+            # Render email subject and body from templates
+            subject = render_to_string('account/email/email_change_subject.txt', context).strip()
+            html_content = render_to_string('account/email/email_change_message.html', context)
+            text_content = render_to_string('account/email/email_change_message.txt', context)
 
             email = EmailMultiAlternatives(
                 subject=subject,
