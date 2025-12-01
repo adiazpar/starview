@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------- #
-# Sitemap configuration for search engine optimization.                          #
+# Sitemap configuration for search engine optimization.                         #
 #                                                                               #
 # Django's sitemap framework generates XML sitemaps that help search engines    #
 # discover and index all pages on the site. This improves SEO and helps with    #
@@ -26,11 +26,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+# Sitemap for static pages (Home, About, etc.)
+# These pages don't change frequently and are high priority:
 class StaticViewSitemap(Sitemap):
-    """
-    Sitemap for static pages (homepage, about, etc.)
-    These pages don't change frequently and are high priority.
-    """
     priority = 1.0
     changefreq = 'weekly'
     protocol = 'https'
@@ -43,11 +41,9 @@ class StaticViewSitemap(Sitemap):
         return item
 
 
+# Sitemap for public user profile pages.
+# Includes all users who have made their profiles public (have reviews/activity).
 class UserProfileSitemap(Sitemap):
-    """
-    Sitemap for public user profile pages.
-    Includes all users who have made their profiles public (have reviews/activity).
-    """
     priority = 0.6
     changefreq = 'weekly'
     protocol = 'https'
