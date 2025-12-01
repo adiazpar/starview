@@ -5,10 +5,12 @@
 
 import { Link } from 'react-router-dom';
 import { usePlatformStats } from '../../hooks/useStats';
+import { useAuth } from '../../context/AuthContext';
 import './styles.css';
 
 function HomePage() {
   const { stats, showStats } = usePlatformStats();
+  const { isAuthenticated } = useAuth();
 
   return (
     <main className="home">
@@ -33,8 +35,8 @@ function HomePage() {
               <i className="fa-solid fa-map"></i>
               Explore Map
             </Link>
-            <Link to="/register" className="btn-secondary">
-              Create Account
+            <Link to={isAuthenticated ? '/explore' : '/register'} className="btn-secondary">
+              {isAuthenticated ? 'Browse Locations' : 'Create Account'}
               <i className="fa-solid fa-arrow-right"></i>
             </Link>
           </div>
@@ -134,10 +136,12 @@ function HomePage() {
           <div className="cta__content">
             <h2 className="cta__title">Ready to explore the cosmos?</h2>
             <p className="cta__text">
-              Join thousands of stargazers finding the perfect night sky.
+              {isAuthenticated
+                ? 'Discover new stargazing locations near you.'
+                : 'Join thousands of stargazers finding the perfect night sky.'}
             </p>
-            <Link to="/register" className="btn-primary">
-              Get Started Free
+            <Link to={isAuthenticated ? '/explore' : '/register'} className="btn-primary">
+              {isAuthenticated ? 'Get Started' : 'Get Started'}
               <i className="fa-solid fa-arrow-right"></i>
             </Link>
           </div>
