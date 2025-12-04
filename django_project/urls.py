@@ -155,6 +155,16 @@ urlpatterns += [
         serve_static_with_cache,
         {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist/badges')},
     ),
+    re_path(
+        r'^icons/(?P<path>.*)$',
+        serve_static_with_cache,
+        {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist/icons')},
+    ),
+    re_path(
+        r'^favicon\.ico$',
+        serve_static_with_cache,
+        {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist'), 'path': 'favicon.ico'},
+    ),
 ]
 
 # SEO: robots.txt for search engines and AI crawlers
