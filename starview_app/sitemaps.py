@@ -26,12 +26,24 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+# Base sitemap class that forces www.starview.app as the canonical domain.
+# This ensures all sitemap URLs use the correct canonical domain regardless
+# of what's configured in django.contrib.sites.
+class CanonicalSitemap(Sitemap):
+    protocol = 'https'
+
+    def get_urls(self, site=None, **kwargs):
+        # Override to use canonical domain instead of Sites framework
+        from django.contrib.sites.models import Site
+        canonical_site = Site(domain='www.starview.app', name='Starview')
+        return super().get_urls(site=canonical_site, **kwargs)
+
+
 # Sitemap for static pages (Home, About, etc.)
 # These pages don't change frequently and are high priority:
-class StaticViewSitemap(Sitemap):
+class StaticViewSitemap(CanonicalSitemap):
     priority = 1.0
     changefreq = 'weekly'
-    protocol = 'https'
 
     def items(self):
         # List of static page paths
@@ -43,10 +55,9 @@ class StaticViewSitemap(Sitemap):
 
 # Sitemap for public user profile pages.
 # Includes all users who have made their profiles public (have reviews/activity).
-class UserProfileSitemap(Sitemap):
+class UserProfileSitemap(CanonicalSitemap):
     priority = 0.6
     changefreq = 'weekly'
-    protocol = 'https'
 
     def items(self):
         # Only include users with profiles (active users)
