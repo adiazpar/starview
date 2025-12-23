@@ -25,6 +25,34 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse
 from django.conf import settings
 import os
+import re
+
+
+# Valid React routes - must match App.jsx routes
+# Update this list when adding new routes to the React app
+VALID_REACT_ROUTES = [
+    r'^$',                                          # Home: /
+    r'^login/?$',                                   # Login: /login
+    r'^register/?$',                                # Register: /register
+    r'^verify-email/?$',                            # Verify email: /verify-email
+    r'^email-verified/?$',                          # Email verified: /email-verified
+    r'^email-confirm-error/?$',                     # Email confirm error: /email-confirm-error
+    r'^social-account-exists/?$',                   # Social account exists: /social-account-exists
+    r'^password-reset/?$',                          # Password reset request: /password-reset
+    r'^password-reset-confirm/[^/]+/[^/]+/?$',      # Password reset confirm: /password-reset-confirm/:uidb64/:token
+    r'^profile/?$',                                 # Profile: /profile
+    r'^users/[^/]+/?$',                             # Public profile: /users/:username
+]
+
+
+def is_valid_react_route(path):
+    """Check if a path matches a valid React route."""
+    # Remove leading slash for consistent matching
+    clean_path = path.lstrip('/')
+    for pattern in VALID_REACT_ROUTES:
+        if re.match(pattern, clean_path):
+            return True
+    return False
 
 
 # ----------------------------------------------------------------------------- #
@@ -33,6 +61,11 @@ import os
 # This enables React Router to handle navigation by serving the same HTML       #
 # file for all non-API routes. React then renders the appropriate component     #
 # based on the URL path.                                                        #
+#                                                                               #
+# SEO behavior:                                                                 #
+# - Valid routes return HTTP 200 with index.html                                #
+# - Invalid routes return HTTP 404 with index.html (React shows 404 page)       #
+# This ensures search engines properly understand which pages exist.            #
 #                                                                               #
 # Development workflow:                                                         #
 # - Run `npm run dev` in starview_frontend/ directory                           #
@@ -59,6 +92,16 @@ class ReactAppView(TemplateView):
         # Development fallback: React build doesn't exist
         # User should run `npm run dev` instead of accessing via Django
         return ['dev_placeholder.html']
+
+    def render_to_response(self, context, **response_kwargs):
+        """Override to return 404 status for invalid routes."""
+        response = super().render_to_response(context, **response_kwargs)
+
+        # Check if this is a valid React route
+        if not is_valid_react_route(self.request.path):
+            response.status_code = 404
+
+        return response
 
 
 # ----------------------------------------------------------------------------- #
