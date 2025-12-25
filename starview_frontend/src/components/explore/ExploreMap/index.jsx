@@ -198,6 +198,15 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         : 'day'; // Default to day if no geolocation
       map.current.setConfigProperty('basemap', 'lightPreset', preset);
 
+      // Configure fog/atmosphere - transparent space for custom starfield
+      map.current.setFog({
+        'color': 'rgb(186, 210, 235)', // Lower atmosphere (white glow)
+        'high-color': 'rgb(36, 92, 223)', // Upper atmosphere
+        'horizon-blend': 0.02, // Thin atmospheric glow
+        'space-color': 'rgba(0, 0, 0, 0)', // Transparent - shows our starfield
+        'star-intensity': 0, // Hide Mapbox stars - we have our own
+      });
+
       // Enable 3D terrain
       map.current.addSource('mapbox-dem', {
         type: 'raster-dem',

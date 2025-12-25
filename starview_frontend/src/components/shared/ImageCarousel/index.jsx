@@ -14,7 +14,7 @@ function ImageCarousel({
   alt = 'Location',
   aspectRatio = '16 / 10',
   className = '',
-  autoPlay = true,
+  autoPlay = false,
   autoPlayInterval = 5000 // 5 seconds
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
