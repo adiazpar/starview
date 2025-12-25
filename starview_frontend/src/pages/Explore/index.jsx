@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback, useRef, lazy, Suspense } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useLocations, useLocationsPaginated } from '../../hooks/useLocations';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
@@ -17,7 +18,9 @@ import './styles.css';
 const ExploreMap = lazy(() => import('../../components/explore/ExploreMap'));
 
 function ExplorePage() {
-  const [view, setView] = useState('list');
+  const [searchParams] = useSearchParams();
+  const initialView = searchParams.get('view') === 'map' ? 'map' : 'list';
+  const [view, setView] = useState(initialView);
   const [page, setPage] = useState(1);
   const mapViewport = useRef(null); // Persist map position across view toggles
   const isDesktop = useIsDesktop();

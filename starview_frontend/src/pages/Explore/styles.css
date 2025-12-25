@@ -8,6 +8,8 @@
   padding-bottom: calc(var(--space-xl) * 3); /* Space for floating button */
   /* Positioning context for hidden map */
   position: relative;
+  /* Prevent hidden map from causing horizontal scroll */
+  overflow-x: hidden;
 }
 
 .explore-page--map {
