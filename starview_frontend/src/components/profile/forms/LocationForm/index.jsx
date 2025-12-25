@@ -4,12 +4,14 @@
  * Form component for updating user location with Mapbox autocomplete.
  * Stores location text (public) and coordinates (private).
  * Uses view/edit mode pattern for cleaner UX.
+ * Shows which location source is being used for map features.
  */
 
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
+import { useUserLocation } from '../../../../hooks/useUserLocation';
 
 // Lazy load Mapbox autocomplete (185 kB) - only loads when user clicks Edit
 const LocationAutocomplete = lazy(() => import('../../../shared/LocationAutocomplete'));
@@ -21,6 +23,7 @@ function LocationForm({ user, refreshAuth }) {
     latitude: null,
     longitude: null
   });
+  const { source: locationSource, isLoading: locationLoading } = useUserLocation();
 
   // Update location when user data changes
   useEffect(() => {
@@ -96,6 +99,36 @@ function LocationForm({ user, refreshAuth }) {
           <span className={`profile-view-value ${!user?.location ? 'profile-view-value--empty' : ''}`}>
             {user?.location || 'Not set'}
           </span>
+
+          {/* Location Source Indicator */}
+          {!locationLoading && (
+            <div className="location-source-hint">
+              {locationSource === 'browser' && (
+                <>
+                  <i className="fa-solid fa-location-crosshairs"></i>
+                  <span>Using your browser's location to show distances, day/night map lighting, and nearby locations.</span>
+                </>
+              )}
+              {locationSource === 'profile' && (
+                <>
+                  <i className="fa-solid fa-map-pin"></i>
+                  <span>Using this location to show distances, day/night map lighting, and nearby locations.</span>
+                </>
+              )}
+              {!locationSource && !user?.location && (
+                <>
+                  <i className="fa-solid fa-circle-info"></i>
+                  <span>Set a location to see distances to stargazing spots, day/night map lighting, and nearby locations.</span>
+                </>
+              )}
+              {!locationSource && user?.location && (
+                <>
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  <span>Location coordinates missing — edit and re-save to enable distances and map features.</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 

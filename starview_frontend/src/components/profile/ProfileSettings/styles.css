@@ -93,6 +93,34 @@
   font-style: italic;
 }
 
+/* Location source hint - shows where location data comes from */
+.location-source-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.location-source-hint i {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.location-source-hint i.fa-location-crosshairs {
+  color: var(--success);
+}
+
+.location-source-hint i.fa-map-pin {
+  color: var(--primary);
+}
+
+.location-source-hint i.fa-triangle-exclamation {
+  color: var(--warning);
+}
+
 /* Edit mode - form fields */
 .profile-edit-content {
   margin-top: var(--space-md);
