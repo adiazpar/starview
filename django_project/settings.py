@@ -108,10 +108,19 @@ CONTENT_SECURITY_POLICY = {
         'img-src': (
             "'self'",
             "data:",                                    # Data URIs for inline images
+            "blob:",                                    # Blob URLs for Mapbox generated images
             "https://*.mapbox.com",                     # Mapbox tile images (uses subdomains)
             "https://api.mapbox.com",                   # Mapbox API images
             "https://*.r2.dev",                         # Cloudflare R2 dev URLs (development/testing)
             "https://media.starview.app",               # R2 custom domain (production)
+        ),
+        'worker-src': (
+            "'self'",
+            "blob:",                                    # Mapbox GL JS uses blob: for web workers
+        ),
+        'child-src': (
+            "'self'",
+            "blob:",                                    # Fallback for older browsers
         ),
         'font-src': (
             "'self'",
