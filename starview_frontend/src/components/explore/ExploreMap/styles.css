@@ -95,7 +95,7 @@
   object-fit: cover;
 }
 
-/* Close Button - matches LocationCard save button style */
+/* Close Button - above carousel controls */
 .explore-map__card-close {
   position: absolute;
   top: var(--space-sm);
@@ -111,9 +111,10 @@
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 3; /* Above carousel arrows (z-index: 2) */
 }
 
-/* Favorite Button - matches LocationCard save button style */
+/* Favorite Button - above carousel controls */
 .explore-map__card-favorite {
   position: absolute;
   top: var(--space-sm);
@@ -129,6 +130,7 @@
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 3; /* Above carousel arrows (z-index: 2) */
 }
 
 .explore-map__card-favorite:hover,

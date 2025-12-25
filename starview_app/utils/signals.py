@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 # Import models:
 from starview_app.models import UserProfile
 from starview_app.models import ReviewPhoto
+from starview_app.models import LocationPhoto
 from starview_app.models import Review
 from starview_app.models import Location
 from starview_app.models import LocationVisit
@@ -253,6 +254,30 @@ def delete_review_photo_files(instance, **kwargs):
 
                 # Try to clean up location directory if empty:
                 location_dir = os.path.dirname(review_dir)
+                safe_delete_directory(location_dir)
+        except (NotImplementedError, AttributeError):
+            # Storage backend doesn't support .path (R2/S3)
+            pass
+
+
+# Delete location photo and thumbnail files when LocationPhoto is deleted:
+@receiver(pre_delete, sender=LocationPhoto)
+def delete_location_photo_files(instance, **kwargs):
+    # Delete main image (pass field object for R2/S3 compatibility):
+    if instance.image:
+        safe_delete_file(instance.image)
+
+    # Delete thumbnail (pass field object for R2/S3 compatibility):
+    if instance.thumbnail:
+        safe_delete_file(instance.thumbnail)
+
+    # Clean up directories if they're empty (local filesystem only):
+    if instance.image:
+        try:
+            if hasattr(instance.image, 'path'):
+                # Get the location-specific directory:
+                location_dir = os.path.dirname(instance.image.path)
+                safe_delete_directory(os.path.join(location_dir, 'thumbnails'))
                 safe_delete_directory(location_dir)
         except (NotImplementedError, AttributeError):
             # Storage backend doesn't support .path (R2/S3)

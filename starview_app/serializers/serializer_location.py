@@ -139,18 +139,20 @@ class LocationSerializer(serializers.ModelSerializer):
 # Fields included:                                                              #
 # - Coordinates: latitude, longitude (for marker placement)                     #
 # - Card data: name, region, elevation, rating, review_count, is_favorited      #
+# - Images: Up to 5 thumbnail URLs from hybrid pool (location + review photos)  #
 # ----------------------------------------------------------------------------- #
 class MapLocationSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
         fields = [
             'id', 'name', 'latitude', 'longitude',
             'administrative_area', 'country', 'elevation',
-            'average_rating', 'review_count', 'is_favorited'
+            'average_rating', 'review_count', 'is_favorited', 'images'
         ]
         read_only_fields = fields
 
@@ -177,6 +179,51 @@ class MapLocationSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'review_count_annotated'):
             return obj.review_count_annotated
         return obj.reviews.count()
+
+    def get_images(self, obj):
+        """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""
+        photos = []
+
+        # 1. Get location photos (creator uploads) - most recent first
+        if hasattr(obj, 'prefetched_location_photos'):
+            location_photos = obj.prefetched_location_photos
+        else:
+            location_photos = obj.photos.all().order_by('-created_at')[:5]
+
+        for photo in location_photos:
+            if len(photos) >= 5:
+                break
+            photos.append({
+                'id': f'loc_{photo.id}',
+                'thumbnail': photo.thumbnail_url,
+                'full': photo.image_url,
+            })
+
+        # 2. Add review photos to fill up to 5
+        if len(photos) < 5:
+            if hasattr(obj, 'prefetched_reviews'):
+                reviews = obj.prefetched_reviews
+            else:
+                reviews = obj.reviews.prefetch_related('photos').order_by('-created_at')
+
+            for review in reviews:
+                if hasattr(review, 'prefetched_photos'):
+                    review_photos = review.prefetched_photos
+                else:
+                    review_photos = review.photos.all().order_by('order')
+
+                for photo in review_photos:
+                    if len(photos) >= 5:
+                        break
+                    photos.append({
+                        'id': f'rev_{photo.id}',
+                        'thumbnail': photo.thumbnail_url,
+                        'full': photo.image_url,
+                    })
+                if len(photos) >= 5:
+                    break
+
+        return photos
 
 
 
@@ -238,6 +285,7 @@ class LocationListSerializer(serializers.ModelSerializer):
     # Use annotations instead of nested reviews to avoid N+1 queries:
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
 
 
     class Meta:
@@ -246,7 +294,7 @@ class LocationListSerializer(serializers.ModelSerializer):
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
-                  'average_rating', 'review_count',
+                  'average_rating', 'review_count', 'images',
 
                   # Verification fields:
                   'is_verified', 'verification_date', 'verified_by',
@@ -307,3 +355,48 @@ class LocationListSerializer(serializers.ModelSerializer):
                 'username': obj.verified_by.username
             }
         return None
+
+    def get_images(self, obj):
+        """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""
+        photos = []
+
+        # 1. Get location photos (creator uploads) - most recent first
+        if hasattr(obj, 'prefetched_location_photos'):
+            location_photos = obj.prefetched_location_photos
+        else:
+            location_photos = obj.photos.all().order_by('-created_at')[:5]
+
+        for photo in location_photos:
+            if len(photos) >= 5:
+                break
+            photos.append({
+                'id': f'loc_{photo.id}',
+                'thumbnail': photo.thumbnail_url,
+                'full': photo.image_url,
+            })
+
+        # 2. Add review photos to fill up to 5
+        if len(photos) < 5:
+            if hasattr(obj, 'prefetched_reviews'):
+                reviews = obj.prefetched_reviews
+            else:
+                reviews = obj.reviews.prefetch_related('photos').order_by('-created_at')
+
+            for review in reviews:
+                if hasattr(review, 'prefetched_photos'):
+                    review_photos = review.prefetched_photos
+                else:
+                    review_photos = review.photos.all().order_by('order')
+
+                for photo in review_photos:
+                    if len(photos) >= 5:
+                        break
+                    photos.append({
+                        'id': f'rev_{photo.id}',
+                        'thumbnail': photo.thumbnail_url,
+                        'full': photo.image_url,
+                    })
+                if len(photos) >= 5:
+                    break
+
+        return photos

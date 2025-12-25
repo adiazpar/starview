@@ -4,16 +4,14 @@
  */
 
 import { memo, useMemo, useCallback } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
+import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
 
-// Placeholder image for locations without photos
-const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
-
 function LocationCard({ location, userLocation, onPress, style }) {
-  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
 
   // Derive favorite status directly from location prop (cache updates are instant)
@@ -42,28 +40,24 @@ function LocationCard({ location, userLocation, onPress, style }) {
     );
   }, [userLocation, location.latitude, location.longitude]);
 
-  // Handle favorite toggle - cache updates are instant via mutation
+  // Handle favorite toggle - redirects to login if not authenticated
   const handleSave = useCallback((e) => {
     e.stopPropagation();
-    if (!isAuthenticated) {
-      console.log('Please log in to save locations');
-      return;
-    }
+    if (!requireAuth()) return;
     toggleFavorite.mutate(location.id);
-  }, [isAuthenticated, location.id, toggleFavorite]);
+  }, [requireAuth, location.id, toggleFavorite]);
 
   // Memoize style object for animation delay
   const cardStyle = useMemo(() => style, [style]);
 
   return (
     <article className="location-card glass-card glass-card--interactive" onClick={() => onPress?.(location)} style={cardStyle}>
-      {/* Hero Image */}
+      {/* Hero Image Carousel */}
       <div className="location-card__image-container">
-        <img
-          src={location.image || PLACEHOLDER_IMAGE}
+        <ImageCarousel
+          images={location.images || []}
           alt={location.name}
-          className="location-card__image"
-          loading="lazy"
+          aspectRatio="16 / 10"
         />
         <button
           className={`location-card__save ${isSaved ? 'location-card__save--active' : ''}`}

@@ -14,9 +14,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useUserLocation } from '../../../hooks/useUserLocation';
-import { useAuth } from '../../../context/AuthContext';
+import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
+import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
 
 /**
@@ -72,7 +73,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   const { markers, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
-  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
 
   // Update selectedLocation when markers change (keeps card in sync with cache)
@@ -148,16 +149,12 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [selectedLocation]);
 
-  // Handle favorite toggle - cache updates are instant via mutation
+  // Handle favorite toggle - redirects to login if not authenticated
   const handleToggleFavorite = useCallback((e) => {
     e.stopPropagation();
-
-    if (!isAuthenticated) {
-      return;
-    }
-
+    if (!requireAuth()) return;
     toggleFavorite.mutate(selectedLocation.id);
-  }, [isAuthenticated, selectedLocation?.id, toggleFavorite]);
+  }, [requireAuth, selectedLocation?.id, toggleFavorite]);
 
   // Handle card open animation
   useEffect(() => {
@@ -286,8 +283,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       map.current.on('click', 'location-markers', (e) => {
         const feature = e.features[0];
         const id = feature.properties.id;
+        const coordinates = feature.geometry.coordinates;
 
-        // Ignore clicks on the already selected marker
+        // Calculate bottom padding based on card height (~45% of viewport on mobile)
+        // This centers the marker in the visible space above the card
+        const cardHeight = Math.min(window.innerHeight * 0.45, 400);
+
+        // Always fly to marker (even if same marker clicked again)
+        map.current.flyTo({
+          center: coordinates,
+          padding: { bottom: cardHeight, top: 0, left: 0, right: 0 },
+          duration: 500,
+        });
+
+        // Skip card update if same marker is already selected
         if (selectedIdRef.current === id) return;
 
         // Find location in cached markers data
@@ -370,12 +379,12 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           className={`explore-map__card ${isCardVisible ? 'explore-map__card--visible' : ''} ${isSwitching ? 'explore-map__card--switching' : ''}`}
           onClick={handleViewLocation}
         >
-          {/* Image Section */}
+          {/* Image Carousel Section */}
           <div className="explore-map__card-image-container">
-            <img
-              src={selectedLocation.image || PLACEHOLDER_IMAGE}
+            <ImageCarousel
+              images={selectedLocation.images || []}
               alt={selectedLocation.name}
-              className="explore-map__card-image"
+              aspectRatio="16 / 7"
             />
 
             {/* Close Button */}

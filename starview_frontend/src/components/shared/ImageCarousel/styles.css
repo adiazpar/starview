@@ -1,0 +1,169 @@
+/* ImageCarousel Styles
+ * Responsive image carousel with swipe gestures and hover arrows.
+ */
+
+.image-carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface-secondary);
+}
+
+.image-carousel:focus {
+  outline: none;
+}
+
+.image-carousel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Image Track - slides horizontally */
+.image-carousel__track {
+  display: flex;
+  transition: transform 0.3s ease-out;
+  height: 100%;
+}
+
+.image-carousel__slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Clip scaled image within slide bounds */
+}
+
+.image-carousel__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+/* Hover zoom effect - only on parent card hover, not carousel itself */
+.location-card:hover .image-carousel__image,
+.explore-map__card:hover .image-carousel__image {
+  transform: scale(1.05);
+}
+
+/* Placeholder while image loads */
+.image-carousel__placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--surface-secondary) 0%,
+    var(--surface-tertiary) 50%,
+    var(--surface-secondary) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Navigation Arrows */
+.image-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: var(--radius-full);
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+  font-size: var(--text-sm);
+}
+
+.image-carousel__arrow--left {
+  left: var(--space-sm);
+}
+
+.image-carousel__arrow--right {
+  right: var(--space-sm);
+}
+
+/* Show arrows on hover (desktop only) */
+.image-carousel:hover .image-carousel__arrow,
+.image-carousel:focus-within .image-carousel__arrow {
+  opacity: 1;
+}
+
+.image-carousel__arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.image-carousel__arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Hide arrows completely on touch devices */
+@media (hover: none) {
+  .image-carousel__arrow {
+    display: none;
+  }
+}
+
+/* Indicator Dots - always visible */
+.image-carousel__dots {
+  position: absolute;
+  bottom: var(--space-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.image-carousel__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.image-carousel__dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.image-carousel__dot--active {
+  background: white;
+  transform: scale(1.3);
+}
+
+/* Single image mode - no dots or arrows needed */
+.image-carousel--single .image-carousel__dots,
+.image-carousel--single .image-carousel__arrow {
+  display: none;
+}
+
+/* Smaller dots on mobile for touch targets */
+@media (max-width: 480px) {
+  .image-carousel__dots {
+    gap: 8px;
+  }
+
+  .image-carousel__dot {
+    width: 8px;
+    height: 8px;
+  }
+}

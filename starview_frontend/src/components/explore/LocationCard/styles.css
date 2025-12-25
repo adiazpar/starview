@@ -33,7 +33,7 @@
   transform: scale(1.05);
 }
 
-/* Save Button */
+/* Save Button - above carousel controls */
 .location-card__save {
   position: absolute;
   top: var(--space-sm);
@@ -49,6 +49,7 @@
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 3; /* Above carousel arrows (z-index: 2) */
 }
 
 .location-card__save:hover {
@@ -124,7 +125,7 @@
   font-size: var(--text-xs);
 }
 
-/* Verified Badge */
+/* Verified Badge - above carousel controls */
 .location-card__verified {
   position: absolute;
   top: var(--space-sm);
@@ -138,6 +139,7 @@
   border-radius: var(--radius-full);
   color: white;
   font-size: var(--text-xs);
+  z-index: 3; /* Above carousel arrows (z-index: 2) */
 }
 
 /* Rating */

@@ -34,6 +34,9 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from ..models import Location
 from ..models import Review
 from ..models import FavoriteLocation
+from ..models import ReviewPhoto
+from ..models import LocationPhoto
+from django.db.models import Prefetch
 
 # Serializer imports:
 from ..serializers import LocationSerializer
@@ -87,6 +90,10 @@ class LocationViewSet(viewsets.ModelViewSet):
             from ..serializers import LocationListSerializer
             return LocationListSerializer
 
+        # For map markers, use lightweight serializer with images
+        if self.action == 'map_markers':
+            return MapLocationSerializer
+
         # SCALABILITY NOTE:
         # Currently 'retrieve' (detail) view returns LocationSerializer with ALL nested reviews.
         # This works fine for locations with 1-20 reviews, but can be slow with 100+ reviews.
@@ -118,10 +125,26 @@ class LocationViewSet(viewsets.ModelViewSet):
                 'reviews__comments__user',
                 'reviews__comments__votes'  # Prefetch votes for comments
             )
-        else:
-            # For list view, we don't include nested reviews in serializer
-            # so no need to prefetch them
-            pass
+        elif self.action == 'list':
+            # For list view, prefetch photos for image carousel
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    'photos',
+                    queryset=LocationPhoto.objects.order_by('-created_at'),
+                    to_attr='prefetched_location_photos'
+                ),
+                Prefetch(
+                    'reviews',
+                    queryset=Review.objects.order_by('-created_at').prefetch_related(
+                        Prefetch(
+                            'photos',
+                            queryset=ReviewPhoto.objects.order_by('order'),
+                            to_attr='prefetched_photos'
+                        )
+                    ),
+                    to_attr='prefetched_reviews'
+                )
+            )
 
         # Add is_favorited annotation for authenticated users
         if self.request.user.is_authenticated:
@@ -381,6 +404,24 @@ class LocationViewSet(viewsets.ModelViewSet):
         queryset = Location.objects.annotate(
             review_count_annotated=Count('reviews'),
             average_rating_annotated=Avg('reviews__rating')
+        ).prefetch_related(
+            # Prefetch photos for image carousel
+            Prefetch(
+                'photos',
+                queryset=LocationPhoto.objects.order_by('-created_at'),
+                to_attr='prefetched_location_photos'
+            ),
+            Prefetch(
+                'reviews',
+                queryset=Review.objects.order_by('-created_at').prefetch_related(
+                    Prefetch(
+                        'photos',
+                        queryset=ReviewPhoto.objects.order_by('order'),
+                        to_attr='prefetched_photos'
+                    )
+                ),
+                to_attr='prefetched_reviews'
+            )
         )
 
         # Add is_favorited annotation for authenticated users

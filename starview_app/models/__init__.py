@@ -23,6 +23,7 @@
 from .model_location import Location
 from .model_location_favorite import FavoriteLocation
 from .model_location_visit import LocationVisit
+from .model_location_photo import LocationPhoto
 
 # User models:
 from .model_user_profile import UserProfile
