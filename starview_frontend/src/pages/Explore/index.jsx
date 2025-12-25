@@ -51,59 +51,59 @@ function ExplorePage() {
 
   return (
     <div className={`explore-page ${view === 'map' ? 'explore-page--map' : ''}`}>
-      {view === 'list' ? (
-        <div className="explore-page__list">
-          {isLoading ? (
-            <div className="explore-page__loading">
-              <i className="fa-solid fa-spinner fa-spin"></i>
-              <p>Loading locations...</p>
-            </div>
-          ) : isError ? (
-            <div className="explore-page__error">
-              <i className="fa-solid fa-triangle-exclamation"></i>
-              <p>Failed to load locations</p>
-              <span className="explore-page__error-detail">
-                {error?.message || 'Please try again later'}
-              </span>
-            </div>
-          ) : locations.length === 0 ? (
-            <div className="explore-page__empty">
-              <i className="fa-solid fa-map-location-dot"></i>
-              <p>No locations found</p>
-              <span>Be the first to add a stargazing spot!</span>
-            </div>
-          ) : (
-            <>
-              {locations.map((location, index) => (
-                <LocationCard
-                  key={location.id}
-                  location={location}
-                  userLocation={userLocation}
-                  onPress={handlePressLocation}
-                  style={{ '--card-index': index % 20 }}
-                />
-              ))}
+      {/* List View - hidden when map is active */}
+      <div className={`explore-page__list ${view !== 'list' ? 'explore-page__list--hidden' : ''}`}>
+        {isLoading ? (
+          <div className="explore-page__loading">
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading locations...</p>
+          </div>
+        ) : isError ? (
+          <div className="explore-page__error">
+            <i className="fa-solid fa-triangle-exclamation"></i>
+            <p>Failed to load locations</p>
+            <span className="explore-page__error-detail">
+              {error?.message || 'Please try again later'}
+            </span>
+          </div>
+        ) : locations.length === 0 ? (
+          <div className="explore-page__empty">
+            <i className="fa-solid fa-map-location-dot"></i>
+            <p>No locations found</p>
+            <span>Be the first to add a stargazing spot!</span>
+          </div>
+        ) : (
+          <>
+            {locations.map((location, index) => (
+              <LocationCard
+                key={location.id}
+                location={location}
+                userLocation={userLocation}
+                onPress={handlePressLocation}
+                style={{ '--card-index': index % 20 }}
+              />
+            ))}
 
-              {/* Sentinel element for infinite scroll */}
-              <div ref={loadMoreRef} className="explore-page__sentinel">
-                {isFetchingNextPage && (
-                  <div className="explore-page__loading-more">
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    <span>Loading more...</span>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="explore-page__map">
-          <ExploreMap
-            initialViewport={mapViewport.current}
-            onViewportChange={handleMapViewportChange}
-          />
-        </div>
-      )}
+            {/* Sentinel element for infinite scroll */}
+            <div ref={loadMoreRef} className="explore-page__sentinel">
+              {isFetchingNextPage && (
+                <div className="explore-page__loading-more">
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <span>Loading more...</span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Map View - always mounted to preserve state, hidden when list is active */}
+      <div className={`explore-page__map ${view !== 'map' ? 'explore-page__map--hidden' : ''}`}>
+        <ExploreMap
+          initialViewport={mapViewport.current}
+          onViewportChange={handleMapViewportChange}
+        />
+      </div>
 
       <ViewToggle view={view} onToggle={handleToggleView} />
     </div>

@@ -437,8 +437,15 @@
   color: var(--text-primary);
 }
 
-.navbar__filter-chip i {
-  font-size: var(--text-xs);
+.navbar__filter-chip {
+  justify-content: center;
+}
+
+/* Icon styles for filter chips */
+.navbar__filter-icon,
+.navbar__filter-caret {
+  font-size: 10px;
+  opacity: 0.7;
 }
 
 /* Light Theme Adjustments

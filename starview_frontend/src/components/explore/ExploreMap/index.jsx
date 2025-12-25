@@ -3,19 +3,50 @@
  * Uses native symbol layers for smooth marker rendering.
  * Bottom card slides up when marker is tapped (Airbnb-style).
  *
- * Optimization: All card data comes from the map_markers endpoint,
- * eliminating the need for a second API call when tapping markers.
+ * Features:
+ * - Dynamic day/night lighting based on user's local sun position
+ * - All card data comes from map_markers endpoint (no extra API calls)
  */
 
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useUserLocation } from '../../../hooks/useUserLocation';
 import { useAuth } from '../../../context/AuthContext';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
 import './styles.css';
+
+/**
+ * Calculate the appropriate Mapbox light preset based on sun position.
+ * Uses astronomical definitions for twilight phases.
+ *
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {'day' | 'dusk' | 'dawn' | 'night'} Light preset name
+ */
+function getLightPreset(lat, lng) {
+  const now = new Date();
+  const sunPos = SunCalc.getPosition(now, lat, lng);
+  const altitudeDeg = sunPos.altitude * (180 / Math.PI);
+
+  // Sun altitude thresholds (in degrees)
+  // > 0°: Day (sun above horizon)
+  // -6° to 0°: Civil twilight (dusk/dawn)
+  // < -6°: Night (dark enough for stargazing)
+  if (altitudeDeg > 0) {
+    return 'day';
+  } else if (altitudeDeg > -6) {
+    // Civil twilight - determine if it's dusk or dawn
+    const times = SunCalc.getTimes(now, lat, lng);
+    const solarNoon = times.solarNoon.getTime();
+    return now.getTime() < solarNoon ? 'dawn' : 'dusk';
+  } else {
+    return 'night';
+  }
+}
 
 // Mapbox access token from environment
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -27,11 +58,13 @@ const DEFAULT_ZOOM = 3;
 // Placeholder image for locations without photos
 const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
 
+
 function ExploreMap({ initialViewport, onViewportChange }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]); // Store markers for click handler lookup
   const selectedIdRef = useRef(null); // Track selected ID for click handler
+  const userLocationRef = useRef(null); // For accessing location in event handlers
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
@@ -52,6 +85,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     selectedIdRef.current = selectedLocation?.id || null;
   }, [selectedLocation]);
+
+  // Keep userLocationRef in sync for event handlers
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
 
   // Handle card open animation
   useEffect(() => {
@@ -80,6 +118,25 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       style: 'mapbox://styles/mapbox/standard',
       center: center,
       zoom: zoom,
+    });
+
+    // Apply light preset immediately when style loads (before first render)
+    // This prevents the flash of day mode when it should be night
+    map.current.on('style.load', () => {
+      const loc = userLocationRef.current || userLocation;
+      const preset = loc
+        ? getLightPreset(loc.latitude, loc.longitude)
+        : 'night'; // Default to night for a stargazing app
+      map.current.setConfigProperty('basemap', 'lightPreset', preset);
+
+      // Enable 3D terrain
+      map.current.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14,
+      });
+      map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
     });
 
     // Set up map load handler
@@ -213,6 +270,24 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       });
     }
   }, [userLocation, mapLoaded, initialViewport]);
+
+  // Apply dynamic day/night lighting based on user's location
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !userLocation) return;
+
+    // Calculate and apply the initial light preset
+    const updateLighting = () => {
+      const preset = getLightPreset(userLocation.latitude, userLocation.longitude);
+      map.current.setConfigProperty('basemap', 'lightPreset', preset);
+    };
+
+    updateLighting();
+
+    // Update every 5 minutes to reflect time progression
+    const interval = setInterval(updateLighting, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [userLocation, mapLoaded]);
 
   // Handle close card with animation
   const handleCloseCard = () => {

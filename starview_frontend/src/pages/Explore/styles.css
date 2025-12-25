@@ -29,6 +29,20 @@
   position: relative;
 }
 
+/* Hidden states - keep mounted but invisible */
+.explore-page__list--hidden {
+  display: none;
+}
+
+.explore-page__map--hidden {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  /* Keep size so map doesn't need to resize when shown */
+  width: 100%;
+  height: calc(100lvh - var(--navbar-total-height));
+}
+
 .explore-page__map-placeholder {
   display: flex;
   flex-direction: column;
