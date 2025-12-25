@@ -186,7 +186,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       style: 'mapbox://styles/mapbox/standard',
       center: center,
       zoom: zoom,
+      attributionControl: false,
     });
+
+    // Add compact attribution control (required by Mapbox ToS)
+    map.current.addControl(new mapboxgl.AttributionControl({ compact: true }));
 
     // Apply light preset immediately when style loads (before first render)
     // This prevents the flash of day mode when it should be night
