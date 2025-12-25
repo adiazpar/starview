@@ -146,7 +146,7 @@ CONTENT_SECURITY_POLICY = {
 # Permissions Policy (formerly Feature-Policy) - Phase 4 Security Enhancement
 # Controls which browser features can be used
 PERMISSIONS_POLICY = {
-    "geolocation": [],          # Disable geolocation API (not needed)
+    "geolocation": ["self"],    # Allow geolocation for distance/map features
     "camera": [],               # Disable camera access
     "microphone": [],           # Disable microphone access
     "payment": [],              # Disable payment APIs
