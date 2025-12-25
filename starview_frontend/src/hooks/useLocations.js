@@ -70,6 +70,7 @@ export function useLocation(id) {
 
 /**
  * Toggle favorite status for a location
+ * Uses server response to directly update both caches for instant sync.
  * @returns {Object} Mutation object with mutate function
  */
 export function useToggleFavorite() {
@@ -78,33 +79,28 @@ export function useToggleFavorite() {
   return useMutation({
     mutationFn: async (locationId) => {
       const response = await locationsApi.toggleFavorite(locationId);
-      return { locationId, ...response.data };
+      return { locationId, is_favorited: response.data.is_favorited };
     },
     onSuccess: ({ locationId, is_favorited }) => {
-      // Update cached locations data directly instead of refetching
-      // Works with infinite query structure (pages array)
+      // Update locations cache (infinite query with pages)
       queryClient.setQueriesData({ queryKey: ['locations'] }, (oldData) => {
         if (!oldData?.pages) return oldData;
         return {
           ...oldData,
           pages: oldData.pages.map((page) => ({
             ...page,
-            results: page.results.map((location) =>
-              location.id === locationId
-                ? { ...location, is_favorited }
-                : location
+            results: page.results.map((loc) =>
+              loc.id === locationId ? { ...loc, is_favorited } : loc
             ),
           })),
         };
       });
 
-      // Also update map markers cache
+      // Update mapMarkers cache (flat array)
       queryClient.setQueryData(['mapMarkers'], (oldData) => {
         if (!oldData) return oldData;
         return oldData.map((marker) =>
-          marker.id === locationId
-            ? { ...marker, is_favorited }
-            : marker
+          marker.id === locationId ? { ...marker, is_favorited } : marker
         );
       });
     },

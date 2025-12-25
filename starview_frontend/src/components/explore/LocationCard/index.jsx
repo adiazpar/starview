@@ -3,7 +3,7 @@
  * Mobile-first card design inspired by AllTrails.
  */
 
-import { useState, memo, useMemo, useCallback } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
@@ -15,7 +15,9 @@ const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d1202
 function LocationCard({ location, userLocation, onPress, style }) {
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleFavorite();
-  const [isSaved, setIsSaved] = useState(location.is_favorited || false);
+
+  // Derive favorite status directly from location prop (cache updates are instant)
+  const isSaved = location.is_favorited || false;
 
   // Memoize region subtitle to avoid recalculating on every render
   const region = useMemo(() => {
@@ -40,20 +42,14 @@ function LocationCard({ location, userLocation, onPress, style }) {
     );
   }, [userLocation, location.latitude, location.longitude]);
 
-  // Memoize handleSave with useCallback and use functional state updates
+  // Handle favorite toggle - cache updates are instant via mutation
   const handleSave = useCallback((e) => {
     e.stopPropagation();
     if (!isAuthenticated) {
       console.log('Please log in to save locations');
       return;
     }
-    setIsSaved(prev => {
-      const newValue = !prev;
-      toggleFavorite.mutate(location.id, {
-        onError: () => setIsSaved(!newValue),
-      });
-      return newValue;
-    });
+    toggleFavorite.mutate(location.id);
   }, [isAuthenticated, location.id, toggleFavorite]);
 
   // Memoize style object for animation delay

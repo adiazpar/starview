@@ -69,12 +69,21 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
-  const [isSaved, setIsSaved] = useState(false);
 
   const { markers, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleFavorite();
+
+  // Update selectedLocation when markers change (keeps card in sync with cache)
+  useEffect(() => {
+    if (selectedLocation && markers.length > 0) {
+      const updatedMarker = markers.find((m) => m.id === selectedLocation.id);
+      if (updatedMarker && updatedMarker.is_favorited !== selectedLocation.is_favorited) {
+        setSelectedLocation(updatedMarker);
+      }
+    }
+  }, [markers, selectedLocation]);
 
   // Keep markersRef in sync with markers data
   useEffect(() => {
@@ -99,6 +108,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       properties: {
         id: location.id,
         name: location.name,
+        is_favorited: location.is_favorited || false,
       },
       geometry: {
         type: 'Point',
@@ -138,23 +148,16 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [selectedLocation]);
 
+  // Handle favorite toggle - cache updates are instant via mutation
   const handleToggleFavorite = useCallback((e) => {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      console.log('Please log in to save locations');
       return;
     }
 
-    // Optimistic update
-    setIsSaved(!isSaved);
-
-    toggleFavorite.mutate(selectedLocation.id, {
-      onError: () => {
-        setIsSaved(isSaved);
-      },
-    });
-  }, [isAuthenticated, selectedLocation?.id, toggleFavorite, isSaved]);
+    toggleFavorite.mutate(selectedLocation.id);
+  }, [isAuthenticated, selectedLocation?.id, toggleFavorite]);
 
   // Handle card open animation
   useEffect(() => {
@@ -261,9 +264,17 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         source: 'locations',
         paint: {
           'circle-radius': 12,
-          'circle-color': '#3b82f6', // accent color
+          // Pink for favorited, blue for regular
+          'circle-color': [
+            'case',
+            ['get', 'is_favorited'],
+            '#ec4899', // pink-500 for favorites
+            '#3b82f6', // blue-500 for regular
+          ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
+          // Emit light so markers stay bright in night mode
+          'circle-emissive-strength': 1,
         },
       });
 
@@ -287,13 +298,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
             setIsCardVisible(false);
             setTimeout(() => {
               setSelectedLocation(location);
-              setIsSaved(location.is_favorited || false);
               setIsSwitching(false);
             }, 150);
           } else {
             // Instant open for first marker click
             setSelectedLocation(location);
-            setIsSaved(location.is_favorited || false);
           }
         }
       });
@@ -386,11 +395,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
             {/* Favorite Button */}
             <button
-              className={`explore-map__card-favorite ${isSaved ? 'explore-map__card-favorite--active' : ''}`}
+              className={`explore-map__card-favorite ${selectedLocation.is_favorited ? 'explore-map__card-favorite--active' : ''}`}
               onClick={handleToggleFavorite}
-              aria-label={isSaved ? 'Remove from saved' : 'Save location'}
+              aria-label={selectedLocation.is_favorited ? 'Remove from saved' : 'Save location'}
             >
-              <i className={`fa-${isSaved ? 'solid' : 'regular'} fa-heart`}></i>
+              <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
             </button>
           </div>
 
