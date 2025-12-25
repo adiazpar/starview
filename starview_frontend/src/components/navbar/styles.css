@@ -346,6 +346,110 @@
   }
 }
 
+/* Filter Chips Row - uses grid animation for dynamic height */
+.navbar__filters {
+  display: grid;
+  grid-template-rows: 0fr;
+  border-bottom: 1px solid transparent;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease;
+}
+
+.navbar__filters--visible {
+  grid-template-rows: 1fr;
+  border-bottom-color: var(--glass-border);
+}
+
+.navbar__filters-scroll {
+  min-height: 0; /* Required for grid animation */
+  display: flex;
+  gap: var(--space-sm);
+  overflow: hidden; /* Hidden by default */
+}
+
+/* Only show padding and scrollbar when filters are visible */
+.navbar__filters--visible .navbar__filters-scroll {
+  padding: var(--space-xs) var(--space-lg);
+  padding-bottom: calc(var(--space-xs) + 4px); /* Extra space for scrollbar */
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-thumb {
+  background: var(--glass-border-hover);
+  border-radius: 4px;
+}
+
+.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.navbar__filter-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Staggered animation for chips */
+.navbar__filters--visible .navbar__filter-chip {
+  animation: filterChipIn 0.3s ease forwards;
+  animation-delay: calc(0.05s * var(--chip-index) + 0.1s);
+}
+
+@keyframes filterChipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navbar__filter-chip:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.navbar__filter-chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.navbar__filter-chip--active:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: white;
+}
+
+.navbar__filter-chip i {
+  font-size: var(--text-xs);
+}
+
 /* Light Theme Adjustments
  * Most styles now handled by CSS variables in global.css:
  * --navbar-bg, --glass-bg-hover, --glass-border

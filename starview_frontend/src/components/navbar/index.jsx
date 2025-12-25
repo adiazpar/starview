@@ -4,10 +4,18 @@
  */
 
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
 import './styles.css';
+
+const FILTERS = [
+  { id: 'all', label: 'All', icon: 'fa-solid fa-sliders' },
+  { id: 'bortle', label: 'Bortle Class' },
+  { id: 'distance', label: 'Distance' },
+  { id: 'rating', label: 'Rating' },
+  { id: 'amenities', label: 'Amenities' },
+];
 
 function Navbar() {
   const { theme } = useTheme();
@@ -16,12 +24,34 @@ function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
   const [backdropClosing, setBackdropClosing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+  const navRef = useRef(null);
 
   // Detect if we're on the explore page for navbar transformation
   const isExplorePage = location.pathname === '/explore';
+
+  // Dynamically measure navbar height and set CSS variable globally
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const updateNavbarHeight = () => {
+      const height = nav.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--navbar-total-height', `${height}px`);
+    };
+
+    // Use ResizeObserver to watch for height changes (including filter row animation)
+    const resizeObserver = new ResizeObserver(updateNavbarHeight);
+    resizeObserver.observe(nav);
+
+    // Initial measurement
+    updateNavbarHeight();
+
+    return () => resizeObserver.disconnect();
+  }, [isExplorePage]);
 
   // Listen for system theme changes
   useEffect(() => {
@@ -54,7 +84,7 @@ function Navbar() {
   }, [mobileMenuOpen, backdropVisible]);
 
   return (
-    <nav className="navbar">
+    <nav ref={navRef} className="navbar">
       <div className="navbar__container">
         {/* Logo with crop animation for explore page */}
         <div className={`navbar__brand ${isExplorePage ? 'navbar__brand--explore' : ''}`}>
@@ -166,6 +196,23 @@ function Navbar() {
             onClick={closeMobileMenu}
           ></div>
         )}
+      </div>
+
+      {/* Filter Chips - appears on explore page */}
+      <div className={`navbar__filters ${isExplorePage ? 'navbar__filters--visible' : ''}`}>
+        <div className="navbar__filters-scroll">
+          {FILTERS.map((filter, index) => (
+            <button
+              key={filter.id}
+              className={`navbar__filter-chip ${activeFilter === filter.id ? 'navbar__filter-chip--active' : ''}`}
+              onClick={() => setActiveFilter(filter.id)}
+              style={{ '--chip-index': index }}
+            >
+              {filter.icon && <i className={filter.icon}></i>}
+              <span>{filter.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </nav>
   );

@@ -99,6 +99,7 @@
   /* Layout */
   --navbar-height: 72px;
   --navbar-height-mobile: 64px;
+  --navbar-filters-height: 58px;
   --container-max: 1000px;
 
   /* Typography */
@@ -259,14 +260,9 @@ h3 {
 /* ============================================ */
 
 .main-content {
-  padding-top: var(--navbar-height);
+  /* Uses dynamically measured navbar height set by JavaScript */
+  padding-top: var(--navbar-total-height);
   min-height: 100lvh;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    padding-top: var(--navbar-height-mobile);
-  }
 }
 
 .page-container {

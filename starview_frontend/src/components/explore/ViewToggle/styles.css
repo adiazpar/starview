@@ -1,0 +1,41 @@
+/* ViewToggle Styles
+ * Floating button at bottom center.
+ * Uses primary button styling with glow effect.
+ */
+
+.view-toggle {
+  position: fixed;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  font-family: inherit;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-accent);
+  z-index: calc(var(--z-navbar) - 2);
+}
+
+.view-toggle:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-accent-hover);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.view-toggle:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.view-toggle i {
+  font-size: var(--text-base);
+}

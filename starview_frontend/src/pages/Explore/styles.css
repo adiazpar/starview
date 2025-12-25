@@ -4,23 +4,70 @@
  */
 
 .explore-page {
-  min-height: calc(100lvh - var(--navbar-height));
-  padding-top: var(--navbar-height);
+  min-height: 100lvh;
+  /* No padding-top needed - .main-content in global.css handles navbar spacing */
+  padding-bottom: calc(var(--space-xl) * 3); /* Space for floating button */
 }
 
-.explore-page__content {
+/* Location List */
+.explore-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
   padding: var(--space-lg);
 }
 
-.explore-page__placeholder {
+/* Map View Placeholder */
+.explore-page__map {
+  height: calc(100lvh - var(--navbar-height) - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.explore-page__map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
   color: var(--text-muted);
-  text-align: center;
-  padding: var(--space-xl);
+}
+
+.explore-page__map-placeholder i {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.explore-page__map-placeholder p {
+  font-size: var(--text-base);
 }
 
 @media (max-width: 768px) {
-  .explore-page {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-    padding-top: var(--navbar-height-mobile);
+  .explore-page__list {
+    padding: var(--space-lg);
+    gap: var(--space-md);
+  }
+
+  .explore-page__map {
+    height: calc(100lvh - var(--navbar-height-mobile) - 52px);
+  }
+}
+
+/* Desktop: 2-column grid */
+@media (min-width: 768px) {
+  .explore-page__list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    gap: var(--space-lg);
+  }
+}
+
+/* Large screens: 3-column grid */
+@media (min-width: 1200px) {
+  .explore-page__list {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
