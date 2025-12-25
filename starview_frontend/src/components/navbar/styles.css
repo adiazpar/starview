@@ -471,17 +471,12 @@
 
 .navbar__filters-btn:hover {
   background: var(--glass-bg-hover);
-  border-color: var(--accent);
+  border-color: var(--glass-border-hover);
 }
 
 .navbar__filters-btn i {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  transition: color 0.2s ease;
-}
-
-.navbar__filters-btn:hover i {
-  color: var(--accent);
 }
 
 /* Light Theme Adjustments

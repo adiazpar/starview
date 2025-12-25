@@ -358,14 +358,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   return (
     <div className="explore-map">
-      <div ref={mapContainer} className="explore-map__container" />
-
-      {isLoading && (
-        <div className="explore-map__loading">
-          <i className="fa-solid fa-spinner fa-spin"></i>
-          <span>Loading locations...</span>
-        </div>
-      )}
+      <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
       {/* Bottom Card - Airbnb Style */}
       {selectedLocation && (

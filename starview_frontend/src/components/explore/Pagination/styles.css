@@ -27,7 +27,7 @@
   padding: 0 var(--space-sm);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) * 1.5);
   color: var(--text-secondary);
   font-family: inherit;
   font-size: var(--text-sm);
@@ -36,10 +36,9 @@
   transition: all 0.2s ease;
 }
 
-.pagination__btn:hover:not(:disabled) {
+.pagination__btn:hover:not(:disabled):not(.pagination__btn--active) {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
-  color: var(--text-primary);
 }
 
 .pagination__btn:disabled {
@@ -51,12 +50,14 @@
   background: var(--accent);
   border-color: var(--accent);
   color: white;
+  box-shadow: var(--shadow-accent);
 }
 
 .pagination__btn--active:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   color: white;
+  box-shadow: var(--shadow-accent-hover);
 }
 
 .pagination__btn--nav {
@@ -65,8 +66,8 @@
 }
 
 .pagination__btn--nav:hover:not(:disabled) {
-  background: var(--glass-bg);
-  border-color: var(--glass-border);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
 }
 
 .pagination__btn--nav i {
