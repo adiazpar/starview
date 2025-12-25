@@ -8,7 +8,7 @@
  * - All card data comes from map_markers endpoint (no extra API calls)
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import SunCalc from 'suncalc';
@@ -90,6 +90,71 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     userLocationRef.current = userLocation;
   }, [userLocation]);
+
+  // Memoize GeoJSON generation to prevent recreating objects on every render
+  const geojson = useMemo(() => ({
+    type: 'FeatureCollection',
+    features: markers.map((location) => ({
+      type: 'Feature',
+      properties: {
+        id: location.id,
+        name: location.name,
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [location.longitude, location.latitude],
+      },
+    })),
+  }), [markers]);
+
+  // Memoize helper functions to prevent recreating on every render
+  const getLocationSubtitle = useCallback((location) => {
+    const parts = [];
+    if (location.administrative_area) parts.push(location.administrative_area);
+    if (location.country) parts.push(location.country);
+    return parts.join(', ');
+  }, []);
+
+  const getDistance = useCallback((location) => {
+    if (!userLocation) return null;
+    return calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      location.latitude,
+      location.longitude
+    );
+  }, [userLocation]);
+
+  // Memoize event handlers to prevent recreating on every render
+  const handleCloseCard = useCallback(() => {
+    setIsCardVisible(false);
+    setTimeout(() => setSelectedLocation(null), 300);
+  }, []);
+
+  const handleViewLocation = useCallback(() => {
+    if (selectedLocation) {
+      console.log('Navigate to location:', selectedLocation.name);
+      // TODO: Navigate to location detail page
+    }
+  }, [selectedLocation]);
+
+  const handleToggleFavorite = useCallback((e) => {
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      console.log('Please log in to save locations');
+      return;
+    }
+
+    // Optimistic update
+    setIsSaved(!isSaved);
+
+    toggleFavorite.mutate(selectedLocation.id, {
+      onError: () => {
+        setIsSaved(isSaved);
+      },
+    });
+  }, [isAuthenticated, selectedLocation?.id, toggleFavorite, isSaved]);
 
   // Handle card open animation
   useEffect(() => {
@@ -178,25 +243,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     if (!map.current || !mapLoaded || isLoading || markers.length === 0) return;
 
-    // Convert markers to GeoJSON
-    const geojson = {
-      type: 'FeatureCollection',
-      features: markers.map((location) => ({
-        type: 'Feature',
-        properties: {
-          id: location.id,
-          name: location.name,
-        },
-        geometry: {
-          type: 'Point',
-          coordinates: [location.longitude, location.latitude],
-        },
-      })),
-    };
-
     // Check if source already exists
     if (map.current.getSource('locations')) {
-      // Update existing source
+      // Update existing source with memoized geojson
       map.current.getSource('locations').setData(geojson);
     } else {
       // Add new source and layer
@@ -258,7 +307,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         map.current.getCanvas().style.cursor = '';
       });
     }
-  }, [markers, mapLoaded, isLoading]);
+  }, [geojson, mapLoaded, isLoading]);
 
   // Fly to user location when it becomes available (only if no saved viewport)
   useEffect(() => {
@@ -288,58 +337,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     return () => clearInterval(interval);
   }, [userLocation, mapLoaded]);
-
-  // Handle close card with animation
-  const handleCloseCard = () => {
-    setIsCardVisible(false);
-    setTimeout(() => setSelectedLocation(null), 300);
-  };
-
-  // Handle click on location card
-  const handleViewLocation = () => {
-    if (selectedLocation) {
-      console.log('Navigate to location:', selectedLocation.name);
-      // TODO: Navigate to location detail page
-    }
-  };
-
-  // Handle favorite toggle
-  const handleToggleFavorite = (e) => {
-    e.stopPropagation();
-
-    if (!isAuthenticated) {
-      console.log('Please log in to save locations');
-      return;
-    }
-
-    // Optimistic update
-    setIsSaved(!isSaved);
-
-    toggleFavorite.mutate(selectedLocation.id, {
-      onError: () => {
-        setIsSaved(isSaved);
-      },
-    });
-  };
-
-  // Build location subtitle
-  const getLocationSubtitle = (location) => {
-    const parts = [];
-    if (location.administrative_area) parts.push(location.administrative_area);
-    if (location.country) parts.push(location.country);
-    return parts.join(', ');
-  };
-
-  // Calculate distance for selected location
-  const getDistance = (location) => {
-    if (!userLocation) return null;
-    return calculateDistance(
-      userLocation.latitude,
-      userLocation.longitude,
-      location.latitude,
-      location.longitude
-    );
-  };
 
   if (isError) {
     return (

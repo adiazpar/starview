@@ -15,6 +15,12 @@ import { useEffect, useRef } from 'react';
  */
 export function useIntersectionObserver(callback, options = {}) {
   const targetRef = useRef(null);
+  const callbackRef = useRef(callback);
+
+  // Keep callback ref up to date without triggering effect
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   useEffect(() => {
     const target = targetRef.current;
@@ -24,16 +30,11 @@ export function useIntersectionObserver(callback, options = {}) {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            callback();
+            callbackRef.current(); // Use ref instead of closure
           }
         });
       },
-      {
-        root: null, // viewport
-        rootMargin: '100px', // trigger 100px before element is visible
-        threshold: 0,
-        ...options,
-      }
+      { root: null, rootMargin: '100px', threshold: 0, ...options }
     );
 
     observer.observe(target);
@@ -41,7 +42,7 @@ export function useIntersectionObserver(callback, options = {}) {
     return () => {
       observer.unobserve(target);
     };
-  }, [callback, options]);
+  }, []); // Empty deps - observer created once
 
   return targetRef;
 }

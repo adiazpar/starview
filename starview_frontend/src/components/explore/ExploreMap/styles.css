@@ -67,7 +67,7 @@
   right: var(--space-md);
   background: var(--bg-base);
   border-radius: calc(var(--radius) * 2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   cursor: pointer;
   z-index: calc(var(--z-navbar) - 1); /* Above toggle button (28), below navbar (30) */
@@ -123,8 +123,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5); /* Fallback solid background */
   border: none;
   border-radius: var(--radius-full);
   color: white;
@@ -142,8 +141,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5); /* Fallback solid background */
   border: none;
   border-radius: var(--radius-full);
   color: white;
@@ -153,6 +151,7 @@
 
 .explore-map__card-favorite:hover,
 .explore-map__card-close:hover {
+  backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.6);
   transform: scale(1.05);
 }

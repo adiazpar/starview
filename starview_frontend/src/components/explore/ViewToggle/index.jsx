@@ -3,6 +3,7 @@
  * Positioned at bottom center like AllTrails.
  */
 
+import { memo } from 'react';
 import './styles.css';
 
 function ViewToggle({ view, onToggle }) {
@@ -20,4 +21,4 @@ function ViewToggle({ view, onToggle }) {
   );
 }
 
-export default ViewToggle;
+export default memo(ViewToggle);

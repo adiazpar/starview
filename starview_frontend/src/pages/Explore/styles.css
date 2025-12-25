@@ -6,6 +6,8 @@
 .explore-page {
   /* No padding-top needed - .main-content in global.css handles navbar spacing */
   padding-bottom: calc(var(--space-xl) * 3); /* Space for floating button */
+  /* Positioning context for hidden map */
+  position: relative;
 }
 
 .explore-page--map {
@@ -36,6 +38,8 @@
 
 .explore-page__map--hidden {
   position: absolute;
+  top: 0;
+  left: 0;
   visibility: hidden;
   pointer-events: none;
   /* Keep size so map doesn't need to resize when shown */

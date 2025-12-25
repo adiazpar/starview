@@ -3,7 +3,7 @@
  * Mobile-first card design inspired by AllTrails.
  */
 
-import { useState } from 'react';
+import { useState, memo, useMemo, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
@@ -17,52 +17,50 @@ function LocationCard({ location, userLocation, onPress, style }) {
   const toggleFavorite = useToggleFavorite();
   const [isSaved, setIsSaved] = useState(location.is_favorited || false);
 
-  // Build location subtitle: "State/Region, Country"
-  const getLocationSubtitle = () => {
+  // Memoize region subtitle to avoid recalculating on every render
+  const region = useMemo(() => {
     const parts = [];
     if (location.administrative_area) parts.push(location.administrative_area);
     if (location.country) parts.push(location.country);
     return parts.join(', ');
-  };
-  const region = getLocationSubtitle();
+  }, [location.administrative_area, location.country]);
 
   // Parse rating (API returns string like "4.50")
   const rating = parseFloat(location.average_rating) || 0;
   const reviewCount = location.review_count || 0;
 
-  // Calculate distance from user if location is available
-  const distance = userLocation
-    ? calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        location.latitude,
-        location.longitude
-      )
-    : null;
+  // Memoize distance calculation to avoid expensive recalculations
+  const distance = useMemo(() => {
+    if (!userLocation) return null;
+    return calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      location.latitude,
+      location.longitude
+    );
+  }, [userLocation, location.latitude, location.longitude]);
 
-  const handleSave = (e) => {
+  // Memoize handleSave with useCallback and use functional state updates
+  const handleSave = useCallback((e) => {
     e.stopPropagation();
-
     if (!isAuthenticated) {
-      // Could redirect to login or show a toast
       console.log('Please log in to save locations');
       return;
     }
-
-    // Optimistic update
-    setIsSaved(!isSaved);
-
-    // Call API
-    toggleFavorite.mutate(location.id, {
-      onError: () => {
-        // Revert on error
-        setIsSaved(isSaved);
-      },
+    setIsSaved(prev => {
+      const newValue = !prev;
+      toggleFavorite.mutate(location.id, {
+        onError: () => setIsSaved(!newValue),
+      });
+      return newValue;
     });
-  };
+  }, [isAuthenticated, location.id, toggleFavorite]);
+
+  // Memoize style object for animation delay
+  const cardStyle = useMemo(() => style, [style]);
 
   return (
-    <article className="location-card glass-card glass-card--interactive" onClick={() => onPress?.(location)} style={style}>
+    <article className="location-card glass-card glass-card--interactive" onClick={() => onPress?.(location)} style={cardStyle}>
       {/* Hero Image */}
       <div className="location-card__image-container">
         <img
@@ -130,4 +128,4 @@ function LocationCard({ location, userLocation, onPress, style }) {
   );
 }
 
-export default LocationCard;
+export default memo(LocationCard);

@@ -3,14 +3,16 @@
  * Mobile-first design inspired by AllTrails UX patterns.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { useLocations } from '../../hooks/useLocations';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import LocationCard from '../../components/explore/LocationCard';
 import ViewToggle from '../../components/explore/ViewToggle';
-import ExploreMap from '../../components/explore/ExploreMap';
 import './styles.css';
+
+// Lazy load ExploreMap - defers loading Mapbox GL JS (~500KB) until needed
+const ExploreMap = lazy(() => import('../../components/explore/ExploreMap'));
 
 function ExplorePage() {
   const [view, setView] = useState('list');
@@ -35,14 +37,14 @@ function ExplorePage() {
 
   const loadMoreRef = useIntersectionObserver(handleLoadMore);
 
-  const handleToggleView = () => {
-    setView(view === 'list' ? 'map' : 'list');
-  };
+  const handleToggleView = useCallback(() => {
+    setView(prev => prev === 'list' ? 'map' : 'list');
+  }, []);
 
-  const handlePressLocation = (location) => {
+  const handlePressLocation = useCallback((location) => {
     console.log('Navigate to location:', location.name);
     // TODO: Navigate to location detail page
-  };
+  }, []);
 
   // Save map viewport when it changes
   const handleMapViewportChange = useCallback((viewport) => {
@@ -97,12 +99,19 @@ function ExplorePage() {
         )}
       </div>
 
-      {/* Map View - always mounted to preserve state, hidden when list is active */}
+      {/* Map View - lazy loaded to defer Mapbox bundle, hidden when list is active */}
       <div className={`explore-page__map ${view !== 'map' ? 'explore-page__map--hidden' : ''}`}>
-        <ExploreMap
-          initialViewport={mapViewport.current}
-          onViewportChange={handleMapViewportChange}
-        />
+        <Suspense fallback={
+          <div className="explore-page__loading">
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading map...</p>
+          </div>
+        }>
+          <ExploreMap
+            initialViewport={mapViewport.current}
+            onViewportChange={handleMapViewportChange}
+          />
+        </Suspense>
       </div>
 
       <ViewToggle view={view} onToggle={handleToggleView} />
