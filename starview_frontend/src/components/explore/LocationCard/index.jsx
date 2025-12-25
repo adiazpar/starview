@@ -1,44 +1,72 @@
 /* LocationCard Component
- * Displays a stargazing location with image, bortle score, rating, and distance.
+ * Displays a stargazing location with rating and region info.
  * Mobile-first card design inspired by AllTrails.
  */
 
 import { useState } from 'react';
+import { useAuth } from '../../../context/AuthContext';
+import { useToggleFavorite } from '../../../hooks/useLocations';
+import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
 import './styles.css';
 
-// Convert Bortle class (1-9) to score out of 10
-// Lower Bortle = darker skies = higher score
-function bortleToScore(bortle) {
-  return Math.round((10 - bortle) * 10 / 9 * 10) / 10;
-}
+// Placeholder image for locations without photos
+const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
 
-// Get color class based on Bortle score
-function getBortleColorClass(score) {
-  if (score >= 8) return 'bortle--excellent';  // Dark green
-  if (score >= 6) return 'bortle--good';       // Green
-  if (score >= 4) return 'bortle--moderate';   // Yellow
-  if (score >= 2) return 'bortle--poor';       // Orange
-  return 'bortle--bad';                         // Red
-}
+function LocationCard({ location, userLocation, onPress, style }) {
+  const { isAuthenticated } = useAuth();
+  const toggleFavorite = useToggleFavorite();
+  const [isSaved, setIsSaved] = useState(location.is_favorited || false);
 
-function LocationCard({ location, onSave, onPress }) {
-  const [isSaved, setIsSaved] = useState(location.isSaved || false);
+  // Build location subtitle: "State/Region, Country"
+  const getLocationSubtitle = () => {
+    const parts = [];
+    if (location.administrative_area) parts.push(location.administrative_area);
+    if (location.country) parts.push(location.country);
+    return parts.join(', ');
+  };
+  const region = getLocationSubtitle();
 
-  const bortleScore = bortleToScore(location.bortleClass);
-  const bortleColor = getBortleColorClass(bortleScore);
+  // Parse rating (API returns string like "4.50")
+  const rating = parseFloat(location.average_rating) || 0;
+  const reviewCount = location.review_count || 0;
+
+  // Calculate distance from user if location is available
+  const distance = userLocation
+    ? calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        location.latitude,
+        location.longitude
+      )
+    : null;
 
   const handleSave = (e) => {
     e.stopPropagation();
+
+    if (!isAuthenticated) {
+      // Could redirect to login or show a toast
+      console.log('Please log in to save locations');
+      return;
+    }
+
+    // Optimistic update
     setIsSaved(!isSaved);
-    onSave?.(location.id, !isSaved);
+
+    // Call API
+    toggleFavorite.mutate(location.id, {
+      onError: () => {
+        // Revert on error
+        setIsSaved(isSaved);
+      },
+    });
   };
 
   return (
-    <article className="location-card glass-card glass-card--interactive" onClick={() => onPress?.(location)}>
+    <article className="location-card glass-card glass-card--interactive" onClick={() => onPress?.(location)} style={style}>
       {/* Hero Image */}
       <div className="location-card__image-container">
         <img
-          src={location.image}
+          src={location.image || PLACEHOLDER_IMAGE}
           alt={location.name}
           className="location-card__image"
           loading="lazy"
@@ -50,34 +78,52 @@ function LocationCard({ location, onSave, onPress }) {
         >
           <i className={`fa-${isSaved ? 'solid' : 'regular'} fa-heart`}></i>
         </button>
+
+        {/* Verified badge */}
+        {location.is_verified && (
+          <div className="location-card__verified" title="Verified Location">
+            <i className="fa-solid fa-circle-check"></i>
+          </div>
+        )}
       </div>
 
       {/* Card Content */}
       <div className="location-card__content">
         <div className="location-card__header">
           <h3 className="location-card__name">{location.name}</h3>
-          <span className="location-card__region">{location.region}</span>
+          {region && <span className="location-card__region">{region}</span>}
         </div>
 
         <div className="location-card__meta">
-          {/* Bortle Score */}
-          <div className={`location-card__bortle ${bortleColor}`}>
-            <i className="fa-solid fa-moon"></i>
-            <span>{bortleScore.toFixed(1)}/10</span>
-          </div>
-
           {/* Star Rating */}
-          <div className="location-card__rating">
-            <i className="fa-solid fa-star"></i>
-            <span>{location.rating.toFixed(1)}</span>
-            <span className="location-card__reviews">({location.reviewCount})</span>
-          </div>
+          {reviewCount > 0 ? (
+            <div className="location-card__rating">
+              <i className="fa-solid fa-star"></i>
+              <span>{rating.toFixed(1)}</span>
+              <span className="location-card__reviews">({reviewCount})</span>
+            </div>
+          ) : (
+            <div className="location-card__rating location-card__rating--empty">
+              <i className="fa-regular fa-star"></i>
+              <span>No reviews yet</span>
+            </div>
+          )}
 
-          {/* Distance */}
-          <div className="location-card__distance">
-            <i className="fa-solid fa-location-dot"></i>
-            <span>{location.distance}</span>
-          </div>
+          {/* Elevation */}
+          {location.elevation !== null && location.elevation !== undefined && (
+            <div className="location-card__elevation">
+              <i className="fa-solid fa-mountain"></i>
+              <span>{formatElevation(location.elevation)}</span>
+            </div>
+          )}
+
+          {/* Distance from user */}
+          {distance !== null && (
+            <div className="location-card__distance">
+              <i className="fa-solid fa-location-arrow"></i>
+              <span>{formatDistance(distance)} away</span>
+            </div>
+          )}
         </div>
       </div>
     </article>

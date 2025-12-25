@@ -108,6 +108,15 @@ export const locationsApi = {
   unmarkVisited: (locationId) => {
     return api.delete(`/locations/${locationId}/unmark-visited/`);
   },
+
+  /**
+   * Toggle favorite status for a location
+   * @param {number} locationId - Location ID
+   * @returns {Promise} - { is_favorited: boolean }
+   */
+  toggleFavorite: (locationId) => {
+    return api.post(`/locations/${locationId}/toggle_favorite/`);
+  },
 };
 
 export default locationsApi;

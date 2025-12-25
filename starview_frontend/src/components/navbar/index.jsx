@@ -12,7 +12,7 @@ import './styles.css';
 const FILTERS = [
   { id: 'all', label: 'All', icon: 'fa-solid fa-sliders' },
   { id: 'bortle', label: 'Bortle Class' },
-  { id: 'distance', label: 'Distance' },
+  { id: 'distance', label: 'Distance away' },
   { id: 'rating', label: 'Rating' },
   { id: 'amenities', label: 'Amenities' },
 ];
@@ -204,7 +204,7 @@ function Navbar() {
           {FILTERS.map((filter, index) => (
             <button
               key={filter.id}
-              className={`navbar__filter-chip ${activeFilter === filter.id ? 'navbar__filter-chip--active' : ''}`}
+              className="navbar__filter-chip"
               onClick={() => setActiveFilter(filter.id)}
               style={{ '--chip-index': index }}
             >

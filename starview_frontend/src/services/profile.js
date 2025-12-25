@@ -132,8 +132,17 @@ export const profileApi = {
   },
 
   /**
+   * Add a location to favorites
+   * @param {number} locationId - Location ID to favorite
+   * @returns {Promise} - Created favorite object
+   */
+  addFavorite: (locationId) => {
+    return api.post('/favorite-locations/', { location_id: locationId });
+  },
+
+  /**
    * Remove a favorite location
-   * @param {number} id - Favorite location ID
+   * @param {number} id - Favorite location ID (not location ID)
    * @returns {Promise} - { detail: string }
    */
   removeFavorite: (id) => {

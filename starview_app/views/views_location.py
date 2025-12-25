@@ -307,6 +307,50 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
+    # Toggle favorite status for a location.                                        #
+    #                                                                               #
+    # Creates a favorite if it doesn't exist, removes it if it does.                #
+    # Returns the new favorite status so frontend can update UI.                    #
+    # Invalidates user's cached location list so is_favorited updates on refresh.   #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def toggle_favorite(self, request, pk=None):
+        location = self.get_object()
+
+        # Try to get existing favorite
+        favorite = FavoriteLocation.objects.filter(
+            user=request.user,
+            location=location
+        ).first()
+
+        if favorite:
+            # Already favorited - remove it
+            favorite.delete()
+            is_favorited = False
+        else:
+            # Not favorited - create it
+            FavoriteLocation.objects.create(
+                user=request.user,
+                location=location
+            )
+            is_favorited = True
+
+        # Invalidate user's cached location lists (all pages)
+        for page in range(1, 100):  # Clear first 100 pages
+            cache_key = f'{location_list_key(page)}:user:{request.user.id}'
+            cache.delete(cache_key)
+
+        # Also invalidate the detail cache for this location
+        detail_cache_key = f'{location_detail_key(location.id)}:user:{request.user.id}'
+        cache.delete(detail_cache_key)
+
+        return Response(
+            {'is_favorited': is_favorited},
+            status=status.HTTP_201_CREATED if is_favorited else status.HTTP_200_OK
+        )
+
+
+    # ----------------------------------------------------------------------------- #
     # Get minimal location data optimized for map display.                          #
     #                                                                               #
     # Returns a lightweight JSON array containing only the essential fields         #
