@@ -198,7 +198,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const loc = userLocationRef.current || userLocation;
       const preset = loc
         ? getLightPreset(loc.latitude, loc.longitude)
-        : 'night'; // Default to night for a stargazing app
+        : 'day'; // Default to day if no geolocation
       map.current.setConfigProperty('basemap', 'lightPreset', preset);
 
       // Enable 3D terrain

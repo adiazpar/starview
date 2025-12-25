@@ -1,122 +1,139 @@
 /**
  * useUserLocation Hook
  *
- * Gets the user's current location using multiple strategies:
- * 1. Browser Geolocation API (most accurate, requires permission)
- * 2. IP-based geolocation fallback (city-level accuracy, no permission needed)
+ * Gets the user's location with a fallback chain:
+ * 1. Browser Geolocation API (requires explicit permission)
+ * 2. User's profile location (if authenticated and set in profile)
+ * 3. null (no location - distance features hidden, map defaults to day mode)
  *
- * Caches the location in localStorage to avoid repeated requests.
+ * Caches browser geolocation in localStorage to avoid repeated prompts.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const CACHE_KEY = 'starview_user_location';
 const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
 
 /**
- * Get location from IP address (fallback)
- * Uses ipapi.co - free HTTPS, 1000 requests/day, no API key required
- */
-async function getLocationFromIP() {
-  const response = await fetch('https://ipapi.co/json/');
-  const data = await response.json();
-
-  if (data.latitude && data.longitude) {
-    return {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      source: 'ip',
-    };
-  }
-  throw new Error('IP geolocation failed');
-}
-
-/**
- * Get user's current geolocation
+ * Get user's location with fallback chain
  * @returns {Object} { location, isLoading, error, source, refresh }
  */
 export function useUserLocation() {
   const [location, setLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [source, setSource] = useState(null); // 'browser' or 'ip'
+  const [source, setSource] = useState(null); // 'browser' | 'profile' | null
+  const { user, loading: authLoading } = useAuth();
 
-  // Try to get cached location first
-  useEffect(() => {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const { coords, timestamp, source: cachedSource } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          setLocation(coords);
-          setSource(cachedSource || 'browser');
-          setIsLoading(false);
-          return;
-        }
-      } catch {
-        localStorage.removeItem(CACHE_KEY);
-      }
-    }
-
-    // Request fresh location
-    requestLocation();
-  }, []);
-
-  const cacheLocation = (coords, locationSource) => {
+  const cacheLocation = useCallback((coords) => {
     localStorage.setItem(
       CACHE_KEY,
-      JSON.stringify({ coords, source: locationSource, timestamp: Date.now() })
+      JSON.stringify({ coords, timestamp: Date.now() })
     );
     setLocation(coords);
-    setSource(locationSource);
-  };
+    setSource('browser');
+  }, []);
 
-  const requestLocation = async () => {
+  // Check for profile location as fallback
+  const checkProfileLocation = useCallback(() => {
+    if (user?.location_latitude && user?.location_longitude) {
+      setLocation({
+        latitude: user.location_latitude,
+        longitude: user.location_longitude,
+      });
+      setSource('profile');
+      return true;
+    }
+    return false;
+  }, [user]);
+
+  const requestBrowserLocation = useCallback(async () => {
+    if (!navigator.geolocation) {
+      return false;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: CACHE_DURATION,
+        });
+      });
+
+      const coords = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+
+      cacheLocation(coords);
+      return true;
+    } catch (geoError) {
+      // User denied permission or geolocation failed
+      setError(geoError.message);
+      return false;
+    }
+  }, [cacheLocation]);
+
+  // Main location resolution effect
+  useEffect(() => {
+    // Wait for auth to finish loading before checking profile fallback
+    if (authLoading) return;
+
+    const resolveLocation = async () => {
+      setIsLoading(true);
+
+      // Check cache first
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const { coords, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setLocation(coords);
+            setSource('browser');
+            setIsLoading(false);
+            return;
+          }
+        } catch {
+          localStorage.removeItem(CACHE_KEY);
+        }
+      }
+
+      // Try browser geolocation
+      const gotBrowserLocation = await requestBrowserLocation();
+      if (gotBrowserLocation) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Fallback to profile location
+      checkProfileLocation();
+      setIsLoading(false);
+    };
+
+    resolveLocation();
+  }, [authLoading, requestBrowserLocation, checkProfileLocation]);
+
+  // Refresh function - tries browser first, then profile
+  const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
-    // Try browser geolocation first
-    if (navigator.geolocation) {
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 5000, // Shorter timeout, fall back faster
-            maximumAge: CACHE_DURATION,
-          });
-        });
-
-        const coords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-
-        cacheLocation(coords, 'browser');
-        setIsLoading(false);
-        return;
-      } catch (geoError) {
-        // Browser geolocation failed, try IP fallback
-        console.log('Browser geolocation unavailable, trying IP fallback');
-      }
+    const gotBrowserLocation = await requestBrowserLocation();
+    if (!gotBrowserLocation) {
+      checkProfileLocation();
     }
 
-    // Fallback to IP geolocation
-    try {
-      const coords = await getLocationFromIP();
-      cacheLocation(coords, 'ip');
-      setIsLoading(false);
-    } catch (ipError) {
-      setError('Could not determine location');
-      setIsLoading(false);
-    }
-  };
+    setIsLoading(false);
+  }, [requestBrowserLocation, checkProfileLocation]);
 
   return {
     location,
     isLoading,
     error,
-    source, // 'browser' or 'ip' - useful for showing accuracy indicator
-    refresh: requestLocation,
+    source, // 'browser' | 'profile' | null - indicates where location came from
+    refresh,
   };
 }
 
