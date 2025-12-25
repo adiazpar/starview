@@ -3,7 +3,7 @@
  * Features transparent background with subtle blur and accent CTA.
  */
 
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
@@ -12,12 +12,16 @@ import './styles.css';
 function Navbar() {
   const { theme } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
   const [backdropClosing, setBackdropClosing] = useState(false);
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+
+  // Detect if we're on the explore page for navbar transformation
+  const isExplorePage = location.pathname === '/explore';
 
   // Listen for system theme changes
   useEffect(() => {
@@ -52,14 +56,30 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar__container">
-        {/* Logo */}
-        <Link to="/" className="navbar__logo">
-          <img
-            src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
-            alt="Starview"
-            className="navbar__logo-img"
-          />
-        </Link>
+        {/* Logo with crop animation for explore page */}
+        <div className={`navbar__brand ${isExplorePage ? 'navbar__brand--explore' : ''}`}>
+          <Link to="/" className="navbar__logo">
+            {/* Logo container - crops from right to left on explore */}
+            <div className="navbar__logo-crop">
+              <img
+                src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
+                alt="Starview"
+                className="navbar__logo-img"
+              />
+            </div>
+          </Link>
+
+          {/* Search bar - appears on explore page */}
+          <div className="navbar__search">
+            <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+            <input
+              type="text"
+              className="navbar__search-input"
+              placeholder="Search stargazing locations..."
+              aria-label="Search locations"
+            />
+          </div>
+        </div>
 
         {/* Desktop Navigation */}
         <div className="navbar__nav">

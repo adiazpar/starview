@@ -42,6 +42,8 @@ VALID_REACT_ROUTES = [
     r'^password-reset-confirm/[^/]+/[^/]+/?$',      # Password reset confirm: /password-reset-confirm/:uidb64/:token
     r'^profile/?$',                                 # Profile: /profile
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
+    r'^explore/?$',                                 # Explore: /explore
+    r'^map/?$',                                     # Map: /map
 ]
 
 

@@ -25,16 +25,102 @@
   height: var(--navbar-height);
 }
 
+/* Brand Container - holds logo and search bar */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+  max-width: 600px;
+}
+
 /* Logo */
 .navbar__logo {
   display: flex;
   align-items: center;
   text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* Logo crop container - animates width to reveal/hide text */
+.navbar__logo-crop {
+  overflow: hidden;
+  height: 36px;
+  /* Full logo aspect ratio is ~4:1 (2000x500), so width = height * 4 */
+  width: 144px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar__logo-img {
   height: 36px;
   width: auto;
+  /* Prevent image from shrinking with container */
+  min-width: 144px;
+}
+
+/* Explore page: crop to show only the icon */
+/* Slightly wider than square to avoid cutting into the black hole */
+.navbar__brand--explore .navbar__logo-crop {
+  width: 40px;
+}
+
+/* Search Bar */
+.navbar__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-sm) var(--space-md);
+  flex: 1;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease 0.1s,
+              padding 0.3s ease,
+              border-color 0.2s ease;
+}
+
+.navbar__search:focus-within {
+  border-color: var(--accent);
+  background: var(--glass-bg-hover);
+}
+
+/* Search bar visible on explore page */
+.navbar__brand--explore .navbar__search {
+  max-width: 400px;
+  opacity: 1;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.navbar__search-icon {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.navbar__search:focus-within .navbar__search-icon {
+  color: var(--accent);
+}
+
+.navbar__search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  /* Match .form-input styles from global.css */
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.navbar__search-input::placeholder {
+  color: var(--text-muted);
 }
 
 /* Desktop Navigation */
@@ -234,8 +320,29 @@
     height: var(--navbar-height-mobile);
   }
 
+  .navbar__logo-crop {
+    height: 32px;
+    width: 128px;
+  }
+
   .navbar__logo-img {
     height: 32px;
+    min-width: 128px;
+  }
+
+  .navbar__brand--explore .navbar__logo-crop {
+    width: 38px;
+  }
+
+  /* Mobile: search bar takes more space */
+  .navbar__brand {
+    max-width: none;
+    flex: 1;
+    margin-right: var(--space-md);
+  }
+
+  .navbar__brand--explore .navbar__search {
+    max-width: 100%;
   }
 }
 
