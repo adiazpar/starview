@@ -13,6 +13,10 @@
   height: 100%;
   /* Transparent to show starfield behind */
   background: transparent;
+  /* Glass-style border following design system */
+  border: 1px solid var(--glass-border);
+  border-radius: calc(var(--radius) * 2);
+  overflow: hidden;
   /* Start invisible, fade in when loaded */
   opacity: 0;
   transition: opacity 0.4s ease-out;
