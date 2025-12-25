@@ -8,8 +8,14 @@
   padding-bottom: calc(var(--space-xl) * 3); /* Space for floating button */
   /* Positioning context for hidden map */
   position: relative;
-  /* Prevent hidden map from causing horizontal scroll */
-  overflow-x: hidden;
+}
+
+/* Prevent hidden map from causing horizontal scroll (mobile/tablet only) */
+/* Note: overflow-x breaks sticky positioning, so only apply on non-desktop */
+@media (max-width: 1023px) {
+  .explore-page {
+    overflow-x: hidden;
+  }
 }
 
 .explore-page--map {

@@ -285,14 +285,26 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         const id = feature.properties.id;
         const coordinates = feature.geometry.coordinates;
 
-        // Calculate bottom padding based on card height (~45% of viewport on mobile)
-        // This centers the marker in the visible space above the card
+        // Calculate offset to center marker in visible area above the card
+        // Card takes ~45% of viewport, so we offset the center point upward
         const cardHeight = Math.min(window.innerHeight * 0.45, 400);
 
-        // Always fly to marker (even if same marker clicked again)
+        // Project marker coordinates to pixel position
+        const markerPixel = map.current.project(coordinates);
+
+        // Calculate where we want the marker: center of area above card
+        // Offset = half the card height (shifts center point down so marker appears higher)
+        const offsetPixel = {
+          x: markerPixel.x,
+          y: markerPixel.y + (cardHeight / 2),
+        };
+
+        // Convert back to coordinates - this is where the map center should be
+        const offsetCenter = map.current.unproject(offsetPixel);
+
+        // Fly to the offset center (no padding, no zoom change)
         map.current.flyTo({
-          center: coordinates,
-          padding: { bottom: cardHeight, top: 0, left: 0, right: 0 },
+          center: [offsetCenter.lng, offsetCenter.lat],
           duration: 500,
         });
 
