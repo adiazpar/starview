@@ -104,25 +104,38 @@ function Navbar() {
             </div>
           </Link>
 
-          {/* Search bar - appears on explore page */}
-          <div className="navbar__search">
-            <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
-            <input
-              type="text"
-              className="navbar__search-input"
-              placeholder="Search stargazing locations..."
-              aria-label="Search locations"
-            />
-          </div>
+          {/* Search bar - appears on explore page (mobile: in brand, desktop: in center) */}
+          {!isDesktop && (
+            <div className="navbar__search">
+              <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+              <input
+                type="text"
+                className="navbar__search-input"
+                placeholder="Search stargazing locations..."
+                aria-label="Search locations"
+              />
+            </div>
+          )}
+        </div>
 
-          {/* Filters button - desktop explore page only */}
-          {isExplorePage && isDesktop && (
+        {/* Center section - search & filters on desktop explore page */}
+        {isExplorePage && isDesktop && (
+          <div className="navbar__center">
+            <div className="navbar__search">
+              <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+              <input
+                type="text"
+                className="navbar__search-input"
+                placeholder="Search stargazing locations..."
+                aria-label="Search locations"
+              />
+            </div>
             <button className="navbar__filters-btn">
               <i className="fa-solid fa-sliders"></i>
               <span>Filters</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Desktop Navigation */}
         <div className="navbar__nav">

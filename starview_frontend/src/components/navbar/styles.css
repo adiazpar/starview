@@ -34,6 +34,31 @@
   max-width: 600px;
 }
 
+/* Center Section - search & filters on desktop explore page */
+.navbar__center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  justify-content: center;
+  margin: 0 var(--space-xl);
+}
+
+/* Search bar is always visible inside center section */
+.navbar__center .navbar__search {
+  max-width: 450px;
+  opacity: 1;
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* When center section exists, brand shouldn't expand */
+@media (min-width: 1024px) {
+  .navbar__brand--explore {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+}
+
 /* Logo */
 .navbar__logo {
   display: flex;
@@ -58,10 +83,11 @@
   min-width: 144px;
 }
 
-/* Explore page: crop to show only the icon */
-/* Slightly wider than square to avoid cutting into the black hole */
-.navbar__brand--explore .navbar__logo-crop {
-  width: 40px;
+/* Explore page: crop logo on mobile/tablet only */
+@media (max-width: 1023px) {
+  .navbar__brand--explore .navbar__logo-crop {
+    width: 40px;
+  }
 }
 
 /* Search Bar */
