@@ -31,6 +31,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]); // Store markers for click handler lookup
+  const selectedIdRef = useRef(null); // Track selected ID for click handler
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
@@ -46,6 +47,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     markersRef.current = markers;
   }, [markers]);
+
+  // Keep selectedIdRef in sync with selectedLocation
+  useEffect(() => {
+    selectedIdRef.current = selectedLocation?.id || null;
+  }, [selectedLocation]);
 
   // Handle card open animation
   useEffect(() => {
@@ -159,6 +165,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       map.current.on('click', 'location-markers', (e) => {
         const feature = e.features[0];
         const id = feature.properties.id;
+
+        // Ignore clicks on the already selected marker
+        if (selectedIdRef.current === id) return;
 
         // Find location in cached markers data
         const location = markersRef.current.find((m) => m.id === id);
