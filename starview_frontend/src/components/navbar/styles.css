@@ -369,7 +369,10 @@
 
 /* Only show padding and scrollbar when filters are visible */
 .navbar__filters--visible .navbar__filters-scroll {
-  padding: var(--space-xs) var(--space-lg);
+  /* Dynamic padding to align with centered navbar container (1400px max-width) */
+  /* On wide screens: (100vw - 1400px) / 2 + space-lg = left edge of navbar content */
+  /* On narrow screens: just use space-lg */
+  padding: var(--space-xs) max(var(--space-lg), calc((100vw - 1400px) / 2 + var(--space-lg)));
   padding-bottom: calc(var(--space-xs) + 4px); /* Extra space for scrollbar */
   overflow-x: auto;
   scrollbar-width: thin;

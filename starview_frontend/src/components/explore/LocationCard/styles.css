@@ -161,10 +161,10 @@
 
 /* Elevation */
 .location-card__elevation i {
-  color: var(--accent-secondary);
+  color: #f87171; /* light red */
 }
 
 /* Distance */
 .location-card__distance i {
-  color: var(--accent-primary);
+  color: var(--info);
 }

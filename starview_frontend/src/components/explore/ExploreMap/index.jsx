@@ -315,10 +315,12 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
           {/* Content Section */}
           <div className="explore-map__card-content">
-            <h3 className="explore-map__card-name">{selectedLocation.name}</h3>
-            <span className="explore-map__card-region">
-              {getLocationSubtitle(selectedLocation)}
-            </span>
+            <div className="explore-map__card-header">
+              <h3 className="explore-map__card-name">{selectedLocation.name}</h3>
+              <span className="explore-map__card-region">
+                {getLocationSubtitle(selectedLocation)}
+              </span>
+            </div>
 
             <div className="explore-map__card-meta">
               {/* Rating */}
