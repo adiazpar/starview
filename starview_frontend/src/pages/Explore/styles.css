@@ -18,7 +18,7 @@
   }
 
   /* Mobile: When showing empty/loading/error, fit to viewport without scroll */
-  .explore-page:has(.explore-page__empty),
+  .explore-page:has(.empty-state),
   .explore-page:has(.explore-page__loading),
   .explore-page:has(.explore-page__error) {
     padding-bottom: 0;
@@ -27,7 +27,7 @@
   }
 
   /* Mobile: List fills parent for empty states */
-  .explore-page__list:has(.explore-page__empty),
+  .explore-page__list:has(.empty-state),
   .explore-page__list:has(.explore-page__loading),
   .explore-page__list:has(.explore-page__error) {
     height: 100%;
@@ -89,10 +89,9 @@
   font-size: var(--text-base);
 }
 
-/* Loading, Error, Empty States */
+/* Loading and Error States (empty uses global .empty-state) */
 .explore-page__loading,
-.explore-page__error,
-.explore-page__empty {
+.explore-page__error {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
@@ -103,22 +102,18 @@
   color: var(--text-muted);
   text-align: center;
   animation: fadeInUp 0.5s ease-out backwards;
-  /* Mobile: fill parent */
   height: 100%;
-  /* Desktop: min-height to fill available space */
   min-height: calc(100lvh - var(--navbar-total-height) - var(--space-xl) * 2);
 }
 
 .explore-page__loading i,
-.explore-page__error i,
-.explore-page__empty i {
+.explore-page__error i {
   font-size: 48px;
   opacity: 0.5;
 }
 
 .explore-page__loading p,
-.explore-page__error p,
-.explore-page__empty p {
+.explore-page__error p {
   font-size: var(--text-lg);
   margin: 0;
 }
@@ -135,6 +130,17 @@
 .explore-page__error-detail {
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+
+/* Empty state uses global .empty-state - just add centering for Explore */
+.explore-page .empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: calc(100lvh - var(--navbar-total-height) - var(--space-xl) * 2);
 }
 
 @media (max-width: 768px) {
@@ -242,7 +248,7 @@
   }
 
   /* Desktop: Center empty/loading/error states in left panel */
-  .explore-page--desktop .explore-page__list:has(.explore-page__empty),
+  .explore-page--desktop .explore-page__list:has(.empty-state),
   .explore-page--desktop .explore-page__list:has(.explore-page__loading),
   .explore-page--desktop .explore-page__list:has(.explore-page__error) {
     display: flex;
@@ -251,7 +257,7 @@
     min-height: calc(100lvh - var(--navbar-total-height) - var(--space-xl) * 2);
   }
 
-  .explore-page--desktop .explore-page__empty,
+  .explore-page--desktop .empty-state,
   .explore-page--desktop .explore-page__loading,
   .explore-page--desktop .explore-page__error {
     min-height: auto;
