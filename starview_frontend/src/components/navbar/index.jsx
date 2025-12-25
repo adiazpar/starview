@@ -7,6 +7,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
+import { useIsDesktop } from '../../hooks/useMediaQuery';
 import './styles.css';
 
 const FILTERS = [
@@ -21,6 +22,7 @@ function Navbar() {
   const { theme } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
+  const isDesktop = useIsDesktop();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
   const [backdropClosing, setBackdropClosing] = useState(false);
@@ -32,6 +34,9 @@ function Navbar() {
 
   // Detect if we're on the explore page for navbar transformation
   const isExplorePage = location.pathname === '/explore';
+
+  // Show filter chips row only on mobile/tablet explore page
+  const showFilterChips = isExplorePage && !isDesktop;
 
   // Dynamically measure navbar height and set CSS variable globally
   useEffect(() => {
@@ -109,6 +114,14 @@ function Navbar() {
               aria-label="Search locations"
             />
           </div>
+
+          {/* Filters button - desktop explore page only */}
+          {isExplorePage && isDesktop && (
+            <button className="navbar__filters-btn">
+              <i className="fa-solid fa-sliders"></i>
+              <span>Filters</span>
+            </button>
+          )}
         </div>
 
         {/* Desktop Navigation */}
@@ -193,8 +206,8 @@ function Navbar() {
         )}
       </div>
 
-      {/* Filter Chips - appears on explore page */}
-      <div className={`navbar__filters ${isExplorePage ? 'navbar__filters--visible' : ''}`}>
+      {/* Filter Chips - appears on mobile/tablet explore page only */}
+      <div className={`navbar__filters ${showFilterChips ? 'navbar__filters--visible' : ''}`}>
         <div className="navbar__filters-scroll">
           {FILTERS.map((filter, index) => (
             <button

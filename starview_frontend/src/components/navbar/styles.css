@@ -448,6 +448,42 @@
   opacity: 0.7;
 }
 
+/* Desktop Filters Button - matches search bar sizing */
+.navbar__filters-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  /* Match .navbar__search padding and sizing */
+  padding: var(--space-sm) var(--space-md);
+  line-height: 22px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navbar__filters-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent);
+}
+
+.navbar__filters-btn i {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.navbar__filters-btn:hover i {
+  color: var(--accent);
+}
+
 /* Light Theme Adjustments
  * Most styles now handled by CSS variables in global.css:
  * --navbar-bg, --glass-bg-hover, --glass-border

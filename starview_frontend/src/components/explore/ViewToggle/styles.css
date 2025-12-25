@@ -39,3 +39,10 @@
 .view-toggle i {
   font-size: var(--text-base);
 }
+
+/* Hide on desktop - split-panel view doesn't need toggle */
+@media (min-width: 1024px) {
+  .view-toggle {
+    display: none;
+  }
+}

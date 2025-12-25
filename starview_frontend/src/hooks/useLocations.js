@@ -11,11 +11,12 @@ import { locationsApi } from '../services/locations';
 /**
  * Fetch and cache locations list with infinite scroll support
  * @param {Object} params - Query parameters (search, filters, etc.)
+ * @param {Object} options - Additional options (enabled, etc.)
  * @returns {Object} Query result with locations data and pagination controls
  */
-export function useLocations(params = {}) {
+export function useLocations(params = {}, options = {}) {
   const query = useInfiniteQuery({
-    queryKey: ['locations', params],
+    queryKey: ['locations', 'infinite', params],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await locationsApi.getAll({ ...params, page: pageParam });
       return response.data;
@@ -27,6 +28,7 @@ export function useLocations(params = {}) {
       return url.searchParams.get('page');
     },
     initialPageParam: 1,
+    ...options,
   });
 
   // Flatten all pages into a single array of locations
@@ -41,6 +43,39 @@ export function useLocations(params = {}) {
     isError: query.isError,
     error: query.error,
     fetchNextPage: query.fetchNextPage,
+    refetch: query.refetch,
+  };
+}
+
+/**
+ * Fetch and cache locations list with pagination support (for desktop)
+ * @param {Object} params - Query parameters (search, filters, etc.)
+ * @param {number} page - Current page number
+ * @param {Object} options - Additional options (enabled, etc.)
+ * @returns {Object} Query result with locations data and pagination info
+ */
+export function useLocationsPaginated(params = {}, page = 1, options = {}) {
+  const query = useQuery({
+    queryKey: ['locations', 'paginated', params, page],
+    queryFn: async () => {
+      const response = await locationsApi.getAll({ ...params, page });
+      return response.data;
+    },
+    ...options,
+  });
+
+  const totalPages = query.data ? Math.ceil(query.data.count / 10) : 0;
+
+  return {
+    locations: query.data?.results || [],
+    count: query.data?.count || 0,
+    totalPages,
+    currentPage: page,
+    hasNextPage: !!query.data?.next,
+    hasPrevPage: !!query.data?.previous,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
     refetch: query.refetch,
   };
 }
@@ -82,8 +117,8 @@ export function useToggleFavorite() {
       return { locationId, is_favorited: response.data.is_favorited };
     },
     onSuccess: ({ locationId, is_favorited }) => {
-      // Update locations cache (infinite query with pages)
-      queryClient.setQueriesData({ queryKey: ['locations'] }, (oldData) => {
+      // Update infinite scroll cache (has pages structure)
+      queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (oldData) => {
         if (!oldData?.pages) return oldData;
         return {
           ...oldData,
@@ -93,6 +128,17 @@ export function useToggleFavorite() {
               loc.id === locationId ? { ...loc, is_favorited } : loc
             ),
           })),
+        };
+      });
+
+      // Update paginated cache (flat results structure)
+      queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (oldData) => {
+        if (!oldData?.results) return oldData;
+        return {
+          ...oldData,
+          results: oldData.results.map((loc) =>
+            loc.id === locationId ? { ...loc, is_favorited } : loc
+          ),
         };
       });
 

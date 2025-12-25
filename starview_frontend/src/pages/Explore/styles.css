@@ -154,3 +154,69 @@
 .explore-page__loading-more i {
   font-size: var(--text-base);
 }
+
+/* Location count header */
+.explore-page__header {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-sm);
+}
+
+.explore-page__count {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* ============================================
+   DESKTOP SPLIT-PANEL LAYOUT (≥1024px)
+   ============================================ */
+
+@media (min-width: 1024px) {
+  /* Container: flex layout with natural page scroll */
+  .explore-page--desktop {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-xl);
+    padding: var(--space-xl);
+    min-height: calc(100lvh - var(--navbar-total-height));
+  }
+
+  /* Left panel: scrolls with page via browser scrollbar */
+  .explore-page--desktop .explore-page__list {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    gap: var(--space-lg);
+    align-content: start;
+    padding: 0;
+    padding-bottom: var(--space-xl);
+  }
+
+  /* Right panel: sticky map that scrolls away at container end */
+  .explore-page--desktop .explore-page__map {
+    position: sticky;
+    top: calc(var(--navbar-total-height) + var(--space-xl));
+    flex: 0 0 50%;
+    width: 50%;
+    height: calc(100lvh - var(--navbar-total-height) - var(--space-xl) * 2);
+    border-radius: calc(var(--radius) * 2);
+    overflow: hidden;
+  }
+
+  /* Override hidden state on desktop - map is always visible */
+  .explore-page--desktop .explore-page__map--hidden {
+    position: sticky;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Keep 2-col grid in split mode even at large screens */
+@media (min-width: 1200px) {
+  .explore-page--desktop .explore-page__list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
