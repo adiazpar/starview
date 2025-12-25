@@ -3,16 +3,18 @@
  * Mobile-first design inspired by AllTrails UX patterns.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useLocations } from '../../hooks/useLocations';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import LocationCard from '../../components/explore/LocationCard';
 import ViewToggle from '../../components/explore/ViewToggle';
+import ExploreMap from '../../components/explore/ExploreMap';
 import './styles.css';
 
 function ExplorePage() {
   const [view, setView] = useState('list');
+  const mapViewport = useRef(null); // Persist map position across view toggles
   const {
     locations,
     isLoading,
@@ -42,8 +44,13 @@ function ExplorePage() {
     // TODO: Navigate to location detail page
   };
 
+  // Save map viewport when it changes
+  const handleMapViewportChange = useCallback((viewport) => {
+    mapViewport.current = viewport;
+  }, []);
+
   return (
-    <div className="explore-page">
+    <div className={`explore-page ${view === 'map' ? 'explore-page--map' : ''}`}>
       {view === 'list' ? (
         <div className="explore-page__list">
           {isLoading ? (
@@ -91,10 +98,10 @@ function ExplorePage() {
         </div>
       ) : (
         <div className="explore-page__map">
-          <div className="explore-page__map-placeholder">
-            <i className="fa-solid fa-map"></i>
-            <p>Map view coming soon</p>
-          </div>
+          <ExploreMap
+            initialViewport={mapViewport.current}
+            onViewportChange={handleMapViewportChange}
+          />
         </div>
       )}
 

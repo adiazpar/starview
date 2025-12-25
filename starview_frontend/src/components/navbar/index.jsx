@@ -114,7 +114,6 @@ function Navbar() {
         {/* Desktop Navigation */}
         <div className="navbar__nav">
           <NavLink to="/" className="navbar__link" end>Home</NavLink>
-          <NavLink to="/map" className="navbar__link">Map</NavLink>
           <NavLink to="/explore" className="navbar__link">Explore</NavLink>
 
           {isAuthenticated ? (
@@ -152,10 +151,6 @@ function Navbar() {
             <i className="fa-regular fa-house"></i>
             Home
           </NavLink>
-          <NavLink to="/map" className="navbar__mobile-link" onClick={closeMobileMenu}>
-            <i className="fa-solid fa-earth-europe"></i>
-            Map
-          </NavLink>
           <NavLink to="/explore" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-solid fa-magnifying-glass"></i>
             Explore
@@ -181,8 +176,8 @@ function Navbar() {
                 <i className="fa-solid fa-arrow-right-to-bracket"></i>
                 Login
               </NavLink>
-              <NavLink to="/register" className="navbar__mobile-cta btn-primary btn-primary--full" onClick={closeMobileMenu}>
-                <i className="fa-regular fa-user"></i>
+              <NavLink to="/register" className="navbar__mobile-link" onClick={closeMobileMenu}>
+                <i className="fa-solid fa-user-plus"></i>
                 Get Started
               </NavLink>
             </>

@@ -351,31 +351,48 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Get minimal location data optimized for map display.                          #
+    # Get location data optimized for map display with card preview.                #
     #                                                                               #
-    # Returns a lightweight JSON array containing only the essential fields         #
-    # needed to render markers on the 3D globe interface.                           #
+    # Returns a JSON array with all fields needed to render markers AND populate    #
+    # the bottom card preview when a marker is tapped. This eliminates the need     #
+    # for a second API call when users interact with markers.                       #
     #                                                                               #
     # Cache Strategy:                                                               #
     # - Cached for 30 minutes (1800 seconds) - map data changes infrequently        #
-    # - Same for all users (no user-specific data)                                  #
+    # - Authenticated users get different cache (includes is_favorited)             #
     # - Invalidated when: location created, location deleted, coordinates change    #
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['GET'], serializer_class=MapLocationSerializer)
     def map_markers(self, request):
 
-        # Try to get from cache (same for all users)
-        cache_key = map_markers_key()
+        # Build cache key (different for authenticated vs anonymous users)
+        base_cache_key = map_markers_key()
+        if request.user.is_authenticated:
+            cache_key = f'{base_cache_key}:user:{request.user.id}'
+        else:
+            cache_key = base_cache_key
+
+        # Try to get from cache
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return Response(cached_data)
 
-        # Cache miss - get data from database
-        # Get all locations
-        queryset = Location.objects.all()
+        # Cache miss - get data from database with annotations
+        queryset = Location.objects.annotate(
+            review_count_annotated=Count('reviews'),
+            average_rating_annotated=Avg('reviews__rating')
+        )
 
-        # Optimize database query - only fetch needed columns
-        queryset = queryset.only('id', 'name', 'latitude', 'longitude')
+        # Add is_favorited annotation for authenticated users
+        if request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_favorited_annotated=Exists(
+                    FavoriteLocation.objects.filter(
+                        user=request.user,
+                        location=OuterRef('pk')
+                    )
+                )
+            )
 
         # Serialize and return as simple array
         serializer = self.get_serializer(queryset, many=True)

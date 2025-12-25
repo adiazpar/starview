@@ -97,6 +97,16 @@ export function useToggleFavorite() {
           })),
         };
       });
+
+      // Also update map markers cache
+      queryClient.setQueryData(['mapMarkers'], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map((marker) =>
+          marker.id === locationId
+            ? { ...marker, is_favorited }
+            : marker
+        );
+      });
     },
   });
 }

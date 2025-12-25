@@ -129,25 +129,35 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 # ----------------------------------------------------------------------------- #
-# Lightweight serializer optimized for map marker display.                      #
+# Optimized serializer for map marker display with card preview data.           #
 #                                                                               #
-# This serializer returns only the minimal data needed to render location       #
-# markers on the 3D globe interface. By excluding unnecessary fields like       #
-# reviews, nested user data, and metadata, it reduces payload size by ~97%      #
-# compared to the full LocationSerializer.                                      #
+# This serializer returns data needed to render location markers on the map     #
+# AND populate the bottom card preview when a marker is tapped. By including    #
+# all card fields upfront, we eliminate the need for a second API call when     #
+# users tap a marker.                                                           #
 #                                                                               #
-# Note: Includes is_favorited field for authenticated users to display favorite #
-# status indicators on map markers and sidebar.                                 #
+# Fields included:                                                              #
+# - Coordinates: latitude, longitude (for marker placement)                     #
+# - Card data: name, region, elevation, rating, review_count, is_favorited      #
 # ----------------------------------------------------------------------------- #
 class MapLocationSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'latitude', 'longitude', 'is_favorited']
+        fields = [
+            'id', 'name', 'latitude', 'longitude',
+            'administrative_area', 'country', 'elevation',
+            'average_rating', 'review_count', 'is_favorited'
+        ]
         read_only_fields = fields
 
     def get_is_favorited(self, obj):
+        # Use annotation if available, otherwise query
+        if hasattr(obj, 'is_favorited_annotated'):
+            return obj.is_favorited_annotated
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return FavoriteLocation.objects.filter(
@@ -155,6 +165,18 @@ class MapLocationSerializer(serializers.ModelSerializer):
                 location=obj
             ).exists()
         return False
+
+    def get_average_rating(self, obj):
+        # Use annotation if available, otherwise compute
+        if hasattr(obj, 'average_rating_annotated'):
+            return obj.average_rating_annotated
+        return obj.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
+
+    def get_review_count(self, obj):
+        # Use annotation if available, otherwise compute
+        if hasattr(obj, 'review_count_annotated'):
+            return obj.review_count_annotated
+        return obj.reviews.count()
 
 
 
