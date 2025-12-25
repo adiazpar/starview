@@ -5,16 +5,16 @@
  * Used for infinite scroll to trigger loading more content.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 /**
  * Observe when an element enters the viewport
  * @param {Function} callback - Function to call when element is visible
  * @param {Object} options - IntersectionObserver options
- * @returns {Object} ref to attach to the target element
+ * @returns {Function} Callback ref to attach to the target element
  */
 export function useIntersectionObserver(callback, options = {}) {
-  const targetRef = useRef(null);
+  const [target, setTarget] = useState(null);
   const callbackRef = useRef(callback);
 
   // Keep callback ref up to date without triggering effect
@@ -23,14 +23,13 @@ export function useIntersectionObserver(callback, options = {}) {
   }, [callback]);
 
   useEffect(() => {
-    const target = targetRef.current;
     if (!target) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            callbackRef.current(); // Use ref instead of closure
+            callbackRef.current();
           }
         });
       },
@@ -42,9 +41,14 @@ export function useIntersectionObserver(callback, options = {}) {
     return () => {
       observer.unobserve(target);
     };
-  }, []); // Empty deps - observer created once
+  }, [target]);
 
-  return targetRef;
+  // Return a callback ref that updates state when element mounts
+  const setRef = useCallback((node) => {
+    setTarget(node);
+  }, []);
+
+  return setRef;
 }
 
 export default useIntersectionObserver;
