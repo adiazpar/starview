@@ -102,7 +102,7 @@ function ExplorePage() {
             </span>
           </div>
         ) : locations.length === 0 ? (
-          <div className="empty-state">
+          <div className="empty-state animate-fade-in-up">
             <i className="fa-solid fa-map-location-dot empty-state__icon"></i>
             <p className="empty-state__title">No locations found</p>
             <p className="empty-state__description">Be the first to add a stargazing spot!</p>
