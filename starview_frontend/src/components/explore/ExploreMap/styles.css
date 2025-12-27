@@ -464,6 +464,14 @@
   white-space: nowrap;
 }
 
+.explore-map__dropdown-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-xs);
+}
+
 
 /* ========================================
    Protected Area Popup

@@ -16,16 +16,16 @@ const PROTECTED_AREAS_LAYER = 'protected_areas'; // Layer name set by tippecanoe
 const PROTECTED_AREAS_MINZOOM = 4; // Sync with layer minzoom for popup cleanup
 
 // IUCN category colors for protected areas
-// Bright, saturated colors that read as UI elements (not geography)
+// Full spectrum from warm to cool, ordered by protection strictness
 const IUCN_COLORS = {
-  'Ia': '#a855f7', // Strict Nature Reserve - Vivid Purple
-  'Ib': '#818cf8', // Wilderness Area - Bright Indigo
-  'II': '#34d399', // National Park - Bright Emerald
-  'III': '#fbbf24', // Natural Monument - Bright Amber
-  'IV': '#2dd4bf', // Habitat Management - Bright Teal
-  'V': '#38bdf8', // Protected Landscape - Bright Sky
-  'VI': '#a3e635', // Sustainable Use - Bright Lime
-  'Not Reported': '#9ca3af', // Unknown - Light Gray
+  'Ia': '#f43f5e', // Strict Nature Reserve - Rose
+  'Ib': '#f97316', // Wilderness Area - Orange
+  'II': '#eab308', // National Park - Yellow
+  'III': '#22c55e', // Natural Monument - Green
+  'IV': '#14b8a6', // Habitat Management - Teal
+  'V': '#3b82f6', // Protected Landscape - Blue
+  'VI': '#a855f7', // Sustainable Use - Purple
+  'Not Reported': '#9ca3af', // Unknown - Gray
 };
 
 // IUCN category full names for display
@@ -195,6 +195,58 @@ const CLUSTER_CONFIG = {
   },
 };
 
+// Location type icons - Paste full SVG from FontAwesome
+// To change: fontawesome.com → find icon → copy SVG → paste here
+const LOCATION_TYPE_ICONS = {
+  // Moon
+  dark_sky_site: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512c68.8 0 131.3-27.2 177.3-71.4 7.3-7 9.4-17.9 5.3-27.1s-13.7-14.9-23.8-14.1c-4.9 .4-9.8 .6-14.8 .6-101.6 0-184-82.4-184-184 0-72.1 41.5-134.6 102.1-164.8 9.1-4.5 14.3-14.3 13.1-24.4S322.6 8.5 312.7 6.3C294.4 2.2 275.4 0 256 0z"/></svg>`,
+  
+  // Gopuram
+  observatory: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M120 0c13.3 0 24 10.7 24 24l0 8 40 0 0-8c0-13.3 10.7-24 24-24s24 10.7 24 24l0 8 48 0 0-8c0-13.3 10.7-24 24-24s24 10.7 24 24l0 8 40 0 0-8c0-13.3 10.7-24 24-24s24 10.7 24 24l0 136c26.5 0 48 21.5 48 48l0 80c26.5 0 48 21.5 48 48l0 128c0 26.5-21.5 48-48 48l-48 0 0-224-32 0 0-128-48 0 0 128 32 0 0 224-224 0 0-224 32 0 0-128-48 0 0 128-32 0 0 224-48 0c-26.5 0-48-21.5-48-48L0 336c0-26.5 21.5-48 48-48l0-80c0-26.5 21.5-48 48-48L96 24c0-13.3 10.7-24 24-24zM256 208c-17.7 0-32 14.3-32 32l0 48 64 0 0-48c0-17.7-14.3-32-32-32zM208 400l0 64 96 0 0-64c0-26.5-21.5-48-48-48s-48 21.5-48 48zM256 96c-17.7 0-32 14.3-32 32l0 32 64 0 0-32c0-17.7-14.3-32-32-32z"/></svg>`,
+  
+  // Campsite
+  campground: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M344.8 52.3c11.2-13.7 9.2-33.8-4.5-45s-33.8-9.2-45 4.5l-39.2 48-39.2-48C205.6-1.9 185.4-4 171.7 7.2s-15.7 31.4-4.5 45l47.4 58-202 246.9C4.5 367.1 0 379.6 0 392.6L0 432c0 26.5 21.5 48 48 48l416 0c26.5 0 48-21.5 48-48l0-39.4c0-12.9-4.5-25.5-12.7-35.5l-202-246.9 47.4-58zM256 288l112 128-224 0 112-128z"/></svg>`,
+  
+  // Binoculars
+  viewpoint: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M128 32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32c0-17.7 14.3-32 32-32zm64 96l0 320c0 17.7-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32l0-59.1c0-34.6 9.4-68.6 27.2-98.3 13.7-22.8 22.5-48.2 25.8-74.6L60.5 156c2-16 15.6-28 31.8-28l99.8 0zm227.8 0c16.1 0 29.8 12 31.8 28L459 216c3.3 26.4 12.1 51.8 25.8 74.6 17.8 29.7 27.2 63.7 27.2 98.3l0 59.1c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-320 99.8 0zM320 64c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32zm-32 64l0 160-64 0 0-160 64 0z"/></svg>`,
+  
+  // Location Dot
+  other: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M0 188.6C0 84.4 86 0 192 0S384 84.4 384 188.6c0 119.3-120.2 262.3-170.4 316.8-11.8 12.8-31.5 12.8-43.3 0-50.2-54.5-170.4-197.5-170.4-316.8zM192 256a64 64 0 1 0 0-128 64 64 0 1 0 0 128z"/></svg>`,
+};
+
+/**
+ * Parse SVG string and extract viewBox and path for rendering
+ */
+function parseSvgIcon(svgString) {
+  const viewBoxMatch = svgString.match(/viewBox="([^"]+)"/);
+  const pathMatch = svgString.match(/d="([^"]+)"/);
+  return {
+    viewBox: viewBoxMatch ? viewBoxMatch[1] : '0 0 512 512',
+    path: pathMatch ? pathMatch[1] : '',
+  };
+}
+
+/**
+ * Load a FontAwesome icon as a Mapbox image
+ * Accepts full SVG string, parses it, and converts to canvas ImageData
+ */
+function loadIconImage(svgString, size = 24) {
+  return new Promise((resolve) => {
+    const { path, viewBox } = parseSvgIcon(svgString);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${size}" height="${size}"><path fill="white" d="${path}"/></svg>`;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, size, size);
+      resolve(ctx.getImageData(0, 0, size, size));
+    };
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
+}
+
 
 function ExploreMap({ initialViewport, onViewportChange }) {
   const mapContainer = useRef(null);
@@ -309,6 +361,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         id: location.id,
         name: location.name,
         is_favorited: location.is_favorited || false,
+        location_type: location.location_type || 'viewpoint',
         location_type_display: location.location_type_display || 'Viewpoint',
         region: location.administrative_area || location.country || '',
         avg_rating: location.average_rating,
@@ -730,6 +783,17 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         clusterRadius: CLUSTER_CONFIG.radius,
       });
 
+      // Load location type icons into the map (async)
+      const loadIcons = async () => {
+        for (const [type, svgString] of Object.entries(LOCATION_TYPE_ICONS)) {
+          const imageData = await loadIconImage(svgString, 24);
+          if (map.current && !map.current.hasImage(`icon-${type}`)) {
+            map.current.addImage(`icon-${type}`, imageData);
+          }
+        }
+      };
+      loadIcons();
+
       // Add cluster circle layer (larger circles with count-based styling)
       map.current.addLayer({
         id: 'location-clusters',
@@ -775,8 +839,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 12,
           'text-allow-overlap': true,
-          // Disable fade animation to prevent count number lingering when cluster breaks apart
-          'symbol-fade-duration': 0,
         },
         paint: {
           'text-color': '#ffffff',
@@ -808,6 +870,27 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           // Align circles with map surface (not viewport) for 3D terrain integration
           'circle-pitch-alignment': 'map',
           'circle-pitch-scale': 'map',
+        },
+      });
+
+      // Add icon layer on top of markers (based on location_type)
+      map.current.addLayer({
+        id: 'location-marker-icons',
+        type: 'symbol',
+        source: 'locations',
+        filter: ['!', ['has', 'point_count']], // Only show unclustered points
+        layout: {
+          'icon-image': [
+            'match',
+            ['get', 'location_type'],
+            'dark_sky_site', 'icon-dark_sky_site',
+            'observatory', 'icon-observatory',
+            'campground', 'icon-campground',
+            'viewpoint', 'icon-viewpoint',
+            'icon-other', // fallback
+          ],
+          'icon-size': 0.5,
+          'icon-allow-overlap': true,
         },
       });
 
@@ -992,6 +1075,52 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         if (markerPopupRef.current) {
           markerPopupRef.current.remove();
         }
+      });
+
+      // Icon layer click handler - replicates marker click behavior
+      map.current.on('click', 'location-marker-icons', (e) => {
+        const feature = e.features[0];
+        const id = feature.properties.id;
+        const coordinates = feature.geometry.coordinates;
+
+        // Close dropdowns and popups
+        setShowIucnFilter(false);
+        setShowStylePicker(false);
+        if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
+        if (markerPopupRef.current) markerPopupRef.current.remove();
+
+        // Calculate offset for card
+        const cardHeight = Math.min(window.innerHeight * 0.45, 400);
+        const markerPixel = map.current.project(coordinates);
+        const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
+        const offsetCenter = map.current.unproject(offsetPixel);
+
+        map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
+
+        if (selectedIdRef.current === id) return;
+
+        const location = markersRef.current.find((m) => m.id === id);
+        if (location) {
+          const isAlreadyOpen = !!document.querySelector('.explore-map__card');
+          if (isAlreadyOpen) {
+            setIsSwitching(true);
+            setIsCardVisible(false);
+            setTimeout(() => {
+              setSelectedLocation(location);
+              setIsSwitching(false);
+            }, 150);
+          } else {
+            setSelectedLocation(location);
+          }
+        }
+      });
+
+      map.current.on('mouseenter', 'location-marker-icons', () => {
+        map.current.getCanvas().style.cursor = 'pointer';
+      });
+
+      map.current.on('mouseleave', 'location-marker-icons', () => {
+        map.current.getCanvas().style.cursor = '';
       });
     }
   }, [geojson, mapLoaded, isLoading]);
@@ -1183,6 +1312,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
           {showIucnFilter && (
             <div className={`explore-map__dropdown ${iucnFilterClosing ? 'explore-map__dropdown--closing' : ''}`}>
+              <div className="explore-map__dropdown-hint">
+                Filter protected areas by conservation category
+              </div>
               {Object.entries(IUCN_NAMES).map(([code, label]) => (
                 <label key={code} className="explore-map__dropdown-option">
                   <input
@@ -1221,6 +1353,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
           {showStylePicker && (
             <div className={`explore-map__dropdown ${stylePickerClosing ? 'explore-map__dropdown--closing' : ''}`}>
+              <div className="explore-map__dropdown-hint">
+                Change map appearance
+              </div>
               {Object.entries(MAP_STYLES).map(([key, style]) => (
                 <label key={key} className="explore-map__dropdown-option">
                   <input
