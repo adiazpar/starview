@@ -1193,6 +1193,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     return () => clearInterval(interval);
   }, [userLocation, mapLoaded]);
 
+  // All IUCN categories and selection state (used by filter effect and toggle handler)
+  const allCategories = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'];
+  const allSelected = allCategories.every(cat => selectedIucnCategories.includes(cat));
+
   // Apply IUCN category filter when selection changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
@@ -1207,9 +1211,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
 
     // If all categories selected, remove filter (show all)
-    const allCategories = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'];
-    const allSelected = allCategories.every(cat => selectedIucnCategories.includes(cat));
-
     if (allSelected) {
       map.current.setFilter('protected-areas-fill', null);
       map.current.setFilter('protected-areas-border', null);
@@ -1218,7 +1219,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       map.current.setFilter('protected-areas-fill', filter);
       map.current.setFilter('protected-areas-border', filter);
     }
-  }, [selectedIucnCategories, mapLoaded]);
+  }, [selectedIucnCategories, allSelected, mapLoaded]);
 
   // Toggle IUCN category selection
   const handleIucnToggle = useCallback((category) => {
@@ -1230,6 +1231,15 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       }
     });
   }, []);
+
+  // Toggle all IUCN categories on/off
+  const handleToggleAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIucnCategories([]);
+    } else {
+      setSelectedIucnCategories(allCategories);
+    }
+  }, [allSelected]);
 
   // Handle map style change
   const handleStyleChange = useCallback((styleKey) => {
@@ -1315,6 +1325,14 @@ function ExploreMap({ initialViewport, onViewportChange }) {
               <div className="explore-map__dropdown-hint">
                 Filter protected areas by conservation category
               </div>
+              <label className="explore-map__dropdown-option explore-map__dropdown-option--all">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={handleToggleAll}
+                />
+                <span className="explore-map__dropdown-label">All</span>
+              </label>
               {Object.entries(IUCN_NAMES).map(([code, label]) => (
                 <label key={code} className="explore-map__dropdown-option">
                   <input

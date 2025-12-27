@@ -472,6 +472,17 @@
   margin-bottom: var(--space-xs);
 }
 
+/* "All" toggle option with separator */
+.explore-map__dropdown-option--all {
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-xs);
+  padding-bottom: var(--space-sm);
+}
+
+.explore-map__dropdown-option--all .explore-map__dropdown-label {
+  font-weight: 500;
+}
+
 
 /* ========================================
    Protected Area Popup
