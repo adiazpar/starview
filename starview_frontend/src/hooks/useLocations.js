@@ -31,8 +31,9 @@ export function useLocations(params = {}, options = {}) {
     ...options,
   });
 
-  // Flatten all pages into a single array of locations
-  const locations = query.data?.pages.flatMap((page) => page.results) || [];
+  // Flatten all pages into a single array of locations, deduplicating by ID
+  const allResults = query.data?.pages.flatMap((page) => page.results) || [];
+  const locations = [...new Map(allResults.map((loc) => [loc.id, loc])).values()];
 
   return {
     locations,
