@@ -472,7 +472,7 @@
 /* Mapbox popup container override - use !important to override Mapbox defaults immediately */
 .protected-area-popup-container.mapboxgl-popup .mapboxgl-popup-content {
   background: var(--bg-base) !important;
-  border: 1px solid var(--border-subtle) !important;
+  border: none !important;
   border-radius: var(--radius) !important;
   padding: 0 !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
@@ -594,7 +594,7 @@
 /* Mapbox popup container override */
 .marker-popup-container.mapboxgl-popup .mapboxgl-popup-content {
   background: var(--bg-base) !important;
-  border: 1px solid var(--border) !important;
+  border: none !important;
   border-radius: var(--radius) !important;
   padding: 0 !important;
   box-shadow: var(--shadow) !important;
@@ -690,5 +690,30 @@
 .marker-popup__favorite {
   color: #ec4899;
   font-size: var(--text-xs);
+}
+
+
+/* ========================================
+   Cluster Popup
+   ======================================== */
+
+.cluster-popup-container.mapboxgl-popup .mapboxgl-popup-content {
+  background: var(--bg-base) !important;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  padding: 0 !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.cluster-popup-container.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: var(--bg-base) !important;
+}
+
+.cluster-popup {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 

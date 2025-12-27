@@ -177,6 +177,24 @@ const MAP_STYLES = {
   },
 };
 
+// Cluster configuration - edit colors here to experiment
+const CLUSTER_CONFIG = {
+  radius: 50,           // Cluster radius in pixels
+  maxZoom: 14,          // Stop clustering at this zoom level
+  // Cluster circle colors by size
+  colors: {
+    small: '#3b82f6',   // 2-9 locations (blue-500)
+    medium: '#8b5cf6',  // 10-49 locations (violet-500)
+    large: '#ec4899',   // 50+ locations (pink-500)
+  },
+  // Cluster circle sizes by count
+  sizes: {
+    small: 20,          // 2-9 locations
+    medium: 28,         // 10-49 locations
+    large: 36,          // 50+ locations
+  },
+};
+
 
 function ExploreMap({ initialViewport, onViewportChange }) {
   const mapContainer = useRef(null);
@@ -404,6 +422,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       center: center,
       zoom: zoom,
       attributionControl: false,
+      // Disable symbol collision fade animation (default 300ms)
+      // This prevents cluster count labels from lingering when clusters break apart
+      fadeDuration: 0,
     });
 
     // Add compact attribution control (required by Mapbox ToS)
@@ -700,17 +721,77 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       // Update existing source with memoized geojson
       map.current.getSource('locations').setData(geojson);
     } else {
-      // Add new source and layer
+      // Add new source with clustering enabled
       map.current.addSource('locations', {
         type: 'geojson',
         data: geojson,
+        cluster: true,
+        clusterMaxZoom: CLUSTER_CONFIG.maxZoom,
+        clusterRadius: CLUSTER_CONFIG.radius,
       });
 
-      // Add circle layer for markers
+      // Add cluster circle layer (larger circles with count-based styling)
+      map.current.addLayer({
+        id: 'location-clusters',
+        type: 'circle',
+        source: 'locations',
+        filter: ['has', 'point_count'], // Only show clusters
+        paint: {
+          // Size based on point_count
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            CLUSTER_CONFIG.sizes.small,   // Default size for 2-9
+            10, CLUSTER_CONFIG.sizes.medium, // 10+ locations
+            50, CLUSTER_CONFIG.sizes.large,  // 50+ locations
+          ],
+          // Color based on point_count
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            CLUSTER_CONFIG.colors.small,   // Default color for 2-9
+            10, CLUSTER_CONFIG.colors.medium, // 10+ locations
+            50, CLUSTER_CONFIG.colors.large,  // 50+ locations
+          ],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ffffff',
+          'circle-emissive-strength': 1,
+          'circle-pitch-alignment': 'map',
+          'circle-pitch-scale': 'map',
+          // Disable transitions for instant cluster disappearance
+          'circle-opacity-transition': { duration: 0 },
+          'circle-radius-transition': { duration: 0 },
+        },
+      });
+
+      // Add cluster count label layer
+      map.current.addLayer({
+        id: 'location-cluster-count',
+        type: 'symbol',
+        source: 'locations',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+          'text-allow-overlap': true,
+          // Disable fade animation to prevent count number lingering when cluster breaks apart
+          'symbol-fade-duration': 0,
+        },
+        paint: {
+          'text-color': '#ffffff',
+          'text-emissive-strength': 1,
+          // Disable transition for instant disappearance when cluster breaks apart
+          'text-opacity-transition': { duration: 0 },
+        },
+      });
+
+      // Add circle layer for individual markers (unclustered points)
       map.current.addLayer({
         id: 'location-markers',
         type: 'circle',
         source: 'locations',
+        filter: ['!', ['has', 'point_count']], // Only show unclustered points
         paint: {
           'circle-radius': 12,
           // Pink for favorited, blue for regular
@@ -728,6 +809,64 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           'circle-pitch-alignment': 'map',
           'circle-pitch-scale': 'map',
         },
+      });
+
+      // Handle click on clusters - zoom to expand
+      map.current.on('click', 'location-clusters', (e) => {
+        const features = map.current.queryRenderedFeatures(e.point, {
+          layers: ['location-clusters'],
+        });
+        const clusterId = features[0].properties.cluster_id;
+
+        map.current.getSource('locations').getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
+
+          // Zoom past the break-apart threshold with smooth animation
+          map.current.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom: zoom + 0.5,
+            duration: 400,
+          });
+        });
+      });
+
+      // Handle hover on clusters - show count popup
+      map.current.on('mouseenter', 'location-clusters', (e) => {
+        map.current.getCanvas().style.cursor = 'pointer';
+
+        // Don't show popup if location card is visible or dropdown is open
+        if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
+
+        const feature = e.features[0];
+        const count = feature.properties.point_count;
+        const coordinates = feature.geometry.coordinates.slice();
+
+        // Close other popups
+        if (protectedAreaPopupRef.current) {
+          protectedAreaPopupRef.current.remove();
+        }
+        if (markerPopupRef.current) {
+          markerPopupRef.current.remove();
+        }
+
+        // Create cluster popup
+        markerPopupRef.current = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          anchor: 'bottom',
+          offset: [0, -10],
+          className: 'cluster-popup-container',
+        })
+          .setLngLat(coordinates)
+          .setHTML(`<div class="cluster-popup">${count} locations</div>`)
+          .addTo(map.current);
+      });
+
+      map.current.on('mouseleave', 'location-clusters', () => {
+        map.current.getCanvas().style.cursor = '';
+        if (markerPopupRef.current) {
+          markerPopupRef.current.remove();
+        }
       });
 
       // Handle click on markers - use cached data (no API call needed)
