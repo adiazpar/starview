@@ -72,6 +72,21 @@
       })();
     </script>
 
+    <!-- Suppress noisy Mapbox warnings in production -->
+    <script>
+      (function() {
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+          const msg = args[0];
+          if (typeof msg === 'string' && (
+            msg.includes('featureNamespace') ||
+            msg.includes('Cutoff is currently disabled')
+          )) return;
+          originalWarn.apply(console, args);
+        };
+      })();
+    </script>
+
     <!-- Fonts: Karla (body) + Montserrat (display) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
