@@ -211,21 +211,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     if (map.current) return; // Already initialized
 
-    // Debug: log what values are being used
-    console.log('[ExploreMap] Initializing with:', {
-      initialViewport,
-      userLocation,
-      DEFAULT_CENTER,
-      DEFAULT_ZOOM,
-    });
-
     // Use saved viewport if available, otherwise use user location or defaults
     const center = initialViewport?.center
       || (userLocation ? [userLocation.longitude, userLocation.latitude] : DEFAULT_CENTER);
     const zoom = initialViewport?.zoom
       ?? (userLocation ? 6 : DEFAULT_ZOOM);
-
-    console.log('[ExploreMap] Using center:', center, 'zoom:', zoom);
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -522,10 +512,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
   useEffect(() => {
-    console.log('[ExploreMap] flyTo effect:', { userLocation, mapLoaded, initialViewport, hasFlown: hasFlownToUserRef.current });
     if (hasFlownToUserRef.current) return; // Only fly once
     if (map.current && userLocation && mapLoaded && !initialViewport) {
-      console.log('[ExploreMap] Flying to:', userLocation);
       hasFlownToUserRef.current = true;
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
