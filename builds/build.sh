@@ -14,6 +14,7 @@
 # 3. Collects static files (CSS, JS, images, React build) for production serving                        #
 # 4. Runs database migrations to update schema                                                          #
 # 5. Creates superuser if DJANGO_SUPERUSER_* environment variables are set                              #
+# 6. Pre-warms Redis caches to eliminate cold-start latency for first users                              #
 #                                                                                                       #
 # Usage:                                                                                                #
 # - Render automatically runs this script during deployment                                             #
@@ -135,6 +136,10 @@ else
     echo "Skipping superuser creation (environment variables not set)"
     echo "Set DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL, and DJANGO_SUPERUSER_PASSWORD in Render dashboard"
 fi
+
+# Pre-warm application caches to eliminate cold-start latency
+echo "Pre-warming application caches..."
+python3 manage.py warm_cache
 
 echo "===================================="
 echo "Build script completed successfully!"
