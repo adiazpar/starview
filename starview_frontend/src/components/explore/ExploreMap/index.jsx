@@ -153,6 +153,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
   const popupAnchorRef = useRef('bottom'); // Track current popup anchor for edge detection
+  const controlsRef = useRef(null); // Ref for map controls (click-outside detection)
 
   // IUCN filter state (test feature)
   const [showIucnFilter, setShowIucnFilter] = useState(false);
@@ -163,6 +164,19 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   // Map style state
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (controlsRef.current && !controlsRef.current.contains(e.target)) {
+        setShowIucnFilter(false);
+        setShowStylePicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { markers, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
@@ -383,6 +397,21 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       }
     };
   }, []);
+
+  // Handle container resize - Mapbox needs to recalculate dimensions
+  useEffect(() => {
+    if (!mapContainer.current || !map.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (map.current) {
+        map.current.resize();
+      }
+    });
+
+    resizeObserver.observe(mapContainer.current);
+
+    return () => resizeObserver.disconnect();
+  }, [mapLoaded]);
 
   // Add Protected Areas layer from PMTiles on R2
   useEffect(() => {
@@ -841,19 +870,18 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
       {/* Map Controls */}
-      <div className="explore-map__controls">
+      <div className="explore-map__controls" ref={controlsRef}>
         {/* IUCN Filter */}
         <div className="explore-map__control">
           <button
-            className="explore-map__control-btn"
+            className={`explore-map__control-btn ${showIucnFilter ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
               setShowIucnFilter(!showIucnFilter);
               setShowStylePicker(false);
             }}
+            aria-label="Filter zones"
           >
             <i className="fa-solid fa-layer-group"></i>
-            <span>Zones</span>
-            <i className={`fa-solid fa-chevron-${showIucnFilter ? 'up' : 'down'}`}></i>
           </button>
 
           {showIucnFilter && (
@@ -879,29 +907,28 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         {/* Style Picker */}
         <div className="explore-map__control">
           <button
-            className="explore-map__control-btn"
+            className={`explore-map__control-btn ${showStylePicker ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
               setShowStylePicker(!showStylePicker);
               setShowIucnFilter(false);
             }}
+            aria-label="Change map style"
           >
             <i className={`fa-solid ${MAP_STYLES[mapStyle].icon}`}></i>
-            <span>{MAP_STYLES[mapStyle].label}</span>
-            <i className={`fa-solid fa-chevron-${showStylePicker ? 'up' : 'down'}`}></i>
           </button>
 
           {showStylePicker && (
             <div className="explore-map__dropdown">
               {Object.entries(MAP_STYLES).map(([key, style]) => (
-                <button
-                  key={key}
-                  className={`explore-map__dropdown-option ${mapStyle === key ? 'explore-map__dropdown-option--active' : ''}`}
-                  onClick={() => handleStyleChange(key)}
-                >
-                  <i className={`fa-solid ${style.icon}`}></i>
+                <label key={key} className="explore-map__dropdown-option">
+                  <input
+                    type="radio"
+                    name="map-style"
+                    checked={mapStyle === key}
+                    onChange={() => handleStyleChange(key)}
+                  />
                   <span className="explore-map__dropdown-label">{style.label}</span>
-                  {mapStyle === key && <i className="fa-solid fa-check"></i>}
-                </button>
+                </label>
               ))}
             </div>
           )}

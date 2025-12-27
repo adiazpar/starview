@@ -36,6 +36,14 @@
   opacity: 1;
 }
 
+/* Remove border and radius on mobile */
+@media (max-width: 768px) {
+  .explore-map__container {
+    border: none;
+    border-radius: 0;
+  }
+}
+
 /* Error State */
 .explore-map--error {
   display: flex;
@@ -262,49 +270,49 @@
   position: relative;
 }
 
+/* Circular icon-only buttons using navbar color */
 .explore-map__control-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-elevated);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-weight: 500;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--navbar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.15s ease;
-  backdrop-filter: blur(8px);
-  width: 100%;
+  transition: all var(--transition) ease;
 }
 
 .explore-map__control-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
-.explore-map__control-btn i:first-child {
-  color: var(--text-muted);
+.explore-map__control-btn--active {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
-.explore-map__control-btn i:last-child {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-left: auto;
+.explore-map__control-btn--active:hover {
+  color: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
+/* Dropdown positioned to the left of buttons */
 .explore-map__dropdown {
   position: absolute;
-  top: calc(100% + var(--space-xs));
-  right: 0;
-  min-width: 180px;
+  top: 0;
+  right: calc(100% + var(--space-sm));
+  min-width: 200px;
   padding: var(--space-sm);
-  background: var(--bg-elevated);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 .explore-map__dropdown-option {
@@ -314,7 +322,7 @@
   padding: var(--space-xs) var(--space-sm);
   border-radius: calc(var(--radius) / 2);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--transition) ease;
   background: transparent;
   border: none;
   width: 100%;
@@ -323,15 +331,79 @@
 }
 
 .explore-map__dropdown-option:hover {
-  background: var(--bg-hover);
+  background: var(--accent-bg);
 }
 
-/* Checkbox styling for IUCN zones */
+/* Custom checkbox styling matching form-checkbox */
 .explore-map__dropdown-option input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: 4px;
   cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.explore-map__dropdown-option input[type="checkbox"]:hover {
+  border-color: var(--accent);
+}
+
+.explore-map__dropdown-option input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.explore-map__dropdown-option input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Custom radio button styling matching checkbox */
+.explore-map__dropdown-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.explore-map__dropdown-option input[type="radio"]:hover {
+  border-color: var(--accent);
+}
+
+.explore-map__dropdown-option input[type="radio"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.explore-map__dropdown-option input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
 }
 
 /* IUCN color swatch */
@@ -348,29 +420,6 @@
   white-space: nowrap;
 }
 
-/* Style picker icon */
-.explore-map__dropdown-option i:first-child {
-  width: 16px;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-/* Active state for style picker */
-.explore-map__dropdown-option--active {
-  background: var(--bg-hover);
-}
-
-.explore-map__dropdown-option--active .explore-map__dropdown-label {
-  color: var(--accent);
-  font-weight: 500;
-}
-
-/* Checkmark for active style */
-.explore-map__dropdown-option i:last-child {
-  margin-left: auto;
-  color: var(--accent);
-  font-size: var(--text-xs);
-}
 
 /* ========================================
    Protected Area Popup
