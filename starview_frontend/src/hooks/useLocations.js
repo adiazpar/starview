@@ -106,49 +106,110 @@ export function useLocation(id) {
 
 /**
  * Toggle favorite status for a location
- * Uses server response to directly update both caches for instant sync.
+ * Uses optimistic updates for instant UI feedback with rollback on error.
  * @returns {Object} Mutation object with mutate function
  */
 export function useToggleFavorite() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // Force mutation to run even when offline (so we can detect failure and rollback)
+    networkMode: 'always',
     mutationFn: async (locationId) => {
       const response = await locationsApi.toggleFavorite(locationId);
       return { locationId, is_favorited: response.data.is_favorited };
     },
-    onSuccess: ({ locationId, is_favorited }) => {
-      // Update infinite scroll cache (has pages structure)
-      queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (oldData) => {
-        if (!oldData?.pages) return oldData;
+
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    onMutate: async (locationId) => {
+      // Cancel outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['locations'] });
+      await queryClient.cancelQueries({ queryKey: ['mapMarkers'] });
+
+      // Snapshot previous values for rollback (use getQueriesData for partial key matching)
+      const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
+      const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
+      const previousMapMarkers = queryClient.getQueryData(['mapMarkers']);
+
+      // Helper to toggle is_favorited optimistically
+      const toggleFavorite = (loc) =>
+        loc.id === locationId ? { ...loc, is_favorited: !loc.is_favorited } : loc;
+
+      // Optimistically update infinite scroll cache (use setQueriesData for partial key matching)
+      queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (old) => {
+        if (!old?.pages) return old;
         return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
+          ...old,
+          pages: old.pages.map((page) => ({
             ...page,
-            results: page.results.map((loc) =>
-              loc.id === locationId ? { ...loc, is_favorited } : loc
-            ),
+            results: page.results.map(toggleFavorite),
           })),
         };
       });
 
-      // Update paginated cache (flat results structure)
-      queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (oldData) => {
-        if (!oldData?.results) return oldData;
+      // Optimistically update paginated caches
+      queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (old) => {
+        if (!old?.results) return old;
+        return { ...old, results: old.results.map(toggleFavorite) };
+      });
+
+      // Optimistically update map markers cache
+      queryClient.setQueryData(['mapMarkers'], (old) => {
+        if (!old) return old;
+        return old.map(toggleFavorite);
+      });
+
+      // Return context for rollback
+      return { previousInfinite, previousPaginated, previousMapMarkers };
+    },
+
+    // ROLLBACK: Restore previous state on error
+    onError: (err, locationId, context) => {
+      // Restore infinite scroll cache
+      if (context?.previousInfinite) {
+        context.previousInfinite.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      // Restore paginated cache
+      if (context?.previousPaginated) {
+        context.previousPaginated.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      // Restore map markers cache
+      if (context?.previousMapMarkers) {
+        queryClient.setQueryData(['mapMarkers'], context.previousMapMarkers);
+      }
+    },
+
+    // VALIDATE: Ensure cache matches server state (handles race conditions)
+    onSuccess: ({ locationId, is_favorited }) => {
+      const setFavoriteState = (loc) =>
+        loc.id === locationId ? { ...loc, is_favorited } : loc;
+
+      // Update infinite scroll cache with server response
+      queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (old) => {
+        if (!old?.pages) return old;
         return {
-          ...oldData,
-          results: oldData.results.map((loc) =>
-            loc.id === locationId ? { ...loc, is_favorited } : loc
-          ),
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            results: page.results.map(setFavoriteState),
+          })),
         };
       });
 
-      // Update mapMarkers cache (flat array)
-      queryClient.setQueryData(['mapMarkers'], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.map((marker) =>
-          marker.id === locationId ? { ...marker, is_favorited } : marker
-        );
+      // Update paginated cache with server response
+      queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (old) => {
+        if (!old?.results) return old;
+        return { ...old, results: old.results.map(setFavoriteState) };
+      });
+
+      // Update map markers cache with server response
+      queryClient.setQueryData(['mapMarkers'], (old) => {
+        if (!old) return old;
+        return old.map(setFavoriteState);
       });
     },
   });
