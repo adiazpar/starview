@@ -27,6 +27,11 @@
   background: transparent !important;
 }
 
+/* Hide geolocate button (we auto-trigger it, only show the user marker) */
+.explore-map__container .mapboxgl-ctrl-geolocate {
+  display: none;
+}
+
 .explore-map__container--loaded {
   opacity: 1;
 }

@@ -76,9 +76,9 @@ function getLightPreset(lat, lng) {
 // Mapbox access token from environment
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-// Default center (US) if no user location
-const DEFAULT_CENTER = [-98.5795, 39.8283];
-const DEFAULT_ZOOM = 3;
+// Default center (world view) if no user location
+const DEFAULT_CENTER = [0, 20];
+const DEFAULT_ZOOM = 1.5;
 
 // Placeholder image for locations without photos
 const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
@@ -96,6 +96,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
+  const geolocateControlRef = useRef(null); // Mapbox geolocate control
+  const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once
 
   // IUCN filter state (test feature)
   const [showIucnFilter, setShowIucnFilter] = useState(false);
@@ -209,11 +211,21 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     if (map.current) return; // Already initialized
 
+    // Debug: log what values are being used
+    console.log('[ExploreMap] Initializing with:', {
+      initialViewport,
+      userLocation,
+      DEFAULT_CENTER,
+      DEFAULT_ZOOM,
+    });
+
     // Use saved viewport if available, otherwise use user location or defaults
     const center = initialViewport?.center
       || (userLocation ? [userLocation.longitude, userLocation.latitude] : DEFAULT_CENTER);
     const zoom = initialViewport?.zoom
       ?? (userLocation ? 6 : DEFAULT_ZOOM);
+
+    console.log('[ExploreMap] Using center:', center, 'zoom:', zoom);
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -225,6 +237,16 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     // Add compact attribution control (required by Mapbox ToS)
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }));
+
+    // Add geolocate control for user location marker (blue pulsing dot)
+    // We hide the button but keep the marker visible when triggered
+    geolocateControlRef.current = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserLocation: true,
+      showAccuracyCircle: false,
+    });
+    map.current.addControl(geolocateControlRef.current);
 
     // Apply light preset immediately when style loads (before first render)
     // This prevents the flash of day mode when it should be night
@@ -500,8 +522,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
   useEffect(() => {
+    console.log('[ExploreMap] flyTo effect:', { userLocation, mapLoaded, initialViewport, hasFlown: hasFlownToUserRef.current });
     if (hasFlownToUserRef.current) return; // Only fly once
     if (map.current && userLocation && mapLoaded && !initialViewport) {
+      console.log('[ExploreMap] Flying to:', userLocation);
       hasFlownToUserRef.current = true;
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
@@ -511,13 +535,28 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [userLocation, mapLoaded, initialViewport]);
 
+  // Trigger geolocate control to show user location marker when location is available
+  useEffect(() => {
+    if (hasTriggeredGeolocateRef.current) return; // Only trigger once
+    if (geolocateControlRef.current && userLocation && mapLoaded) {
+      hasTriggeredGeolocateRef.current = true;
+      // Trigger after a short delay to ensure control is ready
+      setTimeout(() => {
+        geolocateControlRef.current.trigger();
+      }, 100);
+    }
+  }, [userLocation, mapLoaded]);
+
   // Apply dynamic day/night lighting based on user's location
   useEffect(() => {
-    if (!map.current || !mapLoaded || !userLocation) return;
+    if (!map.current || !mapLoaded) return;
 
     // Calculate and apply the initial light preset
     const updateLighting = () => {
-      const preset = getLightPreset(userLocation.latitude, userLocation.longitude);
+      // Use user's location for accurate sun position, or default to 'day'
+      const preset = userLocation
+        ? getLightPreset(userLocation.latitude, userLocation.longitude)
+        : 'day';
       map.current.setConfigProperty('basemap', 'lightPreset', preset);
 
       // Adjust protected areas opacity based on lighting

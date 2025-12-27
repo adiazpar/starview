@@ -70,7 +70,9 @@ export function useUserLocation() {
       cacheLocation(coords);
       return true;
     } catch (geoError) {
-      // User denied permission or geolocation failed
+      // User denied permission or geolocation failed - clear cache
+      // This ensures we don't use stale location when permission is revoked
+      localStorage.removeItem(CACHE_KEY);
       setError(geoError.message);
       return false;
     }
@@ -84,7 +86,20 @@ export function useUserLocation() {
     const resolveLocation = async () => {
       setIsLoading(true);
 
-      // Check cache first
+      // Check if geolocation permission is denied - if so, clear cache
+      // This handles the case where user revoked permission after it was cached
+      if (navigator.permissions) {
+        try {
+          const permission = await navigator.permissions.query({ name: 'geolocation' });
+          if (permission.state === 'denied') {
+            localStorage.removeItem(CACHE_KEY);
+          }
+        } catch {
+          // Permissions API not supported for geolocation in some browsers
+        }
+      }
+
+      // Check cache (only if permission wasn't denied)
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         try {
