@@ -27,6 +27,59 @@ const IUCN_COLORS = {
   'Not Reported': '#9ca3af', // Unknown - Light Gray
 };
 
+// IUCN category full names for display
+const IUCN_NAMES = {
+  'Ia': 'Strict Nature Reserve',
+  'Ib': 'Wilderness Area',
+  'II': 'National Park',
+  'III': 'Natural Monument',
+  'IV': 'Habitat Management Area',
+  'V': 'Protected Landscape',
+  'VI': 'Sustainable Use Area',
+  'Not Reported': 'Not Classified',
+};
+
+/**
+ * Generate HTML content for protected area popup
+ */
+function getProtectedAreaPopupHTML(properties) {
+  const name = properties.name || 'Unknown Area';
+  const designation = properties.desig || 'Protected Area';
+  const iucnCat = properties.iucn_cat || 'Not Reported';
+  const areaKm2 = properties.area_km2;
+  const color = IUCN_COLORS[iucnCat] || IUCN_COLORS['Not Reported'];
+  const iucnName = IUCN_NAMES[iucnCat] || iucnCat;
+
+  // Format area with appropriate units
+  const areaFormatted = areaKm2
+    ? (areaKm2 >= 1000
+        ? `${(areaKm2 / 1000).toFixed(1)}k km²`
+        : `${Math.round(areaKm2).toLocaleString()} km²`)
+    : null;
+
+  return `
+    <div class="protected-area-popup">
+      <div class="protected-area-popup__header">
+        <span class="protected-area-popup__color" style="background: ${color}"></span>
+        <span class="protected-area-popup__name">${name}</span>
+      </div>
+      <div class="protected-area-popup__designation">${designation}</div>
+      <div class="protected-area-popup__details">
+        <div class="protected-area-popup__row">
+          <span class="protected-area-popup__label">IUCN Category</span>
+          <span class="protected-area-popup__value">${iucnCat} · ${iucnName}</span>
+        </div>
+        ${areaFormatted ? `
+        <div class="protected-area-popup__row">
+          <span class="protected-area-popup__label">Area</span>
+          <span class="protected-area-popup__value">${areaFormatted}</span>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -98,6 +151,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
   const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once
+  const protectedAreaPopupRef = useRef(null); // Popup for protected area info
+  const popupAnchorRef = useRef('bottom'); // Track current popup anchor for edge detection
 
   // IUCN filter state (test feature)
   const [showIucnFilter, setShowIucnFilter] = useState(false);
@@ -156,6 +211,31 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       },
     })),
   }), [markers]);
+
+  // Calculate optimal popup anchor based on cursor position relative to viewport
+  const getOptimalPopupAnchor = useCallback((point) => {
+    if (!mapContainer.current) return 'bottom';
+
+    const rect = mapContainer.current.getBoundingClientRect();
+    const padding = 160; // Approximate popup height + buffer
+
+    const nearTop = point.y < padding;
+    const nearBottom = point.y > rect.height - padding;
+    const nearLeft = point.x < padding;
+    const nearRight = point.x > rect.width - padding;
+
+    // Determine best anchor (popup appears opposite to anchor direction)
+    if (nearTop && nearLeft) return 'top-left';
+    if (nearTop && nearRight) return 'top-right';
+    if (nearBottom && nearLeft) return 'bottom-left';
+    if (nearBottom && nearRight) return 'bottom-right';
+    if (nearTop) return 'top';
+    if (nearBottom) return 'bottom';
+    if (nearLeft) return 'left';
+    if (nearRight) return 'right';
+
+    return 'bottom'; // Default: popup above cursor
+  }, []);
 
   // Memoize helper functions to prevent recreating on every render
   const getLocationSubtitle = useCallback((location) => {
@@ -379,9 +459,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       },
     });
 
-    // Hover interaction - highlight fill on hover
+    // Hover interaction - highlight fill and show popup on hover
     map.current.on('mousemove', 'protected-areas-fill', (e) => {
       if (e.features.length > 0) {
+        const feature = e.features[0];
+
         // Clear previous hover state
         if (hoveredParkIdRef.current !== null) {
           map.current.setFeatureState(
@@ -391,11 +473,60 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         }
 
         // Set new hover state
-        hoveredParkIdRef.current = e.features[0].id;
+        hoveredParkIdRef.current = feature.id;
         map.current.setFeatureState(
           { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
           { hover: true }
         );
+
+        // Calculate optimal anchor based on cursor position
+        const optimalAnchor = getOptimalPopupAnchor(e.point);
+
+        // Recreate popup if anchor needs to change (Mapbox doesn't support changing anchor)
+        if (!protectedAreaPopupRef.current || popupAnchorRef.current !== optimalAnchor) {
+          // Remove existing popup
+          if (protectedAreaPopupRef.current) {
+            protectedAreaPopupRef.current.remove();
+          }
+
+          // Create new popup with correct anchor
+          // Offset direction depends on anchor position to keep arrow pointing at cursor
+          const anchorOffsets = {
+            'top': [0, 10],           // Push popup down
+            'bottom': [0, -10],       // Push popup up
+            'left': [10, 0],          // Push popup right
+            'right': [-10, 0],        // Push popup left
+            'top-left': [10, 10],     // Push popup down-right
+            'top-right': [-10, 10],   // Push popup down-left
+            'bottom-left': [10, -10], // Push popup up-right
+            'bottom-right': [-10, -10], // Push popup up-left
+          };
+          const offset = anchorOffsets[optimalAnchor] || [0, -10];
+
+          protectedAreaPopupRef.current = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            className: 'protected-area-popup-container',
+            maxWidth: '300px',
+            anchor: optimalAnchor,
+            offset: offset,
+          });
+          popupAnchorRef.current = optimalAnchor;
+        }
+
+        // Update popup content and position
+        const popupHTML = getProtectedAreaPopupHTML(feature.properties);
+        protectedAreaPopupRef.current
+          .setLngLat(e.lngLat)
+          .setHTML(popupHTML);
+
+        // Add to map if not already open
+        if (!protectedAreaPopupRef.current.isOpen()) {
+          protectedAreaPopupRef.current.addTo(map.current);
+        }
+
+        // Change cursor to indicate interactivity
+        map.current.getCanvas().style.cursor = 'pointer';
       }
     });
 
@@ -407,6 +538,14 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         );
       }
       hoveredParkIdRef.current = null;
+
+      // Remove popup
+      if (protectedAreaPopupRef.current) {
+        protectedAreaPopupRef.current.remove();
+      }
+
+      // Reset cursor
+      map.current.getCanvas().style.cursor = '';
     });
   }, [mapLoaded]);
 
