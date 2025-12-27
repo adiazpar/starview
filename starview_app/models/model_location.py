@@ -36,12 +36,27 @@ from starview_app.utils import (
 
 
 class Location(models.Model):
+    # Location type choices
+    LOCATION_TYPES = [
+        ('dark_sky_site', 'Dark Sky Site'),
+        ('observatory', 'Observatory'),
+        ('campground', 'Campground'),
+        ('viewpoint', 'Viewpoint'),
+        ('other', 'Other'),
+    ]
+
     # Timestamps:
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     # Basic information:
     name = models.CharField(max_length=200)
+    location_type = models.CharField(
+        max_length=50,
+        choices=LOCATION_TYPES,
+        default='viewpoint',
+        help_text="Type of stargazing location"
+    )
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Geographic data:

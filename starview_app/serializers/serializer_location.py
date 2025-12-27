@@ -51,6 +51,7 @@ class LocationSerializer(serializers.ModelSerializer):
     added_by = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     verified_by = serializers.SerializerMethodField()
+    location_type_display = serializers.SerializerMethodField()
 
     reviews = ReviewSerializer(many=True, read_only=True)  # ⚠️ Returns ALL reviews - see warning above
     average_rating = serializers.SerializerMethodField()
@@ -59,7 +60,8 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'latitude', 'longitude', 'elevation',
+        fields = ['id', 'name', 'location_type', 'location_type_display',
+                  'latitude', 'longitude', 'elevation',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
@@ -79,6 +81,10 @@ class LocationSerializer(serializers.ModelSerializer):
                             'is_verified', 'verification_date', 'verified_by',
                             'times_reported', 'last_visited', 'visitor_count'
                             ]
+
+    def get_location_type_display(self, obj):
+        """Return human-readable location type name."""
+        return obj.get_location_type_display()
 
 
     def get_added_by(self, obj):
@@ -146,15 +152,21 @@ class MapLocationSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    location_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
         fields = [
-            'id', 'name', 'latitude', 'longitude',
+            'id', 'name', 'location_type', 'location_type_display',
+            'latitude', 'longitude',
             'administrative_area', 'country', 'elevation',
             'average_rating', 'review_count', 'is_favorited', 'images'
         ]
         read_only_fields = fields
+
+    def get_location_type_display(self, obj):
+        """Return human-readable location type name."""
+        return obj.get_location_type_display()
 
     def get_is_favorited(self, obj):
         # Use annotation if available, otherwise query
@@ -281,6 +293,7 @@ class LocationListSerializer(serializers.ModelSerializer):
     added_by = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     verified_by = serializers.SerializerMethodField()
+    location_type_display = serializers.SerializerMethodField()
 
     # Use annotations instead of nested reviews to avoid N+1 queries:
     average_rating = serializers.SerializerMethodField()
@@ -290,7 +303,8 @@ class LocationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'latitude', 'longitude', 'elevation',
+        fields = ['id', 'name', 'location_type', 'location_type_display',
+                  'latitude', 'longitude', 'elevation',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
@@ -355,6 +369,10 @@ class LocationListSerializer(serializers.ModelSerializer):
                 'username': obj.verified_by.username
             }
         return None
+
+    def get_location_type_display(self, obj):
+        """Return human-readable location type name."""
+        return obj.get_location_type_display()
 
     def get_images(self, obj):
         """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""

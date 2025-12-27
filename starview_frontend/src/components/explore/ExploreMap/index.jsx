@@ -90,8 +90,7 @@ function getMarkerPopupHTML(properties) {
   const rating = properties.avg_rating;
   const reviewCount = properties.review_count || 0;
   const isFavorited = properties.is_favorited;
-  // Location type - future support for Observatory, Campsite, etc.
-  const locationType = properties.location_type || 'Designated Location';
+  const locationType = properties.location_type_display || 'Viewpoint';
 
   // Format rating display
   const ratingHTML = rating
@@ -292,6 +291,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         id: location.id,
         name: location.name,
         is_favorited: location.is_favorited || false,
+        location_type_display: location.location_type_display || 'Viewpoint',
+        region: location.administrative_area || location.country || '',
+        avg_rating: location.average_rating,
+        review_count: location.review_count || 0,
       },
       geometry: {
         type: 'Point',
@@ -721,6 +724,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           'circle-stroke-color': '#ffffff',
           // Emit light so markers stay bright in night mode
           'circle-emissive-strength': 1,
+          // Align circles with map surface (not viewport) for 3D terrain integration
+          'circle-pitch-alignment': 'map',
+          'circle-pitch-scale': 'map',
         },
       });
 
