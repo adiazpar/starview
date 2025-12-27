@@ -58,6 +58,7 @@ from starview_app.utils import (
     invalidate_location_list,
     invalidate_location_detail,
     invalidate_map_markers,
+    invalidate_user_map_markers,
     invalidate_all_location_caches,
 )
 from django.core.cache import cache
@@ -366,6 +367,9 @@ class LocationViewSet(viewsets.ModelViewSet):
         # Also invalidate the detail cache for this location
         detail_cache_key = f'{location_detail_key(location.id)}:user:{request.user.id}'
         cache.delete(detail_cache_key)
+
+        # Invalidate user's map markers cache so favorites show correctly on refresh
+        invalidate_user_map_markers(request.user.id)
 
         return Response(
             {'is_favorited': is_favorited},

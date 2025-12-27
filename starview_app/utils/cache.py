@@ -96,6 +96,11 @@ def invalidate_map_markers():
     cache.delete(map_markers_key())
 
 
+# Clear cached map markers for a specific user:
+def invalidate_user_map_markers(user_id):
+    cache.delete(f'{map_markers_key()}:user:{user_id}')
+
+
 # ----------------------------------------------------------------------------- #
 # Invalidate all cached review pages for a location.                            #
 #                                                                               #

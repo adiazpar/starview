@@ -13,6 +13,7 @@
 // PMTiles file hosted on Cloudflare R2, contains 270K+ protected areas globally
 const PROTECTED_AREAS_PMTILES_URL = 'https://media.starview.app/data/protected-areas.pmtiles';
 const PROTECTED_AREAS_LAYER = 'protected_areas'; // Layer name set by tippecanoe -l flag
+const PROTECTED_AREAS_MINZOOM = 4; // Sync with layer minzoom for popup cleanup
 
 // IUCN category colors for protected areas
 // Bright, saturated colors that read as UI elements (not geography)
@@ -80,6 +81,36 @@ function getProtectedAreaPopupHTML(properties) {
   `;
 }
 
+/**
+ * Generate HTML content for location marker hover popup
+ */
+function getMarkerPopupHTML(properties) {
+  const name = properties.name || 'Unknown Location';
+  const region = properties.region || '';
+  const rating = properties.avg_rating;
+  const reviewCount = properties.review_count || 0;
+  const isFavorited = properties.is_favorited;
+  // Location type - future support for Observatory, Campsite, etc.
+  const locationType = properties.location_type || 'Designated Location';
+
+  // Format rating display
+  const ratingHTML = rating
+    ? `<i class="fa-solid fa-star"></i> ${rating.toFixed(1)} <span class="marker-popup__reviews">(${reviewCount})</span>`
+    : `<span class="marker-popup__no-rating">No reviews yet</span>`;
+
+  return `
+    <div class="marker-popup">
+      <div class="marker-popup__type">${locationType}</div>
+      <div class="marker-popup__name">${name}</div>
+      ${region ? `<div class="marker-popup__region">${region}</div>` : ''}
+      <div class="marker-popup__meta">
+        <span class="marker-popup__rating ${!rating ? 'marker-popup__rating--empty' : ''}">${ratingHTML}</span>
+        ${isFavorited ? '<span class="marker-popup__favorite"><i class="fa-solid fa-heart"></i></span>' : ''}
+      </div>
+    </div>
+  `;
+}
+
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -133,8 +164,19 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 const DEFAULT_CENTER = [0, 20];
 const DEFAULT_ZOOM = 1.5;
 
-// Placeholder image for locations without photos
-const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
+// Map style options
+const MAP_STYLES = {
+  standard: {
+    url: 'mapbox://styles/mapbox/standard',
+    label: 'Standard',
+    icon: 'fa-map',
+  },
+  satellite: {
+    url: 'mapbox://styles/mapbox/satellite-streets-v12',
+    label: 'Satellite',
+    icon: 'fa-satellite',
+  },
+};
 
 
 function ExploreMap({ initialViewport, onViewportChange }) {
@@ -152,32 +194,58 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
   const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
+  const markerPopupRef = useRef(null); // Popup for location marker hover
+  const markerPopupAnchorRef = useRef('bottom'); // Track marker popup anchor
   const popupAnchorRef = useRef('bottom'); // Track current popup anchor for edge detection
   const controlsRef = useRef(null); // Ref for map controls (click-outside detection)
   const dropdownOpenRef = useRef(false); // Track if any dropdown is open (for popup suppression)
 
   // IUCN filter state (test feature)
   const [showIucnFilter, setShowIucnFilter] = useState(false);
+  const [iucnFilterClosing, setIucnFilterClosing] = useState(false);
   const [selectedIucnCategories, setSelectedIucnCategories] = useState([
     'Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'
   ]); // All selected by default
 
   // Map style state
   const [showStylePicker, setShowStylePicker] = useState(false);
+  const [stylePickerClosing, setStylePickerClosing] = useState(false);
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
+
+  // Dropdown animation duration (sync with CSS --dropdown-animation-duration)
+  const DROPDOWN_ANIMATION_MS = 100;
+
+  // Close dropdown with animation
+  const closeIucnFilter = useCallback(() => {
+    if (!showIucnFilter) return;
+    setIucnFilterClosing(true);
+    setTimeout(() => {
+      setShowIucnFilter(false);
+      setIucnFilterClosing(false);
+    }, DROPDOWN_ANIMATION_MS);
+  }, [showIucnFilter]);
+
+  const closeStylePicker = useCallback(() => {
+    if (!showStylePicker) return;
+    setStylePickerClosing(true);
+    setTimeout(() => {
+      setShowStylePicker(false);
+      setStylePickerClosing(false);
+    }, DROPDOWN_ANIMATION_MS);
+  }, [showStylePicker]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (controlsRef.current && !controlsRef.current.contains(e.target)) {
-        setShowIucnFilter(false);
-        setShowStylePicker(false);
+        closeIucnFilter();
+        closeStylePicker();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [closeIucnFilter, closeStylePicker]);
 
   // Keep dropdown ref in sync for popup suppression
   useEffect(() => {
@@ -275,10 +343,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     );
   }, [userLocation]);
 
-  // Helper to close protected area popup
-  const closeProtectedAreaPopup = useCallback(() => {
+  // Helper to close all map popups
+  const closeMapPopups = useCallback(() => {
     if (protectedAreaPopupRef.current) {
       protectedAreaPopupRef.current.remove();
+    }
+    if (markerPopupRef.current) {
+      markerPopupRef.current.remove();
     }
   }, []);
 
@@ -521,8 +592,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           { hover: true }
         );
 
-        // Don't show protected area popup if location card is visible or dropdown is open
-        if (selectedIdRef.current !== null || dropdownOpenRef.current) {
+        // Don't show protected area popup if location card is visible, dropdown is open, or marker popup is visible
+        if (selectedIdRef.current !== null || dropdownOpenRef.current || (markerPopupRef.current && markerPopupRef.current.isOpen())) {
           map.current.getCanvas().style.cursor = 'pointer';
           return;
         }
@@ -595,6 +666,26 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       // Reset cursor
       map.current.getCanvas().style.cursor = '';
     });
+
+    // Close protected area popup when zooming past the layer's minzoom threshold
+    // This prevents orphaned popups when user zooms out without moving cursor
+    map.current.on('zoom', () => {
+      if (map.current.getZoom() < PROTECTED_AREAS_MINZOOM) {
+        if (protectedAreaPopupRef.current) {
+          protectedAreaPopupRef.current.remove();
+        }
+        // Clear hover state since layer is no longer visible
+        if (hoveredParkIdRef.current !== null) {
+          map.current.setFeatureState(
+            { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
+            { hover: false }
+          );
+          hoveredParkIdRef.current = null;
+        }
+        // Reset cursor to default
+        map.current.getCanvas().style.cursor = '';
+      }
+    });
   }, [mapLoaded]);
 
   // Add/update markers when data changes
@@ -639,11 +730,14 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         const id = feature.properties.id;
         const coordinates = feature.geometry.coordinates;
 
-        // Close dropdowns and protected area popup when clicking a location marker
+        // Close dropdowns and popups when clicking a location marker
         setShowIucnFilter(false);
         setShowStylePicker(false);
         if (protectedAreaPopupRef.current) {
           protectedAreaPopupRef.current.remove();
+        }
+        if (markerPopupRef.current) {
+          markerPopupRef.current.remove();
         }
 
         // Calculate offset to center marker in visible area above the card
@@ -693,13 +787,66 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         }
       });
 
-      // Change cursor on hover
-      map.current.on('mouseenter', 'location-markers', () => {
+      // Show popup on marker hover
+      map.current.on('mouseenter', 'location-markers', (e) => {
         map.current.getCanvas().style.cursor = 'pointer';
+
+        // Don't show popup if location card is visible or dropdown is open
+        if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
+
+        // Close protected area popup when hovering a marker
+        if (protectedAreaPopupRef.current) {
+          protectedAreaPopupRef.current.remove();
+        }
+
+        if (e.features.length > 0) {
+          const feature = e.features[0];
+          const coordinates = feature.geometry.coordinates.slice();
+
+          // Calculate optimal anchor based on cursor position
+          const optimalAnchor = getOptimalPopupAnchor(e.point);
+
+          // Recreate popup if anchor needs to change
+          if (!markerPopupRef.current || markerPopupAnchorRef.current !== optimalAnchor) {
+            if (markerPopupRef.current) {
+              markerPopupRef.current.remove();
+            }
+
+            const anchorOffsets = {
+              'top': [0, 10],
+              'bottom': [0, -15],
+              'left': [15, 0],
+              'right': [-15, 0],
+              'top-left': [10, 10],
+              'top-right': [-10, 10],
+              'bottom-left': [10, -10],
+              'bottom-right': [-10, -10],
+            };
+            const offset = anchorOffsets[optimalAnchor] || [0, -15];
+
+            markerPopupRef.current = new mapboxgl.Popup({
+              closeButton: false,
+              closeOnClick: false,
+              className: 'marker-popup-container',
+              maxWidth: '250px',
+              anchor: optimalAnchor,
+              offset: offset,
+            });
+            markerPopupAnchorRef.current = optimalAnchor;
+          }
+
+          markerPopupRef.current
+            .setLngLat(coordinates)
+            .setHTML(getMarkerPopupHTML(feature.properties))
+            .addTo(map.current);
+        }
       });
 
       map.current.on('mouseleave', 'location-markers', () => {
         map.current.getCanvas().style.cursor = '';
+        if (markerPopupRef.current) {
+          markerPopupRef.current.remove();
+        }
       });
     }
   }, [geojson, mapLoaded, isLoading]);
@@ -810,32 +957,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     });
   }, []);
 
-  // IUCN category labels for display
-  const IUCN_LABELS = {
-    'Ia': 'Strict Nature Reserve',
-    'Ib': 'Wilderness Area',
-    'II': 'National Park',
-    'III': 'Natural Monument',
-    'IV': 'Habitat Management',
-    'V': 'Protected Landscape',
-    'VI': 'Sustainable Use',
-    'Not Reported': 'Not Reported',
-  };
-
-  // Map style options
-  const MAP_STYLES = {
-    standard: {
-      url: 'mapbox://styles/mapbox/standard',
-      label: 'Standard',
-      icon: 'fa-map',
-    },
-    satellite: {
-      url: 'mapbox://styles/mapbox/satellite-streets-v12',
-      label: 'Satellite',
-      icon: 'fa-satellite',
-    },
-  };
-
   // Handle map style change
   const handleStyleChange = useCallback((styleKey) => {
     if (!map.current || styleKey === mapStyle) return;
@@ -895,18 +1016,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     <div className="explore-map">
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
-      {/* Map Controls */}
-      <div className="explore-map__controls" ref={controlsRef}>
+      {/* Map Controls - stagger delay: 0.3s base + 0.15s per item */}
+      <div className={`explore-map__controls ${mapLoaded ? 'explore-map__controls--loaded' : ''}`} ref={controlsRef}>
         {/* IUCN Filter */}
-        <div className="explore-map__control">
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
           <button
             className={`explore-map__control-btn ${showIucnFilter ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
-              const opening = !showIucnFilter;
-              setShowIucnFilter(opening);
-              setShowStylePicker(false);
-              // Close protected area popup when opening dropdown
-              if (opening) closeProtectedAreaPopup();
+              if (showIucnFilter) {
+                closeIucnFilter();
+              } else {
+                setShowIucnFilter(true);
+                closeStylePicker();
+                closeMapPopups();
+              }
             }}
             aria-label="Filter zones"
           >
@@ -914,8 +1037,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           </button>
 
           {showIucnFilter && (
-            <div className="explore-map__dropdown">
-              {Object.entries(IUCN_LABELS).map(([code, label]) => (
+            <div className={`explore-map__dropdown ${iucnFilterClosing ? 'explore-map__dropdown--closing' : ''}`}>
+              {Object.entries(IUCN_NAMES).map(([code, label]) => (
                 <label key={code} className="explore-map__dropdown-option">
                   <input
                     type="checkbox"
@@ -934,15 +1057,17 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         </div>
 
         {/* Style Picker */}
-        <div className="explore-map__control">
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.45s' }}>
           <button
             className={`explore-map__control-btn ${showStylePicker ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
-              const opening = !showStylePicker;
-              setShowStylePicker(opening);
-              setShowIucnFilter(false);
-              // Close protected area popup when opening dropdown
-              if (opening) closeProtectedAreaPopup();
+              if (showStylePicker) {
+                closeStylePicker();
+              } else {
+                setShowStylePicker(true);
+                closeIucnFilter();
+                closeMapPopups();
+              }
             }}
             aria-label="Change map style"
           >
@@ -950,7 +1075,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           </button>
 
           {showStylePicker && (
-            <div className="explore-map__dropdown">
+            <div className={`explore-map__dropdown ${stylePickerClosing ? 'explore-map__dropdown--closing' : ''}`}>
               {Object.entries(MAP_STYLES).map(([key, style]) => (
                 <label key={key} className="explore-map__dropdown-option">
                   <input
