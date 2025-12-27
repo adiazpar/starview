@@ -252,6 +252,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]); // Store markers for click handler lookup
+  const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
   const selectedIdRef = useRef(null); // Track selected ID for click handler
   const userLocationRef = useRef(null); // For accessing location in event handlers
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -321,35 +322,29 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     dropdownOpenRef.current = showIucnFilter || showStylePicker;
   }, [showIucnFilter, showStylePicker]);
 
-  const { markers, isLoading, isError } = useMapMarkers();
+  const { markers, markerMap, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
 
   // Update selectedLocation when markers change (keeps card in sync with cache)
   useEffect(() => {
-    if (selectedLocation && markers.length > 0) {
-      const updatedMarker = markers.find((m) => m.id === selectedLocation.id);
+    if (selectedLocation && markerMap.size > 0) {
+      // O(1) lookup using markerMap instead of .find()
+      const updatedMarker = markerMap.get(selectedLocation.id);
       if (updatedMarker && updatedMarker.is_favorited !== selectedLocation.is_favorited) {
         setSelectedLocation(updatedMarker);
       }
     }
-  }, [markers, selectedLocation]);
+  }, [markerMap, selectedLocation]);
 
-  // Keep markersRef in sync with markers data
+  // Consolidated ref sync - all refs updated in single effect to reduce render cycles
   useEffect(() => {
     markersRef.current = markers;
-  }, [markers]);
-
-  // Keep selectedIdRef in sync with selectedLocation
-  useEffect(() => {
+    markerMapRef.current = markerMap;
     selectedIdRef.current = selectedLocation?.id || null;
-  }, [selectedLocation]);
-
-  // Keep userLocationRef in sync for event handlers
-  useEffect(() => {
     userLocationRef.current = userLocation;
-  }, [userLocation]);
+  }, [markers, markerMap, selectedLocation?.id, userLocation]);
 
 
   // Memoize GeoJSON generation to prevent recreating objects on every render
@@ -649,8 +644,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       },
     });
 
-    // Hover interaction - highlight fill and show popup on hover
-    map.current.on('mousemove', 'protected-areas-fill', (e) => {
+    // Define event handlers as named functions for cleanup
+    const handleProtectedAreaMouseMove = (e) => {
       if (e.features.length > 0) {
         const feature = e.features[0];
 
@@ -724,9 +719,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         // Change cursor to indicate interactivity
         map.current.getCanvas().style.cursor = 'pointer';
       }
-    });
+    };
 
-    map.current.on('mouseleave', 'protected-areas-fill', () => {
+    const handleProtectedAreaMouseLeave = () => {
       if (hoveredParkIdRef.current !== null) {
         map.current.setFeatureState(
           { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
@@ -742,11 +737,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
       // Reset cursor
       map.current.getCanvas().style.cursor = '';
-    });
+    };
 
     // Close protected area popup when zooming past the layer's minzoom threshold
-    // This prevents orphaned popups when user zooms out without moving cursor
-    map.current.on('zoom', () => {
+    const handleZoomForProtectedAreas = () => {
       if (map.current.getZoom() < PROTECTED_AREAS_MINZOOM) {
         if (protectedAreaPopupRef.current) {
           protectedAreaPopupRef.current.remove();
@@ -762,368 +756,371 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         // Reset cursor to default
         map.current.getCanvas().style.cursor = '';
       }
-    });
+    };
+
+    // Register event handlers
+    map.current.on('mousemove', 'protected-areas-fill', handleProtectedAreaMouseMove);
+    map.current.on('mouseleave', 'protected-areas-fill', handleProtectedAreaMouseLeave);
+    map.current.on('zoom', handleZoomForProtectedAreas);
+
+    // Cleanup: remove event listeners when effect re-runs or component unmounts
+    return () => {
+      if (map.current) {
+        map.current.off('mousemove', 'protected-areas-fill', handleProtectedAreaMouseMove);
+        map.current.off('mouseleave', 'protected-areas-fill', handleProtectedAreaMouseLeave);
+        map.current.off('zoom', handleZoomForProtectedAreas);
+      }
+    };
   }, [mapLoaded]);
 
-  // Add/update markers when data changes
+  // Ref to track if marker event handlers are registered (for cleanup)
+  const markerHandlersRef = useRef(null);
+
+  // Add/update markers when data changes - SEPARATED: data updates only
   useEffect(() => {
     if (!map.current || !mapLoaded || isLoading || markers.length === 0) return;
 
-    // Check if source already exists
+    // If source exists, just update data
     if (map.current.getSource('locations')) {
-      // Update existing source with memoized geojson
       map.current.getSource('locations').setData(geojson);
-    } else {
-      // Add new source with clustering enabled
-      map.current.addSource('locations', {
-        type: 'geojson',
-        data: geojson,
-        cluster: true,
-        clusterMaxZoom: CLUSTER_CONFIG.maxZoom,
-        clusterRadius: CLUSTER_CONFIG.radius,
-      });
-
-      // Load location type icons into the map (async)
-      const loadIcons = async () => {
-        for (const [type, svgString] of Object.entries(LOCATION_TYPE_ICONS)) {
-          const imageData = await loadIconImage(svgString, 24);
-          if (map.current && !map.current.hasImage(`icon-${type}`)) {
-            map.current.addImage(`icon-${type}`, imageData);
-          }
-        }
-      };
-      loadIcons();
-
-      // Add cluster circle layer (larger circles with count-based styling)
-      map.current.addLayer({
-        id: 'location-clusters',
-        type: 'circle',
-        source: 'locations',
-        filter: ['has', 'point_count'], // Only show clusters
-        paint: {
-          // Size based on point_count
-          'circle-radius': [
-            'step',
-            ['get', 'point_count'],
-            CLUSTER_CONFIG.sizes.small,   // Default size for 2-9
-            10, CLUSTER_CONFIG.sizes.medium, // 10+ locations
-            50, CLUSTER_CONFIG.sizes.large,  // 50+ locations
-          ],
-          // Color based on point_count
-          'circle-color': [
-            'step',
-            ['get', 'point_count'],
-            CLUSTER_CONFIG.colors.small,   // Default color for 2-9
-            10, CLUSTER_CONFIG.colors.medium, // 10+ locations
-            50, CLUSTER_CONFIG.colors.large,  // 50+ locations
-          ],
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#ffffff',
-          'circle-emissive-strength': 1,
-          'circle-pitch-alignment': 'map',
-          'circle-pitch-scale': 'map',
-          // Disable transitions for instant cluster disappearance
-          'circle-opacity-transition': { duration: 0 },
-          'circle-radius-transition': { duration: 0 },
-        },
-      });
-
-      // Add cluster count label layer
-      map.current.addLayer({
-        id: 'location-cluster-count',
-        type: 'symbol',
-        source: 'locations',
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
-          'text-allow-overlap': true,
-        },
-        paint: {
-          'text-color': '#ffffff',
-          'text-emissive-strength': 1,
-          // Disable transition for instant disappearance when cluster breaks apart
-          'text-opacity-transition': { duration: 0 },
-        },
-      });
-
-      // Add circle layer for individual markers (unclustered points)
-      map.current.addLayer({
-        id: 'location-markers',
-        type: 'circle',
-        source: 'locations',
-        filter: ['!', ['has', 'point_count']], // Only show unclustered points
-        paint: {
-          'circle-radius': 12,
-          // Pink for favorited, blue for regular
-          'circle-color': [
-            'case',
-            ['get', 'is_favorited'],
-            '#ec4899', // pink-500 for favorites
-            '#3b82f6', // blue-500 for regular
-          ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff',
-          // Emit light so markers stay bright in night mode
-          'circle-emissive-strength': 1,
-          // Align circles with map surface (not viewport) for 3D terrain integration
-          'circle-pitch-alignment': 'map',
-          'circle-pitch-scale': 'map',
-        },
-      });
-
-      // Add icon layer on top of markers (based on location_type)
-      map.current.addLayer({
-        id: 'location-marker-icons',
-        type: 'symbol',
-        source: 'locations',
-        filter: ['!', ['has', 'point_count']], // Only show unclustered points
-        layout: {
-          'icon-image': [
-            'match',
-            ['get', 'location_type'],
-            'dark_sky_site', 'icon-dark_sky_site',
-            'observatory', 'icon-observatory',
-            'campground', 'icon-campground',
-            'viewpoint', 'icon-viewpoint',
-            'icon-other', // fallback
-          ],
-          'icon-size': 0.5,
-          'icon-allow-overlap': true,
-        },
-      });
-
-      // Handle click on clusters - zoom to expand
-      map.current.on('click', 'location-clusters', (e) => {
-        const features = map.current.queryRenderedFeatures(e.point, {
-          layers: ['location-clusters'],
-        });
-        const clusterId = features[0].properties.cluster_id;
-
-        map.current.getSource('locations').getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
-
-          // Zoom past the break-apart threshold with smooth animation
-          map.current.easeTo({
-            center: features[0].geometry.coordinates,
-            zoom: zoom + 0.5,
-            duration: 400,
-          });
-        });
-      });
-
-      // Handle hover on clusters - show count popup
-      map.current.on('mouseenter', 'location-clusters', (e) => {
-        map.current.getCanvas().style.cursor = 'pointer';
-
-        // Don't show popup if location card is visible or dropdown is open
-        if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
-
-        const feature = e.features[0];
-        const count = feature.properties.point_count;
-        const coordinates = feature.geometry.coordinates.slice();
-
-        // Close other popups
-        if (protectedAreaPopupRef.current) {
-          protectedAreaPopupRef.current.remove();
-        }
-        if (markerPopupRef.current) {
-          markerPopupRef.current.remove();
-        }
-
-        // Create cluster popup
-        markerPopupRef.current = new mapboxgl.Popup({
-          closeButton: false,
-          closeOnClick: false,
-          anchor: 'bottom',
-          offset: [0, -10],
-          className: 'cluster-popup-container',
-        })
-          .setLngLat(coordinates)
-          .setHTML(`<div class="cluster-popup">${count} locations</div>`)
-          .addTo(map.current);
-      });
-
-      map.current.on('mouseleave', 'location-clusters', () => {
-        map.current.getCanvas().style.cursor = '';
-        if (markerPopupRef.current) {
-          markerPopupRef.current.remove();
-        }
-      });
-
-      // Handle click on markers - use cached data (no API call needed)
-      map.current.on('click', 'location-markers', (e) => {
-        const feature = e.features[0];
-        const id = feature.properties.id;
-        const coordinates = feature.geometry.coordinates;
-
-        // Close dropdowns and popups when clicking a location marker
-        setShowIucnFilter(false);
-        setShowStylePicker(false);
-        if (protectedAreaPopupRef.current) {
-          protectedAreaPopupRef.current.remove();
-        }
-        if (markerPopupRef.current) {
-          markerPopupRef.current.remove();
-        }
-
-        // Calculate offset to center marker in visible area above the card
-        // Card takes ~45% of viewport, so we offset the center point upward
-        const cardHeight = Math.min(window.innerHeight * 0.45, 400);
-
-        // Project marker coordinates to pixel position
-        const markerPixel = map.current.project(coordinates);
-
-        // Calculate where we want the marker: center of area above card
-        // Offset = half the card height (shifts center point down so marker appears higher)
-        const offsetPixel = {
-          x: markerPixel.x,
-          y: markerPixel.y + (cardHeight / 2),
-        };
-
-        // Convert back to coordinates - this is where the map center should be
-        const offsetCenter = map.current.unproject(offsetPixel);
-
-        // Fly to the offset center (no padding, no zoom change)
-        map.current.flyTo({
-          center: [offsetCenter.lng, offsetCenter.lat],
-          duration: 500,
-        });
-
-        // Skip card update if same marker is already selected
-        if (selectedIdRef.current === id) return;
-
-        // Find location in cached markers data
-        const location = markersRef.current.find((m) => m.id === id);
-        if (location) {
-          // Check if a card is already open (switching) or first open
-          const isAlreadyOpen = !!document.querySelector('.explore-map__card');
-
-          if (isAlreadyOpen) {
-            // Use fade animation when switching between markers
-            setIsSwitching(true);
-            setIsCardVisible(false);
-            setTimeout(() => {
-              setSelectedLocation(location);
-              setIsSwitching(false);
-            }, 150);
-          } else {
-            // Instant open for first marker click
-            setSelectedLocation(location);
-          }
-        }
-      });
-
-      // Show popup on marker hover
-      map.current.on('mouseenter', 'location-markers', (e) => {
-        map.current.getCanvas().style.cursor = 'pointer';
-
-        // Don't show popup if location card is visible or dropdown is open
-        if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
-
-        // Close protected area popup when hovering a marker
-        if (protectedAreaPopupRef.current) {
-          protectedAreaPopupRef.current.remove();
-        }
-
-        if (e.features.length > 0) {
-          const feature = e.features[0];
-          const coordinates = feature.geometry.coordinates.slice();
-
-          // Calculate optimal anchor based on cursor position
-          const optimalAnchor = getOptimalPopupAnchor(e.point);
-
-          // Recreate popup if anchor needs to change
-          if (!markerPopupRef.current || markerPopupAnchorRef.current !== optimalAnchor) {
-            if (markerPopupRef.current) {
-              markerPopupRef.current.remove();
-            }
-
-            const anchorOffsets = {
-              'top': [0, 10],
-              'bottom': [0, -15],
-              'left': [15, 0],
-              'right': [-15, 0],
-              'top-left': [10, 10],
-              'top-right': [-10, 10],
-              'bottom-left': [10, -10],
-              'bottom-right': [-10, -10],
-            };
-            const offset = anchorOffsets[optimalAnchor] || [0, -15];
-
-            markerPopupRef.current = new mapboxgl.Popup({
-              closeButton: false,
-              closeOnClick: false,
-              className: 'marker-popup-container',
-              maxWidth: '250px',
-              anchor: optimalAnchor,
-              offset: offset,
-            });
-            markerPopupAnchorRef.current = optimalAnchor;
-          }
-
-          markerPopupRef.current
-            .setLngLat(coordinates)
-            .setHTML(getMarkerPopupHTML(feature.properties))
-            .addTo(map.current);
-        }
-      });
-
-      map.current.on('mouseleave', 'location-markers', () => {
-        map.current.getCanvas().style.cursor = '';
-        if (markerPopupRef.current) {
-          markerPopupRef.current.remove();
-        }
-      });
-
-      // Icon layer click handler - replicates marker click behavior
-      map.current.on('click', 'location-marker-icons', (e) => {
-        const feature = e.features[0];
-        const id = feature.properties.id;
-        const coordinates = feature.geometry.coordinates;
-
-        // Close dropdowns and popups
-        setShowIucnFilter(false);
-        setShowStylePicker(false);
-        if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
-        if (markerPopupRef.current) markerPopupRef.current.remove();
-
-        // Calculate offset for card
-        const cardHeight = Math.min(window.innerHeight * 0.45, 400);
-        const markerPixel = map.current.project(coordinates);
-        const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
-        const offsetCenter = map.current.unproject(offsetPixel);
-
-        map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
-
-        if (selectedIdRef.current === id) return;
-
-        const location = markersRef.current.find((m) => m.id === id);
-        if (location) {
-          const isAlreadyOpen = !!document.querySelector('.explore-map__card');
-          if (isAlreadyOpen) {
-            setIsSwitching(true);
-            setIsCardVisible(false);
-            setTimeout(() => {
-              setSelectedLocation(location);
-              setIsSwitching(false);
-            }, 150);
-          } else {
-            setSelectedLocation(location);
-          }
-        }
-      });
-
-      map.current.on('mouseenter', 'location-marker-icons', () => {
-        map.current.getCanvas().style.cursor = 'pointer';
-      });
-
-      map.current.on('mouseleave', 'location-marker-icons', () => {
-        map.current.getCanvas().style.cursor = '';
-      });
     }
   }, [geojson, mapLoaded, isLoading]);
+
+  // Setup marker layers and event handlers - SEPARATED: one-time setup
+  useEffect(() => {
+    if (!map.current || !mapLoaded || markers.length === 0) return;
+
+    // Skip if source already exists (layers already set up)
+    if (map.current.getSource('locations')) return;
+
+    // Add new source with clustering enabled
+    map.current.addSource('locations', {
+      type: 'geojson',
+      data: geojson,
+      cluster: true,
+      clusterMaxZoom: CLUSTER_CONFIG.maxZoom,
+      clusterRadius: CLUSTER_CONFIG.radius,
+    });
+
+    // Load location type icons into the map (async)
+    const loadIcons = async () => {
+      for (const [type, svgString] of Object.entries(LOCATION_TYPE_ICONS)) {
+        const imageData = await loadIconImage(svgString, 24);
+        if (map.current && !map.current.hasImage(`icon-${type}`)) {
+          map.current.addImage(`icon-${type}`, imageData);
+        }
+      }
+    };
+    loadIcons();
+
+    // Add cluster circle layer (larger circles with count-based styling)
+    map.current.addLayer({
+      id: 'location-clusters',
+      type: 'circle',
+      source: 'locations',
+      filter: ['has', 'point_count'], // Only show clusters
+      paint: {
+        // Size based on point_count
+        'circle-radius': [
+          'step',
+          ['get', 'point_count'],
+          CLUSTER_CONFIG.sizes.small,   // Default size for 2-9
+          10, CLUSTER_CONFIG.sizes.medium, // 10+ locations
+          50, CLUSTER_CONFIG.sizes.large,  // 50+ locations
+        ],
+        // Color based on point_count
+        'circle-color': [
+          'step',
+          ['get', 'point_count'],
+          CLUSTER_CONFIG.colors.small,   // Default color for 2-9
+          10, CLUSTER_CONFIG.colors.medium, // 10+ locations
+          50, CLUSTER_CONFIG.colors.large,  // 50+ locations
+        ],
+        'circle-stroke-width': 3,
+        'circle-stroke-color': '#ffffff',
+        'circle-emissive-strength': 1,
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
+        // Disable transitions for instant cluster disappearance
+        'circle-opacity-transition': { duration: 0 },
+        'circle-radius-transition': { duration: 0 },
+      },
+    });
+
+    // Add cluster count label layer
+    map.current.addLayer({
+      id: 'location-cluster-count',
+      type: 'symbol',
+      source: 'locations',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': ['get', 'point_count_abbreviated'],
+        'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 12,
+        'text-allow-overlap': true,
+      },
+      paint: {
+        'text-color': '#ffffff',
+        'text-emissive-strength': 1,
+        // Disable transition for instant disappearance when cluster breaks apart
+        'text-opacity-transition': { duration: 0 },
+      },
+    });
+
+    // Add circle layer for individual markers (unclustered points)
+    map.current.addLayer({
+      id: 'location-markers',
+      type: 'circle',
+      source: 'locations',
+      filter: ['!', ['has', 'point_count']], // Only show unclustered points
+      paint: {
+        'circle-radius': 12,
+        // Pink for favorited, blue for regular
+        'circle-color': [
+          'case',
+          ['get', 'is_favorited'],
+          '#ec4899', // pink-500 for favorites
+          '#3b82f6', // blue-500 for regular
+        ],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+        // Emit light so markers stay bright in night mode
+        'circle-emissive-strength': 1,
+        // Align circles with map surface (not viewport) for 3D terrain integration
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
+      },
+    });
+
+    // Add icon layer on top of markers (based on location_type)
+    map.current.addLayer({
+      id: 'location-marker-icons',
+      type: 'symbol',
+      source: 'locations',
+      filter: ['!', ['has', 'point_count']], // Only show unclustered points
+      layout: {
+        'icon-image': [
+          'match',
+          ['get', 'location_type'],
+          'dark_sky_site', 'icon-dark_sky_site',
+          'observatory', 'icon-observatory',
+          'campground', 'icon-campground',
+          'viewpoint', 'icon-viewpoint',
+          'icon-other', // fallback
+        ],
+        'icon-size': 0.5,
+        'icon-allow-overlap': true,
+      },
+    });
+
+    // Define named event handlers for cleanup
+    const handleClusterClick = (e) => {
+      const features = map.current.queryRenderedFeatures(e.point, {
+        layers: ['location-clusters'],
+      });
+      const clusterId = features[0].properties.cluster_id;
+
+      map.current.getSource('locations').getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+        map.current.easeTo({
+          center: features[0].geometry.coordinates,
+          zoom: zoom + 0.5,
+          duration: 400,
+        });
+      });
+    };
+
+    const handleClusterMouseEnter = (e) => {
+      map.current.getCanvas().style.cursor = 'pointer';
+      if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
+
+      const feature = e.features[0];
+      const count = feature.properties.point_count;
+      const coordinates = feature.geometry.coordinates.slice();
+
+      if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
+      if (markerPopupRef.current) markerPopupRef.current.remove();
+
+      markerPopupRef.current = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        anchor: 'bottom',
+        offset: [0, -10],
+        className: 'cluster-popup-container',
+      })
+        .setLngLat(coordinates)
+        .setHTML(`<div class="cluster-popup">${count} locations</div>`)
+        .addTo(map.current);
+    };
+
+    const handleClusterMouseLeave = () => {
+      map.current.getCanvas().style.cursor = '';
+      if (markerPopupRef.current) markerPopupRef.current.remove();
+    };
+
+    const handleMarkerClick = (e) => {
+      const feature = e.features[0];
+      const id = feature.properties.id;
+      const coordinates = feature.geometry.coordinates;
+
+      setShowIucnFilter(false);
+      setShowStylePicker(false);
+      if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
+      if (markerPopupRef.current) markerPopupRef.current.remove();
+
+      const cardHeight = Math.min(window.innerHeight * 0.45, 400);
+      const markerPixel = map.current.project(coordinates);
+      const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
+      const offsetCenter = map.current.unproject(offsetPixel);
+
+      map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
+
+      if (selectedIdRef.current === id) return;
+
+      // O(1) lookup using markerMapRef instead of .find()
+      const location = markerMapRef.current.get(id);
+      if (location) {
+        const isAlreadyOpen = !!document.querySelector('.explore-map__card');
+        if (isAlreadyOpen) {
+          setIsSwitching(true);
+          setIsCardVisible(false);
+          setTimeout(() => {
+            setSelectedLocation(location);
+            setIsSwitching(false);
+          }, 150);
+        } else {
+          setSelectedLocation(location);
+        }
+      }
+    };
+
+    const handleMarkerMouseEnter = (e) => {
+      map.current.getCanvas().style.cursor = 'pointer';
+      if (selectedIdRef.current !== null || dropdownOpenRef.current) return;
+      if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
+
+      if (e.features.length > 0) {
+        const feature = e.features[0];
+        const coordinates = feature.geometry.coordinates.slice();
+        const optimalAnchor = getOptimalPopupAnchor(e.point);
+
+        if (!markerPopupRef.current || markerPopupAnchorRef.current !== optimalAnchor) {
+          if (markerPopupRef.current) markerPopupRef.current.remove();
+
+          const anchorOffsets = {
+            'top': [0, 10], 'bottom': [0, -15], 'left': [15, 0], 'right': [-15, 0],
+            'top-left': [10, 10], 'top-right': [-10, 10],
+            'bottom-left': [10, -10], 'bottom-right': [-10, -10],
+          };
+          const offset = anchorOffsets[optimalAnchor] || [0, -15];
+
+          markerPopupRef.current = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            className: 'marker-popup-container',
+            maxWidth: '250px',
+            anchor: optimalAnchor,
+            offset: offset,
+          });
+          markerPopupAnchorRef.current = optimalAnchor;
+        }
+
+        markerPopupRef.current
+          .setLngLat(coordinates)
+          .setHTML(getMarkerPopupHTML(feature.properties))
+          .addTo(map.current);
+      }
+    };
+
+    const handleMarkerMouseLeave = () => {
+      map.current.getCanvas().style.cursor = '';
+      if (markerPopupRef.current) markerPopupRef.current.remove();
+    };
+
+    const handleIconClick = (e) => {
+      const feature = e.features[0];
+      const id = feature.properties.id;
+      const coordinates = feature.geometry.coordinates;
+
+      setShowIucnFilter(false);
+      setShowStylePicker(false);
+      if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
+      if (markerPopupRef.current) markerPopupRef.current.remove();
+
+      const cardHeight = Math.min(window.innerHeight * 0.45, 400);
+      const markerPixel = map.current.project(coordinates);
+      const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
+      const offsetCenter = map.current.unproject(offsetPixel);
+
+      map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
+
+      if (selectedIdRef.current === id) return;
+
+      // O(1) lookup using markerMapRef instead of .find()
+      const location = markerMapRef.current.get(id);
+      if (location) {
+        const isAlreadyOpen = !!document.querySelector('.explore-map__card');
+        if (isAlreadyOpen) {
+          setIsSwitching(true);
+          setIsCardVisible(false);
+          setTimeout(() => {
+            setSelectedLocation(location);
+            setIsSwitching(false);
+          }, 150);
+        } else {
+          setSelectedLocation(location);
+        }
+      }
+    };
+
+    const handleIconMouseEnter = () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    };
+
+    const handleIconMouseLeave = () => {
+      map.current.getCanvas().style.cursor = '';
+    };
+
+    // Register all event handlers
+    map.current.on('click', 'location-clusters', handleClusterClick);
+    map.current.on('mouseenter', 'location-clusters', handleClusterMouseEnter);
+    map.current.on('mouseleave', 'location-clusters', handleClusterMouseLeave);
+    map.current.on('click', 'location-markers', handleMarkerClick);
+    map.current.on('mouseenter', 'location-markers', handleMarkerMouseEnter);
+    map.current.on('mouseleave', 'location-markers', handleMarkerMouseLeave);
+    map.current.on('click', 'location-marker-icons', handleIconClick);
+    map.current.on('mouseenter', 'location-marker-icons', handleIconMouseEnter);
+    map.current.on('mouseleave', 'location-marker-icons', handleIconMouseLeave);
+
+    // Store handlers ref for cleanup
+    markerHandlersRef.current = {
+      handleClusterClick,
+      handleClusterMouseEnter,
+      handleClusterMouseLeave,
+      handleMarkerClick,
+      handleMarkerMouseEnter,
+      handleMarkerMouseLeave,
+      handleIconClick,
+      handleIconMouseEnter,
+      handleIconMouseLeave,
+    };
+
+    // Cleanup: remove event listeners
+    return () => {
+      if (map.current && markerHandlersRef.current) {
+        const h = markerHandlersRef.current;
+        map.current.off('click', 'location-clusters', h.handleClusterClick);
+        map.current.off('mouseenter', 'location-clusters', h.handleClusterMouseEnter);
+        map.current.off('mouseleave', 'location-clusters', h.handleClusterMouseLeave);
+        map.current.off('click', 'location-markers', h.handleMarkerClick);
+        map.current.off('mouseenter', 'location-markers', h.handleMarkerMouseEnter);
+        map.current.off('mouseleave', 'location-markers', h.handleMarkerMouseLeave);
+        map.current.off('click', 'location-marker-icons', h.handleIconClick);
+        map.current.off('mouseenter', 'location-marker-icons', h.handleIconMouseEnter);
+        map.current.off('mouseleave', 'location-marker-icons', h.handleIconMouseLeave);
+      }
+    };
+  }, [mapLoaded, markers.length > 0]);
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
   useEffect(() => {
@@ -1197,29 +1194,25 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const allCategories = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'];
   const allSelected = allCategories.every(cat => selectedIucnCategories.includes(cat));
 
+  // Memoize IUCN filter expression to avoid Mapbox re-parsing identical filters
+  const iucnFilter = useMemo(() => {
+    if (selectedIucnCategories.length === 0) {
+      return ['==', ['get', 'iucn_cat'], '__none__']; // Hide all zones
+    }
+    if (allSelected) {
+      return null; // Show all zones (no filter)
+    }
+    return ['in', ['get', 'iucn_cat'], ['literal', selectedIucnCategories]];
+  }, [selectedIucnCategories, allSelected]);
+
   // Apply IUCN category filter when selection changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     if (!map.current.getLayer('protected-areas-fill')) return;
 
-    // If no categories selected, hide all zones
-    if (selectedIucnCategories.length === 0) {
-      // Use a filter that matches nothing
-      map.current.setFilter('protected-areas-fill', ['==', ['get', 'iucn_cat'], '__none__']);
-      map.current.setFilter('protected-areas-border', ['==', ['get', 'iucn_cat'], '__none__']);
-      return;
-    }
-
-    // If all categories selected, remove filter (show all)
-    if (allSelected) {
-      map.current.setFilter('protected-areas-fill', null);
-      map.current.setFilter('protected-areas-border', null);
-    } else {
-      const filter = ['in', ['get', 'iucn_cat'], ['literal', selectedIucnCategories]];
-      map.current.setFilter('protected-areas-fill', filter);
-      map.current.setFilter('protected-areas-border', filter);
-    }
-  }, [selectedIucnCategories, allSelected, mapLoaded]);
+    map.current.setFilter('protected-areas-fill', iucnFilter);
+    map.current.setFilter('protected-areas-border', iucnFilter);
+  }, [iucnFilter, mapLoaded]);
 
   // Toggle IUCN category selection
   const handleIucnToggle = useCallback((category) => {
