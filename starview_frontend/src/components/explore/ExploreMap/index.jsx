@@ -154,6 +154,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
   const popupAnchorRef = useRef('bottom'); // Track current popup anchor for edge detection
   const controlsRef = useRef(null); // Ref for map controls (click-outside detection)
+  const dropdownOpenRef = useRef(false); // Track if any dropdown is open (for popup suppression)
 
   // IUCN filter state (test feature)
   const [showIucnFilter, setShowIucnFilter] = useState(false);
@@ -177,6 +178,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Keep dropdown ref in sync for popup suppression
+  useEffect(() => {
+    dropdownOpenRef.current = showIucnFilter || showStylePicker;
+  }, [showIucnFilter, showStylePicker]);
 
   const { markers, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
@@ -268,6 +274,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       location.longitude
     );
   }, [userLocation]);
+
+  // Helper to close protected area popup
+  const closeProtectedAreaPopup = useCallback(() => {
+    if (protectedAreaPopupRef.current) {
+      protectedAreaPopupRef.current.remove();
+    }
+  }, []);
 
   // Memoize event handlers to prevent recreating on every render
   const handleCloseCard = useCallback(() => {
@@ -508,6 +521,12 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           { hover: true }
         );
 
+        // Don't show protected area popup if location card is visible or dropdown is open
+        if (selectedIdRef.current !== null || dropdownOpenRef.current) {
+          map.current.getCanvas().style.cursor = 'pointer';
+          return;
+        }
+
         // Calculate optimal anchor based on cursor position
         const optimalAnchor = getOptimalPopupAnchor(e.point);
 
@@ -619,6 +638,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         const feature = e.features[0];
         const id = feature.properties.id;
         const coordinates = feature.geometry.coordinates;
+
+        // Close dropdowns and protected area popup when clicking a location marker
+        setShowIucnFilter(false);
+        setShowStylePicker(false);
+        if (protectedAreaPopupRef.current) {
+          protectedAreaPopupRef.current.remove();
+        }
 
         // Calculate offset to center marker in visible area above the card
         // Card takes ~45% of viewport, so we offset the center point upward
@@ -876,8 +902,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           <button
             className={`explore-map__control-btn ${showIucnFilter ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
-              setShowIucnFilter(!showIucnFilter);
+              const opening = !showIucnFilter;
+              setShowIucnFilter(opening);
               setShowStylePicker(false);
+              // Close protected area popup when opening dropdown
+              if (opening) closeProtectedAreaPopup();
             }}
             aria-label="Filter zones"
           >
@@ -909,8 +938,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           <button
             className={`explore-map__control-btn ${showStylePicker ? 'explore-map__control-btn--active' : ''}`}
             onClick={() => {
-              setShowStylePicker(!showStylePicker);
+              const opening = !showStylePicker;
+              setShowStylePicker(opening);
               setShowIucnFilter(false);
+              // Close protected area popup when opening dropdown
+              if (opening) closeProtectedAreaPopup();
             }}
             aria-label="Change map style"
           >
