@@ -5,6 +5,7 @@
 .vscode
 celery_worker.log
 logs/
+tools/
 
 # Byte-compiled / optimized / DLL files
 .env
@@ -294,3 +295,4 @@ frontend/coverage/
 # frontend/yarn.lock
 # frontend/pnpm-lock.yaml
 
+starview_frontend/node_modules/

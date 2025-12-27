@@ -238,3 +238,132 @@
 .explore-map__card-distance i {
   color: var(--info);
 }
+
+/* ========================================
+   Map Controls (Zones, Style Picker)
+   ======================================== */
+
+.explore-map__controls {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  z-index: 10;
+}
+
+.explore-map__control {
+  position: relative;
+}
+
+.explore-map__control-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+  width: 100%;
+}
+
+.explore-map__control-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-subtle);
+}
+
+.explore-map__control-btn i:first-child {
+  color: var(--text-muted);
+}
+
+.explore-map__control-btn i:last-child {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.explore-map__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  right: 0;
+  min-width: 180px;
+  padding: var(--space-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.explore-map__dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: calc(var(--radius) / 2);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.explore-map__dropdown-option:hover {
+  background: var(--bg-hover);
+}
+
+/* Checkbox styling for IUCN zones */
+.explore-map__dropdown-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* IUCN color swatch */
+.explore-map__iucn-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.explore-map__dropdown-label {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Style picker icon */
+.explore-map__dropdown-option i:first-child {
+  width: 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Active state for style picker */
+.explore-map__dropdown-option--active {
+  background: var(--bg-hover);
+}
+
+.explore-map__dropdown-option--active .explore-map__dropdown-label {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Checkmark for active style */
+.explore-map__dropdown-option i:last-child {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: var(--text-xs);
+}
+

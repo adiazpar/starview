@@ -6,11 +6,31 @@
  * Features:
  * - Dynamic day/night lighting based on user's local sun position
  * - All card data comes from map_markers endpoint (no extra API calls)
+ * - Global protected areas layer from WDPA (colored by IUCN category)
  */
+
+// Protected Areas PMTiles Configuration
+// PMTiles file hosted on Cloudflare R2, contains 270K+ protected areas globally
+const PROTECTED_AREAS_PMTILES_URL = 'https://media.starview.app/data/protected-areas.pmtiles';
+const PROTECTED_AREAS_LAYER = 'protected_areas'; // Layer name set by tippecanoe -l flag
+
+// IUCN category colors for protected areas
+// Bright, saturated colors that read as UI elements (not geography)
+const IUCN_COLORS = {
+  'Ia': '#a855f7', // Strict Nature Reserve - Vivid Purple
+  'Ib': '#818cf8', // Wilderness Area - Bright Indigo
+  'II': '#34d399', // National Park - Bright Emerald
+  'III': '#fbbf24', // Natural Monument - Bright Amber
+  'IV': '#2dd4bf', // Habitat Management - Bright Teal
+  'V': '#38bdf8', // Protected Landscape - Bright Sky
+  'VI': '#a3e635', // Sustainable Use - Bright Lime
+  'Not Reported': '#9ca3af', // Unknown - Light Gray
+};
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { PmTilesSource } from 'mapbox-pmtiles';
 import SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useUserLocation } from '../../../hooks/useUserLocation';
@@ -19,6 +39,10 @@ import { useToggleFavorite } from '../../../hooks/useLocations';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
 import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
+
+// Register PMTiles custom source type for Mapbox GL JS
+// (Mapbox doesn't have addProtocol like MapLibre, so we use setSourceType instead)
+mapboxgl.Style.setSourceType(PmTilesSource.SOURCE_TYPE, PmTilesSource);
 
 /**
  * Calculate the appropriate Mapbox light preset based on sun position.
@@ -70,6 +94,18 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
+  const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
+  const hasFlownToUserRef = useRef(false); // Only fly to user location once
+
+  // IUCN filter state (test feature)
+  const [showIucnFilter, setShowIucnFilter] = useState(false);
+  const [selectedIucnCategories, setSelectedIucnCategories] = useState([
+    'Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'
+  ]); // All selected by default
+
+  // Map style state
+  const [showStylePicker, setShowStylePicker] = useState(false);
+  const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
 
   const { markers, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
@@ -100,6 +136,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     userLocationRef.current = userLocation;
   }, [userLocation]);
+
 
   // Memoize GeoJSON generation to prevent recreating objects on every render
   const geojson = useMemo(() => ({
@@ -215,6 +252,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         maxzoom: 14,
       });
       map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+
     });
 
     // Set up map load handler
@@ -251,6 +289,112 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       }
     };
   }, []);
+
+  // Add Protected Areas layer from PMTiles on R2
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    // Skip if already added
+    if (map.current.getSource('protected-areas')) return;
+
+    // Add PMTiles source (hosted on Cloudflare R2)
+    // Uses mapbox-pmtiles custom source type - direct URL, no pmtiles:// prefix
+    map.current.addSource('protected-areas', {
+      type: PmTilesSource.SOURCE_TYPE,
+      url: PROTECTED_AREAS_PMTILES_URL,
+      promoteId: 'id', // Use 'id' property for feature-state
+    });
+
+    // Fill layer - colored by IUCN category
+    map.current.addLayer({
+      id: 'protected-areas-fill',
+      type: 'fill',
+      source: 'protected-areas',
+      'source-layer': PROTECTED_AREAS_LAYER,
+      slot: 'bottom', // Mapbox Standard: below roads and labels
+      minzoom: 4,
+      paint: {
+        'fill-color': [
+          'match',
+          ['get', 'iucn_cat'],
+          'Ia', IUCN_COLORS['Ia'],
+          'Ib', IUCN_COLORS['Ib'],
+          'II', IUCN_COLORS['II'],
+          'III', IUCN_COLORS['III'],
+          'IV', IUCN_COLORS['IV'],
+          'V', IUCN_COLORS['V'],
+          'VI', IUCN_COLORS['VI'],
+          IUCN_COLORS['Not Reported'], // Default
+        ],
+        'fill-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          0.25, // Hover state (lighter)
+          0.15, // Default state (visible as UI)
+        ],
+        // Emit light so colors display correctly in Mapbox Standard night mode
+        'fill-emissive-strength': 1,
+      },
+    });
+
+    // Border layer - subtle outline
+    map.current.addLayer({
+      id: 'protected-areas-border',
+      type: 'line',
+      source: 'protected-areas',
+      'source-layer': PROTECTED_AREAS_LAYER,
+      slot: 'bottom',
+      minzoom: 6,
+      paint: {
+        'line-color': [
+          'match',
+          ['get', 'iucn_cat'],
+          'Ia', IUCN_COLORS['Ia'],
+          'Ib', IUCN_COLORS['Ib'],
+          'II', IUCN_COLORS['II'],
+          'III', IUCN_COLORS['III'],
+          'IV', IUCN_COLORS['IV'],
+          'V', IUCN_COLORS['V'],
+          'VI', IUCN_COLORS['VI'],
+          IUCN_COLORS['Not Reported'],
+        ],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.5, 12, 1.5],
+        'line-opacity': 0.7,
+        // Emit light so borders display correctly in night mode
+        'line-emissive-strength': 1,
+      },
+    });
+
+    // Hover interaction - highlight fill on hover
+    map.current.on('mousemove', 'protected-areas-fill', (e) => {
+      if (e.features.length > 0) {
+        // Clear previous hover state
+        if (hoveredParkIdRef.current !== null) {
+          map.current.setFeatureState(
+            { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
+            { hover: false }
+          );
+        }
+
+        // Set new hover state
+        hoveredParkIdRef.current = e.features[0].id;
+        map.current.setFeatureState(
+          { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
+          { hover: true }
+        );
+      }
+    });
+
+    map.current.on('mouseleave', 'protected-areas-fill', () => {
+      if (hoveredParkIdRef.current !== null) {
+        map.current.setFeatureState(
+          { source: 'protected-areas', sourceLayer: PROTECTED_AREAS_LAYER, id: hoveredParkIdRef.current },
+          { hover: false }
+        );
+      }
+      hoveredParkIdRef.current = null;
+    });
+  }, [mapLoaded]);
 
   // Add/update markers when data changes
   useEffect(() => {
@@ -352,9 +496,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [geojson, mapLoaded, isLoading]);
 
-  // Fly to user location when it becomes available (only if no saved viewport)
+  // Fly to user location when it becomes available (only once, and only if no saved viewport)
   useEffect(() => {
+    if (hasFlownToUserRef.current) return; // Only fly once
     if (map.current && userLocation && mapLoaded && !initialViewport) {
+      hasFlownToUserRef.current = true;
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
         zoom: 6,
@@ -371,6 +517,28 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     const updateLighting = () => {
       const preset = getLightPreset(userLocation.latitude, userLocation.longitude);
       map.current.setConfigProperty('basemap', 'lightPreset', preset);
+
+      // Adjust protected areas opacity based on lighting
+      // Daytime needs higher opacity since the map is brighter
+      const isDaytime = preset === 'day' || preset === 'dawn';
+      const fillOpacity = isDaytime ? 0.35 : 0.15;
+      const fillHoverOpacity = isDaytime ? 0.5 : 0.25;
+      const lineOpacity = isDaytime ? 0.9 : 0.7;
+
+      // Update fill layer opacity
+      if (map.current.getLayer('protected-areas-fill')) {
+        map.current.setPaintProperty('protected-areas-fill', 'fill-opacity', [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          fillHoverOpacity,
+          fillOpacity,
+        ]);
+      }
+
+      // Update border layer opacity
+      if (map.current.getLayer('protected-areas-border')) {
+        map.current.setPaintProperty('protected-areas-border', 'line-opacity', lineOpacity);
+      }
     };
 
     updateLighting();
@@ -380,6 +548,116 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     return () => clearInterval(interval);
   }, [userLocation, mapLoaded]);
+
+  // Apply IUCN category filter when selection changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    if (!map.current.getLayer('protected-areas-fill')) return;
+
+    // If no categories selected, hide all zones
+    if (selectedIucnCategories.length === 0) {
+      // Use a filter that matches nothing
+      map.current.setFilter('protected-areas-fill', ['==', ['get', 'iucn_cat'], '__none__']);
+      map.current.setFilter('protected-areas-border', ['==', ['get', 'iucn_cat'], '__none__']);
+      return;
+    }
+
+    // If all categories selected, remove filter (show all)
+    const allCategories = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI', 'Not Reported'];
+    const allSelected = allCategories.every(cat => selectedIucnCategories.includes(cat));
+
+    if (allSelected) {
+      map.current.setFilter('protected-areas-fill', null);
+      map.current.setFilter('protected-areas-border', null);
+    } else {
+      const filter = ['in', ['get', 'iucn_cat'], ['literal', selectedIucnCategories]];
+      map.current.setFilter('protected-areas-fill', filter);
+      map.current.setFilter('protected-areas-border', filter);
+    }
+  }, [selectedIucnCategories, mapLoaded]);
+
+  // Toggle IUCN category selection
+  const handleIucnToggle = useCallback((category) => {
+    setSelectedIucnCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(c => c !== category);
+      } else {
+        return [...prev, category];
+      }
+    });
+  }, []);
+
+  // IUCN category labels for display
+  const IUCN_LABELS = {
+    'Ia': 'Strict Nature Reserve',
+    'Ib': 'Wilderness Area',
+    'II': 'National Park',
+    'III': 'Natural Monument',
+    'IV': 'Habitat Management',
+    'V': 'Protected Landscape',
+    'VI': 'Sustainable Use',
+    'Not Reported': 'Not Reported',
+  };
+
+  // Map style options
+  const MAP_STYLES = {
+    standard: {
+      url: 'mapbox://styles/mapbox/standard',
+      label: 'Standard',
+      icon: 'fa-map',
+    },
+    satellite: {
+      url: 'mapbox://styles/mapbox/satellite-streets-v12',
+      label: 'Satellite',
+      icon: 'fa-satellite',
+    },
+  };
+
+  // Handle map style change
+  const handleStyleChange = useCallback((styleKey) => {
+    if (!map.current || styleKey === mapStyle) return;
+
+    // Save current camera position before style change
+    const savedCamera = {
+      center: map.current.getCenter(),
+      zoom: map.current.getZoom(),
+      bearing: map.current.getBearing(),
+      pitch: map.current.getPitch(),
+    };
+
+    setMapStyle(styleKey);
+    setShowStylePicker(false);
+
+    // Change the map style - this removes all custom layers
+    map.current.setStyle(MAP_STYLES[styleKey].url);
+
+    // Re-add layers after style loads
+    map.current.once('style.load', () => {
+      // Restore camera position using jumpTo (atomic operation)
+      map.current.jumpTo(savedCamera);
+
+      // Re-apply light preset for standard style
+      if (styleKey === 'standard' && userLocation) {
+        const preset = getLightPreset(userLocation.latitude, userLocation.longitude);
+        map.current.setConfigProperty('basemap', 'lightPreset', preset);
+      }
+
+      // Re-add terrain
+      if (!map.current.getSource('mapbox-dem')) {
+        map.current.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+      }
+
+      // Trigger re-add of protected areas and markers by toggling mapLoaded
+      setMapLoaded(false);
+      setTimeout(() => setMapLoaded(true), 100);
+    });
+  }, [mapStyle, userLocation]);
 
   if (isError) {
     return (
@@ -393,6 +671,74 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   return (
     <div className="explore-map">
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
+
+      {/* Map Controls */}
+      <div className="explore-map__controls">
+        {/* IUCN Filter */}
+        <div className="explore-map__control">
+          <button
+            className="explore-map__control-btn"
+            onClick={() => {
+              setShowIucnFilter(!showIucnFilter);
+              setShowStylePicker(false);
+            }}
+          >
+            <i className="fa-solid fa-layer-group"></i>
+            <span>Zones</span>
+            <i className={`fa-solid fa-chevron-${showIucnFilter ? 'up' : 'down'}`}></i>
+          </button>
+
+          {showIucnFilter && (
+            <div className="explore-map__dropdown">
+              {Object.entries(IUCN_LABELS).map(([code, label]) => (
+                <label key={code} className="explore-map__dropdown-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedIucnCategories.includes(code)}
+                    onChange={() => handleIucnToggle(code)}
+                  />
+                  <span
+                    className="explore-map__iucn-color"
+                    style={{ backgroundColor: IUCN_COLORS[code] }}
+                  />
+                  <span className="explore-map__dropdown-label">{label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Style Picker */}
+        <div className="explore-map__control">
+          <button
+            className="explore-map__control-btn"
+            onClick={() => {
+              setShowStylePicker(!showStylePicker);
+              setShowIucnFilter(false);
+            }}
+          >
+            <i className={`fa-solid ${MAP_STYLES[mapStyle].icon}`}></i>
+            <span>{MAP_STYLES[mapStyle].label}</span>
+            <i className={`fa-solid fa-chevron-${showStylePicker ? 'up' : 'down'}`}></i>
+          </button>
+
+          {showStylePicker && (
+            <div className="explore-map__dropdown">
+              {Object.entries(MAP_STYLES).map(([key, style]) => (
+                <button
+                  key={key}
+                  className={`explore-map__dropdown-option ${mapStyle === key ? 'explore-map__dropdown-option--active' : ''}`}
+                  onClick={() => handleStyleChange(key)}
+                >
+                  <i className={`fa-solid ${style.icon}`}></i>
+                  <span className="explore-map__dropdown-label">{style.label}</span>
+                  {mapStyle === key && <i className="fa-solid fa-check"></i>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Bottom Card - Airbnb Style */}
       {selectedLocation && (
