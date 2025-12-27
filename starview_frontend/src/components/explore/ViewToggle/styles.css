@@ -1,6 +1,6 @@
 /* ViewToggle Styles
  * Floating button at bottom center.
- * Uses primary button styling with glow effect.
+ * Matches map control button styling.
  */
 
 .view-toggle {
@@ -12,32 +12,30 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  font-size: 15px;
-  font-weight: var(--font-medium);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
   font-family: inherit;
-  background: var(--accent);
-  color: white;
-  border: none;
+  background: var(--navbar-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-accent);
+  transition: all var(--transition) ease;
   z-index: calc(var(--z-navbar) - 2);
 }
 
 .view-toggle:hover {
-  background: var(--accent-hover);
-  box-shadow: var(--shadow-accent-hover);
-  transform: translateX(-50%) translateY(-2px);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
 .view-toggle:active {
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(-50%);
 }
 
 .view-toggle i {
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
 }
 
 /* Hide on desktop - split-panel view doesn't need toggle */
