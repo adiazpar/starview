@@ -57,8 +57,9 @@
 }
 
 /* Hidden states - keep mounted but invisible */
+/* Use !important to override display:grid from media queries */
 .explore-page__list--hidden {
-  display: none;
+  display: none !important;
 }
 
 .explore-page__map--hidden {

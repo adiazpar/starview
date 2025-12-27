@@ -555,19 +555,19 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   }, []);
 
   // Handle container resize - Mapbox needs to recalculate dimensions
+  // Run once after map initializes (refs are stable, no need to recreate on mapLoaded changes)
   useEffect(() => {
+    // Wait for map to be initialized
     if (!mapContainer.current || !map.current) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (map.current) {
-        map.current.resize();
-      }
+      map.current?.resize();
     });
 
     resizeObserver.observe(mapContainer.current);
 
     return () => resizeObserver.disconnect();
-  }, [mapLoaded]);
+  }, []); // Empty deps - run once, refs are stable
 
   // Add Protected Areas layer from PMTiles on R2
   useEffect(() => {
@@ -1274,9 +1274,14 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
       }
 
-      // Trigger re-add of protected areas and markers by toggling mapLoaded
+      // Trigger re-add of protected areas and markers
+      // Use requestAnimationFrame for smoother transition (replaces arbitrary 100ms timeout)
       setMapLoaded(false);
-      setTimeout(() => setMapLoaded(true), 100);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setMapLoaded(true);
+        });
+      });
     });
   }, [mapStyle, userLocation]);
 
