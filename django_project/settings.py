@@ -136,6 +136,7 @@ CONTENT_SECURITY_POLICY = {
             "https://events.mapbox.com",                # Mapbox analytics
             "https://*.fontawesome.com",                # Font Awesome API (all subdomains)
             "https://accounts.google.com",              # Google OAuth
+            "https://media.starview.app",               # Cloudflare R2 media storage (PMTiles, images)
         ),
         'frame-ancestors': ("'none'",),                 # Prevent framing (same as X-Frame-Options: DENY)
         'base-uri': ("'self'",),                        # Restrict <base> tag URLs

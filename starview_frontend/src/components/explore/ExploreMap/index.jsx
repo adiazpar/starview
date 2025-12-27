@@ -272,6 +272,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     // Close card when clicking on map (not on markers)
     map.current.on('click', (e) => {
+      // Only query if the layer exists (may not be added yet if no locations)
+      if (!map.current.getLayer('location-markers')) return;
       const features = map.current.queryRenderedFeatures(e.point, {
         layers: ['location-markers'],
       });
