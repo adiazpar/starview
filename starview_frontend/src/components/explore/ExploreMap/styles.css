@@ -64,11 +64,18 @@
    Bottom Card (matches LocationCard styling)
    ======================================== */
 
+/* Card dimension variables - used by JS for flyTo offset calculation */
+.explore-map {
+  --card-margin: var(--space-md);
+  --card-aspect-ratio: calc(7 / 16);
+  --card-content-height: 80px;
+}
+
 .explore-map__card {
   position: absolute;
-  bottom: var(--space-md);
-  left: var(--space-md);
-  right: var(--space-md);
+  bottom: var(--card-margin);
+  left: var(--card-margin);
+  right: var(--card-margin);
   background: var(--bg-base);
   border-radius: calc(var(--radius) * 2);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
@@ -107,6 +114,7 @@
 .explore-map__card-image-container {
   position: relative;
   width: 100%;
+  /* Inverse of --card-aspect-ratio (7/16) since CSS aspect-ratio is width/height */
   aspect-ratio: 16 / 7;
   overflow: hidden;
 }
