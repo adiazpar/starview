@@ -73,6 +73,12 @@
   height: calc(100lvh - var(--navbar-total-height));
 }
 
+/* Immediately hide map controls when map is hidden (prevents animation lag) */
+.explore-page__map--hidden .explore-map__controls {
+  visibility: hidden;
+  opacity: 0;
+}
+
 .explore-page__map-placeholder {
   display: flex;
   flex-direction: column;
