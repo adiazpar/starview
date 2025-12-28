@@ -5,10 +5,9 @@
 
 import { useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useLocations, useLocationsPaginated } from '../../hooks/useLocations';
+import { useExploreData } from '../../hooks/useExploreData';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
-import { useIsDesktop } from '../../hooks/useMediaQuery';
 import LocationCard from '../../components/explore/LocationCard';
 import ViewToggle from '../../components/explore/ViewToggle';
 import Pagination from '../../components/explore/Pagination';
@@ -21,27 +20,15 @@ function ExplorePage() {
   const [searchParams] = useSearchParams();
   const initialView = searchParams.get('view') === 'map' ? 'map' : 'list';
   const [view, setView] = useState(initialView);
-  const [page, setPage] = useState(1);
   const mapViewport = useRef(null); // Persist map position across view toggles
-  const isDesktop = useIsDesktop();
 
-  // Mobile: infinite scroll
-  const infiniteQuery = useLocations({}, { enabled: !isDesktop });
-
-  // Desktop: pagination
-  const paginatedQuery = useLocationsPaginated({}, page, { enabled: isDesktop });
-
-  // Use the appropriate data source based on device
+  // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
-    locations,
-    count,
-    isLoading,
-    isError,
-    error,
-  } = isDesktop ? paginatedQuery : infiniteQuery;
-
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = infiniteQuery;
-  const { totalPages } = paginatedQuery;
+    locations, count, isLoading, isError, error,
+    page, totalPages, setPage,
+    hasNextPage, isFetchingNextPage, fetchNextPage,
+    isDesktop,
+  } = useExploreData();
 
   const { location: userLocation } = useUserLocation();
 
@@ -68,7 +55,7 @@ function ExplorePage() {
     setPage(newPage);
     // Scroll to top of list when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [setPage]);
 
   // Save map viewport when it changes
   const handleMapViewportChange = useCallback((viewport) => {
