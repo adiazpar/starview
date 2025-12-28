@@ -902,10 +902,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
       map.current.getSource('locations').getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err) return;
-        map.current.easeTo({
+        map.current.flyTo({
           center: features[0].geometry.coordinates,
           zoom: zoom + 0.5,
-          duration: 400,
+          duration: 800,
         });
       });
     };
@@ -948,12 +948,29 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
       if (markerPopupRef.current) markerPopupRef.current.remove();
 
-      const cardHeight = Math.min(window.innerHeight * 0.45, 400);
-      const markerPixel = map.current.project(coordinates);
-      const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
-      const offsetCenter = map.current.unproject(offsetPixel);
+      // Calculate dynamic card height for centering offset
+      // Card width = canvas width - 32px (16px margins on each side)
+      // Image height = cardWidth * (7/16) from aspect-ratio 16/7
+      // Content height ≈ 80px (name, region, meta row with padding)
+      const canvas = map.current.getCanvas();
+      const cardWidth = canvas.clientWidth - 32;
+      const imageHeight = cardWidth * (7 / 16);
+      const contentHeight = 80;
+      const cardHeight = imageHeight + contentHeight;
+      const bottomMargin = 16;
 
-      map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
+      // Offset Y: shift map center up so marker appears centered in visible area above card
+      // Visible area = canvas height - card height - bottom margin
+      // We want marker at: visibleHeight / 2 from top
+      // Canvas center is at: canvasHeight / 2
+      // Offset = (cardHeight + bottomMargin) / 2
+      const offsetY = (cardHeight + bottomMargin) / 2;
+
+      map.current.flyTo({
+        center: coordinates,
+        duration: 800,
+        offset: [0, -offsetY],
+      });
 
       if (selectedIdRef.current === id) return;
 
@@ -1027,12 +1044,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       if (protectedAreaPopupRef.current) protectedAreaPopupRef.current.remove();
       if (markerPopupRef.current) markerPopupRef.current.remove();
 
-      const cardHeight = Math.min(window.innerHeight * 0.45, 400);
-      const markerPixel = map.current.project(coordinates);
-      const offsetPixel = { x: markerPixel.x, y: markerPixel.y + (cardHeight / 2) };
-      const offsetCenter = map.current.unproject(offsetPixel);
+      // Calculate dynamic card height for centering offset
+      const canvas = map.current.getCanvas();
+      const cardWidth = canvas.clientWidth - 32;
+      const imageHeight = cardWidth * (7 / 16);
+      const contentHeight = 80;
+      const cardHeight = imageHeight + contentHeight;
+      const bottomMargin = 16;
+      const offsetY = (cardHeight + bottomMargin) / 2;
 
-      map.current.flyTo({ center: [offsetCenter.lng, offsetCenter.lat], duration: 500 });
+      map.current.flyTo({
+        center: coordinates,
+        duration: 800,
+        offset: [0, -offsetY],
+      });
 
       if (selectedIdRef.current === id) return;
 
@@ -1110,7 +1135,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
         zoom: 6,
-        duration: 2000,
+        duration: 1200,
       });
     }
   }, [userLocation, mapLoaded, initialViewport]);
