@@ -623,7 +623,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       source: 'protected-areas',
       'source-layer': PROTECTED_AREAS_LAYER,
       slot: 'bottom',
-      minzoom: 6,
+      minzoom: 4,
       paint: {
         'line-color': [
           'match',
@@ -637,7 +637,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           'VI', IUCN_COLORS['VI'],
           IUCN_COLORS['Not Reported'],
         ],
-        'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.5, 12, 1.5],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.3, 8, 0.8, 12, 1.5],
         'line-opacity': 0.7,
         // Emit light so borders display correctly in night mode
         'line-emissive-strength': 1,
