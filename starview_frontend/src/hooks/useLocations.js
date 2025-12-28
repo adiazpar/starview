@@ -124,16 +124,22 @@ export function useToggleFavorite() {
     onMutate: async (locationId) => {
       // Cancel outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: ['locations'] });
-      await queryClient.cancelQueries({ queryKey: ['mapMarkers'] });
+      await queryClient.cancelQueries({ queryKey: ['mapGeoJSON'] });
 
       // Snapshot previous values for rollback (use getQueriesData for partial key matching)
       const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
       const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
-      const previousMapMarkers = queryClient.getQueryData(['mapMarkers']);
+      const previousMapGeoJSON = queryClient.getQueryData(['mapGeoJSON']);
 
       // Helper to toggle is_favorited optimistically
       const toggleFavorite = (loc) =>
         loc.id === locationId ? { ...loc, is_favorited: !loc.is_favorited } : loc;
+
+      // Helper to toggle is_favorited in GeoJSON feature
+      const toggleFeatureFavorite = (feature) =>
+        feature.properties.id === locationId
+          ? { ...feature, properties: { ...feature.properties, is_favorited: !feature.properties.is_favorited } }
+          : feature;
 
       // Optimistically update infinite scroll cache (use setQueriesData for partial key matching)
       queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (old) => {
@@ -153,14 +159,14 @@ export function useToggleFavorite() {
         return { ...old, results: old.results.map(toggleFavorite) };
       });
 
-      // Optimistically update map markers cache
-      queryClient.setQueryData(['mapMarkers'], (old) => {
-        if (!old) return old;
-        return old.map(toggleFavorite);
+      // Optimistically update map GeoJSON cache
+      queryClient.setQueryData(['mapGeoJSON'], (old) => {
+        if (!old?.features) return old;
+        return { ...old, features: old.features.map(toggleFeatureFavorite) };
       });
 
       // Return context for rollback
-      return { previousInfinite, previousPaginated, previousMapMarkers };
+      return { previousInfinite, previousPaginated, previousMapGeoJSON };
     },
 
     // ROLLBACK: Restore previous state on error
@@ -177,9 +183,9 @@ export function useToggleFavorite() {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      // Restore map markers cache
-      if (context?.previousMapMarkers) {
-        queryClient.setQueryData(['mapMarkers'], context.previousMapMarkers);
+      // Restore map GeoJSON cache
+      if (context?.previousMapGeoJSON) {
+        queryClient.setQueryData(['mapGeoJSON'], context.previousMapGeoJSON);
       }
     },
 
@@ -187,6 +193,12 @@ export function useToggleFavorite() {
     onSuccess: ({ locationId, is_favorited }) => {
       const setFavoriteState = (loc) =>
         loc.id === locationId ? { ...loc, is_favorited } : loc;
+
+      // Helper to set is_favorited in GeoJSON feature
+      const setFeatureFavoriteState = (feature) =>
+        feature.properties.id === locationId
+          ? { ...feature, properties: { ...feature.properties, is_favorited } }
+          : feature;
 
       // Update infinite scroll cache with server response
       queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (old) => {
@@ -206,10 +218,10 @@ export function useToggleFavorite() {
         return { ...old, results: old.results.map(setFavoriteState) };
       });
 
-      // Update map markers cache with server response
-      queryClient.setQueryData(['mapMarkers'], (old) => {
-        if (!old) return old;
-        return old.map(setFavoriteState);
+      // Update map GeoJSON cache with server response
+      queryClient.setQueryData(['mapGeoJSON'], (old) => {
+        if (!old?.features) return old;
+        return { ...old, features: old.features.map(setFeatureFavoriteState) };
       });
     },
   });

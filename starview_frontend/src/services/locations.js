@@ -27,11 +27,11 @@ export const locationsApi = {
   },
 
   /**
-   * Get optimized location markers for map display
-   * @returns {Promise} - Array of lightweight location objects
+   * Get map locations as GeoJSON FeatureCollection
+   * @returns {Promise} - GeoJSON FeatureCollection ready for Mapbox
    */
-  getMapMarkers: () => {
-    return api.get('/locations/map_markers/');
+  getMapGeoJSON: () => {
+    return api.get('/locations/map_geojson/');
   },
 
   /**

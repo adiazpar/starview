@@ -49,9 +49,35 @@ def location_detail_key(location_id):
     return f'location_detail:{location_id}'
 
 
-# Generate cache key for map markers endpoint:
-def map_markers_key():
-    return 'map_markers:all'
+# ----------------------------------------------------------------------------- #
+# Map GeoJSON Cache Versioning                                                  #
+#                                                                               #
+# Uses version-based invalidation for efficient cache clearing. When location  #
+# data changes, we bump a version number instead of deleting individual keys.  #
+# All old versioned keys become orphaned and expire naturally (30 min TTL).    #
+#                                                                               #
+# Benefits:                                                                     #
+# - O(1) invalidation regardless of number of cached users                     #
+# - All users see fresh data immediately after location changes                #
+# - No need to track individual user cache keys                                #
+# ----------------------------------------------------------------------------- #
+MAP_GEOJSON_VERSION_KEY = 'map_geojson:version'
+
+
+def get_map_geojson_version():
+    """Get current cache version, initializing to 1 if not set."""
+    version = cache.get(MAP_GEOJSON_VERSION_KEY)
+    if version is None:
+        # Initialize version (never expires)
+        cache.set(MAP_GEOJSON_VERSION_KEY, 1, timeout=None)
+        return 1
+    return version
+
+
+def map_geojson_key():
+    """Generate versioned cache key for map GeoJSON."""
+    version = get_map_geojson_version()
+    return f'map_geojson:v{version}:all'
 
 
 # Generate cache key for review list endpoint (with pagination):
@@ -91,14 +117,32 @@ def invalidate_location_detail(location_id):
     cache.delete(location_detail_key(location_id))
 
 
-# Clear cached map markers (affects all locations):
-def invalidate_map_markers():
-    cache.delete(map_markers_key())
+# ----------------------------------------------------------------------------- #
+# Invalidate ALL map GeoJSON caches by bumping version.                         #
+#                                                                               #
+# Instead of deleting individual keys (which would require tracking all users), #
+# we increment the version number. All existing caches become orphaned since    #
+# new requests look for the new version. Orphaned keys expire via TTL.          #
+#                                                                               #
+# Call this when: location created, updated, or deleted.                        #
+# ----------------------------------------------------------------------------- #
+def invalidate_map_geojson():
+    try:
+        cache.incr(MAP_GEOJSON_VERSION_KEY)
+    except ValueError:
+        # Key doesn't exist yet - initialize it
+        cache.set(MAP_GEOJSON_VERSION_KEY, 1, timeout=None)
 
 
-# Clear cached map markers for a specific user:
-def invalidate_user_map_markers(user_id):
-    cache.delete(f'{map_markers_key()}:user:{user_id}')
+# ----------------------------------------------------------------------------- #
+# Invalidate a specific user's map GeoJSON cache.                               #
+#                                                                               #
+# Used for user-specific changes like toggling favorites. Only clears that      #
+# user's cache, not everyone's. Uses current version so it deletes the right    #
+# key (e.g., 'map_geojson:v3:all:user:42').                                     #
+# ----------------------------------------------------------------------------- #
+def invalidate_user_map_geojson(user_id):
+    cache.delete(f'{map_geojson_key()}:user:{user_id}')
 
 
 # ----------------------------------------------------------------------------- #
@@ -123,13 +167,13 @@ def invalidate_user_favorites(user_id):
 # Invalidate ALL caches related to a specific location.                         #
 #                                                                               #
 # This is a convenience function that clears: location detail, location list,   #
-# map markers, and review list. Use this when a location is updated             #
-# significantly or when you want to ensure all related caches are fresh.        #
+# map GeoJSON, and review list. Use this when a location is                      #
+# updated significantly or when you want to ensure all related caches are fresh.#
 # ----------------------------------------------------------------------------- #
 def invalidate_all_location_caches(location_id):
     invalidate_location_detail(location_id)
     invalidate_location_list()
-    invalidate_map_markers()
+    invalidate_map_geojson()
     invalidate_review_list(location_id)
 
 

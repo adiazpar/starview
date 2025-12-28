@@ -5,7 +5,7 @@
  *
  * Features:
  * - Dynamic day/night lighting based on user's local sun position
- * - All card data comes from map_markers endpoint (no extra API calls)
+ * - All card data comes from map_geojson endpoint (no extra API calls)
  * - Global protected areas layer from WDPA (colored by IUCN category)
  */
 
@@ -322,7 +322,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     dropdownOpenRef.current = showIucnFilter || showStylePicker;
   }, [showIucnFilter, showStylePicker]);
 
-  const { markers, markerMap, isLoading, isError } = useMapMarkers();
+  const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
@@ -347,27 +347,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   }, [markers, markerMap, selectedLocation?.id, userLocation]);
 
 
-  // Memoize GeoJSON generation to prevent recreating objects on every render
-  const geojson = useMemo(() => ({
-    type: 'FeatureCollection',
-    features: markers.map((location) => ({
-      type: 'Feature',
-      properties: {
-        id: location.id,
-        name: location.name,
-        is_favorited: location.is_favorited || false,
-        location_type: location.location_type || 'viewpoint',
-        location_type_display: location.location_type_display || 'Viewpoint',
-        region: location.administrative_area || location.country || '',
-        avg_rating: location.average_rating,
-        review_count: location.review_count || 0,
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [location.longitude, location.latitude],
-      },
-    })),
-  }), [markers]);
+  // GeoJSON is now fetched directly from backend (pre-generated and cached)
 
   // Calculate optimal popup anchor based on cursor position relative to viewport
   const getOptimalPopupAnchor = useCallback((point) => {

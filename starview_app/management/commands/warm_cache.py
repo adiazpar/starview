@@ -18,7 +18,7 @@ from django.contrib.auth.models import AnonymousUser
 
 from starview_app.views import LocationViewSet, get_platform_stats
 from starview_app.utils.cache import (
-    map_markers_key,
+    map_geojson_key,
     location_list_key,
 )
 
@@ -52,8 +52,8 @@ class Command(BaseCommand):
         """Preview what caches would be warmed."""
         self.stdout.write('\n[DRY RUN] Would warm the following caches:\n')
 
-        # Map markers
-        self.stdout.write(f'  - {map_markers_key()} (30 min TTL)')
+        # Map GeoJSON
+        self.stdout.write(f'  - {map_geojson_key()} (30 min TTL)')
 
         # Location list pages
         for page in range(1, pages + 1):
@@ -74,24 +74,25 @@ class Command(BaseCommand):
         caches_warmed = 0
         errors = []
 
-        # 1. Warm map markers (anonymous)
-        self.stdout.write('\n  [1/3] Map markers (anonymous)')
+        # 1. Warm map GeoJSON (anonymous)
+        self.stdout.write('\n  [1/3] Map GeoJSON (anonymous)')
         try:
             start = time.time()
-            request = factory.get('/api/locations/map_markers/')
+            request = factory.get('/api/locations/map_geojson/')
             request.user = AnonymousUser()
 
-            viewset = LocationViewSet.as_view({'get': 'map_markers'})
+            viewset = LocationViewSet.as_view({'get': 'map_geojson'})
             response = viewset(request)
 
             elapsed = time.time() - start
-            count = len(response.data) if hasattr(response, 'data') else 0
+            features = response.data.get('features', []) if hasattr(response, 'data') else []
+            count = len(features)
             self.stdout.write(
                 self.style.SUCCESS(f'        Cached {count:,} locations in {elapsed:.2f}s')
             )
             caches_warmed += 1
         except Exception as e:
-            errors.append(f'Map markers: {e}')
+            errors.append(f'Map GeoJSON: {e}')
             self.stdout.write(self.style.ERROR(f'        Failed: {e}'))
 
         # 2. Warm location list pages (anonymous)

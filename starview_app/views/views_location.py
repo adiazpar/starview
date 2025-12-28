@@ -7,7 +7,7 @@
 #                                                                                                       #
 # Key Features:                                                                                         #
 # - LocationViewSet: Full CRUD API for locations with filtering, search, and ordering                   #
-# - Map optimization: Lightweight endpoints for 3D globe (map_markers + info_panel, 96%+ reduction)     #
+# - Map optimization: Lightweight endpoints for 3D globe (map_geojson + info_panel, 96%+ reduction)     #
 # - Report handling: Users can report problematic locations using the generic Report model              #
 # - Template view: location_details displays location info with reviews (read-only)                     #
 #                                                                                                       #
@@ -40,7 +40,6 @@ from django.db.models import Prefetch
 
 # Serializer imports:
 from ..serializers import LocationSerializer
-from ..serializers import MapLocationSerializer
 from ..serializers import LocationInfoPanelSerializer
 
 # Service imports:
@@ -54,11 +53,11 @@ from starview_app.utils import ContentCreationThrottle, ReportThrottle
 from starview_app.utils import (
     location_list_key,
     location_detail_key,
-    map_markers_key,
+    map_geojson_key,
     invalidate_location_list,
     invalidate_location_detail,
-    invalidate_map_markers,
-    invalidate_user_map_markers,
+    invalidate_map_geojson,
+    invalidate_user_map_geojson,
     invalidate_all_location_caches,
 )
 from django.core.cache import cache
@@ -76,7 +75,7 @@ from django.core.cache import cache
 #                                                                               #
 # Provides endpoints for creating, retrieving, updating, and deleting           #
 # locations. Includes actions for reporting and optimized endpoints for map     #
-# display (map_markers, info_panel).                                            #
+# display (map_geojson, info_panel).                                            #
 # ----------------------------------------------------------------------------- #
 class LocationViewSet(viewsets.ModelViewSet):
 
@@ -90,10 +89,6 @@ class LocationViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             from ..serializers import LocationListSerializer
             return LocationListSerializer
-
-        # For map markers, use lightweight serializer with images
-        if self.action == 'map_markers':
-            return MapLocationSerializer
 
         # SCALABILITY NOTE:
         # Currently 'retrieve' (detail) view returns LocationSerializer with ALL nested reviews.
@@ -268,7 +263,7 @@ class LocationViewSet(viewsets.ModelViewSet):
 
         # Invalidate caches since new location was created
         invalidate_location_list()  # Clear all location list pages
-        invalidate_map_markers()  # Clear map markers cache
+        invalidate_map_geojson()  # Clear map GeoJSON cache
 
 
     # ----------------------------------------------------------------------------- #
@@ -300,7 +295,7 @@ class LocationViewSet(viewsets.ModelViewSet):
 
         # Invalidate caches since location was deleted
         invalidate_location_list()  # Clear location list
-        invalidate_map_markers()  # Clear map markers
+        invalidate_map_geojson()  # Clear map GeoJSON cache
         invalidate_location_detail(location_id)  # Clear this location's detail
 
 
@@ -368,8 +363,8 @@ class LocationViewSet(viewsets.ModelViewSet):
         detail_cache_key = f'{location_detail_key(location.id)}:user:{request.user.id}'
         cache.delete(detail_cache_key)
 
-        # Invalidate user's map markers cache so favorites show correctly on refresh
-        invalidate_user_map_markers(request.user.id)
+        # Invalidate user's map GeoJSON cache so favorites show correctly on refresh
+        invalidate_user_map_geojson(request.user.id)
 
         return Response(
             {'is_favorited': is_favorited},
@@ -378,22 +373,21 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Get location data optimized for map display with card preview.                #
+    # Get map locations as GeoJSON FeatureCollection.                               #
     #                                                                               #
-    # Returns a JSON array with all fields needed to render markers AND populate    #
-    # the bottom card preview when a marker is tapped. This eliminates the need     #
-    # for a second API call when users interact with markers.                       #
+    # Returns a GeoJSON FeatureCollection pre-generated on the backend to reduce    #
+    # client-side CPU usage. The GeoJSON is ready to be directly passed to Mapbox.  #
     #                                                                               #
     # Cache Strategy:                                                               #
-    # - Cached for 30 minutes (1800 seconds) - map data changes infrequently        #
+    # - Cached for 30 minutes (1800 seconds) - same as map_markers                  #
     # - Authenticated users get different cache (includes is_favorited)             #
     # - Invalidated when: location created, location deleted, coordinates change    #
     # ----------------------------------------------------------------------------- #
-    @action(detail=False, methods=['GET'], serializer_class=MapLocationSerializer)
-    def map_markers(self, request):
+    @action(detail=False, methods=['GET'])
+    def map_geojson(self, request):
 
         # Build cache key (different for authenticated vs anonymous users)
-        base_cache_key = map_markers_key()
+        base_cache_key = map_geojson_key()
         if request.user.is_authenticated:
             cache_key = f'{base_cache_key}:user:{request.user.id}'
         else:
@@ -439,14 +433,66 @@ class LocationViewSet(viewsets.ModelViewSet):
                 )
             )
 
-        # Serialize and return as simple array
-        serializer = self.get_serializer(queryset, many=True)
-        response_data = serializer.data
+        # Build GeoJSON FeatureCollection
+        features = []
+        for loc in queryset:
+            # Collect images from location photos and review photos
+            images = []
+            # Add location photos first
+            for photo in getattr(loc, 'prefetched_location_photos', [])[:5]:
+                images.append({
+                    'id': str(photo.id),
+                    'thumbnail': photo.image.url if photo.image else None,
+                    'full': photo.image.url if photo.image else None,
+                })
+            # Add review photos if we need more
+            if len(images) < 5:
+                for review in getattr(loc, 'prefetched_reviews', []):
+                    for photo in getattr(review, 'prefetched_photos', []):
+                        if len(images) >= 5:
+                            break
+                        images.append({
+                            'id': str(photo.id),
+                            'thumbnail': photo.image.url if photo.image else None,
+                            'full': photo.image.url if photo.image else None,
+                        })
+                    if len(images) >= 5:
+                        break
 
-        # Cache for 30 minutes (longer than list/detail since map data rarely changes)
-        cache.set(cache_key, response_data, timeout=1800)
+            avg_rating = float(loc.average_rating_annotated) if loc.average_rating_annotated else None
+            features.append({
+                'type': 'Feature',
+                'properties': {
+                    'id': loc.id,
+                    'name': loc.name,
+                    'is_favorited': getattr(loc, 'is_favorited_annotated', False),
+                    'location_type': loc.location_type,
+                    'location_type_display': loc.get_location_type_display(),
+                    'administrative_area': loc.administrative_area or '',
+                    'country': loc.country or '',
+                    'elevation': loc.elevation,
+                    'latitude': float(loc.latitude),
+                    'longitude': float(loc.longitude),
+                    'average_rating': avg_rating,  # For bottom card
+                    'avg_rating': avg_rating,  # For map popup (legacy name)
+                    'review_count': loc.review_count_annotated or 0,
+                    'images': images,
+                },
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [float(loc.longitude), float(loc.latitude)]
+                }
+            })
 
-        return Response(response_data)
+        geojson = {
+            'type': 'FeatureCollection',
+            'features': features
+        }
+
+        # Cache for 30 minutes
+        cache.set(cache_key, geojson, timeout=1800)
+
+        return Response(geojson)
 
 
     # ----------------------------------------------------------------------------- #
