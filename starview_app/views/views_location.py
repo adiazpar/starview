@@ -104,13 +104,28 @@ class LocationViewSet(viewsets.ModelViewSet):
 
     # Optimize queryset with select_related, prefetch_related, and annotations:
     def get_queryset(self):
+        # Get sort parameter (default: newest first)
+        # Future options: 'nearest', 'highest_rated', 'most_reviewed', etc.
+        sort = self.request.query_params.get('sort', '-created_at')
+
+        # Validate sort parameter to prevent injection
+        valid_sorts = {
+            '-created_at': ['-created_at', 'id'],
+            'created_at': ['created_at', 'id'],
+            '-average_rating': ['-average_rating_annotated', '-review_count_annotated', 'id'],
+            'average_rating': ['average_rating_annotated', '-review_count_annotated', 'id'],
+            '-review_count': ['-review_count_annotated', 'id'],
+            'review_count': ['review_count_annotated', 'id'],
+        }
+        order_by = valid_sorts.get(sort, ['-created_at', 'id'])
+
         queryset = Location.objects.select_related(
             'added_by',
             'verified_by'
         ).annotate(
             review_count_annotated=Count('reviews'),
             average_rating_annotated=Avg('reviews__rating')
-        )
+        ).order_by(*order_by)
 
         # For detail view, prefetch nested reviews with votes to avoid N+1
         if self.action == 'retrieve':
@@ -170,13 +185,15 @@ class LocationViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     def list(self, request, *args, **kwargs):
         page = request.GET.get('page', 1)
+        sort = request.GET.get('sort', '-created_at')
 
         # Different cache keys for authenticated vs anonymous users
         # (authenticated includes is_favorited annotation)
+        # Include sort parameter in cache key to avoid serving wrong sort order
         if request.user.is_authenticated:
-            cache_key = f'{location_list_key(page)}:user:{request.user.id}'
+            cache_key = f'{location_list_key(page)}:sort:{sort}:user:{request.user.id}'
         else:
-            cache_key = location_list_key(page)
+            cache_key = f'{location_list_key(page)}:sort:{sort}'
 
         # Try to get from cache
         cached_data = cache.get(cache_key)
