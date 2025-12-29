@@ -92,7 +92,19 @@ class LocationPhoto(models.Model):
     def _process_image(self):
         """Processes uploaded image: converts to RGB, resizes to max 1920x1920, optimizes, and generates thumbnail."""
         try:
+            # Read original image
+            self.image.file.seek(0)
             img = Image.open(self.image.file)
+
+            # Handle decompression bomb protection for very large images
+            # Temporarily increase limit for processing, then resize down
+            original_max = Image.MAX_IMAGE_PIXELS
+            Image.MAX_IMAGE_PIXELS = None  # Disable for processing
+
+            try:
+                img.load()  # Force load the image data
+            finally:
+                Image.MAX_IMAGE_PIXELS = original_max  # Restore limit
 
             # Convert to RGB if necessary (handles PNG/RGBA images)
             if img.mode in ('RGBA', 'LA', 'P'):
@@ -101,19 +113,28 @@ class LocationPhoto(models.Model):
                     img = img.convert('RGBA')
                 background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
                 img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
 
             # Resize if too large (max 1920x1920, maintains aspect ratio)
             img.thumbnail((1920, 1920), Image.Resampling.LANCZOS)
 
-            # Save the resized image back
+            # Save processed image to new BytesIO
             img_io = io.BytesIO()
             img.save(img_io, format='JPEG', quality=90, optimize=True)
+            file_size = img_io.tell()
             img_io.seek(0)
 
-            self.image.file.seek(0)
-            self.image.file.truncate()
-            self.image.file.write(img_io.getvalue())
-            self.image.file.seek(0)
+            # Get original filename and create new InMemoryUploadedFile
+            original_name = os.path.basename(self.image.name)
+            name_without_ext = os.path.splitext(original_name)[0]
+            new_name = f"{name_without_ext}.jpg"
+
+            # Replace the image field with processed version
+            processed_file = InMemoryUploadedFile(
+                img_io, None, new_name, 'image/jpeg', file_size, None
+            )
+            self.image = processed_file
 
             self._create_thumbnail(img)
 

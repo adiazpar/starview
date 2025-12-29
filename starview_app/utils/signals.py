@@ -288,9 +288,13 @@ def delete_location_photo_files(instance, **kwargs):
 @receiver(post_delete, sender=Location)
 def cleanup_location_directory_structure(instance, **kwargs):
     try:
-        # Try to clean up the main review photos directory:
+        # Try to clean up the review photos directory:
         review_photos_dir = os.path.join(settings.MEDIA_ROOT, 'review_photos', str(instance.id))
         safe_delete_directory(review_photos_dir)
+
+        # Try to clean up the location photos directory:
+        location_photos_dir = os.path.join(settings.MEDIA_ROOT, 'location_photos', str(instance.id))
+        safe_delete_directory(location_photos_dir)
 
     except Exception:
         # There was an error cleaning up directory structure for location:

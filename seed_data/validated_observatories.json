@@ -1,0 +1,116 @@
+{
+  "version": "3.0",
+  "source": "Wikidata + Claude Code AI validation",
+  "generated_at": "2025-12-29 02:39:31 UTC",
+  "total_validated": 12,
+  "observatories": [
+    {
+      "name": "Sinnott Memorial Observation Station",
+      "latitude": 42.912,
+      "longitude": -122.143,
+      "elevation": 6650.0,
+      "country": "United States",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Pyramid International Laboratory-Observatory",
+      "latitude": 27.957,
+      "longitude": 86.814,
+      "elevation": 4930.0,
+      "country": "Nepal",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "University of Tokyo Atacama Observatory",
+      "latitude": -22.987,
+      "longitude": -67.742,
+      "elevation": 4850.0,
+      "country": "Chile",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Llano de Chajnantor Observatory",
+      "latitude": -23.023,
+      "longitude": -67.755,
+      "elevation": 4830.0,
+      "country": "Chile",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Indian Astronomical Observatory (IAO)",
+      "latitude": 32.779,
+      "longitude": 78.964,
+      "elevation": 4250.0,
+      "country": "India",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "W. M. Keck Observatory",
+      "latitude": 19.826,
+      "longitude": -155.474,
+      "elevation": 4145.0,
+      "country": "United States",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/af/KeckTelescopes-hi.png",
+      "validation_notes": "Two white observatory domes on Mauna Kea volcanic landscape"
+    },
+    {
+      "name": "National Astronomical Observatory of Japan Hawaii Observatory",
+      "latitude": 19.826,
+      "longitude": -155.476,
+      "elevation": 4139.0,
+      "country": "United States",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/MaunaKea_Subaru.jpg",
+      "validation_notes": "Subaru Telescope - distinctive cylindrical building above clouds"
+    },
+    {
+      "name": "Llano del Hato National Astronomical Observatory",
+      "latitude": 8.786,
+      "longitude": -70.872,
+      "elevation": 3600.0,
+      "country": "Venezuela",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/93/National_Observatory_of_Llano_del_Hato.jpg",
+      "validation_notes": "Multiple observatory domes"
+    },
+    {
+      "name": "Caltech Submillimeter Observatory",
+      "latitude": 19.823,
+      "longitude": -155.476,
+      "elevation": 3490.0,
+      "country": "United States",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Gemini North",
+      "latitude": 19.824,
+      "longitude": -155.469,
+      "elevation": 3490.0,
+      "country": "United States",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Gemini Observatory",
+      "latitude": -30.241,
+      "longitude": -70.737,
+      "elevation": 1590.0,
+      "country": "Chile",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Hereford Arizona Observatory",
+      "latitude": 31.452,
+      "longitude": -110.238,
+      "elevation": 1360.0,
+      "country": "United States",
+      "image_url": null,
+      "validation_notes": "Validated observatory"
+    }
+  ]
+}
