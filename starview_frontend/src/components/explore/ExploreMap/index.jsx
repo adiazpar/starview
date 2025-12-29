@@ -32,12 +32,19 @@ const LIGHTING_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 const USER_LOCATION_ZOOM = 6;
 
 // Marker colors (Tailwind palette)
+// Regular markers change based on lighting: black in day/dawn, white in night/dusk
 const MARKER_COLORS = {
   selected: '#f59e0b',      // amber-500
   selectedStroke: '#fbbf24', // amber-400
   favorited: '#ec4899',     // pink-500
-  regular: '#3b82f6',       // blue-500
-  stroke: '#ffffff',
+  // Day/dawn: black markers with white stroke for visibility on bright map
+  regularDay: '#000000',
+  strokeDay: '#ffffff',
+  // Night/dusk: white markers with black stroke for visibility on dark map
+  regularNight: '#ffffff',
+  strokeNight: '#000000',
+  // Cluster stroke (always white, clusters don't change with lighting)
+  clusterStroke: '#ffffff',
 };
 
 // Marker sizing
@@ -841,7 +848,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           50, CLUSTER_CONFIG.colors.large,  // 50+ locations
         ],
         'circle-stroke-width': CLUSTER_STROKE_WIDTH,
-        'circle-stroke-color': MARKER_COLORS.stroke,
+        'circle-stroke-color': MARKER_COLORS.clusterStroke,
         'circle-emissive-strength': 1,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
@@ -872,6 +879,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     });
 
     // Add circle layer for individual markers (unclustered points)
+    // Default to day colors (black markers) - updateLighting will adjust based on sun position
     map.current.addLayer({
       id: 'location-markers',
       type: 'circle',
@@ -879,21 +887,21 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       filter: ['!', ['has', 'point_count']], // Only show unclustered points
       paint: {
         'circle-radius': MARKER_RADIUS,
-        // Selected: amber, Favorited: pink, Regular: blue
+        // Selected: amber, Favorited: pink, Regular: day/night dynamic (default to day)
         'circle-color': [
           'case',
           ['boolean', ['feature-state', 'selected'], false],
           MARKER_COLORS.selected,
           ['get', 'is_favorited'],
           MARKER_COLORS.favorited,
-          MARKER_COLORS.regular,
+          MARKER_COLORS.regularDay,
         ],
         'circle-stroke-width': MARKER_STROKE_WIDTH,
         'circle-stroke-color': [
           'case',
           ['boolean', ['feature-state', 'selected'], false],
           MARKER_COLORS.selectedStroke,
-          MARKER_COLORS.stroke,
+          MARKER_COLORS.strokeDay,
         ],
         // Emit light so markers stay bright in night mode
         'circle-emissive-strength': 1,
@@ -1166,6 +1174,29 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       // Update border layer opacity
       if (map.current.getLayer('protected-areas-border')) {
         map.current.setPaintProperty('protected-areas-border', 'line-opacity', lineOpacity);
+      }
+
+      // Update marker colors based on lighting
+      // Day/dawn: black markers, Night/dusk: white markers
+      if (map.current.getLayer('location-markers')) {
+        const regularColor = isDaytime ? MARKER_COLORS.regularDay : MARKER_COLORS.regularNight;
+        const strokeColor = isDaytime ? MARKER_COLORS.strokeDay : MARKER_COLORS.strokeNight;
+
+        map.current.setPaintProperty('location-markers', 'circle-color', [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          MARKER_COLORS.selected,
+          ['get', 'is_favorited'],
+          MARKER_COLORS.favorited,
+          regularColor,
+        ]);
+
+        map.current.setPaintProperty('location-markers', 'circle-stroke-color', [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          MARKER_COLORS.selectedStroke,
+          strokeColor,
+        ]);
       }
     };
 
