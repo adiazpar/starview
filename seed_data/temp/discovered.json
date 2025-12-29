@@ -1,0 +1,16 @@
+{
+  "observatories": [
+    {
+      "wikidata_id": "Q1814384",
+      "slug": "llano-del-hato-national-astronomical-observatory",
+      "name": "Llano del Hato National Astronomical Observatory",
+      "latitude": 8.786,
+      "longitude": -70.872,
+      "elevation": 3600.0,
+      "elevation_note": "meters",
+      "country": "Venezuela",
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/National%20Observatory%20of%20Llano%20del%20Hato.jpg",
+      "website": "http://cida.ve/"
+    }
+  ]
+}

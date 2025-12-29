@@ -506,9 +506,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
       // Configure fog/atmosphere - transparent space for custom starfield
       map.current.setFog({
-        'color': 'rgb(186, 210, 235)', // Lower atmosphere (white glow)
+        'color': 'rgba(186, 210, 235, 1)', // Lower atmosphere (white glow)
         'high-color': 'rgb(36, 92, 223)', // Upper atmosphere
-        'horizon-blend': 0.02, // Thin atmospheric glow
+        'horizon-blend': 0.01, // Thin atmospheric glow
         'space-color': 'rgba(0, 0, 0, 0)', // Transparent - shows our starfield
         'star-intensity': 0, // Hide Mapbox stars - we have our own
       });
