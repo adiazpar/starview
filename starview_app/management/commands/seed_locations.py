@@ -268,21 +268,28 @@ class Command(BaseCommand):
                     # Download and add image - rollback location if image fails
                     if not skip_images:
                         image_url = loc_data.get('image_url')
-                        if image_url:
-                            success = self._download_and_add_image(
-                                location,
-                                image_url,
-                                loc_data.get('validation_notes', '')
-                            )
-                            if not success:
-                                # Rollback: don't create location without image
-                                # This allows retry on next run
-                                self.stdout.write(self.style.WARNING(
-                                    f'  Deferred: Image failed, will retry on next run'
-                                ))
-                                deferred_count += 1
-                                raise ImageDownloadFailed(name)
-                            images_count += 1
+                        if not image_url:
+                            # No image URL in JSON - skip this location entirely
+                            self.stdout.write(self.style.WARNING(
+                                f'  Skipped: No image_url in JSON'
+                            ))
+                            deferred_count += 1
+                            raise ImageDownloadFailed(name)
+
+                        success = self._download_and_add_image(
+                            location,
+                            image_url,
+                            loc_data.get('validation_notes', '')
+                        )
+                        if not success:
+                            # Rollback: don't create location without image
+                            # This allows retry on next run
+                            self.stdout.write(self.style.WARNING(
+                                f'  Deferred: Image failed, will retry on next run'
+                            ))
+                            deferred_count += 1
+                            raise ImageDownloadFailed(name)
+                        images_count += 1
 
                     self.stdout.write(self.style.SUCCESS(f'  Created: ID {location.id}'))
                     created_count += 1
