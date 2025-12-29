@@ -62,13 +62,8 @@ from starview_app.utils import (
 )
 from django.core.cache import cache
 
-# Web Mercator projection limit (points beyond ±85.051° don't render correctly)
-MAX_MERCATOR_LATITUDE = 85.051
-
-
-def clamp_latitude_for_mercator(lat):
-    """Clamp latitude to Web Mercator displayable range (±85.051°)."""
-    return max(-MAX_MERCATOR_LATITUDE, min(MAX_MERCATOR_LATITUDE, lat))
+# Web Mercator projection limit - locations beyond ±85° don't render on globe view
+MAX_RENDERABLE_LATITUDE = 85.0
 
 
 
@@ -424,7 +419,11 @@ class LocationViewSet(viewsets.ModelViewSet):
             return Response(cached_data)
 
         # Cache miss - get data from database with annotations
-        queryset = Location.objects.annotate(
+        # Filter out extreme latitudes that don't render on Mapbox globe projection
+        queryset = Location.objects.filter(
+            latitude__gte=-MAX_RENDERABLE_LATITUDE,
+            latitude__lte=MAX_RENDERABLE_LATITUDE
+        ).annotate(
             review_count_annotated=Count('reviews'),
             average_rating_annotated=Avg('reviews__rating')
         ).prefetch_related(
@@ -505,8 +504,7 @@ class LocationViewSet(viewsets.ModelViewSet):
                 },
                 'geometry': {
                     'type': 'Point',
-                    # Clamp latitude to Web Mercator range (±85.051°) for polar locations
-                    'coordinates': [float(loc.longitude), clamp_latitude_for_mercator(float(loc.latitude))]
+                    'coordinates': [float(loc.longitude), float(loc.latitude)]
                 }
             })
 
