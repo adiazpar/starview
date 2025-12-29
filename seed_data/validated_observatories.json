@@ -1,8 +1,8 @@
 {
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
-  "generated_at": "2025-12-29 05:54:27 UTC",
-  "total_validated": 62,
+  "generated_at": "2025-12-29 06:42:50 UTC",
+  "total_validated": 123,
   "observatories": [
     {
       "name": "Altitude SEE Test European Platform",
@@ -32,6 +32,13 @@
       "validation_notes": "Dome and buildings on mountaintop"
     },
     {
+      "name": "Asiago Astrophysical Observatory",
+      "latitude": 45.866,
+      "longitude": 11.526,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Children%20building%20an%20E-ELT%20mirror.jpg",
+      "validation_notes": "Aerial view of observatory dome building with grounds and people"
+    },
+    {
       "name": "Assy-Turgen Observatory",
       "latitude": 43.224,
       "longitude": 77.871,
@@ -39,6 +46,20 @@
       "country": "Kazakhstan",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/7/77/%D0%95%D0%BD%D0%B1%D0%B5%D0%BA%D1%88%D0%B8%D0%BA%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D0%BA%D0%B8%D0%B9_%D1%80%D0%B0%D0%B9%D0%BE%D0%BD%2C_%D0%BE%D0%B1%D1%81%D0%B5%D1%80%D0%B2%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8F_%D0%90%D1%81%D1%81%D1%8B-%D0%A2%D1%83%D1%80%D0%B3%D0%B5%D0%BD%D1%8C_%D1%81%D0%B2%D0%B5%D1%80%D1%85%D1%83_%284%29.jpg",
       "validation_notes": "Multiple domes on Kazakh mountain plateau"
+    },
+    {
+      "name": "Astrophysical Observatory of Javalambre",
+      "latitude": 40.041,
+      "longitude": -1.016,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Astrophysical%20Observatory%20of%20Javalambre.jpg",
+      "validation_notes": "Shows observatory domes and facility buildings on mountaintop"
+    },
+    {
+      "name": "Australian Astronomical Observatory",
+      "latitude": -33.796,
+      "longitude": 151.145,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Anglo-Australian%20Telescope%20dome.JPG",
+      "validation_notes": "Anglo-Australian Telescope dome (AAO operates AAT at Siding Spring)"
     },
     {
       "name": "Basic Environmental Observatory - Musala",
@@ -62,6 +83,27 @@
       "longitude": -116.921,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/GST%20dome.jpg",
       "validation_notes": "Shows white observatory building with dome on lake, iconic Big Bear Solar Observatory facility"
+    },
+    {
+      "name": "Black Birch Astrometric Observatory",
+      "latitude": -41.745,
+      "longitude": 173.806,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Black%20Birch%20Astrometric%20Observatory.jpg",
+      "validation_notes": "Observatory buildings and small dome on mountain plateau"
+    },
+    {
+      "name": "Bosscha Observatory",
+      "latitude": -6.825,
+      "longitude": 107.616,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Bosscha%202003.jpg",
+      "validation_notes": "White observatory building with classic silver dome on grassy hill"
+    },
+    {
+      "name": "Byurakan Observatory",
+      "latitude": 40.33,
+      "longitude": 44.273,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Byurakan%202.jpg",
+      "validation_notes": "Two large silver observatory domes clearly visible"
     },
     {
       "name": "Calar Alto Observatory",
@@ -107,6 +149,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Cima Ekar Observing Station",
+      "latitude": 45.849,
+      "longitude": 11.569,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/StazioneOsservativaEkar.jpg",
+      "validation_notes": "Large professional observatory building with distinctive silver dome"
+    },
+    {
       "name": "Cloudcroft Observatory",
       "latitude": 32.98,
       "longitude": -105.734,
@@ -123,6 +172,13 @@
       "country": "India",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/3.6%20m%20Devasthal%20Optical%20telescope%2C%20India.jpg",
       "validation_notes": "Chrome-validated: shows observatory building/dome"
+    },
+    {
+      "name": "Ferdinando Caliumi astronomic observatory",
+      "latitude": 39.877,
+      "longitude": 9.503,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Osservatorio%20astronomico%20Ferdinando%20Caliumi.jpg",
+      "validation_notes": "Observatory building with dome on hilltop"
     },
     {
       "name": "Fran\u00e7ois-Xavier Bagnoud Observatory",
@@ -143,6 +199,13 @@
       "validation_notes": "MMT Observatory visible on Mount Hopkins"
     },
     {
+      "name": "Frei Ros\u00e1rio Astronomical Observatory",
+      "latitude": -19.823,
+      "longitude": -43.679,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vista%20do%20Observat%C3%B3rio%20Astron%C3%B4mico%20Frei%20Ros%C3%A1rio%2C%20Caet%C3%A9%20MG.JPG",
+      "validation_notes": "Shows observatory domes on a hilltop with parking area"
+    },
+    {
       "name": "F\u00e9lix Aguilar Observatory",
       "latitude": -31.802,
       "longitude": -69.326,
@@ -150,6 +213,20 @@
       "country": "Argentina",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Telescopio%20del%20Observatorio%20Carlos%20Cesco.jpg",
       "validation_notes": "Chrome-validated: shows observatory building/dome"
+    },
+    {
+      "name": "G.V. Schiaparelli Observatory",
+      "latitude": 45.868,
+      "longitude": 8.771,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Schiaparelli%20Observatory%20Varese.png",
+      "validation_notes": "Observatory complex with multiple domes against mountain backdrop"
+    },
+    {
+      "name": "Gahberg Observatory",
+      "latitude": 47.913,
+      "longitude": 13.608,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Weyregg%20-%20Sternwarte%20Gahberg.JPG",
+      "validation_notes": "Multiple observatory domes on hillside with forest surroundings"
     },
     {
       "name": "Gemini North",
@@ -170,6 +247,13 @@
       "validation_notes": "Validated observatory"
     },
     {
+      "name": "Georgian National Astrophysical Observatory",
+      "latitude": 41.754,
+      "longitude": 42.819,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Abastumani%20%2814715217071%29.jpg",
+      "validation_notes": "Shows classical observatory building with dome and columns"
+    },
+    {
       "name": "Green Bank Observatory",
       "latitude": 38.438,
       "longitude": -79.836,
@@ -188,6 +272,13 @@
       "validation_notes": "Multiple domes on Maui volcanic peak"
     },
     {
+      "name": "Hawaiian Volcano Observatory",
+      "latitude": 19.429,
+      "longitude": -155.259,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hawaiian%20Volcano%20Observatory%2C%20Hawai%CA%BBi%20Volcanoes%20National%20Park%2C%20Hawaii%20%284528702285%29.jpg",
+      "validation_notes": "Observatory building with observation tower"
+    },
+    {
       "name": "Hereford Arizona Observatory",
       "latitude": 31.452,
       "longitude": -110.238,
@@ -195,6 +286,13 @@
       "country": "United States",
       "image_url": null,
       "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "High Energy Stereoscopic System",
+      "latitude": -23.271,
+      "longitude": 16.5,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/HESS%20II%20gamma%20ray%20experiment%20five%20telescope%20array.jpg",
+      "validation_notes": "Shows H.E.S.S. five-telescope array including large central telescope and four Cherenkov telescopes"
     },
     {
       "name": "Indian Astronomical Observatory (IAO)",
@@ -224,6 +322,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Jewett Observatory",
+      "latitude": 46.729,
+      "longitude": -117.153,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Jewett%20Observatory%2001-04-15.jpg",
+      "validation_notes": "White observatory dome building on grassy hill with trees"
+    },
+    {
       "name": "Ka-Dar Observatory",
       "latitude": 43.649,
       "longitude": 41.426,
@@ -231,11 +336,32 @@
       "validation_notes": "Shows white telescope dome with support building in mountain setting"
     },
     {
+      "name": "Kamenskoe Plateau Observatory",
+      "latitude": 43.177,
+      "longitude": 76.966,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B%2C_%D0%BE%D0%B1%D1%81%D0%B5%D1%80%D0%B2%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8F_%D0%9A%D0%B0%D0%BC%D0%B5%D0%BD%D1%81%D0%BA%D0%BE%D0%B5_%D0%BF%D0%BB%D0%B0%D1%82%D0%BE_%D0%BD%D0%B0_%D1%80%D0%B0%D1%81%D1%81%D0%B2%D0%B5%D1%82%D0%B5_%2810%29.jpg",
+      "validation_notes": "Original was aerial view of residential area. Fallback shows observatory building with satellite dish on roof"
+    },
+    {
       "name": "Kislovodsk Mountain Astronomical Station",
       "latitude": 43.746,
       "longitude": 42.524,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Shatjatmaz%20Mountain%202127%20m.%209958%2059.jpg",
       "validation_notes": "Shows observatory domes on hilltop, clearly visible astronomical facility structures"
+    },
+    {
+      "name": "Kle\u0165 Observatory",
+      "latitude": 48.864,
+      "longitude": 14.285,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/V%C3%BDlet%20na%20Klet%20-%2028%20srpna%202009%20109.JPG",
+      "validation_notes": "White observatory dome building with typical astronomical dome architecture"
+    },
+    {
+      "name": "Kopernik Space Center",
+      "latitude": 42.002,
+      "longitude": -76.034,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Kopernik1.JPG",
+      "validation_notes": "Shows observatory buildings with multiple domes on brick structures"
     },
     {
       "name": "La Silla Observatory",
@@ -263,6 +389,13 @@
       "country": "Argentina",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/CasleoNuit.jpg",
       "validation_notes": "Dome silhouetted at twilight in Argentina"
+    },
+    {
+      "name": "Lick Observatory",
+      "latitude": 37.341,
+      "longitude": -121.643,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Lick%20Observatory%20Refractor.jpg",
+      "validation_notes": "Great Lick Refractor telescope inside dome"
     },
     {
       "name": "Llano de Chajnantor Observatory",
@@ -310,6 +443,13 @@
       "validation_notes": "Modern building with metallic dome on mountaintop"
     },
     {
+      "name": "Manuel Foster Observatory",
+      "latitude": -33.422,
+      "longitude": -70.632,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vista%20del%20interior%20del%20observatorio%20Manuel%20Foster%20Recabarren.jpg",
+      "validation_notes": "Interior of observatory dome with large telescope"
+    },
+    {
       "name": "Mauna Loa Observatory",
       "latitude": 19.536,
       "longitude": -155.576,
@@ -326,6 +466,20 @@
       "validation_notes": "Shows observatory grounds with telescope domes visible on hilltops in distance"
     },
     {
+      "name": "Mont M\u00e9gantic Observatory",
+      "latitude": 45.456,
+      "longitude": -71.153,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/20040720%20OMM.jpg",
+      "validation_notes": "Observatory dome atop Mont Megantic with access road"
+    },
+    {
+      "name": "Mount Abu Observatory",
+      "latitude": 24.655,
+      "longitude": 72.779,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Mount%20Abu%20Observatory.JPG",
+      "validation_notes": "Shows observatory complex with white dome on a mountain top"
+    },
+    {
       "name": "Mount Graham International Observatory",
       "latitude": 32.701,
       "longitude": -109.892,
@@ -333,6 +487,13 @@
       "country": "United States",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/24/LBT_Pinaleno_Mountains.40936.JPG",
       "validation_notes": "LBT building visible on mountain ridge"
+    },
+    {
+      "name": "Mount John University Observatory",
+      "latitude": -43.987,
+      "longitude": 170.465,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Marko%20Mount%20John%20Observatory%20New%20Zealand.jpg",
+      "validation_notes": "Observatory complex on hilltop with multiple dome structures visible"
     },
     {
       "name": "Mount Lemmon Survey",
@@ -344,6 +505,13 @@
       "validation_notes": "Classic white dome at dusk"
     },
     {
+      "name": "Mount Stromlo Observatory",
+      "latitude": -35.32,
+      "longitude": 149.007,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Mt%20Stromlo%20Obs2.jpg",
+      "validation_notes": "Observatory facility grounds with dome structure (post-2003 bushfire)"
+    },
+    {
       "name": "Mount Terskol Observatory",
       "latitude": 43.275,
       "longitude": 42.501,
@@ -351,6 +519,13 @@
       "country": "Russia",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Terskol_peak._View_to_the_observatory._July_2007._-_%D0%9F%D0%B8%D0%BA_%D0%A2%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%BB._%D0%92%D0%B8%D0%B4_%D0%BD%D0%B0_%D0%BE%D0%B1%D1%81%D0%B5%D1%80%D0%B2%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8E._%D0%98%D1%8E%D0%BB%D1%8C_2007._-_panoramio.jpg",
       "validation_notes": "Observatory dome on Caucasus mountain peak"
+    },
+    {
+      "name": "Mount Wilson Observatory",
+      "latitude": 34.225,
+      "longitude": -118.057,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Chara-2000-09-15.JPG",
+      "validation_notes": "Shows aerial view of observatory complex with domes visible on mountain ridge"
     },
     {
       "name": "National Astronomical Observatory of Japan Hawaii Observatory",
@@ -362,6 +537,27 @@
       "validation_notes": "Subaru Telescope - distinctive cylindrical building above clouds"
     },
     {
+      "name": "Nobeyama radio observatory",
+      "latitude": 35.942,
+      "longitude": 138.476,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Nobeyama%20radio%20observatory%202009.jpg",
+      "validation_notes": "Spectacular array of large radio telescope dishes"
+    },
+    {
+      "name": "Observatori Astron\u00f2mic de Castelltallat",
+      "latitude": 41.794,
+      "longitude": 1.632,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/OBSERVATORI%20ASTRON%C3%92MIC%20DE%20CASTELLTALLAT%20-%20IB-340.jpg",
+      "validation_notes": "White observatory dome on hillside with building and walkway"
+    },
+    {
+      "name": "Observatorio de La Ca\u00f1ada",
+      "latitude": 40.604,
+      "longitude": -4.493,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%2020150124.jpg",
+      "validation_notes": "Small observatory building with classic dome on snowy day"
+    },
+    {
       "name": "Observatorium Sonnblick",
       "latitude": 47.054,
       "longitude": 12.958,
@@ -369,6 +565,34 @@
       "country": "Austria",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Zittelhaus_Jul2007.jpg",
       "validation_notes": "Weather/astronomical station on Austrian alpine peak"
+    },
+    {
+      "name": "Observatory Sankt Andreasberg",
+      "latitude": 51.732,
+      "longitude": 10.526,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Sankt%20Andreasberg%20%E2%80%93%20Nachtaufnahme%20bei%20Rotlicht.jpg",
+      "validation_notes": "Observatory building with name on facade, telescope outside, red night lighting"
+    },
+    {
+      "name": "Osservatorio astronomico di monte Zugna",
+      "latitude": 45.807,
+      "longitude": 11.058,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Zugna%20osservatorio%20astronomico.jpg",
+      "validation_notes": "Shows observatory building with dome and solar panels on mountaintop"
+    },
+    {
+      "name": "Osservatorio astronomico Fondation Cl\u00e9ment Fillietroz",
+      "latitude": 45.79,
+      "longitude": 7.479,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Astronomical%20Observatory%20of%20the%20Aosta%20Valley.jpg",
+      "validation_notes": "Shows observatory building with dome at night, under starry sky with mountains in background"
+    },
+    {
+      "name": "Osservatorio Astronomico Sormano",
+      "latitude": 45.883,
+      "longitude": 9.229,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/OsservatorioAstronomicoSormano.jpg",
+      "validation_notes": "Charming stone observatory building with dome"
     },
     {
       "name": "Oukaimden Observatory",
@@ -380,6 +604,20 @@
       "validation_notes": "Observatory complex on Moroccan Atlas mountains"
     },
     {
+      "name": "Owens Valley Radio Observatory",
+      "latitude": 37.234,
+      "longitude": -118.282,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/OVRO%2040%20Meter%20Radio%20Telescope.jpg",
+      "validation_notes": "40-meter radio telescope dish in Owens Valley"
+    },
+    {
+      "name": "Palomar Observatory",
+      "latitude": 33.356,
+      "longitude": -116.865,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Pti%20aerial%20photo%20B.jpg",
+      "validation_notes": "Shows aerial view of observatory campus with large white dome and other buildings"
+    },
+    {
       "name": "Pic du Midi Observatory",
       "latitude": 42.937,
       "longitude": 0.142,
@@ -387,6 +625,48 @@
       "country": "France",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Pic_du_Midi_de_Bigorre_Observatory.jpg",
       "validation_notes": "Multiple domes on snowy Pyrenean peak"
+    },
+    {
+      "name": "Pico dos Dias Observatory",
+      "latitude": -22.534,
+      "longitude": -45.583,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Cupula%20LNA%201.6m.jpg",
+      "validation_notes": "Shows observatory dome building (1.6m telescope dome)"
+    },
+    {
+      "name": "Pierre Auger Observatory",
+      "latitude": -35.207,
+      "longitude": -69.316,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/CDAS%20building.JPG",
+      "validation_notes": "CDAS (Central Data Acquisition System) building with communication tower"
+    },
+    {
+      "name": "Pierre Kauffman Radio Observatory",
+      "latitude": -23.185,
+      "longitude": -46.558,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Radiobservat%C3%B3rio%20do%20Itapetinga%20%28May%202018%29%2001.jpg",
+      "validation_notes": "Large white geodesic radome dome on brick building - radio observatory facility"
+    },
+    {
+      "name": "Pises Observatory",
+      "latitude": 44.039,
+      "longitude": 3.504,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Lac%20des%20Pises%20-%20Observatoire%20astronomique.jpg",
+      "validation_notes": "Small observatory dome structure in natural setting"
+    },
+    {
+      "name": "Piszk\u00e9stet\u0151 Station",
+      "latitude": 47.918,
+      "longitude": 19.894,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Piszk%C3%A9stet%C5%91%20obszervat%C3%B3rium%2001.jpg",
+      "validation_notes": "Observatory building in winter conditions with snow and icicles"
+    },
+    {
+      "name": "Pujalt Observatory",
+      "latitude": 41.717,
+      "longitude": 1.422,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatori%20de%20Pujalt.jpg",
+      "validation_notes": "Observatory facility building with Catalan flag"
     },
     {
       "name": "Pyramid International Laboratory-Observatory",
@@ -416,6 +696,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Rozhen Observatory",
+      "latitude": 41.693,
+      "longitude": 24.738,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Rozhen%20dome.jpg",
+      "validation_notes": "Shows large white dome of Rozhen Observatory surrounded by pine trees with facility building"
+    },
+    {
       "name": "SARA-CT",
       "latitude": -30.172,
       "longitude": -70.799,
@@ -428,6 +715,20 @@
       "longitude": -111.6,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/SARA%200.9-meter%20Telescope.jpg",
       "validation_notes": "Shows silver telescope dome building with open shutter"
+    },
+    {
+      "name": "Shamakhy Astrophysical Observatory",
+      "latitude": 40.782,
+      "longitude": 48.6,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Shamakhi%20observatory.jpg",
+      "validation_notes": "Multiple observatory domes and buildings on hilltop with green vegetation"
+    },
+    {
+      "name": "Siding Spring Observatory",
+      "latitude": -31.272,
+      "longitude": 149.062,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Anglo-Australian%20Telescope%20dome.JPG",
+      "validation_notes": "Anglo-Australian Telescope dome"
     },
     {
       "name": "Sierra Nevada Observatory",
@@ -448,6 +749,27 @@
       "validation_notes": "Validated observatory"
     },
     {
+      "name": "Skalnate Pleso observatory",
+      "latitude": 49.189,
+      "longitude": 20.234,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hvezdaren.JPG",
+      "validation_notes": "Shows observatory building with two distinctive domes on snowy mountain"
+    },
+    {
+      "name": "Skinakas Observatory",
+      "latitude": 35.212,
+      "longitude": 24.898,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Skinakas%20observatory.JPG",
+      "validation_notes": "Shows observatory buildings with white domes"
+    },
+    {
+      "name": "Southern African Large Telescope",
+      "latitude": -32.376,
+      "longitude": 20.811,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Southern%20African%20Large%20Telescope.jpg",
+      "validation_notes": "Shows impressive SALT building with distinctive geodesic dome"
+    },
+    {
       "name": "Sphinx Observatory",
       "latitude": 46.548,
       "longitude": 7.985,
@@ -455,6 +777,27 @@
       "country": "Switzerland",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Sphinx_Observatory.jpg",
       "validation_notes": "Observatory on Swiss Alps peak with dome"
+    },
+    {
+      "name": "Stara Lesna observatory",
+      "latitude": 49.153,
+      "longitude": 20.291,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/06%20Stara%20Lesna%2C%20obserwatorium%20astronomiczne.jpg",
+      "validation_notes": "Observatory buildings with white domes, High Tatras mountains in background"
+    },
+    {
+      "name": "Sternwarte Davidschlag",
+      "latitude": 48.443,
+      "longitude": 14.275,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Davidschlag%20im%20Januar%202025.jpg",
+      "validation_notes": "White observatory dome structure in field setting"
+    },
+    {
+      "name": "Stony Ridge Observatory",
+      "latitude": 34.301,
+      "longitude": -117.998,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Stony%20Ridge%20Observatory%20buildings%202014-11-05.jpg",
+      "validation_notes": "Shows observatory building with large white dome"
     },
     {
       "name": "Table Mountain Observatory",
@@ -466,6 +809,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Tadeusz Ho\u0142dys High-Mountain Meteorological Observatory on \u015anie\u017cka",
+      "latitude": 50.736,
+      "longitude": 15.74,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Schronisko%20Sniezka.JPG",
+      "validation_notes": "UFO-shaped observatory building on snowy mountaintop with meteorological equipment"
+    },
+    {
       "name": "Teide Observatory",
       "latitude": 28.3,
       "longitude": -16.51,
@@ -473,6 +823,13 @@
       "country": "Spain",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Obs%201.jpg",
       "validation_notes": "Chrome-validated: shows observatory building/dome"
+    },
+    {
+      "name": "Temisas Astronomical Observatory",
+      "latitude": 27.899,
+      "longitude": -15.532,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Eclipse%20Superluna%20%28Luna%20de%20Sangre%29%20desde%20el%20Observatorio%20Astron%C3%B3mico%20de%20Temisas%20Ag%C3%BCimes%20Gran%20Canaria%20%2821194774104%29.jpg",
+      "validation_notes": "Observatory grounds at night with people using telescopes, buildings, and dome visible"
     },
     {
       "name": "Thai National Observatory",
@@ -493,6 +850,13 @@
       "validation_notes": "Multiple domes in Kazakh mountain valley"
     },
     {
+      "name": "Timau National Observatory",
+      "latitude": -9.597,
+      "longitude": 123.947,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Teleskop%20Timau.jpg",
+      "validation_notes": "Interior of observatory dome with large telescope structure"
+    },
+    {
       "name": "Tonantzintla Observatory",
       "latitude": 19.032,
       "longitude": -98.315,
@@ -511,6 +875,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Union Observatory",
+      "latitude": -26.184,
+      "longitude": 28.074,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Union%20Observatory%20in%201905.png",
+      "validation_notes": "Shows historic 1905 photograph of Union Observatory facility buildings with dome structures"
+    },
+    {
       "name": "University of Tokyo Atacama Observatory",
       "latitude": -22.987,
       "longitude": -67.742,
@@ -518,6 +889,13 @@
       "country": "Chile",
       "image_url": null,
       "validation_notes": "Validated observatory"
+    },
+    {
+      "name": "Vainu Bappu Observatory",
+      "latitude": 12.575,
+      "longitude": 78.82,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/93-inch%20telescope%20seen%20from%20the%2040-inch%20telescope%20at%20Vainu%20Bappu%20Observatory.JPG",
+      "validation_notes": "Large white observatory dome building (93-inch telescope) with mountains"
     },
     {
       "name": "Vera C. Rubin Observatory",
@@ -529,6 +907,13 @@
       "validation_notes": "Observatory on snowy Chilean peak at sunset (fallback)"
     },
     {
+      "name": "VERITAS",
+      "latitude": 31.675,
+      "longitude": -110.952,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/VERITAS%20array.jpg",
+      "validation_notes": "VERITAS Cherenkov telescope array with multiple blue dishes and facility buildings"
+    },
+    {
       "name": "Very Large Telescope",
       "latitude": -24.628,
       "longitude": -70.404,
@@ -538,6 +923,13 @@
       "validation_notes": "Stunning aerial view of 4 Unit Telescopes at Paranal"
     },
     {
+      "name": "Volkssternwarte Kempten",
+      "latitude": 47.725,
+      "longitude": 10.333,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Volkssternwarte%20Kempten.jpg",
+      "validation_notes": "Public observatory facility building with people gathered outside"
+    },
+    {
       "name": "W. M. Keck Observatory",
       "latitude": 19.826,
       "longitude": -155.474,
@@ -545,6 +937,41 @@
       "country": "United States",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/af/KeckTelescopes-hi.png",
       "validation_notes": "Two white observatory domes on Mauna Kea volcanic landscape"
+    },
+    {
+      "name": "Wise Observatory",
+      "latitude": 30.597,
+      "longitude": 34.762,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/WiseObservatory.jpg",
+      "validation_notes": "Observatory complex with dome in desert landscape"
+    },
+    {
+      "name": "Xinglong Station",
+      "latitude": 40.394,
+      "longitude": 117.575,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sdle2001%20view%20from%202%20meter2.jpg",
+      "validation_notes": "Multiple observatory domes and buildings on hilltop with mountains in background"
+    },
+    {
+      "name": "Yale-Columbia Station",
+      "latitude": -26.187,
+      "longitude": 28.029,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Yale%20telescope%20at%20night.jpg",
+      "validation_notes": "Shows Yale telescope building at night with illuminated windows"
+    },
+    {
+      "name": "Yunnan Astronomical Observatory",
+      "latitude": 25.033,
+      "longitude": 102.783,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/%E5%B0%84%E7%94%B5%E6%9C%9B%E8%BF%9C%E9%95%9C%20-%20panoramio.jpg",
+      "validation_notes": "Shows large radio telescope dish at observatory facility"
+    },
+    {
+      "name": "Zimmerwald Observatory",
+      "latitude": 46.877,
+      "longitude": 7.465,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorium%20Zimmerwald%2001.jpg",
+      "validation_notes": "Multiple observatory domes and buildings with satellite tracking equipment"
     }
   ]
 }
