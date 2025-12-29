@@ -1,8 +1,8 @@
 {
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
-  "generated_at": "2025-12-29 14:58:55 UTC",
-  "total_validated": 208,
+  "generated_at": "2025-12-29 23:27:14 UTC",
+  "total_validated": 216,
   "observatories": [
     {
       "name": "Altitude SEE Test European Platform",
@@ -269,6 +269,16 @@
       "country": "Spain",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Calar%20alto.JPG",
       "validation_notes": "Chrome-validated: shows observatory building/dome"
+    },
+    {
+      "name": "Caltech Submillimeter Observatory",
+      "latitude": 19.823,
+      "longitude": -155.476,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Caltech-CSO-telescope%20%28fix%29.jpg",
+      "validation_notes": "Shows observatory building with dome opened revealing the submillimeter telescope dish",
+      "type_metadata": {
+        "website": "http://www.submm.caltech.edu/cso/"
+      }
     },
     {
       "name": "Campo Imperatore Astronomical Observatory",
@@ -547,6 +557,23 @@
       }
     },
     {
+      "name": "Gemini North",
+      "latitude": 19.824,
+      "longitude": -155.469,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Gemini%20Observatory%20at%20sunset.jpg",
+      "validation_notes": "Shows large Gemini Observatory dome at sunset with visitors on Mauna Kea"
+    },
+    {
+      "name": "Gemini Observatory",
+      "latitude": -30.241,
+      "longitude": -70.737,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Gemini%20South%2001.jpg",
+      "validation_notes": "Shows Gemini South telescope dome on Cerro Pachon in Chile with distinctive silver dome",
+      "type_metadata": {
+        "website": "https://www.gemini.edu/"
+      }
+    },
+    {
       "name": "Georgian National Astrophysical Observatory",
       "latitude": 41.754,
       "longitude": 42.819,
@@ -641,6 +668,16 @@
       }
     },
     {
+      "name": "Hereford Arizona Observatory",
+      "latitude": 31.452,
+      "longitude": -110.238,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/HerefordArizonaObservatory-HAO1%262-BruceGary-20100724.jpg",
+      "validation_notes": "Shows two white observatory domes labeled HAO 1 with mountains in background",
+      "type_metadata": {
+        "website": "http://www.brucegary.net/HAO/"
+      }
+    },
+    {
       "name": "High Energy Stereoscopic System",
       "latitude": -23.271,
       "longitude": 16.5,
@@ -665,6 +702,16 @@
       "validation_notes": "Observatory complex with multiple domes, modern architecture, landscaped grounds",
       "type_metadata": {
         "website": "https://www.astrohk.cz/"
+      }
+    },
+    {
+      "name": "Indian Astronomical Observatory (IAO)",
+      "latitude": 32.779,
+      "longitude": 78.964,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hanle%20observatory.jpg",
+      "validation_notes": "Shows distinctive silver telescope dome with adjacent building in Himalayan mountains at Hanle",
+      "type_metadata": {
+        "website": "https://www.iiap.res.in/?q=iao.htm"
       }
     },
     {
@@ -900,6 +947,13 @@
       "type_metadata": {
         "website": "https://ucolick.org/main/"
       }
+    },
+    {
+      "name": "Llano de Chajnantor Observatory",
+      "latitude": -23.023,
+      "longitude": -67.755,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/33_ALMA_Antennas_on_Chajnantor_%28wallpaper%29.jpg",
+      "validation_notes": "Fallback image shows ALMA radio telescope antennas on Chajnantor Plateau with mountain backdrop"
     },
     {
       "name": "Llano del Hato National Astronomical Observatory",
@@ -1427,6 +1481,13 @@
       }
     },
     {
+      "name": "Pyramid International Laboratory-Observatory",
+      "latitude": 27.957,
+      "longitude": 86.814,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Pyramid%20International%20Laboratory-Observatory%20-%2001.jpg",
+      "validation_notes": "Shows distinctive pyramid-shaped laboratory building with solar panels in Himalayan mountains"
+    },
+    {
       "name": "Quito Astronomical Observatory",
       "latitude": -0.215,
       "longitude": -78.503,
@@ -1580,6 +1641,13 @@
       "longitude": 33.997,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Crimean%20Astrophysical%20Observatory%20telescope%20%282005-09-290%29.jpg",
       "validation_notes": "Shows observatory telescope dome structure"
+    },
+    {
+      "name": "Sinnott Memorial Observation Station",
+      "latitude": 42.912,
+      "longitude": -122.143,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Sinnott_Overlook_8925.jpg",
+      "validation_notes": "Fallback image shows stone observation station structure built into cliff overlooking Crater Lake"
     },
     {
       "name": "Skalnate Pleso observatory",
