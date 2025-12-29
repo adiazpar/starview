@@ -127,6 +127,15 @@ def get_badge_by_slug(slug):
     return _BADGE_CACHE_BY_SLUG[slug]
 
 
+# System users that should be excluded from badge eligibility
+SYSTEM_USERNAMES = {'starview'}
+
+
+def is_system_user(user):
+    """Check if user is a system account (excluded from badges)."""
+    return user.username in SYSTEM_USERNAMES
+
+
 class BadgeService:
 
     # ----------------------------------------------------------------------------- #
@@ -140,6 +149,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_exploration_badges(user):
+        if is_system_user(user):
+            return []
+
         visit_count = LocationVisit.objects.filter(user=user).count()
 
         # Use cached badges (no database query after first call)
@@ -168,6 +180,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_contribution_badges(user):
+        if is_system_user(user):
+            return []
+
         location_count = Location.objects.filter(added_by=user).count()
 
         # Use cached badges (no database query after first call)
@@ -196,6 +211,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_quality_badges(user):
+        if is_system_user(user):
+            return []
+
         # Count locations added by user with average rating >= 4.0
         quality_location_count = Location.objects.filter(
             added_by=user,
@@ -234,6 +252,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_review_badges(user):
+        if is_system_user(user):
+            return []
+
         from django.contrib.contenttypes.models import ContentType
         from django.db.models import Count, Q
         from starview_app.models import Vote
@@ -307,6 +328,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_community_badges(user):
+        if is_system_user(user):
+            return []
+
         follower_count = Follow.objects.filter(following=user).count()
 
         # Count comments on OTHER users' reviews only (exclude comments on own reviews)
@@ -355,13 +379,16 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_pioneer_badge(user):
+        if is_system_user(user):
+            return []
+
         from django.contrib.auth.models import User
 
-        # Get user's registration rank (1-indexed)
+        # Get user's registration rank (1-indexed), excluding system users
         # Count users who registered before this user + this user
         registration_rank = User.objects.filter(
             date_joined__lte=user.date_joined
-        ).count()
+        ).exclude(username__in=SYSTEM_USERNAMES).count()
 
         # Check if user qualifies for Pioneer badge (first 100)
         if registration_rank <= 100:
@@ -387,6 +414,9 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def check_photographer_badge(user):
+        if is_system_user(user):
+            return []
+
         from starview_app.models import ReviewPhoto
 
         # Count total photos uploaded by user across all reviews

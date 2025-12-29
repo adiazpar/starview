@@ -61,6 +61,7 @@ from starview_app.models import Vote
 # Import allauth signals and models:
 from allauth.account.signals import email_confirmed
 from allauth.account.models import EmailConfirmation
+from allauth.socialaccount.signals import social_account_added
 
 
 # ----------------------------------------------------------------------------------------------------- #
@@ -363,6 +364,19 @@ def delete_email_confirmation_on_confirm(sender, request, email_address, **kwarg
     from starview_app.services.badge_service import BadgeService
     BadgeService.check_pioneer_badge(email_address.user)
 
+
+# ----------------------------------------------------------------------------- #
+# Check Pioneer badge when user signs up via OAuth (Google, etc.).              #
+#                                                                               #
+# OAuth users skip email verification since their email is already verified     #
+# by the provider. This signal fires on first social account connection.        #
+#                                                                               #
+# Signal: allauth.socialaccount.signals.social_account_added                    #
+# ----------------------------------------------------------------------------- #
+@receiver(social_account_added)
+def check_pioneer_badge_on_oauth(request, sociallogin, **kwargs):
+    from starview_app.services.badge_service import BadgeService
+    BadgeService.check_pioneer_badge(sociallogin.user)
 
 
 # ----------------------------------------------------------------------------------------------------- #

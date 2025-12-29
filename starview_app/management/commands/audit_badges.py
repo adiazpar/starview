@@ -23,7 +23,7 @@ from starview_app.models import (
     Badge, UserBadge, Location, Review, LocationVisit,
     Follow, ReviewComment
 )
-from starview_app.services.badge_service import BadgeService
+from starview_app.services.badge_service import BadgeService, SYSTEM_USERNAMES
 
 
 class Command(BaseCommand):
@@ -55,8 +55,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("\n📋 PREVIEW MODE: No changes will be made"))
             self.stdout.write(self.style.NOTICE("    Use --fix to actually revoke invalid badges\n"))
 
-        # Get users to audit
+        # Get users to audit (excluding system users)
         if username:
+            if username in SYSTEM_USERNAMES:
+                self.stdout.write(self.style.WARNING(f"User '{username}' is a system user (excluded from badge audit)"))
+                return
             try:
                 users = [User.objects.get(username=username)]
                 self.stdout.write(f"Auditing user: {username}\n")
@@ -64,8 +67,8 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"User '{username}' not found"))
                 return
         else:
-            users = User.objects.all()
-            self.stdout.write(f"Auditing all users ({users.count()} total)\n")
+            users = User.objects.exclude(username__in=SYSTEM_USERNAMES)
+            self.stdout.write(f"Auditing all users ({users.count()} total, excluding system users)\n")
 
         # Track statistics
         stats = {

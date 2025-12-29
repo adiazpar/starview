@@ -25,7 +25,7 @@ Safety:
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from starview_app.models import Badge, UserBadge
-from starview_app.services.badge_service import BadgeService
+from starview_app.services.badge_service import BadgeService, SYSTEM_USERNAMES
 
 
 class Command(BaseCommand):
@@ -65,10 +65,12 @@ class Command(BaseCommand):
         self.stdout.write(f"  Category: {pioneer_badge.category}")
         self.stdout.write(f"  Tier: {pioneer_badge.tier}")
 
-        # Get first 100 users by registration date
+        # Get first 100 users by registration date (excluding system users)
         # Uses date_joined to ensure consistent historical snapshot
-        first_100_users = User.objects.all().order_by('date_joined')[:100]
-        total_users = User.objects.count()
+        first_100_users = User.objects.exclude(
+            username__in=SYSTEM_USERNAMES
+        ).order_by('date_joined')[:100]
+        total_users = User.objects.exclude(username__in=SYSTEM_USERNAMES).count()
 
         self.stdout.write(f"\n📊 User Statistics:")
         self.stdout.write(f"  Total users in database: {total_users}")
