@@ -2,17 +2,22 @@
 Location Seeding Management Command
 
 Seeds the database with curated locations from validated JSON files.
-Prioritizes local temp files (from validation phase) to avoid re-downloading.
-Falls back to URL download if local file not found.
+Downloads images from URLs and creates Location records with Mapbox enrichment.
 
 Usage:
     python manage.py seed_locations --type=observatory
     python manage.py seed_locations --type=observatory --dry-run
     python manage.py seed_locations --type=observatory --skip-images
 
+Idempotent Behavior:
+    - Skips locations that already exist (by name + coordinates)
+    - Safe to run multiple times - only seeds new locations
+    - If image download fails, location is NOT created (deferred)
+    - Deferred locations will be retried on subsequent runs
+
 Prerequisites:
     Run the observatory seeder pipeline first:
-    python -m tools.observatory_seeder.run --discover --download --limit N
+    python -m tools.observatory_seeder.run --discover --limit N
     Then validate images with Claude Code and generate validated_observatories.json
 """
 
@@ -55,6 +60,11 @@ RATE_LIMIT_COOLDOWN = 180  # 3 minutes for 429 errors
 
 # Non-recoverable HTTP status codes (don't retry these)
 NON_RECOVERABLE_STATUSES = {400, 401, 403, 404, 410, 451}
+
+
+class ImageDownloadFailed(Exception):
+    """Raised when image download fails, triggering transaction rollback."""
+    pass
 
 
 class Command(BaseCommand):
@@ -209,6 +219,7 @@ class Command(BaseCommand):
 
         created_count = 0
         skipped_count = 0
+        deferred_count = 0
         error_count = 0
         images_count = 0
         errors = []
@@ -238,7 +249,7 @@ class Command(BaseCommand):
                 parts = [p for p in [locality, admin_area, country] if p]
                 formatted_address = ', '.join(parts)
 
-                # Create location
+                # Create location (rolled back if image download fails)
                 with transaction.atomic():
                     location = Location.objects.create(
                         name=name,
@@ -254,10 +265,7 @@ class Command(BaseCommand):
                         is_verified=verify,
                     )
 
-                    self.stdout.write(self.style.SUCCESS(f'  Created: ID {location.id}'))
-                    created_count += 1
-
-                    # Download and add image
+                    # Download and add image - rollback location if image fails
                     if not skip_images:
                         image_url = loc_data.get('image_url')
                         if image_url:
@@ -266,8 +274,22 @@ class Command(BaseCommand):
                                 image_url,
                                 loc_data.get('validation_notes', '')
                             )
-                            if success:
-                                images_count += 1
+                            if not success:
+                                # Rollback: don't create location without image
+                                # This allows retry on next run
+                                self.stdout.write(self.style.WARNING(
+                                    f'  Deferred: Image failed, will retry on next run'
+                                ))
+                                deferred_count += 1
+                                raise ImageDownloadFailed(name)
+                            images_count += 1
+
+                    self.stdout.write(self.style.SUCCESS(f'  Created: ID {location.id}'))
+                    created_count += 1
+
+            except ImageDownloadFailed:
+                # Already logged and counted as deferred - transaction rolled back
+                pass
 
             except Exception as e:
                 error_count += 1
@@ -282,12 +304,16 @@ class Command(BaseCommand):
         self.stdout.write(f'  Time elapsed: {total_elapsed:.2f}s')
         self.stdout.write(f'  Locations created: {created_count}')
         self.stdout.write(f'  Locations skipped: {skipped_count}')
+        if deferred_count > 0:
+            self.stdout.write(self.style.WARNING(f'  Locations deferred: {deferred_count} (will retry on next run)'))
         self.stdout.write(f'  Images added: {images_count}')
 
         if errors:
             self.stdout.write(self.style.ERROR(f'  Errors: {error_count}'))
             for error in errors:
                 self.stdout.write(self.style.ERROR(f'    - {error}'))
+        elif deferred_count > 0:
+            self.stdout.write(self.style.WARNING('  Run again later to retry deferred locations'))
         else:
             self.stdout.write(self.style.SUCCESS('  No errors!'))
 

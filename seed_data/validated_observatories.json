@@ -1,8 +1,8 @@
 {
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
-  "generated_at": "2025-12-29 06:42:50 UTC",
-  "total_validated": 123,
+  "generated_at": "2025-12-29 13:54:49 UTC",
+  "total_validated": 166,
   "observatories": [
     {
       "name": "Altitude SEE Test European Platform",
@@ -30,6 +30,13 @@
       "country": "United States",
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/3/34/Apache-0110.JPG",
       "validation_notes": "Dome and buildings on mountaintop"
+    },
+    {
+      "name": "Arecibo Observatory",
+      "latitude": 18.347,
+      "longitude": -66.753,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Arecibo%20radio%20telescope%20SJU%2006%202019%206144.jpg",
+      "validation_notes": "Shows the iconic Arecibo radio telescope dish with suspended platform"
     },
     {
       "name": "Asiago Astrophysical Observatory",
@@ -62,6 +69,13 @@
       "validation_notes": "Anglo-Australian Telescope dome (AAO operates AAT at Siding Spring)"
     },
     {
+      "name": "Baikal Astrophysical Observatory",
+      "latitude": 51.846,
+      "longitude": 104.892,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%BE%D0%B9%20%D0%A1%D0%BE%D0%BB%D0%BD%D0%B5%D1%87%D0%BD%D1%8B%D0%B9%20%D0%92%D0%B0%D0%BA%D1%83%D1%83%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%A2%D0%B5%D0%BB%D0%B5%D1%81%D0%BA%D0%BE%D0%BF%20%28%D0%91%D0%A1%D0%92%D0%A2%29.jpg",
+      "validation_notes": "Shows the Large Solar Vacuum Telescope (BSVT) tower structure"
+    },
+    {
       "name": "Basic Environmental Observatory - Musala",
       "latitude": 42.179,
       "longitude": 23.585,
@@ -78,6 +92,13 @@
       "validation_notes": "Shows entrance gate and facility grounds of the observatory with buildings visible"
     },
     {
+      "name": "Bavarian Public Observatory Munich",
+      "latitude": 48.122,
+      "longitude": 11.607,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Volkssternwarte%20M%C3%BCnchen%20Refraktor.jpg",
+      "validation_notes": "Shows refractor telescope inside observatory dome"
+    },
+    {
       "name": "Big Bear Solar Observatory",
       "latitude": 34.258,
       "longitude": -116.921,
@@ -85,11 +106,32 @@
       "validation_notes": "Shows white observatory building with dome on lake, iconic Big Bear Solar Observatory facility"
     },
     {
+      "name": "Bisei Spaceguard Center",
+      "latitude": 34.672,
+      "longitude": 133.544,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Bisei%20Spaceguard%20Center.jpg",
+      "validation_notes": "Shows two observatory buildings - one with classic dome, another with sliding roof design"
+    },
+    {
       "name": "Black Birch Astrometric Observatory",
       "latitude": -41.745,
       "longitude": 173.806,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Black%20Birch%20Astrometric%20Observatory.jpg",
       "validation_notes": "Observatory buildings and small dome on mountain plateau"
+    },
+    {
+      "name": "Bleien Radio Observatory",
+      "latitude": 47.34,
+      "longitude": 8.112,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Bleien.JPG",
+      "validation_notes": "Shows large radio dish antenna with metal framework for radio astronomy"
+    },
+    {
+      "name": "Boleslav Tecla Observatory in Moravsk\u00e1 T\u0159ebov\u00e1",
+      "latitude": 49.751,
+      "longitude": 16.677,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hv%C4%9Bzd%C3%A1rna%20po%20dokon%C4%8Den%C3%AD.jpg",
+      "validation_notes": "Shows historic B&W photo of observatory building with HVEZDARNA sign and sliding roof structure"
     },
     {
       "name": "Bosscha Observatory",
@@ -131,6 +173,13 @@
       "validation_notes": "Shows observatory buildings with multiple telescope domes against mountain backdrop"
     },
     {
+      "name": "Cantonal observatory, Hirsch pavilion, director's house and La M\u00e9ridienne house",
+      "latitude": 47.0,
+      "longitude": 6.953,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Neuch%C3%A2tel%2C%20observatoire%204.JPG",
+      "validation_notes": "Shows historic observatory building with dome in Neuchatel"
+    },
+    {
       "name": "Cerro El Roble Observatory",
       "latitude": -32.976,
       "longitude": -71.015,
@@ -165,6 +214,20 @@
       "validation_notes": "Large white domes in forested mountains"
     },
     {
+      "name": "Cotobade Astronomical Observatory",
+      "latitude": 42.494,
+      "longitude": -8.464,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%20Cotobade%202.jpg",
+      "validation_notes": "Shows observatory building with silver dome on a hillside"
+    },
+    {
+      "name": "Crimean Astrophysical Observatory",
+      "latitude": 44.727,
+      "longitude": 34.016,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Nauchny%20and%20CrAO-Crimea%20Ukraine.jpg",
+      "validation_notes": "Panoramic view with observatory domes visible on hilltop"
+    },
+    {
       "name": "Devasthal Observatory",
       "latitude": 29.362,
       "longitude": 79.685,
@@ -174,11 +237,46 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Dominion Radio Astrophysical Observatory",
+      "latitude": 49.321,
+      "longitude": -119.621,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/DRAO%20main%20building%20and%20dish.JPG",
+      "validation_notes": "Shows main building and large radio dish"
+    },
+    {
+      "name": "Drebach Observatory",
+      "latitude": 50.674,
+      "longitude": 13.013,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Drebach%20-%20observatory%201%20%28aka%29.jpg",
+      "validation_notes": "Shows observatory with large grey dome and smaller white dome in scenic countryside"
+    },
+    {
+      "name": "Ehrensberg Observatory Traunstein",
+      "latitude": 47.874,
+      "longitude": 12.64,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Ehrensberger-Sternwarte%20Traunstein.jpg",
+      "validation_notes": "Shows historic observatory building with copper dome and viewing platform"
+    },
+    {
+      "name": "Fabra Observatory",
+      "latitude": 41.418,
+      "longitude": 2.124,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatori%20Fabra%20-%20Vista%20des%20del%20Tibidabo%20-%201.jpg",
+      "validation_notes": "Shows historic observatory with large silver dome, classical architecture on hillside with Barcelona cityscape"
+    },
+    {
       "name": "Ferdinando Caliumi astronomic observatory",
       "latitude": 39.877,
       "longitude": 9.503,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Osservatorio%20astronomico%20Ferdinando%20Caliumi.jpg",
       "validation_notes": "Observatory building with dome on hilltop"
+    },
+    {
+      "name": "Forcarei Astronomical Observatory",
+      "latitude": 42.611,
+      "longitude": -8.371,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%20Astron%C3%B3mico%20de%20Forcarei.jpg",
+      "validation_notes": "Shows observatory dome building against night sky"
     },
     {
       "name": "Fran\u00e7ois-Xavier Bagnoud Observatory",
@@ -204,6 +302,13 @@
       "longitude": -43.679,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vista%20do%20Observat%C3%B3rio%20Astron%C3%B4mico%20Frei%20Ros%C3%A1rio%2C%20Caet%C3%A9%20MG.JPG",
       "validation_notes": "Shows observatory domes on a hilltop with parking area"
+    },
+    {
+      "name": "Fritz-Weithas-Sternwarte",
+      "latitude": 49.273,
+      "longitude": 11.486,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Neumarkt%20001.JPG",
+      "validation_notes": "Shows observatory dome building"
     },
     {
       "name": "F\u00e9lix Aguilar Observatory",
@@ -263,6 +368,13 @@
       "validation_notes": "Green Bank Telescope visible across field"
     },
     {
+      "name": "Greenhill Observatory",
+      "latitude": -42.431,
+      "longitude": 147.288,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/GreenhillObservatory.jpg",
+      "validation_notes": "Shows observatory complex with white dome and modern building facilities on a hillside"
+    },
+    {
       "name": "Haleakal\u0101 Observatory",
       "latitude": 20.708,
       "longitude": -156.257,
@@ -272,11 +384,25 @@
       "validation_notes": "Multiple domes on Maui volcanic peak"
     },
     {
+      "name": "Haute-Provence Observatory",
+      "latitude": 43.931,
+      "longitude": 5.713,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/T193%20in%20observations.jpg",
+      "validation_notes": "Shows the 193cm telescope inside the dome with control equipment"
+    },
+    {
       "name": "Hawaiian Volcano Observatory",
       "latitude": 19.429,
       "longitude": -155.259,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hawaiian%20Volcano%20Observatory%2C%20Hawai%CA%BBi%20Volcanoes%20National%20Park%2C%20Hawaii%20%284528702285%29.jpg",
       "validation_notes": "Observatory building with observation tower"
+    },
+    {
+      "name": "Heidelberg-K\u00f6nigstuhl State Observatory",
+      "latitude": 49.399,
+      "longitude": 8.721,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/LSW-Heidelberg.jpg",
+      "validation_notes": "Shows multiple observatory domes and telescope equipment"
     },
     {
       "name": "Hereford Arizona Observatory",
@@ -293,6 +419,13 @@
       "longitude": 16.5,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/HESS%20II%20gamma%20ray%20experiment%20five%20telescope%20array.jpg",
       "validation_notes": "Shows H.E.S.S. five-telescope array including large central telescope and four Cherenkov telescopes"
+    },
+    {
+      "name": "Hoher List Observatory",
+      "latitude": 50.162,
+      "longitude": 6.849,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/HoherListObservatory%20Buildings.jpg",
+      "validation_notes": "Shows observatory buildings with multiple domes in winter setting"
     },
     {
       "name": "Indian Astronomical Observatory (IAO)",
@@ -329,6 +462,13 @@
       "validation_notes": "White observatory dome building on grassy hill with trees"
     },
     {
+      "name": "Jura Observatory",
+      "latitude": 47.353,
+      "longitude": 7.422,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/2015-Vicques-Observatoire.jpg",
+      "validation_notes": "Shows observatory building with white dome and open shutter"
+    },
+    {
       "name": "Ka-Dar Observatory",
       "latitude": 43.649,
       "longitude": 41.426,
@@ -341,6 +481,20 @@
       "longitude": 76.966,
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B%2C_%D0%BE%D0%B1%D1%81%D0%B5%D1%80%D0%B2%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8F_%D0%9A%D0%B0%D0%BC%D0%B5%D0%BD%D1%81%D0%BA%D0%BE%D0%B5_%D0%BF%D0%BB%D0%B0%D1%82%D0%BE_%D0%BD%D0%B0_%D1%80%D0%B0%D1%81%D1%81%D0%B2%D0%B5%D1%82%D0%B5_%2810%29.jpg",
       "validation_notes": "Original was aerial view of residential area. Fallback shows observatory building with satellite dish on roof"
+    },
+    {
+      "name": "Kamioka Gravitational wave detector",
+      "latitude": 36.412,
+      "longitude": 137.306,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/In-construction%20KAGRA%20gravitational-wave%20detector.jpg",
+      "validation_notes": "Shows interior of underground gravitational wave detector with beam tube and excavated tunnel"
+    },
+    {
+      "name": "Kilpisj\u00e4rvi Atmospheric Imaging Receiver Array",
+      "latitude": 69.071,
+      "longitude": 20.762,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/KAIRA.jpg",
+      "validation_notes": "Shows the antenna array facility with equipment structures in a mountainous setting"
     },
     {
       "name": "Kislovodsk Mountain Astronomical Station",
@@ -357,11 +511,25 @@
       "validation_notes": "White observatory dome building with typical astronomical dome architecture"
     },
     {
+      "name": "Konkoly Observatory",
+      "latitude": 47.5,
+      "longitude": 18.964,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Konkoly%20Observatory.%20Facade%2C%20detail.%20-%20Budakeszierd%C5%91.JPG",
+      "validation_notes": "Shows the elegant facade of the observatory building"
+    },
+    {
       "name": "Kopernik Space Center",
       "latitude": 42.002,
       "longitude": -76.034,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Kopernik1.JPG",
       "validation_notes": "Shows observatory buildings with multiple domes on brick structures"
+    },
+    {
+      "name": "La Hita observatory",
+      "latitude": 39.569,
+      "longitude": -3.186,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%20Astron%C3%B3mico%20de%20La%20Hita%2C%20vista%203%20c%C3%BApulas.jpg",
+      "validation_notes": "Shows observatory buildings with 3 white domes and blue buildings on facility grounds"
     },
     {
       "name": "La Silla Observatory",
@@ -466,6 +634,13 @@
       "validation_notes": "Shows observatory grounds with telescope domes visible on hilltops in distance"
     },
     {
+      "name": "Modra Observatory",
+      "latitude": 48.373,
+      "longitude": 17.274,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/AGOModra%201.jpg",
+      "validation_notes": "Shows two observatory domes"
+    },
+    {
       "name": "Mont M\u00e9gantic Observatory",
       "latitude": 45.456,
       "longitude": -71.153,
@@ -567,11 +742,39 @@
       "validation_notes": "Weather/astronomical station on Austrian alpine peak"
     },
     {
+      "name": "Observatory and Planetarium dr. Zde\u0148ka Kv\u00edze",
+      "latitude": 49.207,
+      "longitude": 15.876,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Exterior%20of%20observatory%20in%20T%C5%99eb%C3%AD%C4%8D%2C%20T%C5%99eb%C3%AD%C4%8D%20District.jpg",
+      "validation_notes": "Shows observatory building with sliding roof structure"
+    },
+    {
+      "name": "Observatory of Geneva",
+      "latitude": 46.308,
+      "longitude": 6.136,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatoire%20de%20Gen%C3%A8ve%20-%20Panorama%204.JPG",
+      "validation_notes": "Shows modern observatory facility buildings with dome visible on the right"
+    },
+    {
       "name": "Observatory Sankt Andreasberg",
       "latitude": 51.732,
       "longitude": 10.526,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Sankt%20Andreasberg%20%E2%80%93%20Nachtaufnahme%20bei%20Rotlicht.jpg",
       "validation_notes": "Observatory building with name on facade, telescope outside, red night lighting"
+    },
+    {
+      "name": "Observat\u00f3rio Municipal de Americana",
+      "latitude": -22.757,
+      "longitude": -47.353,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/OMA%20Americana%20SP%20Brasil%20foto2.JPG",
+      "validation_notes": "Shows observatory dome with visitor information sign"
+    },
+    {
+      "name": "Ond\u0159ejov Observatory",
+      "latitude": 49.909,
+      "longitude": 14.781,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Ond%C5%99ejov%20Astron%20Observ%20DSCN0564.JPG",
+      "validation_notes": "Shows beautiful red brick observatory building with green copper dome"
     },
     {
       "name": "Osservatorio astronomico di monte Zugna",
@@ -595,6 +798,13 @@
       "validation_notes": "Charming stone observatory building with dome"
     },
     {
+      "name": "Osservatorio Monte San Lorenzo",
+      "latitude": 43.849,
+      "longitude": 12.48,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Osservatorio%20Monte%20San%20Lorenzo.jpg",
+      "validation_notes": "Shows observatory dome on mountain"
+    },
+    {
       "name": "Oukaimden Observatory",
       "latitude": 31.206,
       "longitude": -7.866,
@@ -616,6 +826,20 @@
       "longitude": -116.865,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Pti%20aerial%20photo%20B.jpg",
       "validation_notes": "Shows aerial view of observatory campus with large white dome and other buildings"
+    },
+    {
+      "name": "Perth Observatory",
+      "latitude": -32.008,
+      "longitude": 116.136,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Perth%20Observatory-dome.jpg",
+      "validation_notes": "Shows observatory dome on elevated tower structure with concrete pillars and spiral staircase"
+    },
+    {
+      "name": "Peterberg Observatory",
+      "latitude": 49.571,
+      "longitude": 6.999,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20peterberg%202007.jpg",
+      "validation_notes": "Shows two observatory domes"
     },
     {
       "name": "Pic du Midi Observatory",
@@ -696,6 +920,13 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome"
     },
     {
+      "name": "Royal Observatory of Madrid",
+      "latitude": 40.408,
+      "longitude": -3.688,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Real%20Observatorio%20de%20Madrid%20en%20abril%20de%202023%2010.jpg",
+      "validation_notes": "Shows historic neoclassical observatory building with rotunda and domes"
+    },
+    {
       "name": "Rozhen Observatory",
       "latitude": 41.693,
       "longitude": 24.738,
@@ -763,6 +994,13 @@
       "validation_notes": "Shows observatory buildings with white domes"
     },
     {
+      "name": "Sonneberg Observatory",
+      "latitude": 50.377,
+      "longitude": 11.19,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Neufang-Sternwarte.jpg",
+      "validation_notes": "Shows observatory building with two white domes surrounded by trees"
+    },
+    {
       "name": "Southern African Large Telescope",
       "latitude": -32.376,
       "longitude": 20.811,
@@ -791,6 +1029,20 @@
       "longitude": 14.275,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Davidschlag%20im%20Januar%202025.jpg",
       "validation_notes": "White observatory dome structure in field setting"
+    },
+    {
+      "name": "Sternwarte T\u00fcbingen",
+      "latitude": 48.538,
+      "longitude": 9.056,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20T%C3%BCbingen%2010.%20August%202013.jpg",
+      "validation_notes": "Shows observatory building with prominent white dome and facility grounds"
+    },
+    {
+      "name": "Sternwarte Welzheim",
+      "latitude": 48.875,
+      "longitude": 9.597,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte-Welzheim.jpg",
+      "validation_notes": "Shows multiple observatory domes"
     },
     {
       "name": "Stony Ridge Observatory",
@@ -898,6 +1150,13 @@
       "validation_notes": "Large white observatory dome building (93-inch telescope) with mountains"
     },
     {
+      "name": "Vatican Observatory",
+      "latitude": 41.747,
+      "longitude": 12.651,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Specola1.jpg",
+      "validation_notes": "Shows observatory building with silver metallic dome, external staircase, and plaque"
+    },
+    {
       "name": "Vera C. Rubin Observatory",
       "latitude": -30.245,
       "longitude": -70.749,
@@ -923,11 +1182,32 @@
       "validation_notes": "Stunning aerial view of 4 Unit Telescopes at Paranal"
     },
     {
+      "name": "Volkssternwarte Buchloe",
+      "latitude": 48.017,
+      "longitude": 10.733,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Volkssternwarte%20Buchloe%20%2807%29.jpg",
+      "validation_notes": "Shows aerial view of observatory facility with white dome and red buildings in rural setting"
+    },
+    {
       "name": "Volkssternwarte Kempten",
       "latitude": 47.725,
       "longitude": 10.333,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Volkssternwarte%20Kempten.jpg",
       "validation_notes": "Public observatory facility building with people gathered outside"
+    },
+    {
+      "name": "Volkssternwarte Michelbach",
+      "latitude": 48.088,
+      "longitude": 15.756,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Michelbach.jpg",
+      "validation_notes": "Shows multiple observatory domes and buildings"
+    },
+    {
+      "name": "Volkssternwarte Singen",
+      "latitude": 47.753,
+      "longitude": 8.842,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Kuppel%20der%20Sternwarte%20Singen.jpg",
+      "validation_notes": "Shows white observatory dome with rotating slit on hexagonal base, rooftop mounted"
     },
     {
       "name": "W. M. Keck Observatory",
@@ -972,6 +1252,27 @@
       "longitude": 7.465,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorium%20Zimmerwald%2001.jpg",
       "validation_notes": "Multiple observatory domes and buildings with satellite tracking equipment"
+    },
+    {
+      "name": "\u00c9pendes Observatory",
+      "latitude": 46.762,
+      "longitude": 7.139,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatoire-ependes.jpg",
+      "validation_notes": "Shows observatory building with rotating dome (open position) in a rural setting"
+    },
+    {
+      "name": "\u00dapice observatory",
+      "latitude": 50.507,
+      "longitude": 16.012,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/%C3%9Apick%C3%A1%20hv%C4%9Bzd%C3%A1rna.JPG",
+      "validation_notes": "Shows observatory building with silver dome, single-story structure with outdoor seating area"
+    },
+    {
+      "name": "\u00dasteck\u00e1 hv\u011bzd\u00e1rna",
+      "latitude": 50.729,
+      "longitude": 13.959,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/%C3%9Asteck%C3%A1%20hv%C4%9Bzd%C3%A1rna.jpg",
+      "validation_notes": "Shows historic stone observatory building with cylindrical observation structure"
     }
   ]
 }
