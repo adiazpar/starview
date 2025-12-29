@@ -12,15 +12,28 @@ Usage:
 
 import time
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.test import RequestFactory
 from django.contrib.auth.models import AnonymousUser
 
 from starview_app.views import LocationViewSet, get_platform_stats
+
+
 from starview_app.utils.cache import (
     map_geojson_key,
     location_list_key,
 )
+
+
+def get_valid_host():
+    """Get a valid host from ALLOWED_HOSTS for RequestFactory."""
+    for host in settings.ALLOWED_HOSTS:
+        # Skip wildcards and empty strings
+        if host and host != '*' and not host.startswith('.'):
+            return host
+    # Fallback to localhost if no valid host found
+    return 'localhost'
 
 
 class Command(BaseCommand):
@@ -70,6 +83,7 @@ class Command(BaseCommand):
         self.stdout.write('\nWarming application caches...\n')
 
         factory = RequestFactory()
+        valid_host = get_valid_host()
         total_start = time.time()
         caches_warmed = 0
         errors = []
@@ -78,7 +92,7 @@ class Command(BaseCommand):
         self.stdout.write('\n  [1/3] Map GeoJSON (anonymous)')
         try:
             start = time.time()
-            request = factory.get('/api/locations/map_geojson/')
+            request = factory.get('/api/locations/map_geojson/', HTTP_HOST=valid_host)
             request.user = AnonymousUser()
 
             viewset = LocationViewSet.as_view({'get': 'map_geojson'})
@@ -100,7 +114,7 @@ class Command(BaseCommand):
         for page in range(1, pages + 1):
             try:
                 start = time.time()
-                request = factory.get(f'/api/locations/?page={page}')
+                request = factory.get(f'/api/locations/?page={page}', HTTP_HOST=valid_host)
                 request.user = AnonymousUser()
 
                 viewset = LocationViewSet.as_view({'get': 'list'})
@@ -130,7 +144,7 @@ class Command(BaseCommand):
         self.stdout.write('\n  [3/3] Platform stats')
         try:
             start = time.time()
-            request = factory.get('/api/stats/')
+            request = factory.get('/api/stats/', HTTP_HOST=valid_host)
             request.user = AnonymousUser()
 
             response = get_platform_stats(request)
