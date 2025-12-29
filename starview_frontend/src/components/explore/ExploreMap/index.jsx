@@ -1450,7 +1450,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
             {/* Close Button */}
             <button
-              className="explore-map__card-close"
+              className="explore-map__card-btn explore-map__card-btn--close"
               onClick={(e) => {
                 e.stopPropagation();
                 handleCloseCard();
@@ -1462,12 +1462,41 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
             {/* Favorite Button */}
             <button
-              className={`explore-map__card-favorite ${selectedLocation.is_favorited ? 'explore-map__card-favorite--active' : ''}`}
+              className={`explore-map__card-btn explore-map__card-btn--favorite ${selectedLocation.is_favorited ? 'active' : ''}`}
               onClick={handleToggleFavorite}
               aria-label={selectedLocation.is_favorited ? 'Remove from saved' : 'Save location'}
             >
               <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
             </button>
+
+            {/* Observatory Action Buttons - top left */}
+            {selectedLocation.location_type === 'observatory' &&
+             (selectedLocation.type_metadata?.phone_number || selectedLocation.type_metadata?.website) && (
+              <div className="explore-map__card-actions">
+                {selectedLocation.type_metadata?.phone_number && (
+                  <a
+                    href={`tel:${selectedLocation.type_metadata.phone_number}`}
+                    className="explore-map__card-btn"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Call observatory"
+                  >
+                    <i className="fa-solid fa-phone"></i>
+                  </a>
+                )}
+                {selectedLocation.type_metadata?.website && (
+                  <a
+                    href={selectedLocation.type_metadata.website}
+                    className="explore-map__card-btn"
+                    onClick={(e) => e.stopPropagation()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Visit website"
+                  >
+                    <i className="fa-solid fa-globe"></i>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Content Section */}

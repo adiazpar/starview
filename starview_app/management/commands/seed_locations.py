@@ -2,23 +2,23 @@
 Location Seeding Management Command
 
 Seeds the database with curated locations from validated JSON files.
-Downloads images from URLs and creates Location records with Mapbox enrichment.
+Downloads images from URLs and creates Location records.
 
 Usage:
     python manage.py seed_locations --type=observatory
     python manage.py seed_locations --type=observatory --dry-run
-    python manage.py seed_locations --type=observatory --skip-images
 
-Idempotent Behavior:
-    - Skips locations that already exist (by name + coordinates)
-    - Safe to run multiple times - only seeds new locations
-    - If image download fails, location is NOT created (deferred)
-    - Deferred locations will be retried on subsequent runs
+Behavior:
+    - Idempotent: Skips locations that already exist (by name + coordinates)
+    - All seeded locations are marked as verified
+    - If image download fails, location is NOT created (retried on next run)
+    - type_metadata (phone, website) is read from JSON if present
 
 Prerequisites:
-    Run the observatory seeder pipeline first:
-    python -m tools.observatory_seeder.run --discover --limit N
-    Then validate images with Claude Code and generate validated_observatories.json
+    Run /seed-observatories skill which handles:
+    1. Discovery from Wikidata (with phone/website enrichment)
+    2. Image validation via sub-agents
+    3. Generates validated_observatories.json
 """
 
 import json
@@ -93,25 +93,12 @@ class Command(BaseCommand):
             action='store_true',
             help='Skip image processing (faster for testing)'
         )
-        parser.add_argument(
-            '--skip-existing',
-            action='store_true',
-            default=True,
-            help='Skip locations that already exist (default: True)'
-        )
-        parser.add_argument(
-            '--verify',
-            action='store_true',
-            default=False,
-            help='Mark seeded locations as verified (default: False)'
-        )
 
     def handle(self, *args, **options):
         location_type = options['type']
         dry_run = options['dry_run']
         skip_images = options['skip_images']
-        skip_existing = options['skip_existing']
-        verify = options['verify']
+
 
         # Determine JSON file path
         if options['file']:
@@ -144,19 +131,11 @@ class Command(BaseCommand):
         self.stdout.write(f'Location type: {location_type}')
         self.stdout.write(f'Dry run: {dry_run}')
         self.stdout.write(f'Skip images: {skip_images}')
-        self.stdout.write(f'Skip existing: {skip_existing}')
-        self.stdout.write(f'Mark as verified: {verify}')
 
         if dry_run:
             self._dry_run(locations, location_type)
         else:
-            self._seed_locations(
-                locations,
-                location_type,
-                skip_images=skip_images,
-                skip_existing=skip_existing,
-                verify=verify
-            )
+            self._seed_locations(locations, location_type, skip_images=skip_images)
 
     def _dry_run(self, locations, location_type):
         """Preview what would be seeded."""
@@ -201,14 +180,7 @@ class Command(BaseCommand):
 
         return user
 
-    def _seed_locations(
-        self,
-        locations,
-        location_type,
-        skip_images=False,
-        skip_existing=True,
-        verify=True
-    ):
+    def _seed_locations(self, locations, location_type, skip_images=False):
         """Seed locations with runtime image downloads."""
         self.stdout.write('\n' + '=' * 60)
         self.stdout.write('SEEDING LOCATIONS')
@@ -237,7 +209,7 @@ class Command(BaseCommand):
                     longitude=loc_data.get('longitude'),
                 ).first()
 
-                if existing and skip_existing:
+                if existing:
                     self.stdout.write(self.style.WARNING(f'  Skipped (already exists): ID {existing.id}'))
                     skipped_count += 1
                     continue
@@ -262,7 +234,8 @@ class Command(BaseCommand):
                         locality=locality,
                         formatted_address=formatted_address,
                         added_by=system_user,
-                        is_verified=verify,
+                        is_verified=True,  # Seeded locations are always verified
+                        type_metadata=loc_data.get('type_metadata') or {},
                     )
 
                     # Download and add image - rollback location if image fails

@@ -57,6 +57,11 @@ class Location(models.Model):
         default='viewpoint',
         help_text="Type of stargazing location"
     )
+    type_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Type-specific metadata (e.g., phone_number for observatories)"
+    )
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Geographic data:

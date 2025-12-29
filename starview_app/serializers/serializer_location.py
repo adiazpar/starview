@@ -60,7 +60,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'location_type', 'location_type_display',
+        fields = ['id', 'name', 'location_type', 'location_type_display', 'type_metadata',
                   'latitude', 'longitude', 'elevation',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
@@ -74,7 +74,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
         read_only_fields = ['id', 'added_by',
                           'created_at', 'formatted_address', 'administrative_area',
-                          'locality', 'country',
+                          'locality', 'country', 'type_metadata',
 
                             # Verification fields are read-only (managed by system)
                             # Note: verification_notes excluded (staff-only internal data)
@@ -157,7 +157,7 @@ class MapLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = [
-            'id', 'name', 'location_type', 'location_type_display',
+            'id', 'name', 'location_type', 'location_type_display', 'type_metadata',
             'latitude', 'longitude',
             'administrative_area', 'country', 'elevation',
             'average_rating', 'review_count', 'is_favorited', 'images'
@@ -303,7 +303,7 @@ class LocationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'location_type', 'location_type_display',
+        fields = ['id', 'name', 'location_type', 'location_type_display', 'type_metadata',
                   'latitude', 'longitude', 'elevation',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
@@ -317,7 +317,7 @@ class LocationListSerializer(serializers.ModelSerializer):
 
         read_only_fields = ['id', 'added_by',
                           'created_at', 'formatted_address', 'administrative_area',
-                          'locality', 'country',
+                          'locality', 'country', 'type_metadata',
 
                             # Verification fields are read-only (managed by system)
                             'is_verified', 'verification_date', 'verified_by',

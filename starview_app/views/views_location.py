@@ -492,6 +492,7 @@ class LocationViewSet(viewsets.ModelViewSet):
                     'is_favorited': getattr(loc, 'is_favorited_annotated', False),
                     'location_type': loc.location_type,
                     'location_type_display': loc.get_location_type_display(),
+                    'type_metadata': loc.type_metadata or {},
                     'administrative_area': loc.administrative_area or '',
                     'country': loc.country or '',
                     'elevation': loc.elevation,
