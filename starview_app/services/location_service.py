@@ -122,7 +122,7 @@ class LocationService:
 
         url = (f"https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/"
                f"{location.longitude},{location.latitude}.json"
-               f"?&access_token={mapbox_token}")
+               f"?layers=contour&access_token={mapbox_token}")
 
         data = LocationService._make_mapbox_request(url)
         if not data or not data.get('features'):
