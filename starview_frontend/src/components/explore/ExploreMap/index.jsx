@@ -286,11 +286,14 @@ function parseSvgIcon(svgString) {
 /**
  * Load a FontAwesome icon as a Mapbox image
  * Accepts full SVG string, parses it, and converts to canvas ImageData
+ * @param {string} svgString - Full SVG markup
+ * @param {number} size - Icon size in pixels
+ * @param {string} fillColor - Fill color for the icon path
  */
-function loadIconImage(svgString, size = 24) {
+function loadIconImage(svgString, size = 24, fillColor = 'white') {
   return new Promise((resolve) => {
     const { path, viewBox } = parseSvgIcon(svgString);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${size}" height="${size}"><path fill="white" d="${path}"/></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${size}" height="${size}"><path fill="${fillColor}" d="${path}"/></svg>`;
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -814,11 +817,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     });
 
     // Load location type icons into the map (async)
+    // Icons must contrast with marker fill color:
+    // - Day mode: black markers → white icons
+    // - Night mode: white markers → black icons
     const loadIcons = async () => {
       for (const [type, svgString] of Object.entries(LOCATION_TYPE_ICONS)) {
-        const imageData = await loadIconImage(svgString, 24);
-        if (map.current && !map.current.hasImage(`icon-${type}`)) {
-          map.current.addImage(`icon-${type}`, imageData);
+        // Day icons (white) - contrasts with black markers in day mode
+        const dayImageData = await loadIconImage(svgString, 24, MARKER_COLORS.strokeDay);
+        if (map.current && !map.current.hasImage(`icon-${type}-day`)) {
+          map.current.addImage(`icon-${type}-day`, dayImageData);
+        }
+        // Night icons (black) - contrasts with white markers in night mode
+        const nightImageData = await loadIconImage(svgString, 24, MARKER_COLORS.strokeNight);
+        if (map.current && !map.current.hasImage(`icon-${type}-night`)) {
+          map.current.addImage(`icon-${type}-night`, nightImageData);
         }
       }
     };
@@ -912,6 +924,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     });
 
     // Add icon layer on top of markers (based on location_type)
+    // Default to day icons (black) - updateLighting will switch to night icons when needed
     map.current.addLayer({
       id: 'location-marker-icons',
       type: 'symbol',
@@ -921,11 +934,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         'icon-image': [
           'match',
           ['get', 'location_type'],
-          'dark_sky_site', 'icon-dark_sky_site',
-          'observatory', 'icon-observatory',
-          'campground', 'icon-campground',
-          'viewpoint', 'icon-viewpoint',
-          'icon-other', // fallback
+          'dark_sky_site', 'icon-dark_sky_site-day',
+          'observatory', 'icon-observatory-day',
+          'campground', 'icon-campground-day',
+          'viewpoint', 'icon-viewpoint-day',
+          'icon-other-day', // fallback
         ],
         'icon-size': 0.5,
         'icon-allow-overlap': true,
@@ -1196,6 +1209,21 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           ['boolean', ['feature-state', 'selected'], false],
           MARKER_COLORS.selectedStroke,
           strokeColor,
+        ]);
+      }
+
+      // Update marker icons based on lighting (icons contrast with marker fill)
+      // Day/dawn: white icons (on black markers), Night/dusk: black icons (on white markers)
+      if (map.current.getLayer('location-marker-icons')) {
+        const iconSuffix = isDaytime ? 'day' : 'night';
+        map.current.setLayoutProperty('location-marker-icons', 'icon-image', [
+          'match',
+          ['get', 'location_type'],
+          'dark_sky_site', `icon-dark_sky_site-${iconSuffix}`,
+          'observatory', `icon-observatory-${iconSuffix}`,
+          'campground', `icon-campground-${iconSuffix}`,
+          'viewpoint', `icon-viewpoint-${iconSuffix}`,
+          `icon-other-${iconSuffix}`, // fallback
         ]);
       }
     };
