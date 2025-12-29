@@ -7,7 +7,7 @@ import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import './styles.css';
 
 // Placeholder image for locations without photos
-const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80';
+const PLACEHOLDER_IMAGE = '/images/default_location.jpg';
 
 function ImageCarousel({
   images = [],

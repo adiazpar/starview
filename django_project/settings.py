@@ -113,7 +113,6 @@ CONTENT_SECURITY_POLICY = {
             "https://api.mapbox.com",                   # Mapbox API images
             "https://*.r2.dev",                         # Cloudflare R2 dev URLs (development/testing)
             "https://media.starview.app",               # R2 custom domain (production)
-            "https://images.unsplash.com",              # Unsplash images (legacy location data)
         ),
         'worker-src': (
             "'self'",
