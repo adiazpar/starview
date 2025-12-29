@@ -2,7 +2,7 @@
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
   "generated_at": "2025-12-29 14:58:55 UTC",
-  "total_validated": 217,
+  "total_validated": 208,
   "observatories": [
     {
       "name": "Altitude SEE Test European Platform",
@@ -197,15 +197,6 @@
       "country": "Spain",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Calar%20alto.JPG",
       "validation_notes": "Chrome-validated: shows observatory building/dome"
-    },
-    {
-      "name": "Caltech Submillimeter Observatory",
-      "latitude": 19.823,
-      "longitude": -155.476,
-      "elevation": 3490.0,
-      "country": "United States",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
     },
     {
       "name": "Campo Imperatore Astronomical Observatory",
@@ -411,24 +402,6 @@
       "validation_notes": "Original was cityscape; fallback shows observatory exterior with multiple dome structures"
     },
     {
-      "name": "Gemini North",
-      "latitude": 19.824,
-      "longitude": -155.469,
-      "elevation": 3490.0,
-      "country": "United States",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
-    },
-    {
-      "name": "Gemini Observatory",
-      "latitude": -30.241,
-      "longitude": -70.737,
-      "elevation": 1590.0,
-      "country": "Chile",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
-    },
-    {
       "name": "Georgian National Astrophysical Observatory",
       "latitude": 41.754,
       "longitude": 42.819,
@@ -496,15 +469,6 @@
       "validation_notes": "Shows multiple observatory domes and telescope equipment"
     },
     {
-      "name": "Hereford Arizona Observatory",
-      "latitude": 31.452,
-      "longitude": -110.238,
-      "elevation": 1360.0,
-      "country": "United States",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
-    },
-    {
       "name": "High Energy Stereoscopic System",
       "latitude": -23.271,
       "longitude": 16.5,
@@ -524,15 +488,6 @@
       "longitude": 15.839,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hv%C4%9Bzd%C3%A1rna%20Hradec%20Kr%C3%A1lov%C3%A9%2001.jpg",
       "validation_notes": "Observatory complex with multiple domes, modern architecture, landscaped grounds"
-    },
-    {
-      "name": "Indian Astronomical Observatory (IAO)",
-      "latitude": 32.779,
-      "longitude": 78.964,
-      "elevation": 4250.0,
-      "country": "India",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
     },
     {
       "name": "Iranian National Observatory",
@@ -704,15 +659,6 @@
       "longitude": -121.643,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Lick%20Observatory%20Refractor.jpg",
       "validation_notes": "Great Lick Refractor telescope inside dome"
-    },
-    {
-      "name": "Llano de Chajnantor Observatory",
-      "latitude": -23.023,
-      "longitude": -67.755,
-      "elevation": 4830.0,
-      "country": "Chile",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
     },
     {
       "name": "Llano del Hato National Astronomical Observatory",
@@ -1096,15 +1042,6 @@
       "validation_notes": "Traditional Chinese architecture entrance gate to the observatory with visitors and stairs"
     },
     {
-      "name": "Pyramid International Laboratory-Observatory",
-      "latitude": 27.957,
-      "longitude": 86.814,
-      "elevation": 4930.0,
-      "country": "Nepal",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
-    },
-    {
       "name": "Quito Astronomical Observatory",
       "latitude": -0.215,
       "longitude": -78.503,
@@ -1214,15 +1151,6 @@
       "longitude": 33.997,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Crimean%20Astrophysical%20Observatory%20telescope%20%282005-09-290%29.jpg",
       "validation_notes": "Shows observatory telescope dome structure"
-    },
-    {
-      "name": "Sinnott Memorial Observation Station",
-      "latitude": 42.912,
-      "longitude": -122.143,
-      "elevation": 6650.0,
-      "country": "United States",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
     },
     {
       "name": "Skalnate Pleso observatory",
@@ -1405,15 +1333,6 @@
       "longitude": 28.074,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Union%20Observatory%20in%201905.png",
       "validation_notes": "Shows historic 1905 photograph of Union Observatory facility buildings with dome structures"
-    },
-    {
-      "name": "University of Tokyo Atacama Observatory",
-      "latitude": -22.987,
-      "longitude": -67.742,
-      "elevation": 4850.0,
-      "country": "Chile",
-      "image_url": null,
-      "validation_notes": "Validated observatory"
     },
     {
       "name": "Ussuriysk Astrophysical Observatory",
