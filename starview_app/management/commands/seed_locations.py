@@ -22,7 +22,9 @@ Prerequisites:
 """
 
 import json
+import os
 import re
+import tempfile
 import time
 from pathlib import Path
 
@@ -336,11 +338,12 @@ class Command(BaseCommand):
         while True:
             attempt += 1
             try:
-                # Download image
+                # Download image (stream=True to avoid loading entire file in memory)
                 response = requests.get(
                     image_url,
                     headers={'User-Agent': USER_AGENT},
-                    timeout=60
+                    timeout=(10, 120),  # (connect, read) - longer read for large files
+                    stream=True
                 )
 
                 # Handle rate limiting (429) - always retry
@@ -359,7 +362,6 @@ class Command(BaseCommand):
                     return False
 
                 response.raise_for_status()
-                image_bytes = response.content
 
                 # Get original filename extension from URL
                 from urllib.parse import urlparse, unquote
@@ -367,21 +369,37 @@ class Command(BaseCommand):
                 ext = url_path.split('.')[-1].lower() if '.' in url_path else 'jpg'
                 filename = f'{location.id}_01.{ext}'
 
-                # Create LocationPhoto with image assigned (not saved yet)
-                # LocationPhoto.save() will handle all processing and create only one file
-                photo = LocationPhoto(
-                    location=location,
-                    caption=caption[:255] if caption else '',
-                    order=0,
-                    image=ContentFile(image_bytes, name=filename),
-                )
-                photo.save()
+                # Stream to temp file to avoid memory issues on 512MB Render instances
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{ext}') as tmp_file:
+                    tmp_path = tmp_file.name
+                    size_bytes = 0
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            tmp_file.write(chunk)
+                            size_bytes += len(chunk)
 
-                size_kb = len(image_bytes) / 1024
-                if attempt > 1:
-                    self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB) [after {attempt} attempts]')
-                else:
-                    self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB)')
+                try:
+                    # Read from temp file and create photo
+                    with open(tmp_path, 'rb') as f:
+                        image_bytes = f.read()
+
+                    photo = LocationPhoto(
+                        location=location,
+                        caption=caption[:255] if caption else '',
+                        order=0,
+                        image=ContentFile(image_bytes, name=filename),
+                    )
+                    photo.save()
+
+                    size_kb = size_bytes / 1024
+                    if attempt > 1:
+                        self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB) [after {attempt} attempts]')
+                    else:
+                        self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB)')
+                finally:
+                    # Clean up temp file
+                    if os.path.exists(tmp_path):
+                        os.unlink(tmp_path)
 
                 time.sleep(IMAGE_DOWNLOAD_DELAY)
                 return True
