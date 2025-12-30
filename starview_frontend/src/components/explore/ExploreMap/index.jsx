@@ -178,6 +178,7 @@ import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
 import ImageCarousel from '../../shared/ImageCarousel';
+import NavigationPanel from '../NavigationPanel';
 import './styles.css';
 
 // Register PMTiles custom source type for Mapbox GL JS
@@ -318,6 +319,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
+  // Navigation panel state is handled by navDropdown hook
+  const [navigationDestination, setNavigationDestination] = useState(null); // Destination for navigation
+  const [routeGeometry, setRouteGeometry] = useState(null); // Route line geometry for map
+  const [isRouteEstimated, setIsRouteEstimated] = useState(false); // True if using geodesic fallback
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
@@ -339,23 +344,32 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const styleDropdown = useAnimatedDropdown();
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
 
+  // Navigation dropdown state
+  const navDropdown = useAnimatedDropdown();
+  const leftControlsRef = useRef(null);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
+      // Check right controls
       if (controlsRef.current && !controlsRef.current.contains(e.target)) {
         iucnDropdown.close();
         styleDropdown.close();
+      }
+      // Check left controls
+      if (leftControlsRef.current && !leftControlsRef.current.contains(e.target)) {
+        navDropdown.close();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [iucnDropdown, styleDropdown]);
+  }, [iucnDropdown, styleDropdown, navDropdown]);
 
   // Keep dropdown ref in sync for popup suppression
   useEffect(() => {
-    dropdownOpenRef.current = iucnDropdown.isOpen || styleDropdown.isOpen;
-  }, [iucnDropdown.isOpen, styleDropdown.isOpen]);
+    dropdownOpenRef.current = iucnDropdown.isOpen || styleDropdown.isOpen || navDropdown.isOpen;
+  }, [iucnDropdown.isOpen, styleDropdown.isOpen, navDropdown.isOpen]);
 
   const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers();
   const { location: userLocation } = useUserLocation();
@@ -458,6 +472,50 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     if (!requireAuth()) return;
     toggleFavorite.mutate(selectedLocation.id);
   }, [requireAuth, selectedLocation?.id, toggleFavorite]);
+
+  // Handle opening navigation panel
+  const handleOpenNavigation = useCallback((e) => {
+    e.stopPropagation();
+    if (!selectedLocation) return;
+
+    // Set destination for navigation
+    setNavigationDestination({
+      name: selectedLocation.name,
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+    });
+
+    // Close the bottom card and open navigation dropdown
+    setIsCardVisible(false);
+    setTimeout(() => {
+      setSelectedLocation(null);
+      navDropdown.open();
+      iucnDropdown.close();
+      styleDropdown.close();
+    }, CARD_CLOSE_ANIMATION_MS);
+
+    // Clear selected marker's feature-state
+    if (map.current && selectedIdRef.current !== null) {
+      map.current.setFeatureState(
+        { source: 'locations', id: selectedIdRef.current },
+        { selected: false }
+      );
+    }
+  }, [selectedLocation, navDropdown, iucnDropdown, styleDropdown]);
+
+  // Handle closing navigation dropdown (clears route and destination)
+  const handleCloseNavigation = useCallback(() => {
+    navDropdown.close();
+    setRouteGeometry(null);
+    setIsRouteEstimated(false);
+    setNavigationDestination(null);
+  }, [navDropdown]);
+
+  // Handle route received from NavigationPanel
+  const handleRouteReceived = useCallback((geometry, isEstimated = false) => {
+    setRouteGeometry(geometry);
+    setIsRouteEstimated(isEstimated);
+  }, []);
 
   // Handle card open animation
   useEffect(() => {
@@ -1260,6 +1318,90 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     map.current.setFilter('protected-areas-border', iucnFilter);
   }, [iucnFilter, mapLoaded]);
 
+  // Manage navigation route layer on map
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    // Remove existing route layer and source if no route
+    if (!routeGeometry) {
+      if (map.current.getLayer('navigation-route-line')) {
+        map.current.removeLayer('navigation-route-line');
+      }
+      if (map.current.getSource('navigation-route')) {
+        map.current.removeSource('navigation-route');
+      }
+      return;
+    }
+
+    // Add or update route
+    const routeData = {
+      type: 'Feature',
+      properties: {},
+      geometry: routeGeometry,
+    };
+
+    // Route styling: solid blue for actual routes, dashed amber for estimated
+    const routeColor = isRouteEstimated ? '#f59e0b' : '#3b82f6'; // amber-500 or blue-500
+    const lineCap = isRouteEstimated ? 'butt' : 'round'; // butt cap needed for dashes
+
+    if (map.current.getSource('navigation-route')) {
+      // Update existing source
+      map.current.getSource('navigation-route').setData(routeData);
+      // Update styling for estimated vs actual route
+      map.current.setPaintProperty('navigation-route-line', 'line-color', routeColor);
+      map.current.setLayoutProperty('navigation-route-line', 'line-cap', lineCap);
+      // Dashed line for estimated routes (8px dash, 6px gap)
+      if (isRouteEstimated) {
+        map.current.setPaintProperty('navigation-route-line', 'line-dasharray', [2, 1.5]);
+      } else {
+        map.current.setPaintProperty('navigation-route-line', 'line-dasharray', null);
+      }
+    } else {
+      // Add new source and layer
+      map.current.addSource('navigation-route', {
+        type: 'geojson',
+        data: routeData,
+      });
+
+      const layerConfig = {
+        id: 'navigation-route-line',
+        type: 'line',
+        source: 'navigation-route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': lineCap,
+        },
+        paint: {
+          'line-color': routeColor,
+          'line-width': 5,
+          'line-opacity': 0.8,
+          'line-emissive-strength': 1, // Glows in night mode
+        },
+      };
+
+      // Add dashed pattern for estimated routes
+      if (isRouteEstimated) {
+        layerConfig.paint['line-dasharray'] = [2, 1.5];
+      }
+
+      map.current.addLayer(layerConfig);
+    }
+
+    // Fit map to show the entire route
+    if (routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
+      const coordinates = routeGeometry.coordinates;
+      const bounds = coordinates.reduce(
+        (bounds, coord) => bounds.extend(coord),
+        new mapboxgl.LngLatBounds(coordinates[0], coordinates[0])
+      );
+
+      map.current.fitBounds(bounds, {
+        padding: { top: 220, right: 50, bottom: 50, left: 50 }, // Extra top padding for nav panel
+        duration: FLYTO_DURATION_MS,
+      });
+    }
+  }, [routeGeometry, isRouteEstimated, mapLoaded]);
+
   // Toggle IUCN category selection
   const handleIucnToggle = useCallback((category) => {
     setSelectedIucnCategories(prev => {
@@ -1344,7 +1486,43 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     <div className="explore-map">
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
-      {/* Map Controls - stagger delay: 0.3s base + 0.15s per item */}
+      {/* Left Controls - Navigation */}
+      <div className={`explore-map__controls explore-map__controls--left ${mapLoaded ? 'explore-map__controls--loaded' : ''}`} ref={leftControlsRef}>
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
+          <button
+            className={`explore-map__control-btn ${navDropdown.isOpen ? 'explore-map__control-btn--active' : ''}`}
+            onClick={() => {
+              if (navDropdown.isOpen) {
+                navDropdown.close();
+              } else {
+                navDropdown.open();
+                iucnDropdown.close();
+                styleDropdown.close();
+                closeMapPopups();
+              }
+            }}
+            aria-label="Get directions"
+          >
+            <i className="fa-solid fa-location-arrow"></i>
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Dropdown - positioned relative to map container */}
+      {navDropdown.isOpen && (
+        <div className={`explore-map__dropdown explore-map__dropdown--nav ${navDropdown.isClosing ? 'explore-map__dropdown--closing' : ''}`}>
+          <NavigationPanel
+            isOpen={navDropdown.isOpen}
+            onClose={handleCloseNavigation}
+            destination={navigationDestination}
+            userLocation={userLocation}
+            onRouteReceived={handleRouteReceived}
+            isDropdownMode={true}
+          />
+        </div>
+      )}
+
+      {/* Right Controls - stagger delay: 0.3s base + 0.15s per item */}
       <div className={`explore-map__controls ${mapLoaded ? 'explore-map__controls--loaded' : ''}`} ref={controlsRef}>
         {/* IUCN Filter */}
         <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
@@ -1469,34 +1647,41 @@ function ExploreMap({ initialViewport, onViewportChange }) {
               <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
             </button>
 
-            {/* Observatory Action Buttons - top left */}
-            {selectedLocation.location_type === 'observatory' &&
-             (selectedLocation.type_metadata?.phone_number || selectedLocation.type_metadata?.website) && (
-              <div className="explore-map__card-actions">
-                {selectedLocation.type_metadata?.phone_number && (
-                  <a
-                    href={`tel:${selectedLocation.type_metadata.phone_number}`}
-                    className="explore-map__card-btn"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Call observatory"
-                  >
-                    <i className="fa-solid fa-phone"></i>
-                  </a>
-                )}
-                {selectedLocation.type_metadata?.website && (
-                  <a
-                    href={selectedLocation.type_metadata.website}
-                    className="explore-map__card-btn"
-                    onClick={(e) => e.stopPropagation()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit website"
-                  >
-                    <i className="fa-solid fa-globe"></i>
-                  </a>
-                )}
-              </div>
-            )}
+            {/* Action Buttons - top left (GPS for all, phone/website for observatories) */}
+            <div className="explore-map__card-actions">
+              {/* GPS Navigation Button - available for all locations */}
+              <button
+                className="explore-map__card-btn"
+                onClick={handleOpenNavigation}
+                aria-label="Get directions"
+              >
+                <i className="fa-solid fa-route"></i>
+              </button>
+
+              {/* Observatory-specific buttons */}
+              {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.phone_number && (
+                <a
+                  href={`tel:${selectedLocation.type_metadata.phone_number}`}
+                  className="explore-map__card-btn"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Call observatory"
+                >
+                  <i className="fa-solid fa-phone"></i>
+                </a>
+              )}
+              {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.website && (
+                <a
+                  href={selectedLocation.type_metadata.website}
+                  className="explore-map__card-btn"
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Visit website"
+                >
+                  <i className="fa-solid fa-globe"></i>
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Content Section */}

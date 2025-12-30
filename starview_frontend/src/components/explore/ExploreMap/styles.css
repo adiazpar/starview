@@ -280,6 +280,12 @@
   z-index: 10;
 }
 
+/* Left-side controls (navigation button) */
+.explore-map__controls--left {
+  right: auto;
+  left: var(--space-md);
+}
+
 .explore-map__control {
   position: relative;
   /* Start hidden, animate in when map loads */
@@ -294,10 +300,33 @@
   animation-delay: var(--stagger-delay, 0.3s);
 }
 
+/* Left controls animate from left */
+.explore-map__controls--left .explore-map__control {
+  transform: translateX(-10px);
+  /* Don't establish positioning context - let dropdown position relative to map container */
+  position: static;
+}
+
+.explore-map__controls--left.explore-map__controls--loaded .explore-map__control {
+  animation: controlFadeInLeft 0.3s ease-out forwards;
+  animation-delay: var(--stagger-delay, 0.3s);
+}
+
 @keyframes controlFadeIn {
   from {
     opacity: 0;
     transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes controlFadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
@@ -352,6 +381,23 @@
   box-shadow: var(--shadow);
   /* Fade animation */
   animation: dropdownFadeIn var(--dropdown-animation-duration) ease-out forwards;
+}
+
+/* Dropdown positioned to the right of buttons (for left-side controls) */
+.explore-map__dropdown--right {
+  right: auto;
+  left: calc(100% + var(--space-sm));
+}
+
+/* Navigation dropdown - positioned relative to map container */
+.explore-map__dropdown--nav {
+  position: absolute;
+  top: var(--space-md);
+  /* Start after the left button */
+  left: calc(var(--space-md) + 40px + var(--space-sm));
+  /* Stop before the right buttons */
+  right: calc(var(--space-md) + 40px + var(--space-sm));
+  z-index: 10;
 }
 
 @keyframes dropdownFadeIn {
