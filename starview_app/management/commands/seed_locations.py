@@ -10,7 +10,7 @@ Usage:
 
 Behavior:
     - Idempotent: Skips locations that already exist (by name + coordinates)
-    - All seeded locations are marked as verified
+    - Seeded locations are NOT verified (verification through normal flow)
     - If image download fails, location is NOT created (retried on next run)
     - type_metadata (phone, website) is read from JSON if present
 
@@ -234,7 +234,7 @@ class Command(BaseCommand):
                         locality=locality,
                         formatted_address=formatted_address,
                         added_by=system_user,
-                        is_verified=True,  # Seeded locations are always verified
+                        is_verified=False,  # Verification happens through normal flow
                         type_metadata=loc_data.get('type_metadata') or {},
                     )
 
