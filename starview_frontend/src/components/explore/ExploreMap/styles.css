@@ -389,17 +389,6 @@
   left: calc(100% + var(--space-sm));
 }
 
-/* Navigation dropdown - positioned relative to map container */
-.explore-map__dropdown--nav {
-  position: absolute;
-  top: var(--space-md);
-  /* Start after the left button */
-  left: calc(var(--space-md) + 40px + var(--space-sm));
-  /* Stop before the right buttons */
-  right: calc(var(--space-md) + 40px + var(--space-sm));
-  z-index: 10;
-}
-
 @keyframes dropdownFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

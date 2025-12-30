@@ -1,55 +1,58 @@
 /**
- * Navigation utility functions for GPS directions and deep linking
+ * Navigation Utilities
+ *
+ * Helper functions for GPS navigation feature:
+ * - Duration/distance formatting
+ * - Deep link URL generation for navigation apps
+ * - Address geocoding via Mapbox
  */
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 /**
- * Format duration in seconds to human-readable string
+ * Format duration in seconds to human-readable string.
  * @param {number} seconds - Duration in seconds
- * @returns {string} - Formatted string like "12 min" or "1 hr 23 min"
+ * @returns {string} - Formatted duration (e.g., "12 min" or "1 hr 23 min")
  */
 export function formatDuration(seconds) {
-  if (!seconds || seconds < 0) return '';
+  if (!seconds || seconds < 0) return '0 min';
 
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.round((seconds % 3600) / 60);
 
   if (hours === 0) {
     return `${minutes} min`;
+  } else if (minutes === 0) {
+    return `${hours} hr`;
+  } else {
+    return `${hours} hr ${minutes} min`;
   }
-
-  if (minutes === 0) {
-    return hours === 1 ? '1 hr' : `${hours} hrs`;
-  }
-
-  return `${hours} hr ${minutes} min`;
 }
 
 /**
- * Format distance in meters to human-readable string (miles)
+ * Format distance in meters to human-readable string.
+ * Uses miles for US users.
  * @param {number} meters - Distance in meters
- * @returns {string} - Formatted string like "3.2 mi"
+ * @returns {string} - Formatted distance (e.g., "3.2 mi")
  */
 export function formatDistance(meters) {
-  if (!meters || meters < 0) return '';
+  if (!meters || meters < 0) return '0 mi';
 
   const miles = meters / 1609.344;
 
   if (miles < 0.1) {
+    // Show in feet for very short distances
     const feet = Math.round(meters * 3.28084);
     return `${feet} ft`;
-  }
-
-  if (miles < 10) {
+  } else if (miles < 10) {
     return `${miles.toFixed(1)} mi`;
+  } else {
+    return `${Math.round(miles)} mi`;
   }
-
-  return `${Math.round(miles)} mi`;
 }
 
 /**
- * Generate navigation app deep link URLs
+ * Generate deep link URLs for navigation apps.
  * @param {number} lat - Destination latitude
  * @param {number} lng - Destination longitude
  * @returns {object} - URLs for each navigation app
@@ -63,27 +66,40 @@ export function getNavigationUrls(lat, lng) {
 }
 
 /**
- * Geocode an address to coordinates using Mapbox Geocoding API
+ * Get list of available navigation apps with metadata.
+ * @returns {Array} - Array of app objects with id, name, and icon
+ */
+export function getAvailableNavigationApps() {
+  return [
+    { id: 'google', name: 'Google Maps', icon: 'fa-brands fa-google' },
+    { id: 'apple', name: 'Apple Maps', icon: 'fa-brands fa-apple' },
+    { id: 'waze', name: 'Waze', icon: 'fa-solid fa-location-dot' },
+  ];
+}
+
+/**
+ * Geocode an address string to coordinates using Mapbox Geocoding API.
  * @param {string} address - Address string to geocode
- * @returns {Promise<{latitude: number, longitude: number}>}
- * @throws {Error} if address not found or API error
+ * @returns {Promise<{latitude: number, longitude: number}>} - Coordinates
+ * @throws {Error} - If address cannot be geocoded
  */
 export async function geocodeAddress(address) {
   if (!address || !address.trim()) {
-    throw new Error('Address is required');
+    throw new Error('Please enter an address');
   }
 
-  const url = new URL(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json`
-  );
-  url.searchParams.set('access_token', MAPBOX_TOKEN);
-  url.searchParams.set('types', 'address,place,poi');
-  url.searchParams.set('limit', '1');
+  if (!MAPBOX_TOKEN) {
+    throw new Error('Geocoding service unavailable');
+  }
 
-  const response = await fetch(url);
+  const encodedAddress = encodeURIComponent(address.trim());
+  const response = await fetch(
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?` +
+    `access_token=${MAPBOX_TOKEN}&types=address,place,poi&limit=1`
+  );
 
   if (!response.ok) {
-    throw new Error('Failed to geocode address');
+    throw new Error('Unable to find address');
   }
 
   const data = await response.json();
@@ -93,40 +109,6 @@ export async function geocodeAddress(address) {
   }
 
   const [longitude, latitude] = data.features[0].center;
+
   return { latitude, longitude };
-}
-
-/**
- * Detect user's platform for showing relevant navigation apps
- * @returns {'ios' | 'macos' | 'android' | 'desktop'}
- */
-export function getPlatform() {
-  const ua = navigator.userAgent;
-
-  if (/iPad|iPhone|iPod/.test(ua)) return 'ios';
-  if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 0) return 'ios'; // iPad with desktop mode
-  if (/Macintosh/.test(ua)) return 'macos';
-  if (/Android/.test(ua)) return 'android';
-
-  return 'desktop';
-}
-
-/**
- * Get available navigation apps for the current platform
- * @returns {Array<{id: string, name: string, icon: string}>}
- */
-export function getAvailableNavigationApps() {
-  const platform = getPlatform();
-
-  const apps = [
-    { id: 'google', name: 'Google Maps', icon: 'fa-brands fa-google' },
-    { id: 'waze', name: 'Waze', icon: 'fa-solid fa-location-arrow' },
-  ];
-
-  // Apple Maps available on Apple platforms and desktop (opens in browser)
-  if (platform === 'ios' || platform === 'macos' || platform === 'desktop') {
-    apps.splice(1, 0, { id: 'apple', name: 'Apple Maps', icon: 'fa-solid fa-map' });
-  }
-
-  return apps;
 }
