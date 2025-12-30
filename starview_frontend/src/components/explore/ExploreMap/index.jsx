@@ -177,6 +177,7 @@ import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
+import { useToast } from '../../../contexts/ToastContext';
 import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
 
@@ -361,6 +362,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const { location: userLocation } = useUserLocation();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
+  const { showToast } = useToast();
 
   // Update selectedLocation when markers change (keeps card in sync with cache)
   useEffect(() => {
@@ -1359,8 +1361,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     <div className="explore-map">
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
-      {/* Left Controls - Zoom Out */}
+      {/* Left Controls - Zoom & Location */}
       <div className={`explore-map__controls explore-map__controls--left ${mapLoaded ? 'explore-map__controls--loaded' : ''}`}>
+        {/* Zoom In */}
         <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
           <button
             className="explore-map__control-btn"
@@ -1368,13 +1371,78 @@ function ExploreMap({ initialViewport, onViewportChange }) {
               if (!map.current) return;
               const currentZoom = map.current.getZoom();
               map.current.flyTo({
-                zoom: Math.max(currentZoom - 3, 1), // Zoom out by 3 levels, minimum zoom 1
+                zoom: Math.min(currentZoom + 2, 18), // Zoom in by 2 levels, max zoom 18
+                duration: FLYTO_DURATION_MS,
+              });
+            }}
+            aria-label="Zoom in"
+          >
+            <i className="fa-solid fa-plus"></i>
+          </button>
+        </div>
+
+        {/* Zoom Out */}
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.45s' }}>
+          <button
+            className="explore-map__control-btn"
+            onClick={() => {
+              if (!map.current) return;
+              const currentZoom = map.current.getZoom();
+              map.current.flyTo({
+                zoom: Math.max(currentZoom - 2, 1), // Zoom out by 2 levels, min zoom 1
                 duration: FLYTO_DURATION_MS,
               });
             }}
             aria-label="Zoom out"
           >
-            <i className="fa-solid fa-compress"></i>
+            <i className="fa-solid fa-minus"></i>
+          </button>
+        </div>
+
+        {/* My Location */}
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.6s' }}>
+          <button
+            className="explore-map__control-btn"
+            onClick={async () => {
+              // Check permission state first
+              if (navigator.permissions) {
+                try {
+                  const result = await navigator.permissions.query({ name: 'geolocation' });
+                  if (result.state === 'denied') {
+                    showToast('Location access blocked. Click the lock icon in your address bar to enable.', 'warning', 6000);
+                    return;
+                  }
+                } catch (e) {
+                  // Some browsers don't support permissions.query for geolocation
+                }
+              }
+
+              // Try the Mapbox geolocate control (shows blue dot)
+              if (geolocateControlRef.current) {
+                geolocateControlRef.current.trigger();
+              } else {
+                // Fallback: use browser geolocation API directly
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    map.current?.flyTo({
+                      center: [position.coords.longitude, position.coords.latitude],
+                      zoom: USER_LOCATION_ZOOM,
+                      duration: FLYTO_DURATION_MS,
+                    });
+                  },
+                  (error) => {
+                    if (error.code === error.PERMISSION_DENIED) {
+                      showToast('Location access denied. Enable it in your browser settings.', 'warning', 6000);
+                    } else {
+                      showToast('Unable to get your location. Please try again.', 'error');
+                    }
+                  }
+                );
+              }
+            }}
+            aria-label="Go to my location"
+          >
+            <i className="fa-solid fa-location-crosshairs"></i>
           </button>
         </div>
       </div>

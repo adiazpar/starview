@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import ErrorBoundary from './components/shared/ErrorBoundary'
+import ToastContainer from './components/shared/Toast'
 import Starfield from './components/starfield'
 import Navbar from './components/navbar'
 import './index.css'
@@ -25,11 +27,14 @@ createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Starfield />
-          <Navbar />
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
+          <ToastProvider>
+            <Starfield />
+            <Navbar />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+            <ToastContainer />
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
