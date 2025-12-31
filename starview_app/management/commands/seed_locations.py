@@ -21,6 +21,8 @@ Prerequisites:
     3. Generates validated_observatories.json
 """
 
+import gc
+import io
 import json
 import os
 import re
@@ -29,6 +31,7 @@ import time
 from pathlib import Path
 
 import requests
+from PIL import Image
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -54,6 +57,8 @@ VALID_LOCATION_TYPES = ['observatory', 'dark_sky_site', 'campground', 'viewpoint
 # Image download settings
 USER_AGENT = 'StarviewApp/1.0 (https://starview.app; seeding)'
 IMAGE_DOWNLOAD_DELAY = 2.0  # Seconds between downloads
+MAX_IMAGE_DIMENSION = 1920  # Resize images to this max dimension before saving
+JPEG_QUALITY = 85  # Quality for resized JPEG images
 
 # Retry settings for downloads (infinite retries for recoverable errors)
 BASE_RETRY_DELAY = 10  # Starting delay in seconds
@@ -289,6 +294,9 @@ class Command(BaseCommand):
                 errors.append(f'{name}: {e}')
                 self.stdout.write(self.style.ERROR(f'  Error: {e}'))
 
+            # Force garbage collection after each location to prevent OOM on 512MB instances
+            gc.collect()
+
         # Summary
         total_elapsed = time.time() - total_start
         self.stdout.write('\n' + '=' * 60)
@@ -337,17 +345,21 @@ class Command(BaseCommand):
 
     def _download_and_add_image(self, location, image_url, caption=''):
         """
-        Download image from URL and add to location with infinite retry logic.
+        Download image from URL, resize it, and add to location.
+
+        Pre-resizes images to MAX_IMAGE_DIMENSION before saving to LocationPhoto.
+        This reduces memory usage during LocationPhoto's PIL processing, preventing
+        OOM crashes on 512MB Render instances.
 
         Retries indefinitely for recoverable errors (network issues, rate limits).
         Only gives up on non-recoverable errors (404, 403, image processing failures).
-        Uses exponential backoff capped at MAX_RETRY_DELAY.
         """
         self.stdout.write(f'  Downloading image from URL...')
 
         attempt = 0
         while True:
             attempt += 1
+            tmp_path = None
             try:
                 # Download image (stream=True to avoid loading entire file in memory)
                 response = requests.get(
@@ -374,49 +386,73 @@ class Command(BaseCommand):
 
                 response.raise_for_status()
 
-                # Get original filename extension from URL
-                from urllib.parse import urlparse, unquote
-                url_path = unquote(urlparse(image_url).path)
-                ext = url_path.split('.')[-1].lower() if '.' in url_path else 'jpg'
-                filename = f'{location.id}_01.{ext}'
-
-                # Stream to temp file to avoid memory issues on 512MB Render instances
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{ext}') as tmp_file:
+                # Stream to temp file
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
                     tmp_path = tmp_file.name
-                    size_bytes = 0
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
                             tmp_file.write(chunk)
-                            size_bytes += len(chunk)
 
-                try:
-                    # Read from temp file and create photo
-                    with open(tmp_path, 'rb') as f:
-                        image_bytes = f.read()
+                # Open image with PIL and resize to reduce memory usage
+                # This pre-processing means LocationPhoto._process_image() works on a smaller image
+                img = Image.open(tmp_path)
 
-                    photo = LocationPhoto(
-                        location=location,
-                        caption=caption[:255] if caption else '',
-                        order=0,
-                        image=ContentFile(image_bytes, name=filename),
-                    )
-                    photo.save()
+                # Convert to RGB if necessary (handles PNG/RGBA)
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    background = Image.new('RGB', img.size, (0, 0, 0))
+                    if img.mode == 'P':
+                        img = img.convert('RGBA')
+                    background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                    img = background
+                elif img.mode != 'RGB':
+                    img = img.convert('RGB')
 
-                    size_kb = size_bytes / 1024
-                    if attempt > 1:
-                        self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB) [after {attempt} attempts]')
-                    else:
-                        self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB)')
-                finally:
-                    # Clean up temp file
-                    if os.path.exists(tmp_path):
-                        os.unlink(tmp_path)
+                # Resize to max dimension (maintains aspect ratio)
+                img.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), Image.Resampling.LANCZOS)
+
+                # Save resized image to BytesIO
+                img_io = io.BytesIO()
+                img.save(img_io, format='JPEG', quality=JPEG_QUALITY, optimize=True)
+                resized_size = img_io.tell()
+                img_io.seek(0)
+
+                # Clean up PIL image to free memory
+                img.close()
+                del img
+
+                # Clean up temp file
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                    tmp_path = None
+
+                # Create LocationPhoto with pre-resized image
+                filename = f'{location.id}_01.jpg'
+                photo = LocationPhoto(
+                    location=location,
+                    caption=caption[:255] if caption else '',
+                    order=0,
+                    image=ContentFile(img_io.read(), name=filename),
+                )
+                photo.save()
+
+                # Clean up
+                img_io.close()
+                del img_io
+                gc.collect()
+
+                size_kb = resized_size / 1024
+                if attempt > 1:
+                    self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB) [after {attempt} attempts]')
+                else:
+                    self.stdout.write(f'    Added image: {filename} ({size_kb:.0f}KB)')
 
                 time.sleep(IMAGE_DOWNLOAD_DELAY)
                 return True
 
             except requests.exceptions.RequestException as e:
                 # Network errors - retry with exponential backoff
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
                 delay = min(BASE_RETRY_DELAY * (2 ** (attempt - 1)), MAX_RETRY_DELAY)
                 self.stdout.write(self.style.WARNING(
                     f'    Network error: {e}. Retrying in {delay}s (attempt #{attempt + 1})...'
@@ -426,5 +462,8 @@ class Command(BaseCommand):
 
             except Exception as e:
                 # Non-network errors (image processing, etc.) - don't retry
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
                 self.stdout.write(self.style.ERROR(f'    Image processing error: {e}'))
+                gc.collect()
                 return False
