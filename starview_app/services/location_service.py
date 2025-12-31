@@ -129,13 +129,14 @@ class LocationService:
             # Warning: No elevation data found for location: {location.name}
             return False
 
-        # Extract elevation from features
-        elevation = next(
-            (feature['properties']['ele']
-             for feature in data['features']
-             if 'properties' in feature and 'ele' in feature['properties']),
-            None
-        )
+        # Extract elevation from features - use max value since API returns contour lines
+        # and we want the highest contour that passes through the point
+        elevations = [
+            feature['properties']['ele']
+            for feature in data['features']
+            if 'properties' in feature and 'ele' in feature['properties']
+        ]
+        elevation = max(elevations) if elevations else None
 
         if elevation is None:
             # Warning: No elevation property found for location: {location.name}
