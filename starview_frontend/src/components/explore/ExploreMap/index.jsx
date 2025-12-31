@@ -27,6 +27,8 @@ const INITIAL_FLYTO_DURATION_MS = 2500;
 // Other constants
 const POPUP_EDGE_PADDING = 160;
 const CLUSTER_ZOOM_BUMP = 0.5;
+const MARKER_ZOOM_THRESHOLD = 4;       // Zoom level for marker click
+const MARKER_ZOOM_BUMP = 0.5;          // Added to threshold when zooming in
 const GEOLOCATE_TRIGGER_DELAY_MS = 100;
 const LIGHTING_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 const USER_LOCATION_ZOOM = 6;
@@ -685,8 +687,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
       // Only query if the layer exists (may not be added yet if no locations)
       if (!map.current.getLayer('location-markers')) return;
+
+      // Check both marker circles and icons (icons visible at higher zoom)
+      const markerLayers = ['location-markers', 'location-marker-icons'].filter(
+        layer => map.current.getLayer(layer)
+      );
       const features = map.current.queryRenderedFeatures(e.point, {
-        layers: ['location-markers'],
+        layers: markerLayers,
       });
       if (features.length === 0) {
         // Clear selected marker's feature-state
@@ -1144,13 +1151,14 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const cardHeight = imageHeight + cardContentHeight;
       const offsetY = (cardHeight + cardMargin) / 2;
 
-      // Zoom in a few levels when selecting a marker (max zoom 12)
+      // Zoom to threshold when far out, otherwise just center without zoom change
       const currentZoom = map.current.getZoom();
-      const targetZoom = Math.min(currentZoom + 2, 12);
+      const targetZoom = MARKER_ZOOM_THRESHOLD + MARKER_ZOOM_BUMP;
+      const shouldZoom = currentZoom < targetZoom;
 
       map.current.flyTo({
         center: coordinates,
-        zoom: targetZoom,
+        zoom: shouldZoom ? targetZoom : currentZoom,
         duration: FLYTO_DURATION_MS,
         offset: [0, -offsetY],
       });
@@ -1233,13 +1241,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     map.current.on('mouseenter', 'location-clusters', handleClusterMouseEnter);
     map.current.on('mouseleave', 'location-clusters', handleClusterMouseLeave);
 
-    // Both marker circle and icon layers share the same handlers
+    // Single handler for both marker circles and icons (more efficient than separate handlers)
     const markerLayers = ['location-markers', 'location-marker-icons'];
-    markerLayers.forEach(layer => {
-      map.current.on('click', layer, handleLocationSelect);
-      map.current.on('mouseenter', layer, handleMarkerMouseEnter);
-      map.current.on('mouseleave', layer, handleMarkerMouseLeave);
-    });
+    map.current.on('click', markerLayers, handleLocationSelect);
+    map.current.on('mouseenter', markerLayers, handleMarkerMouseEnter);
+    map.current.on('mouseleave', markerLayers, handleMarkerMouseLeave);
 
     // Store handlers ref for cleanup
     markerHandlersRef.current = {
@@ -1259,11 +1265,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         map.current.off('mouseenter', 'location-clusters', h.handleClusterMouseEnter);
         map.current.off('mouseleave', 'location-clusters', h.handleClusterMouseLeave);
 
-        ['location-markers', 'location-marker-icons'].forEach(layer => {
-          map.current.off('click', layer, h.handleLocationSelect);
-          map.current.off('mouseenter', layer, h.handleMarkerMouseEnter);
-          map.current.off('mouseleave', layer, h.handleMarkerMouseLeave);
-        });
+        const markerLayers = ['location-markers', 'location-marker-icons'];
+        map.current.off('click', markerLayers, h.handleLocationSelect);
+        map.current.off('mouseenter', markerLayers, h.handleMarkerMouseEnter);
+        map.current.off('mouseleave', markerLayers, h.handleMarkerMouseLeave);
       }
     };
   }, [mapLoaded, !!markers.length]);
