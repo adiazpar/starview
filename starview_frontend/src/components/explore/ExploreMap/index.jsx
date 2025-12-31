@@ -1170,14 +1170,16 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const offsetY = (cardHeight + cardMargin) / 2;
 
       // Zoom to threshold when far out, otherwise just center without zoom change
+      // Use slower animation when very far (threshold - 1), faster when closer
       const currentZoom = map.current.getZoom();
       const targetZoom = MARKER_ZOOM_THRESHOLD + MARKER_ZOOM_BUMP;
       const shouldZoom = currentZoom < targetZoom;
+      const isFarOut = currentZoom < MARKER_ZOOM_THRESHOLD - 1;
 
       map.current.flyTo({
         center: coordinates,
         zoom: shouldZoom ? targetZoom : currentZoom,
-        duration: FLYTO_DURATION_MS,
+        duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
         offset: [0, -offsetY],
       });
 
