@@ -214,6 +214,11 @@
   cursor: default;
 }
 
+/* Constrain header width in navigation mode to prevent overlap with route stats badge */
+.explore-map__card--navigation .explore-map__card-header {
+  padding-right: 150px; /* Reserve space for route stats badge + gap */
+}
+
 /* ========================================
    Navigation Mode - Content Transformation
    ======================================== */
@@ -400,6 +405,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
+  }
+
+  /* Reduce header padding on mobile since badge is narrower when stacked */
+  .explore-map__card--navigation .explore-map__card-header {
+    padding-right: 110px;
   }
 }
 
