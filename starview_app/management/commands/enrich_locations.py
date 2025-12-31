@@ -9,6 +9,7 @@ Usage:
     python manage.py enrich_locations --dry-run
     python manage.py enrich_locations --id 123
     python manage.py enrich_locations --type observatory
+    python manage.py enrich_locations --elevation-only
 """
 
 import time
@@ -44,12 +45,18 @@ class Command(BaseCommand):
             default=0.5,
             help='Delay between API calls in seconds (default: 0.5)'
         )
+        parser.add_argument(
+            '--elevation-only',
+            action='store_true',
+            help='Only update elevation data, skip geocoding'
+        )
 
     def handle(self, *args, **options):
         dry_run = options['dry_run']
         location_id = options['id']
         location_type = options['type']
         delay = options['delay']
+        elevation_only = options['elevation_only']
 
         # Build queryset
         queryset = Location.objects.all()
@@ -67,7 +74,13 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(f'\n{"=" * 60}')
-        self.stdout.write(f'LOCATION ENRICHMENT {"(DRY RUN)" if dry_run else ""}')
+        mode_flags = []
+        if dry_run:
+            mode_flags.append('DRY RUN')
+        if elevation_only:
+            mode_flags.append('ELEVATION ONLY')
+        mode_str = f' ({", ".join(mode_flags)})' if mode_flags else ''
+        self.stdout.write(f'LOCATION ENRICHMENT{mode_str}')
         self.stdout.write(f'{"=" * 60}')
         self.stdout.write(f'Locations to process: {total}')
         self.stdout.write(f'Delay between calls: {delay}s')
@@ -86,23 +99,24 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('  Skipped (dry run)'))
                 continue
 
-            # Run geocoding
+            # Run geocoding (skip if elevation_only)
             geocode_success = False
-            try:
-                geocode_success = LocationService.update_address_from_coordinates(location)
-                if geocode_success:
-                    location.refresh_from_db()
-                    self.stdout.write(self.style.SUCCESS(
-                        f'  Geocoded: {location.formatted_address}'
-                    ))
-                else:
-                    self.stdout.write(self.style.WARNING('  Geocoding: No data returned'))
+            if not elevation_only:
+                try:
+                    geocode_success = LocationService.update_address_from_coordinates(location)
+                    if geocode_success:
+                        location.refresh_from_db()
+                        self.stdout.write(self.style.SUCCESS(
+                            f'  Geocoded: {location.formatted_address}'
+                        ))
+                    else:
+                        self.stdout.write(self.style.WARNING('  Geocoding: No data returned'))
+                        geocode_failed += 1
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'  Geocoding error: {e}'))
                     geocode_failed += 1
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  Geocoding error: {e}'))
-                geocode_failed += 1
 
-            time.sleep(delay)
+                time.sleep(delay)
 
             # Run elevation
             elevation_success = False
@@ -132,6 +146,9 @@ class Command(BaseCommand):
         self.stdout.write(f'  Total processed: {total}')
         if not dry_run:
             self.stdout.write(f'  Successful: {success_count}')
-            self.stdout.write(f'  Geocoding failed: {geocode_failed}')
+            if elevation_only:
+                self.stdout.write('  Geocoding: skipped')
+            else:
+                self.stdout.write(f'  Geocoding failed: {geocode_failed}')
             self.stdout.write(f'  Elevation failed: {elevation_failed}')
         self.stdout.write('')
