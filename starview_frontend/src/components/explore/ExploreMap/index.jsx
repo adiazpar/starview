@@ -173,10 +173,12 @@ import { PmTilesSource } from 'mapbox-pmtiles';
 import SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useUserLocation } from '../../../hooks/useUserLocation';
+import { useMapboxDirections } from '../../../hooks/useMapboxDirections';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
+import { formatDuration, formatDistance as formatRouteDistance } from '../../../utils/navigation';
 import { useToast } from '../../../contexts/ToastContext';
 import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
@@ -315,10 +317,12 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
   const selectedIdRef = useRef(null); // Track selected ID for click handler
   const userLocationRef = useRef(null); // For accessing location in event handlers
+  const navigationModeRef = useRef(false); // Track navigation mode for click handler
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
+  const [isNavigationMode, setIsNavigationMode] = useState(false); // Navigation UI transformation
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
@@ -359,7 +363,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   }, [iucnDropdown.isOpen, styleDropdown.isOpen]);
 
   const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers();
-  const { location: userLocation } = useUserLocation();
+  const { location: userLocation, source: userLocationSource } = useUserLocation();
+  const { getRoute, routeData, isLoading: isRouteLoading, clearRoute } = useMapboxDirections();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
@@ -380,7 +385,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     markerMapRef.current = markerMap;
     selectedIdRef.current = selectedLocation?.id || null;
     userLocationRef.current = userLocation;
-  }, [markerMap, selectedLocation?.id, userLocation]);
+    navigationModeRef.current = isNavigationMode;
+  }, [markerMap, selectedLocation?.id, userLocation, isNavigationMode]);
 
   // Calculate optimal popup anchor based on cursor position relative to viewport
   const getOptimalPopupAnchor = useCallback((point) => {
@@ -445,8 +451,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       );
     }
     setIsCardVisible(false);
+    setIsNavigationMode(false);
+    clearRoute();
     setTimeout(() => setSelectedLocation(null), CARD_CLOSE_ANIMATION_MS);
-  }, []);
+  }, [clearRoute]);
 
   const handleViewLocation = useCallback(() => {
     if (selectedLocation) {
@@ -461,15 +469,123 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     toggleFavorite.mutate(selectedLocation.id);
   }, [requireAuth, selectedLocation?.id, toggleFavorite]);
 
-  // Open navigation app with directions to selected location
-  const handleNavigate = useCallback((e) => {
+  // Enter navigation mode - transforms card UI and fetches route
+  const handleNavigate = useCallback(async (e) => {
     e.stopPropagation();
     if (!selectedLocation) return;
 
-    // Open Google Maps with directions
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, [selectedLocation]);
+    // Enter navigation mode (cancel button will be added in future iteration)
+    setIsNavigationMode(true);
+
+    // Only fetch route if we have precise browser geolocation (not profile fallback)
+    if (userLocation && userLocationSource === 'browser') {
+      const from = {
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+      };
+      const to = {
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+      };
+      await getRoute(from, to);
+    }
+  }, [selectedLocation, userLocation, userLocationSource, getRoute]);
+
+  // Clear route data when exiting navigation mode
+  useEffect(() => {
+    if (!isNavigationMode) {
+      clearRoute();
+    }
+  }, [isNavigationMode, clearRoute]);
+
+  // Display route on map when routeData is available
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const ROUTE_SOURCE_ID = 'navigation-route';
+    const ROUTE_LAYER_ID = 'navigation-route-line';
+    const ROUTE_COLOR = '#0ea5e9'; // --info blue
+
+    // Remove existing route layer/source if present
+    if (map.current.getLayer(ROUTE_LAYER_ID)) {
+      map.current.removeLayer(ROUTE_LAYER_ID);
+    }
+    if (map.current.getSource(ROUTE_SOURCE_ID)) {
+      map.current.removeSource(ROUTE_SOURCE_ID);
+    }
+
+    // Add route if we have route data
+    if (routeData?.geometry && isNavigationMode) {
+      // Add route source
+      map.current.addSource(ROUTE_SOURCE_ID, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: routeData.geometry,
+        },
+      });
+
+      // Add route line layer
+      map.current.addLayer({
+        id: ROUTE_LAYER_ID,
+        type: 'line',
+        source: ROUTE_SOURCE_ID,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': ROUTE_COLOR,
+          'line-width': 4,
+          'line-opacity': 1,
+          'line-emissive-strength': 1.5, // Make line glow through Mapbox lighting
+        },
+      });
+
+      // Center map on route using flyTo with offset (avoids fitBounds padding artifacts on globe)
+      const coordinates = routeData.geometry.coordinates;
+      if (coordinates.length > 0) {
+        // Calculate bounds to get center and appropriate zoom
+        const bounds = coordinates.reduce((bounds, coord) => {
+          return bounds.extend(coord);
+        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+        const center = bounds.getCenter();
+
+        // Calculate zoom level to fit route (approximation based on bounds span)
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        const latSpan = Math.abs(ne.lat - sw.lat);
+        const lngSpan = Math.abs(ne.lng - sw.lng);
+        const maxSpan = Math.max(latSpan, lngSpan);
+
+        // Approximate zoom: larger span = lower zoom
+        // These values tuned for typical route distances
+        let zoom;
+        if (maxSpan > 10) zoom = 4;
+        else if (maxSpan > 5) zoom = 5;
+        else if (maxSpan > 2) zoom = 6;
+        else if (maxSpan > 1) zoom = 7;
+        else if (maxSpan > 0.5) zoom = 8;
+        else if (maxSpan > 0.2) zoom = 9;
+        else if (maxSpan > 0.1) zoom = 10;
+        else if (maxSpan > 0.05) zoom = 11;
+        else zoom = 12;
+
+        // Cap at maxZoom
+        zoom = Math.min(zoom, 14);
+
+        // Offset shifts viewport center: [0, -70] moves center up to account for bottom card
+        map.current.flyTo({
+          center: [center.lng, center.lat],
+          zoom,
+          offset: [0, -70],
+          duration: 1000,
+        });
+      }
+    }
+  }, [routeData, isNavigationMode, mapLoaded]);
 
   // Handle card open animation
   useEffect(() => {
@@ -563,6 +679,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     // Close card when clicking on map (not on markers)
     map.current.on('click', (e) => {
+      // Don't close card when in navigation mode
+      if (navigationModeRef.current) return;
+
       // Only query if the layer exists (may not be added yet if no locations)
       if (!map.current.getLayer('location-markers')) return;
       const features = map.current.queryRenderedFeatures(e.point, {
@@ -1058,6 +1177,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         if (isAlreadyOpen) {
           setIsSwitching(true);
           setIsCardVisible(false);
+          setIsNavigationMode(false); // Reset navigation mode when switching markers
           setTimeout(() => {
             setSelectedLocation(location);
             setIsSwitching(false);
@@ -1540,72 +1660,74 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       {/* Bottom Card - Airbnb Style */}
       {selectedLocation && (
         <div
-          className={`explore-map__card ${isCardVisible ? 'explore-map__card--visible' : ''} ${isSwitching ? 'explore-map__card--switching' : ''}`}
-          onClick={handleViewLocation}
+          className={`explore-map__card ${isCardVisible ? 'explore-map__card--visible' : ''} ${isSwitching ? 'explore-map__card--switching' : ''} ${isNavigationMode ? 'explore-map__card--navigation' : ''}`}
+          onClick={isNavigationMode ? undefined : handleViewLocation}
         >
           {/* Image Carousel Section */}
           <div className="explore-map__card-image-container">
-            <ImageCarousel
-              images={selectedLocation.images || []}
-              alt={selectedLocation.name}
-              aspectRatio="16 / 7"
-            />
+            <div className="explore-map__card-image-inner">
+              <ImageCarousel
+                images={selectedLocation.images || []}
+                alt={selectedLocation.name}
+                aspectRatio="16 / 7"
+              />
 
-            {/* Close Button */}
-            <button
-              className="explore-map__card-btn explore-map__card-btn--close"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseCard();
-              }}
-              aria-label="Close"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-
-            {/* Favorite Button */}
-            <button
-              className={`explore-map__card-btn explore-map__card-btn--favorite ${selectedLocation.is_favorited ? 'active' : ''}`}
-              onClick={handleToggleFavorite}
-              aria-label={selectedLocation.is_favorited ? 'Remove from saved' : 'Save location'}
-            >
-              <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
-            </button>
-
-            {/* Action Buttons - top left (navigate for all, phone/website for observatories) */}
-            <div className="explore-map__card-actions">
-              {/* Navigate Button - opens Google Maps with directions */}
+              {/* Close Button */}
               <button
-                className="explore-map__card-btn"
-                onClick={handleNavigate}
-                aria-label="Get directions"
+                className="explore-map__card-btn explore-map__card-btn--close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseCard();
+                }}
+                aria-label="Close"
               >
-                <i className="fa-solid fa-diamond-turn-right"></i>
+                <i className="fa-solid fa-xmark"></i>
               </button>
 
-              {/* Observatory-specific buttons */}
-              {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.phone_number && (
-                <a
-                  href={`tel:${selectedLocation.type_metadata.phone_number}`}
+              {/* Favorite Button */}
+              <button
+                className={`explore-map__card-btn explore-map__card-btn--favorite ${selectedLocation.is_favorited ? 'active' : ''}`}
+                onClick={handleToggleFavorite}
+                aria-label={selectedLocation.is_favorited ? 'Remove from saved' : 'Save location'}
+              >
+                <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
+              </button>
+
+              {/* Action Buttons - top left (navigate for all, phone/website for observatories) */}
+              <div className="explore-map__card-actions">
+                {/* Navigate Button - enters navigation mode */}
+                <button
                   className="explore-map__card-btn"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Call observatory"
+                  onClick={handleNavigate}
+                  aria-label="Get directions"
                 >
-                  <i className="fa-solid fa-phone"></i>
-                </a>
-              )}
-              {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.website && (
-                <a
-                  href={selectedLocation.type_metadata.website}
-                  className="explore-map__card-btn"
-                  onClick={(e) => e.stopPropagation()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Visit website"
-                >
-                  <i className="fa-solid fa-globe"></i>
-                </a>
-              )}
+                  <i className="fa-solid fa-diamond-turn-right"></i>
+                </button>
+
+                {/* Observatory-specific buttons */}
+                {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.phone_number && (
+                  <a
+                    href={`tel:${selectedLocation.type_metadata.phone_number}`}
+                    className="explore-map__card-btn"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Call observatory"
+                  >
+                    <i className="fa-solid fa-phone"></i>
+                  </a>
+                )}
+                {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.website && (
+                  <a
+                    href={selectedLocation.type_metadata.website}
+                    className="explore-map__card-btn"
+                    onClick={(e) => e.stopPropagation()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Visit website"
+                  >
+                    <i className="fa-solid fa-globe"></i>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1618,40 +1740,111 @@ function ExploreMap({ initialViewport, onViewportChange }) {
               </span>
             </div>
 
-            <div className="explore-map__card-meta">
-              {/* Rating */}
-              {selectedLocation.review_count > 0 ? (
-                <div className="explore-map__card-rating">
-                  <i className="fa-solid fa-star"></i>
-                  <span>{parseFloat(selectedLocation.average_rating).toFixed(1)}</span>
-                  <span className="explore-map__card-reviews">
-                    ({selectedLocation.review_count})
+            {/* Default metadata - collapses in navigation mode */}
+            <div className={`explore-map__card-meta-container ${isNavigationMode ? 'explore-map__card-meta-container--hidden' : ''}`}>
+              <div className="explore-map__card-meta">
+                {/* Rating */}
+                {selectedLocation.review_count > 0 ? (
+                  <div className="explore-map__card-rating">
+                    <i className="fa-solid fa-star"></i>
+                    <span>{parseFloat(selectedLocation.average_rating).toFixed(1)}</span>
+                    <span className="explore-map__card-reviews">
+                      ({selectedLocation.review_count})
+                    </span>
+                  </div>
+                ) : (
+                  <div className="explore-map__card-rating explore-map__card-rating--empty">
+                    <i className="fa-regular fa-star"></i>
+                    <span>No reviews yet</span>
+                  </div>
+                )}
+
+                {/* Elevation */}
+                {selectedLocation.elevation !== null && selectedLocation.elevation !== undefined && (
+                  <div className="explore-map__card-elevation">
+                    <i className="fa-solid fa-mountain"></i>
+                    <span>{formatElevation(selectedLocation.elevation)}</span>
+                  </div>
+                )}
+
+                {/* Distance */}
+                {getDistance(selectedLocation) !== null && (
+                  <div className="explore-map__card-distance">
+                    <i className="fa-solid fa-location-arrow"></i>
+                    <span>{formatDistance(getDistance(selectedLocation))} away</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation mode info - only render when navigating */}
+            {isNavigationMode && (
+              <div className="explore-map__card-route explore-map__card-route--visible">
+                {/* FROM section */}
+                <div className="explore-map__card-route-from">
+                  <span className="explore-map__card-route-label">FROM</span>
+                  <span className="explore-map__card-route-value">
+                    {userLocationSource === 'browser' ? 'Your location' : 'Location unavailable'}
                   </span>
                 </div>
+
+                {/* Action buttons */}
+                <div className="explore-map__card-route-actions">
+                  <button
+                    className="btn-secondary btn-secondary--sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNavigationMode(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-primary btn-primary--sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Implement GO action
+                    }}
+                  >
+                    GO
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Route stats - positioned top right in navigation mode */}
+          {isNavigationMode && (
+            <div className="explore-map__card-route-stats-badge">
+              {userLocationSource === 'browser' ? (
+                isRouteLoading ? (
+                  <>
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Calculating...</span>
+                  </>
+                ) : routeData ? (
+                  <>
+                    <div className="explore-map__card-route-duration">
+                      <i className="fa-solid fa-clock"></i>
+                      <span>{formatDuration(routeData.duration)}</span>
+                    </div>
+                    <div className="explore-map__card-route-distance">
+                      <i className="fa-solid fa-road"></i>
+                      <span>{formatRouteDistance(routeData.distance)}</span>
+                      {routeData.isEstimated && (
+                        <span className="explore-map__card-route-estimated">(est.)</span>
+                      )}
+                    </div>
+                  </>
+                ) : null
               ) : (
-                <div className="explore-map__card-rating explore-map__card-rating--empty">
-                  <i className="fa-regular fa-star"></i>
-                  <span>No reviews yet</span>
-                </div>
-              )}
-
-              {/* Elevation */}
-              {selectedLocation.elevation !== null && selectedLocation.elevation !== undefined && (
-                <div className="explore-map__card-elevation">
-                  <i className="fa-solid fa-mountain"></i>
-                  <span>{formatElevation(selectedLocation.elevation)}</span>
-                </div>
-              )}
-
-              {/* Distance */}
-              {getDistance(selectedLocation) !== null && (
-                <div className="explore-map__card-distance">
-                  <i className="fa-solid fa-location-arrow"></i>
-                  <span>{formatDistance(getDistance(selectedLocation))} away</span>
-                </div>
+                <>
+                  <i className="fa-solid fa-location-crosshairs"></i>
+                  <span>Enable location</span>
+                </>
               )}
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

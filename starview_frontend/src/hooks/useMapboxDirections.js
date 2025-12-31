@@ -9,10 +9,108 @@
  * Returns route geometry for map display, plus duration/distance when available.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const ORS_API_KEY = import.meta.env.VITE_OPENROUTESERVICE_API_KEY;
+
+// Route cache configuration
+const ROUTE_CACHE_PREFIX = 'starview_route_';
+const ROUTE_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+const ROUTE_CACHE_MAX_ENTRIES = 20; // Max routes to cache (LRU eviction)
+
+/**
+ * Generate a cache key for a route based on coordinates.
+ * Rounds to 4 decimal places (~11m accuracy) to handle GPS variance.
+ */
+function getRouteCacheKey(from, to) {
+  const round = (n) => Math.round(n * 10000) / 10000;
+  return `${ROUTE_CACHE_PREFIX}${round(from.latitude)}_${round(from.longitude)}_${round(to.latitude)}_${round(to.longitude)}`;
+}
+
+/**
+ * Get all route cache entries from localStorage.
+ * Returns array of { key, timestamp } sorted by timestamp (oldest first).
+ */
+function getAllRouteCacheEntries() {
+  const entries = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(ROUTE_CACHE_PREFIX)) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          entries.push({ key, timestamp: data.timestamp || 0 });
+        } catch {
+          // Invalid entry, mark for cleanup
+          entries.push({ key, timestamp: 0 });
+        }
+      }
+    }
+  } catch {
+    // Silently fail - cache read errors are non-critical
+  }
+  // Sort oldest first (for LRU eviction)
+  return entries.sort((a, b) => a.timestamp - b.timestamp);
+}
+
+/**
+ * Get cached route from localStorage if not expired.
+ * Updates access timestamp for LRU tracking.
+ */
+function getCachedRoute(from, to) {
+  try {
+    const key = getRouteCacheKey(from, to);
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+
+    const { routeData, timestamp } = JSON.parse(cached);
+
+    // Check if expired
+    if (Date.now() - timestamp > ROUTE_CACHE_TTL) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    // Update timestamp on access (LRU: recently accessed items stay longer)
+    const updatedEntry = { routeData, timestamp: Date.now() };
+    localStorage.setItem(key, JSON.stringify(updatedEntry));
+
+    return routeData;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save route to localStorage with timestamp.
+ * Implements LRU eviction when cache exceeds max entries.
+ */
+function setCachedRoute(from, to, routeData) {
+  try {
+    const key = getRouteCacheKey(from, to);
+
+    // Check if we need to evict old entries (LRU)
+    const entries = getAllRouteCacheEntries();
+    const existingEntry = entries.find(e => e.key === key);
+
+    // If this is a new entry and we're at capacity, evict oldest
+    if (!existingEntry && entries.length >= ROUTE_CACHE_MAX_ENTRIES) {
+      const entriesToRemove = entries.length - ROUTE_CACHE_MAX_ENTRIES + 1;
+      for (let i = 0; i < entriesToRemove; i++) {
+        localStorage.removeItem(entries[i].key);
+      }
+    }
+
+    const cacheEntry = {
+      routeData,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(key, JSON.stringify(cacheEntry));
+  } catch {
+    // localStorage might be full or disabled (incognito mode)
+  }
+}
 
 /**
  * Calculate geodesic (great circle) line between two points.
@@ -83,12 +181,90 @@ function calculateHaversineDistance(from, to) {
   return R * c;
 }
 
+/**
+ * Get detour factor based on straight-line distance.
+ * Research shows driving distance is typically 1.2-1.5x straight-line distance,
+ * with shorter distances having higher detour factors due to local road patterns.
+ *
+ * Sources:
+ * - Nature: "How much longer do you have to drive than the crow flies?" (2024)
+ * - SAGE: "Road network distances and detours in Europe" (2024)
+ *
+ * @param {number} straightLineMeters - Straight-line distance in meters
+ * @returns {number} - Detour factor to multiply distance by
+ */
+function getDetourFactor(straightLineMeters) {
+  const km = straightLineMeters / 1000;
+
+  if (km < 5) {
+    // Short distances: higher detour due to local road patterns
+    return 1.5;
+  } else if (km < 50) {
+    // Medium distances: average detour
+    return 1.35;
+  } else {
+    // Long distances: routes tend to straighten out on highways
+    return 1.25;
+  }
+}
+
+/**
+ * Estimate average driving speed based on distance.
+ * Longer trips tend to use highways with higher average speeds.
+ *
+ * @param {number} distanceMeters - Estimated driving distance in meters
+ * @returns {number} - Average speed in km/h
+ */
+function getAverageSpeed(distanceMeters) {
+  const km = distanceMeters / 1000;
+
+  if (km < 10) {
+    // Short urban trips: slower due to traffic, stops
+    return 35;
+  } else if (km < 50) {
+    // Medium trips: mix of urban and suburban roads
+    return 50;
+  } else if (km < 200) {
+    // Longer trips: more highway driving
+    return 70;
+  } else {
+    // Very long trips: predominantly highway
+    return 85;
+  }
+}
+
 export function useMapboxDirections() {
   const [routeData, setRouteData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Cache last route to avoid recalculating when user cancels and re-navigates
+  const routeCacheRef = useRef(null);
+
   const getRoute = useCallback(async (from, to) => {
+    // Check in-memory cache first (fastest)
+    if (routeCacheRef.current) {
+      const cache = routeCacheRef.current;
+      const sameFrom = cache.from.latitude === from.latitude &&
+                       cache.from.longitude === from.longitude;
+      const sameTo = cache.to.latitude === to.latitude &&
+                     cache.to.longitude === to.longitude;
+
+      if (sameFrom && sameTo) {
+        setRouteData(cache.routeData);
+        return cache.routeData;
+      }
+    }
+
+    // Check localStorage cache (persists across refreshes)
+    const localCached = getCachedRoute(from, to);
+    if (localCached) {
+      // Also store in memory for faster subsequent access
+      routeCacheRef.current = { from, to, routeData: localCached };
+      setRouteData(localCached);
+      return localCached;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -96,7 +272,6 @@ export function useMapboxDirections() {
       // === Try OpenRouteService first (free tier) ===
       if (ORS_API_KEY) {
         try {
-          console.log('[Routing] Trying OpenRouteService...');
           const orsResponse = await fetch(
             'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
             {
@@ -120,28 +295,28 @@ export function useMapboxDirections() {
               const route = data.features[0];
               const summary = route.properties?.summary || {};
 
-              console.log('[Routing] SUCCESS: OpenRouteService');
               const result = {
                 geometry: route.geometry,
                 duration: summary.duration || 0,
                 distance: summary.distance || 0,
                 isEstimated: false,
               };
+              // Cache the route (memory + localStorage)
+              routeCacheRef.current = { from, to, routeData: result };
+              setCachedRoute(from, to, result);
               setRouteData(result);
               setIsLoading(false);
               return result;
             }
           }
-          console.log('[Routing] OpenRouteService failed, trying Mapbox...');
-        } catch (orsError) {
-          console.log('[Routing] OpenRouteService error:', orsError.message);
+        } catch {
+          // ORS failed, will try Mapbox
         }
       }
 
       // === Fallback to Mapbox Directions ===
       if (MAPBOX_TOKEN) {
         try {
-          console.log('[Routing] Trying Mapbox Directions...');
           const coords = `${from.longitude},${from.latitude};${to.longitude},${to.latitude}`;
           const mapboxResponse = await fetch(
             `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}?` +
@@ -153,44 +328,51 @@ export function useMapboxDirections() {
             if (data.routes && data.routes[0]) {
               const route = data.routes[0];
 
-              console.log('[Routing] SUCCESS: Mapbox Directions');
               const result = {
                 geometry: route.geometry,
                 duration: route.duration || 0,
                 distance: route.distance || 0,
                 isEstimated: false,
               };
+              // Cache the route (memory + localStorage)
+              routeCacheRef.current = { from, to, routeData: result };
+              setCachedRoute(from, to, result);
               setRouteData(result);
               setIsLoading(false);
               return result;
             }
           }
-          console.log('[Routing] Mapbox failed, using geodesic fallback...');
-        } catch (mapboxError) {
-          console.log('[Routing] Mapbox error:', mapboxError.message);
+        } catch {
+          // Mapbox failed, will use geodesic fallback
         }
       }
 
-      // === Last resort: Geodesic straight line ===
-      console.log('[Routing] Using geodesic fallback (straight line)');
+      // === Last resort: Geodesic straight line with research-based estimates ===
       const geometry = calculateGeodesicLine(from, to);
-      const distance = calculateHaversineDistance(from, to);
+      const straightLineDistance = calculateHaversineDistance(from, to);
 
-      // Rough estimate: 60 km/h average driving speed
-      const estimatedDuration = (distance / 1000) / 60 * 3600;
+      // Apply detour factor based on distance (research: driving is 1.25-1.5x straight-line)
+      const detourFactor = getDetourFactor(straightLineDistance);
+      const estimatedDistance = straightLineDistance * detourFactor;
+
+      // Estimate duration using variable speed based on trip length
+      const avgSpeedKmh = getAverageSpeed(estimatedDistance);
+      const estimatedDuration = (estimatedDistance / 1000) / avgSpeedKmh * 3600;
 
       const result = {
         geometry,
         duration: estimatedDuration,
-        distance,
+        distance: estimatedDistance,
         isEstimated: true, // Flag to indicate this is not a real route
       };
+      // Cache the route (memory + localStorage)
+      routeCacheRef.current = { from, to, routeData: result };
+      setCachedRoute(from, to, result);
       setRouteData(result);
       setIsLoading(false);
       return result;
 
-    } catch (err) {
-      console.error('[Routing] All methods failed:', err);
+    } catch {
       setError('Unable to get directions. Please try again.');
       setIsLoading(false);
       return null;
