@@ -17,7 +17,7 @@
 #                                                                                                       #
 # External API Dependencies:                                                                            #
 # - Mapbox Geocoding API: Reverse geocoding for addresses                                               #
-# - Mapbox Terrain-RGB API: High-precision elevation data (0.1m resolution)                             #
+# - Mapbox Terrain-DEM API: High-precision elevation data (0.1m resolution)                             #
 # - Can be disabled via settings.DISABLE_EXTERNAL_APIS for testing                                      #
 #                                                                                                       #
 # Usage:                                                                                                #
@@ -119,7 +119,7 @@ class LocationService:
         return True
 
 
-    # Updates elevation using Mapbox Terrain-RGB API (0.1m precision):
+    # Updates elevation using Mapbox Terrain-DEM API (0.1m precision):
     @staticmethod
     def update_elevation_from_mapbox(location):
         mapbox_token = settings.MAPBOX_TOKEN
@@ -147,8 +147,8 @@ class LocationService:
         pixel_x = max(0, min(255, pixel_x))
         pixel_y = max(0, min(255, pixel_y))
 
-        # Fetch the Terrain-RGB tile
-        url = (f"https://api.mapbox.com/v4/mapbox.terrain-rgb/{zoom}/{tile_x}/{tile_y}.pngraw"
+        # Fetch the Terrain-DEM tile (actively maintained, replaces deprecated Terrain-RGB)
+        url = (f"https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{zoom}/{tile_x}/{tile_y}.pngraw"
                f"?access_token={mapbox_token}")
 
         try:
