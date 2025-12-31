@@ -103,13 +103,23 @@ def user_favorites_key(user_id):
 # Call this when: new location created, location deleted, or location data      #
 # changes that affects the list view (e.g., name, verification status).         #
 #                                                                               #
-# Note: Clears pages 1-10 which covers most traffic. Future enhancement could   #
-# use Redis SCAN to clear all matching keys or implement cache versioning.      #
+# Uses Redis SCAN to find and delete all keys matching the location_list        #
+# pattern, including sort-suffixed and user-specific cache variants.            #
 # ----------------------------------------------------------------------------- #
 def invalidate_location_list():
-    # Clear common pages (1-10 covers most traffic)
-    for page in range(1, 11):
-        cache.delete(location_list_key(page))
+    # Use Redis directly for pattern-based deletion
+    # This catches all variants: :sort:X, :user:Y, :sort:X:user:Y
+    from django.conf import settings
+    import redis
+
+    redis_url = settings.CACHES['default']['LOCATION']
+    r = redis.from_url(redis_url)
+
+    # Pattern matches all location list keys (with starview: prefix from settings)
+    pattern = 'starview:location_list:*'
+    keys = list(r.scan_iter(match=pattern))
+    if keys:
+        r.delete(*keys)
 
 
 # Clear cached location detail for a specific location:
