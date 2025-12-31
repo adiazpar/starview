@@ -2,8 +2,8 @@
  * useMapboxDirections Hook
  *
  * Fetches driving directions using a cascade fallback pattern:
- * 1. OpenRouteService (free tier: 2,000 req/day)
- * 2. Mapbox Directions API (fallback)
+ * 1. Mapbox Directions API (real-time traffic data)
+ * 2. OpenRouteService (fallback, free tier: 2,000 req/day)
  * 3. Geodesic straight line (last resort when APIs fail)
  *
  * Returns route geometry for map display, plus duration/distance when available.
@@ -269,7 +269,40 @@ export function useMapboxDirections() {
     setError(null);
 
     try {
-      // === Try OpenRouteService first (free tier) ===
+      // === Try Mapbox Directions first (better traffic data) ===
+      if (MAPBOX_TOKEN) {
+        try {
+          const coords = `${from.longitude},${from.latitude};${to.longitude},${to.latitude}`;
+          const mapboxResponse = await fetch(
+            `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}?` +
+            `access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=full`
+          );
+
+          if (mapboxResponse.ok) {
+            const data = await mapboxResponse.json();
+            if (data.routes && data.routes[0]) {
+              const route = data.routes[0];
+
+              const result = {
+                geometry: route.geometry,
+                duration: route.duration || 0,
+                distance: route.distance || 0,
+                isEstimated: false,
+              };
+              // Cache the route (memory + localStorage)
+              routeCacheRef.current = { from, to, routeData: result };
+              setCachedRoute(from, to, result);
+              setRouteData(result);
+              setIsLoading(false);
+              return result;
+            }
+          }
+        } catch {
+          // Mapbox failed, will try ORS
+        }
+      }
+
+      // === Fallback to OpenRouteService (free tier) ===
       if (ORS_API_KEY) {
         try {
           const orsResponse = await fetch(
@@ -310,40 +343,7 @@ export function useMapboxDirections() {
             }
           }
         } catch {
-          // ORS failed, will try Mapbox
-        }
-      }
-
-      // === Fallback to Mapbox Directions ===
-      if (MAPBOX_TOKEN) {
-        try {
-          const coords = `${from.longitude},${from.latitude};${to.longitude},${to.latitude}`;
-          const mapboxResponse = await fetch(
-            `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}?` +
-            `access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=full`
-          );
-
-          if (mapboxResponse.ok) {
-            const data = await mapboxResponse.json();
-            if (data.routes && data.routes[0]) {
-              const route = data.routes[0];
-
-              const result = {
-                geometry: route.geometry,
-                duration: route.duration || 0,
-                distance: route.distance || 0,
-                isEstimated: false,
-              };
-              // Cache the route (memory + localStorage)
-              routeCacheRef.current = { from, to, routeData: result };
-              setCachedRoute(from, to, result);
-              setRouteData(result);
-              setIsLoading(false);
-              return result;
-            }
-          }
-        } catch {
-          // Mapbox failed, will use geodesic fallback
+          // ORS failed, will use geodesic fallback
         }
       }
 

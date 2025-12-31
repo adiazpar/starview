@@ -178,7 +178,7 @@ import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
-import { formatDuration, formatDistance as formatRouteDistance } from '../../../utils/navigation';
+import { formatDuration, formatDistance as formatRouteDistance, getPlatformNavigationUrl } from '../../../utils/navigation';
 import { useToast } from '../../../contexts/ToastContext';
 import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
@@ -1530,7 +1530,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
                 try {
                   const result = await navigator.permissions.query({ name: 'geolocation' });
                   if (result.state === 'denied') {
-                    showToast('Location access blocked. Click the lock icon in your address bar to enable.', 'warning', 6000);
+                    showToast('Location access blocked. Click the icon in your address bar to enable.', 'warning', 6000);
                     return;
                   }
                 } catch (e) {
@@ -1553,7 +1553,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
                   },
                   (error) => {
                     if (error.code === error.PERMISSION_DENIED) {
-                      showToast('Location access denied. Enable it in your browser settings.', 'warning', 6000);
+                      showToast('Location access blocked. Click the icon in your address bar to enable.', 'warning', 6000);
                     } else {
                       showToast('Unable to get your location. Please try again.', 'error');
                     }
@@ -1784,7 +1784,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
                 {/* FROM section */}
                 <div className="explore-map__card-route-from">
                   <span className="explore-map__card-route-label">FROM</span>
-                  <span className="explore-map__card-route-value">
+                  <span className={`explore-map__card-route-value ${userLocationSource !== 'browser' ? 'explore-map__card-route-value--warning' : ''}`}>
                     {userLocationSource === 'browser' ? 'Your location' : 'Location unavailable'}
                   </span>
                 </div>
@@ -1804,7 +1804,17 @@ function ExploreMap({ initialViewport, onViewportChange }) {
                     className="btn-primary btn-primary--sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // TODO: Implement GO action
+                      if (userLocationSource !== 'browser') {
+                        showToast('Location access blocked. Click the icon in your address bar to enable.', 'warning');
+                        return;
+                      }
+                      if (selectedLocation) {
+                        const url = getPlatformNavigationUrl(
+                          selectedLocation.latitude,
+                          selectedLocation.longitude
+                        );
+                        window.open(url, '_blank');
+                      }
                     }}
                   >
                     GO
@@ -1816,7 +1826,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
           {/* Route stats - positioned top right in navigation mode */}
           {isNavigationMode && (
-            <div className="explore-map__card-route-stats-badge">
+            <div className={`explore-map__card-route-stats-badge ${userLocationSource !== 'browser' ? 'explore-map__card-route-stats-badge--hint' : ''}`}>
               {userLocationSource === 'browser' ? (
                 isRouteLoading ? (
                   <>

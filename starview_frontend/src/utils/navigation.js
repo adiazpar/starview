@@ -60,17 +60,65 @@ export function formatDistance(meters) {
 }
 
 /**
+ * Detect user's platform for navigation app selection.
+ * @returns {'ios' | 'android' | 'desktop'}
+ */
+export function detectPlatform() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+  // iOS detection
+  if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+    return 'ios';
+  }
+
+  // Android detection
+  if (/android/i.test(ua)) {
+    return 'android';
+  }
+
+  return 'desktop';
+}
+
+/**
  * Generate deep link URLs for navigation apps.
+ * All URLs are configured to auto-start turn-by-turn navigation.
  * @param {number} lat - Destination latitude
  * @param {number} lng - Destination longitude
  * @returns {object} - URLs for each navigation app
  */
 export function getNavigationUrls(lat, lng) {
   return {
-    google: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+    // dir_action=navigate auto-starts turn-by-turn navigation
+    google: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving&dir_action=navigate`,
+    // dirflg=d means driving directions
     apple: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`,
+    // navigate=yes auto-starts navigation in Waze
     waze: `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`,
   };
+}
+
+/**
+ * Get the platform-appropriate navigation URL.
+ * - iOS: Opens Apple Maps (native experience)
+ * - Android: Opens Google Maps (Android auto-handles the intent)
+ * - Desktop: Opens Google Maps web
+ *
+ * @param {number} lat - Destination latitude
+ * @param {number} lng - Destination longitude
+ * @returns {string} - URL to open for navigation
+ */
+export function getPlatformNavigationUrl(lat, lng) {
+  const platform = detectPlatform();
+  const urls = getNavigationUrls(lat, lng);
+
+  switch (platform) {
+    case 'ios':
+      return urls.apple;
+    case 'android':
+      return urls.google;
+    default:
+      return urls.google;
+  }
 }
 
 /**

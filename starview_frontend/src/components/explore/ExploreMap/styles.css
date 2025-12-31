@@ -295,6 +295,10 @@
   color: var(--text-secondary);
 }
 
+.explore-map__card-route-value--warning {
+  color: var(--warning);
+}
+
 /* Route stats row - matches .explore-map__card-meta styling */
 .explore-map__card-route-stats {
   display: flex;
@@ -397,6 +401,22 @@
 .explore-map__card-route-stats-badge > span {
   font-size: var(--text-xs);
   color: var(--text-secondary);
+}
+
+/* Hint state - no background/shadow, just text */
+.explore-map__card-route-stats-badge--hint {
+  background: none;
+  padding: 0;
+  box-shadow: none;
+  gap: 4px; /* Match route duration/distance icon spacing */
+}
+
+.explore-map__card-route-stats-badge--hint > i {
+  color: var(--text-muted);
+}
+
+.explore-map__card-route-stats-badge--hint > span {
+  color: var(--text-muted);
 }
 
 /* Mobile: Stack route stats vertically */
