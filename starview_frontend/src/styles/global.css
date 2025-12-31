@@ -364,6 +364,41 @@ h3 {
   aspect-ratio: 1;
 }
 
+/* Danger Button - Destructive/cancel actions */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  background: var(--error);
+  color: white;
+  border: none;
+  border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  text-decoration: none;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Danger Button - Small variant */
+.btn-danger--sm {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+
 /* Social Button - Icon-only glass style */
 .btn-social {
   flex: 1;

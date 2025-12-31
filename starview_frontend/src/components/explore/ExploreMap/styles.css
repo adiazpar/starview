@@ -336,6 +336,11 @@
   line-height: 1;
 }
 
+/* Duration is bolder to emphasize time */
+.explore-map__card-route-duration {
+  font-weight: var(--font-semibold);
+}
+
 .explore-map__card-route-duration i,
 .explore-map__card-route-distance i {
   font-size: var(--text-xs);
@@ -389,6 +394,15 @@
   color: var(--text-secondary);
 }
 
+/* Mobile: Stack route stats vertically */
+@media (max-width: 480px) {
+  .explore-map__card-route-stats-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+}
+
 /* Card Content - matches LocationCard */
 .explore-map__card-content {
   padding: var(--space-md);
@@ -410,11 +424,19 @@
   color: var(--text-primary);
   margin: 0;
   line-height: 1.3;
+  /* Truncate long names */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .explore-map__card-region {
   font-size: var(--text-sm);
   color: var(--text-muted);
+  /* Truncate long location strings */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Card Meta - matches LocationCard */

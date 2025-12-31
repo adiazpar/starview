@@ -573,8 +573,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         else if (maxSpan > 0.05) zoom = 11;
         else zoom = 12;
 
-        // Cap at maxZoom
+        // Cap at maxZoom and zoom out slightly for breathing room
         zoom = Math.min(zoom, 14);
+        zoom = Math.max(zoom - 0.5, 2); // Zoom out a bit, but not below 2
 
         // Offset shifts viewport center: [0, -70] moves center up to account for bottom card
         map.current.flyTo({
@@ -1791,7 +1792,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
                 {/* Action buttons */}
                 <div className="explore-map__card-route-actions">
                   <button
-                    className="btn-secondary btn-secondary--sm"
+                    className="btn-danger btn-danger--sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsNavigationMode(false);
