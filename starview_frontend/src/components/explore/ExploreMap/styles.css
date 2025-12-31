@@ -369,7 +369,7 @@
   z-index: 10;
   opacity: 0;
   transform: translateY(-10px);
-  animation: route-stats-appear 0.3s ease 0.2s forwards;
+  animation: route-stats-appear 0.3s ease 0.35s forwards;
 }
 
 @keyframes route-stats-appear {
