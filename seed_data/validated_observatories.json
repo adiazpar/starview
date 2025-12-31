@@ -1,8 +1,8 @@
 {
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
-  "generated_at": "2025-12-31 10:46:53 UTC",
-  "total_validated": 868,
+  "generated_at": "2025-12-31 19:12:18 UTC",
+  "total_validated": 918,
   "observatories": [
     {
       "name": "\"Terrazza delle Stelle\" observatory",
@@ -40,6 +40,15 @@
       "latitude": 44.451,
       "longitude": 26.094,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/21%20Bulevardul%20Lasc%C4%83r%20Catargiu%2C%20Bucharest%20%2808%29.jpg"
+    },
+    {
+      "name": "AEMet Iza\u00f1a",
+      "latitude": 28.307,
+      "longitude": -16.5,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Teide_Observatory_2018_006.jpg",
+      "type_metadata": {
+        "website": "https://izana.aemet.es/"
+      }
     },
     {
       "name": "Ager observatory",
@@ -126,6 +135,15 @@
       "validation_notes": "Chrome-validated: shows observatory building/dome",
       "type_metadata": {
         "website": "https://www.astep.eu"
+      }
+    },
+    {
+      "name": "Amphi Ashdod Observatory",
+      "latitude": 31.798,
+      "longitude": 34.636,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/%D7%92%D7%91%D7%A2%D7%AA_%D7%9E%D7%A6%D7%A4%D7%94_%D7%94%D7%90%D7%9E%D7%A4%D7%99_%D7%91%D7%A4%D7%90%D7%A8%D7%A7_%D7%90%D7%A9%D7%93%D7%95%D7%93-%D7%99%D7%9D%2C_%D7%93%D7%A6%D7%9E%D7%91%D7%A8_2017.jpg",
+      "type_metadata": {
+        "website": "https://www.amphi-ashdod.co.il/"
       }
     },
     {
@@ -334,6 +352,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/BCC-Planetarium-and-Observatory.jpg"
     },
     {
+      "name": "Astronomic Observatory in W\u0142oc\u0142awek",
+      "latitude": 52.636,
+      "longitude": 19.044,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/W%C5%82oc%C5%82awek-observatory%20%282%29.jpg",
+      "type_metadata": {
+        "website": "https://baczynski.org/o-nas/obserwatorium-astronomiczne/"
+      }
+    },
+    {
       "name": "Astronomical Calculation Institute",
       "latitude": 49.418,
       "longitude": 8.688,
@@ -471,6 +498,15 @@
       }
     },
     {
+      "name": "Astronomical Observatory of Mount Deva",
+      "latitude": 43.488,
+      "longitude": -5.603,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Observatorio-Deva.jpg",
+      "type_metadata": {
+        "website": "https://www.observatoriomontedeva.com/"
+      }
+    },
+    {
       "name": "Astronomical Observatory of Padova",
       "latitude": 45.402,
       "longitude": 11.869,
@@ -552,6 +588,15 @@
       "validation_notes": "",
       "type_metadata": {
         "website": "https://www.vu.lt/en/about-vu/history/astronomical-observatory"
+      }
+    },
+    {
+      "name": "Astronomical Tower in Clementinum Prague",
+      "latitude": 50.087,
+      "longitude": 14.416,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Astronomick%C3%A1_v%C4%9B%C5%BE_%28Klementinum%29_od_SV.jpg",
+      "type_metadata": {
+        "website": "https://www.nkp.cz/en/events/astronomical-tower-and-baroque-library"
       }
     },
     {
@@ -746,6 +791,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Beverly%20Begg%20Observatory%20in%20Snow.jpg"
     },
     {
+      "name": "BGSU Observatory",
+      "latitude": 41.38,
+      "longitude": -83.64,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/BGSU%20Telescope.jpg",
+      "type_metadata": {
+        "website": "https://www.bgsu.edu/arts-and-sciences/physics-and-astronomy/bgsu-planetarium/observatory.html"
+      }
+    },
+    {
       "name": "Bidston Observatory",
       "latitude": 53.401,
       "longitude": -3.074,
@@ -824,6 +878,15 @@
       "validation_notes": "",
       "type_metadata": {
         "website": "https://bluehill.org/"
+      }
+    },
+    {
+      "name": "Bobergs observatorium",
+      "latitude": 59.325,
+      "longitude": 18.101,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Skansen181.jpg",
+      "type_metadata": {
+        "website": "https://www.skansen.se/en/"
       }
     },
     {
@@ -981,6 +1044,12 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Building%2020.jpg"
     },
     {
+      "name": "Bukit Melawati",
+      "latitude": 3.342,
+      "longitude": 101.246,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Bukit_Melawati_20220602_161852.jpg"
+    },
+    {
       "name": "Burrell Memorial Observatory",
       "latitude": 41.375,
       "longitude": -81.851,
@@ -1019,6 +1088,12 @@
         "phone_display": "+39 070711801",
         "website": "https://www.oa-cagliari.inaf.it/"
       }
+    },
+    {
+      "name": "Calais Observatory",
+      "latitude": 45.185,
+      "longitude": -67.281,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/CastineME_Observatory.jpg"
     },
     {
       "name": "Calar Alto Observatory",
@@ -1106,6 +1181,12 @@
       "longitude": 6.953,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Neuch%C3%A2tel%2C%20observatoire%204.JPG",
       "validation_notes": "Shows historic observatory building with dome in Neuchatel"
+    },
+    {
+      "name": "Carkeek Observatory",
+      "latitude": -41.145,
+      "longitude": 175.323,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Carkeek_Observatory_MRD_04.jpg"
     },
     {
       "name": "Cascades Volcano Observatory",
@@ -1284,6 +1365,15 @@
       }
     },
     {
+      "name": "Ckoirama Observatory",
+      "latitude": -24.089,
+      "longitude": -69.931,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Observatorio_Ckoirama%2C_primer_observatorio_del_Estado_de_Chile.jpg",
+      "type_metadata": {
+        "website": "https://astro.uantof.cl/research/observatorios/observatorio-ckoirama/"
+      }
+    },
+    {
       "name": "Class of 1951 Observatory",
       "latitude": 41.683,
       "longitude": -73.891,
@@ -1351,6 +1441,12 @@
       "type_metadata": {
         "website": "https://www.conrad-observatory.at/"
       }
+    },
+    {
+      "name": "Corfu Observatory",
+      "latitude": 39.621,
+      "longitude": 19.899,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Corfu%20Observatory%20Rotating%20Dome.jpg"
     },
     {
       "name": "Cotobade Astronomical Observatory",
@@ -1430,6 +1526,15 @@
       }
     },
     {
+      "name": "Daejeon Observatory",
+      "latitude": 36.382,
+      "longitude": 127.354,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/af/%EB%8C%80%EC%A0%84%EC%8B%9C%EB%AF%BC%EC%B2%9C%EB%AC%B8%EB%8C%80_Daejeon_Observatory.jpg",
+      "type_metadata": {
+        "website": "http://djstar.kr/"
+      }
+    },
+    {
       "name": "Daniel S. Schanck Observatory",
       "latitude": 40.499,
       "longitude": -74.445,
@@ -1478,6 +1583,15 @@
       "latitude": 44.352,
       "longitude": -103.751,
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c0/CERN_Neutrino_Platform.png",
+      "type_metadata": {
+        "website": "https://www.dunescience.org/"
+      }
+    },
+    {
+      "name": "Deep Underground Neutrino Experiment",
+      "latitude": 41.832,
+      "longitude": -88.257,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/ProtoDUNE-VD.png",
       "type_metadata": {
         "website": "https://www.dunescience.org/"
       }
@@ -1872,6 +1986,15 @@
       }
     },
     {
+      "name": "Fountain Hills Observatory",
+      "latitude": 33.636,
+      "longitude": -111.74,
+      "image_url": "https://azbigmedia.com/wp-content/uploads/2025/09/International-Dark-Sky-Discovery-Center.jpeg",
+      "type_metadata": {
+        "website": "https://darkskycenter.org/"
+      }
+    },
+    {
       "name": "Frankfurt observatory",
       "latitude": 50.117,
       "longitude": 8.652,
@@ -1982,6 +2105,12 @@
       "latitude": 39.137,
       "longitude": -77.199,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Gaithersburg%20latitude%20observatory%201.jpg"
+    },
+    {
+      "name": "Galbergweg 12",
+      "latitude": 50.953,
+      "longitude": 10.689,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Gotha-Galbergweg_12-Rohrbach-Sternwarte-CTH.JPG"
     },
     {
       "name": "Galileum Solingen",
@@ -2685,6 +2814,24 @@
       }
     },
     {
+      "name": "H\u00f6fingen observatory",
+      "latitude": 48.819,
+      "longitude": 9.006,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Sternwarte_H%C3%B6fingen.jpg",
+      "type_metadata": {
+        "website": "https://www.sternwarte-hoefingen.de/"
+      }
+    },
+    {
+      "name": "IceCube Neutrino Observatory",
+      "latitude": -89.99,
+      "longitude": -63.453,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/51/IceCube_Neutrino_Observatory_in_2023_02.jpg",
+      "type_metadata": {
+        "website": "https://icecube.wisc.edu/"
+      }
+    },
+    {
       "name": "Indian Astronomical Observatory (IAO)",
       "latitude": 32.779,
       "longitude": 78.964,
@@ -2923,6 +3070,15 @@
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Johannes_Kepler_Observatory_Linz.jpg",
       "type_metadata": {
         "website": "https://www.sternwarte.at/"
+      }
+    },
+    {
+      "name": "Johannes-Kepler-Volkssternwarte",
+      "latitude": 47.069,
+      "longitude": 15.326,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Sternwarte%20Steinberg.jpg",
+      "type_metadata": {
+        "website": "https://www.stav.at/clubdesk/www/stav2?p=1000070"
       }
     },
     {
@@ -3741,6 +3897,12 @@
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/98/Torre_Malakoff_com_o_museu_Cais_do_Sert%C3%A3o10x.jpg"
     },
     {
+      "name": "Man Singh Observatory",
+      "latitude": 25.308,
+      "longitude": 83.011,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Courtyard_at_Observatory_of_Man_Singh.jpg"
+    },
+    {
       "name": "Manila Observatory",
       "latitude": 14.637,
       "longitude": 121.077,
@@ -3901,6 +4063,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%20Astron%C3%B3mico%20de%20Mercedes.jpg"
     },
     {
+      "name": "Meteorological station Mile\u0161ovka",
+      "latitude": 50.555,
+      "longitude": 13.931,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Mile%C5%A1ovka_%28837_m%29%2C_meteorologick%C3%A1_observato%C5%99.JPG",
+      "type_metadata": {
+        "website": "https://www.ufa.cas.cz/en/institute-structure/department-of-meteorology/observatories/meteorological-observatory-milesovka/"
+      }
+    },
+    {
       "name": "Mets\u00e4hovi Radio Observatory",
       "latitude": 60.218,
       "longitude": 24.394,
@@ -3951,12 +4122,30 @@
       }
     },
     {
+      "name": "Milmaru Observatory",
+      "latitude": 36.505,
+      "longitude": 127.256,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Milmaru_Observatory_Tower.jpg",
+      "type_metadata": {
+        "website": "https://www.sejong.go.kr/eng/sub03_0201.do"
+      }
+    },
+    {
       "name": "Milwaukee Astronomical Society Observatory",
       "latitude": 42.969,
       "longitude": -88.149,
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Milwaukee_Astronomical_Society_Observatory_Grounds_-_August%2C_2021.jpg",
       "type_metadata": {
         "website": "https://milwaukeeastro.org/observatories/observatories.asp"
+      }
+    },
+    {
+      "name": "MINER\u03bdA",
+      "latitude": 41.84,
+      "longitude": -88.27,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/MINERvA_Neutrino_Detector_2011.jpg",
+      "type_metadata": {
+        "website": "https://minerva.fnal.gov/"
       }
     },
     {
@@ -4018,6 +4207,21 @@
       "validation_notes": "Multiple observatory domes in wooded setting with elevated dome structure",
       "type_metadata": {
         "website": "https://mao.tfai.vu.lt/sci/"
+      }
+    },
+    {
+      "name": "Mon Plaisir Tower",
+      "latitude": 50.934,
+      "longitude": 15.278,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Kaiser-urm%20meffesrdorfwilhelm-t.jpg"
+    },
+    {
+      "name": "Mont d'Arbois astronomical observatory",
+      "latitude": 45.856,
+      "longitude": 6.665,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Mont_d%27Arbois_Astronomie_observatory%2C_Saint-Gervais-les-Bains%2C_2025.jpg",
+      "type_metadata": {
+        "website": "https://tourism.saintgervais.com/my-inspiration/saint-gervaiss-year-round-cultural-life/mont-darbois-astronomy-observatory-saint-gervais-les-bains-en-4740133/"
       }
     },
     {
@@ -4218,6 +4422,21 @@
       "latitude": 60.595,
       "longitude": 17.259,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/M%C3%A5rtsboobservatoriet.jpg"
+    },
+    {
+      "name": "M\u00fchlenturm",
+      "latitude": 51.758,
+      "longitude": 6.401,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Rees%2C_der_M%C3%BChlenturm_DmA8_foto3_2017-10-18_15.58.jpg",
+      "type_metadata": {
+        "website": "https://www.niederrhein-tourismus.de/attraktion/muehlenturm-b72d712247"
+      }
+    },
+    {
+      "name": "Nahal Oz Observers Memorial Monument",
+      "latitude": 31.441,
+      "longitude": 34.505,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/9e/%D7%9E%D7%A6%D7%A4%D7%94_%D7%94%D7%AA%D7%A6%D7%A4%D7%99%D7%AA%D7%A0%D7%99%D7%95%D7%AA_._%D7%A6%D7%99%D7%9C%D7%95%D7%9D_%D7%93%D7%A8%D7%95%D7%A8_%D7%90%D7%9C%D7%95%D7%9F.jpg"
     },
     {
       "name": "Nan\u00e7ay Decameter Array",
@@ -4468,6 +4687,15 @@
       }
     },
     {
+      "name": "Northumberland Astronomical Society",
+      "latitude": 55.315,
+      "longitude": -1.556,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Northumberland_Astronomical_Society.jpg",
+      "type_metadata": {
+        "website": "https://www.nastro.org.uk/"
+      }
+    },
+    {
       "name": "Noto Radio Observatory",
       "latitude": 36.876,
       "longitude": 14.989,
@@ -4600,6 +4828,12 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/C%C3%BApula%20del%20Observatorio%20del%20IPA%20desde%20la%20calle%20Venezuela.JPG"
     },
     {
+      "name": "Observatorio Hipatia de Tepezal\u00e1",
+      "latitude": 22.232,
+      "longitude": -102.177,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatorio%20Hipatia%20de%20Tepezal%C3%A1%2003.jpg"
+    },
+    {
       "name": "Observatorio Ram\u00f3n Mar\u00eda Aller",
       "latitude": 42.876,
       "longitude": -8.555,
@@ -4647,6 +4881,15 @@
       }
     },
     {
+      "name": "Observatory Gro\u00dfschwabhausen",
+      "latitude": 50.928,
+      "longitude": 11.482,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatory%20jena%20grossschwabhausen%20germany%20july%202022.jpg",
+      "type_metadata": {
+        "website": "https://www.physik.uni-jena.de/en/22055/observatory"
+      }
+    },
+    {
       "name": "Observatory House",
       "latitude": 51.508,
       "longitude": -0.595,
@@ -4662,10 +4905,25 @@
       }
     },
     {
+      "name": "observatory in Boskovice",
+      "latitude": 49.487,
+      "longitude": 16.665,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Boskovice%2C_hv%C4%9Bzd%C3%A1rna.jpg",
+      "type_metadata": {
+        "website": "https://www.kulturaboskovice.cz/kultura/hvezdarna"
+      }
+    },
+    {
       "name": "Observatory in Mikul\u00e1\u0161ovice",
       "latitude": 50.966,
       "longitude": 14.361,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Mikul%C3%A1%C5%A1ovice%20%C4%8Dp.%201002%2001.jpg"
+    },
+    {
+      "name": "Observatory in Prague-Podol\u00ed",
+      "latitude": 50.057,
+      "longitude": 14.424,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Hv%C4%9Bzd%C3%A1rna_Franti%C5%A1ka_Fischera_v_Praze-Podol%C3%AD_%282019%29.jpg"
     },
     {
       "name": "observatory Lede\u010d nad S\u00e1zavou",
@@ -4800,6 +5058,12 @@
       }
     },
     {
+      "name": "Ohio Wesleyan University Student Observatory",
+      "latitude": 40.299,
+      "longitude": -83.077,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/2012sept%20WesleyanUniversityStudentObservatory000.jpg"
+    },
+    {
       "name": "Old Innsbruck Observatory",
       "latitude": 47.268,
       "longitude": 11.381,
@@ -4847,6 +5111,15 @@
       "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Ole_Roemer_observatoriet_aarhus.jpg",
       "type_metadata": {
         "website": "https://sciencemuseerne.dk/ole-roemer-observatoriet"
+      }
+    },
+    {
+      "name": "Omni-Theatre, Science Centre Singapore",
+      "latitude": 1.335,
+      "longitude": 103.735,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Omni-Theatre%2C_Singapore_Science_Centre%2C_Nov_05.JPG",
+      "type_metadata": {
+        "website": "https://www.science.edu.sg/visit-us/omni-theatre"
       }
     },
     {
@@ -5126,6 +5399,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Peach%20Mountain%20observatory%20%283369526918%29.jpg"
     },
     {
+      "name": "Penteli Observatory",
+      "latitude": 38.049,
+      "longitude": 23.865,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Penteli%20observatory%20-%20panoramio.jpg",
+      "type_metadata": {
+        "website": "https://www.astro.noa.gr/public-outreach/kentra-episkeptwn/penteli/"
+      }
+    },
+    {
       "name": "Perkins Observatory",
       "latitude": 40.251,
       "longitude": -83.056,
@@ -5342,6 +5624,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/PrincipiaCollegeObservatory.jpg"
     },
     {
+      "name": "Prishtina Observatory",
+      "latitude": 42.662,
+      "longitude": 21.159,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Observatory_ACK_-_Pristina.jpg",
+      "type_metadata": {
+        "website": "https://www.astroclubkosova.org/"
+      }
+    },
+    {
       "name": "Provencal Baronnies Observatory",
       "latitude": 44.408,
       "longitude": 5.515,
@@ -5431,6 +5722,15 @@
       }
     },
     {
+      "name": "Putrajaya International Convention Centre",
+      "latitude": 2.895,
+      "longitude": 101.677,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Putrajaya_1386543868_86fa637bd3.jpg",
+      "type_metadata": {
+        "website": "https://www.picc.com.my/"
+      }
+    },
+    {
       "name": "Pyramid International Laboratory-Observatory",
       "latitude": 27.957,
       "longitude": 86.814,
@@ -5454,6 +5754,12 @@
       "type_metadata": {
         "website": "https://oaq.epn.edu.ec/"
       }
+    },
+    {
+      "name": "Rabaul Volcanological Observatory",
+      "latitude": -4.191,
+      "longitude": 152.164,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/1/1e/RabaulVolcanologicalObservatory19880217.jpg"
     },
     {
       "name": "Radcliffe Observatory",
@@ -5488,6 +5794,12 @@
       "type_metadata": {
         "website": "https://armada.defensa.gob.es/ArmadaPortal/page/Portal/ArmadaEspannola/cienciaobservatorio/prefLang-es/"
       }
+    },
+    {
+      "name": "Reform Tower, Meethill, Invernettie",
+      "latitude": 57.492,
+      "longitude": -1.799,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Reform_Monument_%28geograph_6752443%29.jpg"
     },
     {
       "name": "Regiomontanus-Sternwarte",
@@ -6150,6 +6462,15 @@
       }
     },
     {
+      "name": "Sternwarte R\u00fcmlang",
+      "latitude": 47.439,
+      "longitude": 8.524,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Ansicht%20Sternwarte%20Ruemlang.jpg",
+      "type_metadata": {
+        "website": "https://sternwarte-ruemlang.ch/"
+      }
+    },
+    {
       "name": "Sternwarte Simplon-Adler",
       "latitude": 46.242,
       "longitude": 8.021,
@@ -6163,6 +6484,15 @@
       "validation_notes": "Shows observatory building with prominent white dome and facility grounds",
       "type_metadata": {
         "website": "https://www.sternwarte-tuebingen.de/"
+      }
+    },
+    {
+      "name": "Sternwarte und Planetarium \u201eSigmund J\u00e4hn\u201c Rodewisch",
+      "latitude": 50.526,
+      "longitude": 12.415,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/98/Sternwarte_und_Planetarium_Siegmund_J%C3%A4hn_Rodewisch_%282%29.jpg",
+      "type_metadata": {
+        "website": "https://www.sternwarte-rodewisch.de/"
       }
     },
     {
@@ -6230,6 +6560,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Stonyhurst%20observatory.jpg",
       "type_metadata": {
         "website": "HAS WEBSITE"
+      }
+    },
+    {
+      "name": "Stratospheric Observatory for Infrared Astronomy",
+      "latitude": 34.612,
+      "longitude": -118.077,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/53/SOFIA_in_air.jpg",
+      "type_metadata": {
+        "website": "https://science.nasa.gov/mission/sofia/"
       }
     },
     {
@@ -6460,6 +6799,15 @@
       "latitude": 42.371,
       "longitude": -72.519,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Octagon%20at%20Amherst%20College%2C%20Amherst%20MA.jpg"
+    },
+    {
+      "name": "The Space Observatory (Observatoire de l'Espace)",
+      "latitude": 48.861,
+      "longitude": 2.345,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Observatoire_de_l%27Espace_du_Cnes.jpg",
+      "type_metadata": {
+        "website": "https://cnes-observatoire.net/"
+      }
     },
     {
       "name": "The Tower of the Sun",
@@ -6709,6 +7057,15 @@
       }
     },
     {
+      "name": "United States Naval Academy",
+      "latitude": 38.983,
+      "longitude": -76.485,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/121011-N-OA833-002%20%2824401310884%29.jpg",
+      "type_metadata": {
+        "website": "https://www.usna.edu/homepage.php"
+      }
+    },
+    {
       "name": "United States Naval Observatory",
       "latitude": 38.921,
       "longitude": -77.067,
@@ -6736,6 +7093,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Tartu%20asv2022-04%20img06%20Old%20Observatory.jpg",
       "type_metadata": {
         "website": "https://muuseum.ut.ee/en/old-observatory"
+      }
+    },
+    {
+      "name": "University of Tokyo Atacama Observatory",
+      "latitude": -22.987,
+      "longitude": -67.742,
+      "image_url": "https://www.ioa.s.u-tokyo.ac.jp/TAO/en/news/20240430/DSC_7548s.jpg",
+      "type_metadata": {
+        "website": "https://www.ioa.s.u-tokyo.ac.jp/TAO/"
       }
     },
     {
@@ -6899,6 +7265,12 @@
       }
     },
     {
+      "name": "Ved Shala",
+      "latitude": 23.171,
+      "longitude": 75.766,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Sun_Dial_Ved_Shala_Ujjain.jpg"
+    },
+    {
       "name": "Vega-Sternwarte Salzburg",
       "latitude": 47.924,
       "longitude": 13.007,
@@ -6993,6 +7365,15 @@
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Zvjezdarnica%20Visnjan%20300x500.jpg",
       "type_metadata": {
         "website": "https://astro.hr/"
+      }
+    },
+    {
+      "name": "Vla\u0161im Observatory",
+      "latitude": 49.692,
+      "longitude": 14.895,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Vla%C5%A1im_-_hv%C4%9Bzd%C3%A1rna_budova.jpg",
+      "type_metadata": {
+        "website": "https://www.vas.cz/"
       }
     },
     {
@@ -7294,6 +7675,12 @@
       }
     },
     {
+      "name": "Woomera Observatory",
+      "latitude": -31.11,
+      "longitude": 136.822,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Woomera_1964_0%281%29.jpg"
+    },
+    {
       "name": "Wyoming Infrared Observatory",
       "latitude": 41.097,
       "longitude": -105.977,
@@ -7385,12 +7772,27 @@
       }
     },
     {
+      "name": "Yohai Lookout",
+      "latitude": 31.781,
+      "longitude": 34.622,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/%D7%9E%D7%A6%D7%A4%D7%94_%D7%99%D7%95%D7%97%D7%90%D7%99_%D7%91%D7%90%D7%A9%D7%93%D7%95%D7%93%2C_%D7%9C%D7%96%D7%9B%D7%A8%D7%95_%D7%A9%D7%9C_%D7%99%D7%95%D7%97%D7%90%D7%99_%D7%90%D7%9C%D7%A7%D7%99%D7%99%D7%9D%2C_%D7%9E%D7%A8%D7%A5_2024_02.jpg"
+    },
+    {
       "name": "York University Observatory",
       "latitude": 43.774,
       "longitude": -79.507,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/YorkUniversityObservatory.jpg",
       "type_metadata": {
         "website": "https://www.yorku.ca/science/observatory/"
+      }
+    },
+    {
+      "name": "Yuba City Astronomical Observatory",
+      "latitude": 39.115,
+      "longitude": -121.634,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/CPC1100wlaser.jpg",
+      "type_metadata": {
+        "website": "http://www.ycao.org"
       }
     },
     {
