@@ -11,14 +11,22 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 /**
  * Format duration in seconds to human-readable string.
+ * For trips 4+ hours, shows only hours (rounded) for cleaner display.
  * @param {number} seconds - Duration in seconds
- * @returns {string} - Formatted duration (e.g., "12 min" or "1 hr 23 min")
+ * @returns {string} - Formatted duration (e.g., "12 min", "1 hr 23 min", or "19 hr")
  */
 export function formatDuration(seconds) {
   if (!seconds || seconds < 0) return '0 min';
 
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  // For long trips (4+ hours), just show rounded hours
+  if (hours >= 4) {
+    const roundedHours = Math.round(seconds / 3600);
+    return `${roundedHours} hr`;
+  }
 
   if (hours === 0) {
     return `${minutes} min`;
