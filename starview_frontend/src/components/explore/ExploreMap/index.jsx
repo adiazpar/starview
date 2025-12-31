@@ -534,8 +534,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       map.current.removeSource(ROUTE_SOURCE_ID);
     }
 
-    // Add route if we have route data
-    if (routeData?.geometry && isNavigationMode) {
+    // Add route if we have route data (but not if route is impossible/noRouteFound)
+    if (routeData?.geometry && isNavigationMode && !routeData.noRouteFound) {
       // Add route source
       map.current.addSource(ROUTE_SOURCE_ID, {
         type: 'geojson',
@@ -1760,11 +1760,52 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
           {/* Content Section */}
           <div className="explore-map__card-content">
-            <div className="explore-map__card-header">
-              <h3 className="explore-map__card-name">{selectedLocation.name}</h3>
-              <span className="explore-map__card-region">
-                {getLocationSubtitle(selectedLocation)}
-              </span>
+            {/* Header row - flexbox with header info and route stats */}
+            <div className={`explore-map__card-header-row ${isNavigationMode ? 'explore-map__card-header-row--navigation' : ''}`}>
+              <div className="explore-map__card-header">
+                <h3 className="explore-map__card-name">{selectedLocation.name}</h3>
+                <span className="explore-map__card-region">
+                  {getLocationSubtitle(selectedLocation)}
+                </span>
+              </div>
+
+              {/* Route stats - inline in navigation mode */}
+              {isNavigationMode && (
+                <div className={`explore-map__card-route-stats ${userLocationSource !== 'browser' ? 'explore-map__card-route-stats--hint' : ''}`}>
+                  {userLocationSource === 'browser' ? (
+                    isRouteLoading ? (
+                      <>
+                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                        <span>Calculating...</span>
+                      </>
+                    ) : routeData?.noRouteFound ? (
+                      <div className="explore-map__card-route-unavailable">
+                        <i className="fa-solid fa-car"></i>
+                        <span>No driving route</span>
+                      </div>
+                    ) : routeData ? (
+                      <>
+                        <div className="explore-map__card-route-duration">
+                          <i className="fa-solid fa-clock"></i>
+                          <span>{formatDuration(routeData.duration)}</span>
+                        </div>
+                        <div className="explore-map__card-route-distance">
+                          <i className="fa-solid fa-road"></i>
+                          <span>{formatRouteDistance(routeData.distance)}</span>
+                          {routeData.isEstimated && (
+                            <span className="explore-map__card-route-estimated">(est.)</span>
+                          )}
+                        </div>
+                      </>
+                    ) : null
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-location-crosshairs"></i>
+                      <span>Enable location</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Default metadata - collapses in navigation mode */}
@@ -1850,38 +1891,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
             )}
           </div>
 
-          {/* Route stats - positioned top right in navigation mode */}
-          {isNavigationMode && (
-            <div className={`explore-map__card-route-stats-badge ${userLocationSource !== 'browser' ? 'explore-map__card-route-stats-badge--hint' : ''}`}>
-              {userLocationSource === 'browser' ? (
-                isRouteLoading ? (
-                  <>
-                    <i className="fa-solid fa-circle-notch fa-spin"></i>
-                    <span>Calculating...</span>
-                  </>
-                ) : routeData ? (
-                  <>
-                    <div className="explore-map__card-route-duration">
-                      <i className="fa-solid fa-clock"></i>
-                      <span>{formatDuration(routeData.duration)}</span>
-                    </div>
-                    <div className="explore-map__card-route-distance">
-                      <i className="fa-solid fa-road"></i>
-                      <span>{formatRouteDistance(routeData.distance)}</span>
-                      {routeData.isEstimated && (
-                        <span className="explore-map__card-route-estimated">(est.)</span>
-                      )}
-                    </div>
-                  </>
-                ) : null
-              ) : (
-                <>
-                  <i className="fa-solid fa-location-crosshairs"></i>
-                  <span>Enable location</span>
-                </>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

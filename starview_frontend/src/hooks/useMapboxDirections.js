@@ -268,6 +268,9 @@ export function useMapboxDirections() {
     setIsLoading(true);
     setError(null);
 
+    // Track if APIs responded successfully but found no route (vs network error)
+    let apiRespondedNoRoute = false;
+
     try {
       // === Try Mapbox Directions first (better traffic data) ===
       if (MAPBOX_TOKEN) {
@@ -288,6 +291,7 @@ export function useMapboxDirections() {
                 duration: route.duration || 0,
                 distance: route.distance || 0,
                 isEstimated: false,
+                noRouteFound: false,
               };
               // Cache the route (memory + localStorage)
               routeCacheRef.current = { from, to, routeData: result };
@@ -295,6 +299,9 @@ export function useMapboxDirections() {
               setRouteData(result);
               setIsLoading(false);
               return result;
+            } else {
+              // API responded but no route found (e.g., overseas destination)
+              apiRespondedNoRoute = true;
             }
           }
         } catch {
@@ -333,6 +340,7 @@ export function useMapboxDirections() {
                 duration: summary.duration || 0,
                 distance: summary.distance || 0,
                 isEstimated: false,
+                noRouteFound: false,
               };
               // Cache the route (memory + localStorage)
               routeCacheRef.current = { from, to, routeData: result };
@@ -340,6 +348,9 @@ export function useMapboxDirections() {
               setRouteData(result);
               setIsLoading(false);
               return result;
+            } else {
+              // API responded but no route found
+              apiRespondedNoRoute = true;
             }
           }
         } catch {
@@ -347,7 +358,8 @@ export function useMapboxDirections() {
         }
       }
 
-      // === Last resort: Geodesic straight line with research-based estimates ===
+      // === Last resort: Geodesic straight line ===
+      // If APIs explicitly said "no route", flag it as impossible rather than estimated
       const geometry = calculateGeodesicLine(from, to);
       const straightLineDistance = calculateHaversineDistance(from, to);
 
@@ -361,9 +373,10 @@ export function useMapboxDirections() {
 
       const result = {
         geometry,
-        duration: estimatedDuration,
-        distance: estimatedDistance,
-        isEstimated: true, // Flag to indicate this is not a real route
+        duration: apiRespondedNoRoute ? null : estimatedDuration,
+        distance: apiRespondedNoRoute ? null : estimatedDistance,
+        isEstimated: !apiRespondedNoRoute,
+        noRouteFound: apiRespondedNoRoute,
       };
       // Cache the route (memory + localStorage)
       routeCacheRef.current = { from, to, routeData: result };

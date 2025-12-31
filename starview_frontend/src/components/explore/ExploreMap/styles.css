@@ -214,9 +214,47 @@
   cursor: default;
 }
 
-/* Constrain header width in navigation mode to prevent overlap with route stats badge */
-.explore-map__card--navigation .explore-map__card-header {
-  padding-right: 150px; /* Reserve space for route stats badge + gap */
+/* Header row - flex container for header info and route stats */
+.explore-map__card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+/* In navigation mode, ensure header doesn't grow to push route stats */
+.explore-map__card-header-row--navigation .explore-map__card-header {
+  min-width: 0; /* Allow text truncation */
+}
+
+/* Route stats - inline display in navigation mode */
+.explore-map__card-route-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0; /* Don't shrink route stats */
+  line-height: 1.3; /* Match location name line-height */
+  opacity: 0;
+  animation: route-stats-appear 0.3s ease 0.35s forwards;
+}
+
+.explore-map__card-route-stats > i {
+  font-size: var(--text-xs);
+  color: var(--info);
+}
+
+.explore-map__card-route-stats > span {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+/* Hint state - muted colors when location unavailable */
+.explore-map__card-route-stats--hint > i {
+  color: var(--text-muted);
+}
+
+.explore-map__card-route-stats--hint > span {
+  color: var(--text-muted);
 }
 
 /* ========================================
@@ -368,68 +406,32 @@
   margin-left: 2px;
 }
 
-/* Route stats badge - positioned top right of card in navigation mode */
-.explore-map__card-route-stats-badge {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
+.explore-map__card-route-unavailable {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  background: var(--bg-elevated);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  opacity: 0;
-  transform: translateY(-10px);
-  animation: route-stats-appear 0.3s ease 0.35s forwards;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--warning);
+}
+
+.explore-map__card-route-unavailable i {
+  font-size: var(--text-xs);
+  width: 12px;
+  text-align: center;
 }
 
 @keyframes route-stats-appear {
   to {
     opacity: 1;
-    transform: translateY(0);
   }
-}
-
-.explore-map__card-route-stats-badge > i {
-  font-size: var(--text-xs);
-  color: var(--info);
-}
-
-.explore-map__card-route-stats-badge > span {
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
-}
-
-/* Hint state - no background/shadow, just text */
-.explore-map__card-route-stats-badge--hint {
-  background: none;
-  padding: 0;
-  box-shadow: none;
-  gap: 4px; /* Match route duration/distance icon spacing */
-}
-
-.explore-map__card-route-stats-badge--hint > i {
-  color: var(--text-muted);
-}
-
-.explore-map__card-route-stats-badge--hint > span {
-  color: var(--text-muted);
 }
 
 /* Mobile: Stack route stats vertically */
 @media (max-width: 480px) {
-  .explore-map__card-route-stats-badge {
+  .explore-map__card-route-stats {
     flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-sm);
-  }
-
-  /* Reduce header padding on mobile since badge is narrower when stacked */
-  .explore-map__card--navigation .explore-map__card-header {
-    padding-right: 110px;
+    align-items: flex-end;
+    gap: var(--space-xs);
   }
 }
 
