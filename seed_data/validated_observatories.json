@@ -2,7 +2,7 @@
   "version": "3.0",
   "source": "Wikidata + Claude Code AI validation",
   "generated_at": "2025-12-31 00:47:31 UTC",
-  "total_validated": 574,
+  "total_validated": 573,
   "observatories": [
     {
       "name": "Abbadia Castle",
@@ -101,13 +101,6 @@
       "longitude": 29.022,
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Andrushivka%20Astronomical%20Observatory%20East%20Eye.jpg",
       "validation_notes": "Shows observatory building with two domes and satellite dish. No dedicated website found."
-    },
-    {
-      "name": "Andrushivka Astronomical Observatory",
-      "latitude": 50.001,
-      "longitude": 28.997,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Andrushivka%20Astronomical%20Observatory%20East%20Eye.jpg",
-      "validation_notes": "Duplicate entry - same image as above. Shows observatory building with two domes and satellite dish. No dedicated website found."
     },
     {
       "name": "Antonin Becvar observatory",
