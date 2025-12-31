@@ -500,6 +500,25 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [isNavigationMode, clearRoute]);
 
+  // Auto-fetch route when user location becomes available during navigation mode
+  // This handles the case where user grants geolocation permission while in navigation mode
+  useEffect(() => {
+    if (!isNavigationMode || !selectedLocation) return;
+    if (!userLocation || userLocationSource !== 'browser') return;
+
+    // Fetch route if we don't have one yet (or if location just became available)
+    const from = {
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+    };
+    const to = {
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+    };
+
+    getRoute(from, to);
+  }, [isNavigationMode, selectedLocation, userLocation, userLocationSource, getRoute]);
+
   // Display route on map when routeData is available
   useEffect(() => {
     if (!map.current || !mapLoaded) return;

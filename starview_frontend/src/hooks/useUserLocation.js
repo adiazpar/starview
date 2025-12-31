@@ -83,17 +83,44 @@ export function useUserLocation() {
     // Wait for auth to finish loading before checking profile fallback
     if (authLoading) return;
 
+    let permissionStatus = null;
+    let isSubscribed = true;
+
+    // Handler for permission changes (user grants/revokes geolocation)
+    // This allows the app to react automatically without page refresh
+    const handlePermissionChange = async () => {
+      if (!isSubscribed) return;
+
+      if (permissionStatus?.state === 'granted') {
+        // User just granted permission - fetch their location
+        const gotLocation = await requestBrowserLocation();
+        if (!gotLocation && isSubscribed) {
+          checkProfileLocation();
+        }
+      } else if (permissionStatus?.state === 'denied') {
+        // User revoked permission - clear cached location and fall back
+        localStorage.removeItem(CACHE_KEY);
+        if (isSubscribed) {
+          setLocation(null);
+          setSource(null);
+          checkProfileLocation();
+        }
+      }
+    };
+
     const resolveLocation = async () => {
       setIsLoading(true);
 
       // Check if geolocation permission is denied - if so, clear cache
-      // This handles the case where user revoked permission after it was cached
+      // Also set up listener for permission changes
       if (navigator.permissions) {
         try {
-          const permission = await navigator.permissions.query({ name: 'geolocation' });
-          if (permission.state === 'denied') {
+          permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+          if (permissionStatus.state === 'denied') {
             localStorage.removeItem(CACHE_KEY);
           }
+          // Listen for permission changes
+          permissionStatus.addEventListener('change', handlePermissionChange);
         } catch {
           // Permissions API not supported for geolocation in some browsers
         }
@@ -128,6 +155,13 @@ export function useUserLocation() {
     };
 
     resolveLocation();
+
+    return () => {
+      isSubscribed = false;
+      if (permissionStatus) {
+        permissionStatus.removeEventListener('change', handlePermissionChange);
+      }
+    };
   }, [authLoading, requestBrowserLocation, checkProfileLocation]);
 
   // Refresh function - tries browser first, then profile
