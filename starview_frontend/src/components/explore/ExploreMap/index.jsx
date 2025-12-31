@@ -1779,7 +1779,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
             {/* Navigation mode info - only render when navigating */}
             {isNavigationMode && (
-              <div className="explore-map__card-route explore-map__card-route--visible">
+              <div className="explore-map__card-route">
                 {/* FROM section */}
                 <div className="explore-map__card-route-from">
                   <span className="explore-map__card-route-label">FROM</span>
