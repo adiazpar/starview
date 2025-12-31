@@ -204,12 +204,23 @@ class Command(BaseCommand):
             self.stdout.write(f'\n[{i}/{len(locations)}] {name}')
 
             try:
-                # Check if location already exists
-                existing = Location.objects.filter(
-                    name=name,
-                    latitude=loc_data.get('latitude'),
-                    longitude=loc_data.get('longitude'),
-                ).first()
+                # Check if location already exists (by name + truncated coordinates)
+                # Truncate to 3 decimal places (~111m accuracy) to handle float precision
+                # Using floor (truncation) for consistency - always removes extra decimals
+                def truncate_coord(val, decimals=3):
+                    multiplier = 10 ** decimals
+                    return int(val * multiplier) / multiplier
+
+                json_lat = truncate_coord(loc_data.get('latitude', 0))
+                json_lng = truncate_coord(loc_data.get('longitude', 0))
+
+                existing = None
+                for loc in Location.objects.filter(name__iexact=name):
+                    db_lat = truncate_coord(loc.latitude)
+                    db_lng = truncate_coord(loc.longitude)
+                    if db_lat == json_lat and db_lng == json_lng:
+                        existing = loc
+                        break
 
                 if existing:
                     self.stdout.write(self.style.WARNING(f'  Skipped (already exists): ID {existing.id}'))
