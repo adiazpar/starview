@@ -328,7 +328,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
-  const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
   const markerPopupRef = useRef(null); // Popup for location marker hover
   const markerPopupAnchorRef = useRef('bottom'); // Track marker popup anchor
@@ -1305,17 +1304,18 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [userLocation, mapLoaded, initialViewport]);
 
-  // Trigger geolocate control to show user location marker when location is available
+  // Trigger geolocate control to show user location marker when browser location is available
+  // This runs when: 1) initial load with browser permission, 2) user grants permission mid-session
   useEffect(() => {
-    if (hasTriggeredGeolocateRef.current) return; // Only trigger once
-    if (geolocateControlRef.current && userLocation && mapLoaded) {
-      hasTriggeredGeolocateRef.current = true;
-      // Trigger after a short delay to ensure control is ready
-      setTimeout(() => {
-        geolocateControlRef.current.trigger();
-      }, GEOLOCATE_TRIGGER_DELAY_MS);
-    }
-  }, [userLocation, mapLoaded]);
+    // Only trigger for browser geolocation (not profile fallback)
+    if (userLocationSource !== 'browser') return;
+    if (!geolocateControlRef.current || !userLocation || !mapLoaded) return;
+
+    // Trigger after a short delay to ensure control is ready
+    setTimeout(() => {
+      geolocateControlRef.current?.trigger();
+    }, GEOLOCATE_TRIGGER_DELAY_MS);
+  }, [userLocation, userLocationSource, mapLoaded]);
 
   // Apply dynamic day/night lighting based on user's location
   useEffect(() => {
