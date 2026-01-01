@@ -14,7 +14,10 @@
       "name": "A.C. Barnes Observatory",
       "latitude": 42.446,
       "longitude": -76.481,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Cornell_-_A._C._Barnes_Observatory.jpg"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Cornell_-_A._C._Barnes_Observatory.jpg",
+      "type_metadata": {
+        "website": "http://www.ithaca.edu/hs/depts/physics/clintonbford/"
+      }
     },
     {
       "name": "Abbadia Castle",
@@ -183,7 +186,10 @@
       "name": "ancien observatoire astronomique de la Marine de Nantes",
       "latitude": 47.212,
       "longitude": -1.566,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vue%20depuis%20rue%20Flandres%203.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vue%20depuis%20rue%20Flandres%203.jpg",
+      "type_metadata": {
+        "website": "http://lpg-umr6112.fr/index.php?option=com_content&view=article&id=999&Itemid=231&lang=en"
+      }
     },
     {
       "name": "Andrushivka Astronomical Observatory",
@@ -616,7 +622,10 @@
       "name": "Astronomical Observatory of the Infante D. Lu\u00eds Geophysical Institute",
       "latitude": 38.719,
       "longitude": -9.15,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Astronomical%20Observatory%20of%20the%20Infante%20D.%20Lu%C3%ADs%20Geophysical%20Institute.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Astronomical%20Observatory%20of%20the%20Infante%20D.%20Lu%C3%ADs%20Geophysical%20Institute.jpg",
+      "type_metadata": {
+        "website": "http://www.oal.ul.pt/"
+      }
     },
     {
       "name": "Astronomical Observatory of the Jagiellonian University",
@@ -1150,7 +1159,10 @@
       "name": "Building 20",
       "latitude": 46.807,
       "longitude": -71.206,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Building%2020.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Building%2020.jpg",
+      "type_metadata": {
+        "website": "http://www.observatoire-capitale.com/"
+      }
     },
     {
       "name": "Bukit Melawati",
@@ -2275,7 +2287,10 @@
       "elevation": 2348.0,
       "country": "Argentina",
       "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Telescopio%20del%20Observatorio%20Carlos%20Cesco.jpg",
-      "validation_notes": "Chrome-validated: shows observatory building/dome"
+      "validation_notes": "Chrome-validated: shows observatory building/dome",
+      "type_metadata": {
+        "website": "http://www.casleo.gov.ar/"
+      }
     },
     {
       "name": "G.V. Schiaparelli Observatory",
@@ -2411,7 +2426,10 @@
       "name": "Georgetown University Astronomical Observatory",
       "latitude": 38.908,
       "longitude": -77.077,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Georgetown%20University%20Observatory%20yard.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Georgetown%20University%20Observatory%20yard.jpg",
+      "type_metadata": {
+        "website": "https://www.cnmoc.usff.navy.mil/usno/"
+      }
     },
     {
       "name": "Georgia College Observatory",
@@ -2443,7 +2461,10 @@
       "name": "Gifford Observatory",
       "latitude": -41.305,
       "longitude": 174.783,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/59/Gifford_Observatory_entrance.jpg"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/59/Gifford_Observatory_entrance.jpg",
+      "type_metadata": {
+        "website": "http://www.museumswellington.org.nz/space-place/"
+      }
     },
     {
       "name": "Girawali Observatory",
@@ -2703,7 +2724,10 @@
       "name": "Hampstead Observatory",
       "latitude": 51.561,
       "longitude": -0.18,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hampstead%20Observatory%201910.png"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Hampstead%20Observatory%201910.png",
+      "type_metadata": {
+        "website": "https://www.ucl.ac.uk/ucl-observatory/"
+      }
     },
     {
       "name": "Hanging Rock Raptor Observatory",
@@ -4327,7 +4351,10 @@
       "name": "Marseille marigraph",
       "latitude": 43.279,
       "longitude": 5.354,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Le%20mar%C3%A9graphe%20de%20Marseille%20en%20venant%20du%20David.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Le%20mar%C3%A9graphe%20de%20Marseille%20en%20venant%20du%20David.jpg",
+      "type_metadata": {
+        "website": "https://www.osupytheas.fr/"
+      }
     },
     {
       "name": "Marseille Observatory",
@@ -4471,7 +4498,10 @@
       "name": "Meudon Observatory",
       "latitude": 48.805028143,
       "longitude": 2.231088504,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Meudon_Observatory_%283559558087%29_%28cropped%29.jpg"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Meudon_Observatory_%283559558087%29_%28cropped%29.jpg",
+      "type_metadata": {
+        "website": "https://www.observatoiredeparis.psl.eu/"
+      }
     },
     {
       "name": "Michigan State University Observatory",
@@ -4486,7 +4516,10 @@
       "name": "Michigan-Dartmouth-MIT Observatory",
       "latitude": 31.952,
       "longitude": -111.616,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/MDM%20Hiltner%20Telescope.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/MDM%20Hiltner%20Telescope.jpg",
+      "type_metadata": {
+        "website": "https://noirlab.edu/public/programs/kitt-peak-national-observatory/"
+      }
     },
     {
       "name": "Milford Sound Discovery Centre and Underwater Observatory",
@@ -5416,13 +5449,19 @@
       "name": "Observatory in Mikul\u00e1\u0161ovice",
       "latitude": 50.966,
       "longitude": 14.361,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Mikul%C3%A1%C5%A1ovice%20%C4%8Dp.%201002%2001.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Mikul%C3%A1%C5%A1ovice%20%C4%8Dp.%201002%2001.jpg",
+      "type_metadata": {
+        "website": "http://www.sternwarte-sohland.de/"
+      }
     },
     {
       "name": "Observatory in Prague-Podol\u00ed",
       "latitude": 50.057,
       "longitude": 14.424,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Hv%C4%9Bzd%C3%A1rna_Franti%C5%A1ka_Fischera_v_Praze-Podol%C3%AD_%282019%29.jpg"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Hv%C4%9Bzd%C3%A1rna_Franti%C5%A1ka_Fischera_v_Praze-Podol%C3%AD_%282019%29.jpg",
+      "type_metadata": {
+        "website": "https://www.planetum.cz/stefanikova-hvezdarna/"
+      }
     },
     {
       "name": "Observatory in Vala\u0161sk\u00e9 Mezi\u0159\u00ed\u010d\u00ed",
@@ -5482,7 +5521,10 @@
       "name": "Observatory of the Collegio Romano",
       "latitude": 41.898,
       "longitude": 12.48,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Osservatorio%20del%20Collegio%20Romano.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Osservatorio%20del%20Collegio%20Romano.jpg",
+      "type_metadata": {
+        "website": "http://www.oa-roma.inaf.it/oar/monte-mario/"
+      }
     },
     {
       "name": "Observatory of university federal of Rio Grande do Sul",
@@ -6772,7 +6814,10 @@
       "name": "Sheshan Observatory",
       "latitude": 31.096,
       "longitude": 121.189,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Sheshan_Tianwentai.JPG"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Sheshan_Tianwentai.JPG",
+      "type_metadata": {
+        "website": "http://english.shao.cas.cn/"
+      }
     },
     {
       "name": "Shosanbetsu observatory",
@@ -6887,7 +6932,12 @@
       "name": "Smeetoren",
       "latitude": 52.085,
       "longitude": 5.119,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Smeetoren%20Utrecht.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Smeetoren%20Utrecht.jpg",
+      "type_metadata": {
+        "website": "http://www.sonnenborgh.nl",
+        "phone_number": "+31308201420",
+        "phone_display": "+31-30-820-1420"
+      }
     },
     {
       "name": "Smithsonian Astrophysical Observatory",
@@ -7025,7 +7075,10 @@
       "name": "Sproul Observatory",
       "latitude": 39.903,
       "longitude": -75.355,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Swarthmore%20College%20Observatory.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Swarthmore%20College%20Observatory.jpg",
+      "type_metadata": {
+        "website": "http://www.science.widener.edu/observatory/index.html"
+      }
     },
     {
       "name": "St. Andrews observatory",
@@ -7213,7 +7266,10 @@
       "name": "Sternwarte Melle",
       "latitude": 52.2527,
       "longitude": 8.32336,
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Melle-Oldendorf-Sternwarte.jpg"
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Melle-Oldendorf-Sternwarte.jpg",
+      "type_metadata": {
+        "website": "http://www.sternwarte-melle.de/"
+      }
     },
     {
       "name": "Sternwarte Mirasteilas",
@@ -7461,7 +7517,10 @@
       "name": "Talcott house",
       "latitude": 52.155,
       "longitude": 4.485,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Oude%20Sterrewacht%20-%20Talcotthuisje%20%28zijaanzicht%29.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Oude%20Sterrewacht%20-%20Talcotthuisje%20%28zijaanzicht%29.jpg",
+      "type_metadata": {
+        "website": "https://www.universiteitleiden.nl/en/science/astronomy"
+      }
     },
     {
       "name": "Tallinn Observatory",
@@ -7604,7 +7663,10 @@
       "name": "The Octagon at Amherst College",
       "latitude": 42.371,
       "longitude": -72.519,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Octagon%20at%20Amherst%20College%2C%20Amherst%20MA.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/The%20Octagon%20at%20Amherst%20College%2C%20Amherst%20MA.jpg",
+      "type_metadata": {
+        "website": "http://www.astro.umass.edu/~orchardhill/"
+      }
     },
     {
       "name": "The Space Observatory (Observatoire de l'Espace)",
@@ -7674,7 +7736,10 @@
       "name": "Tican Observatory",
       "latitude": 45.291,
       "longitude": 13.749,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Tican%20Observatory%20con2001.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Tican%20Observatory%20con2001.jpg",
+      "type_metadata": {
+        "website": "https://www.astro.hr/"
+      }
     },
     {
       "name": "Timau National Observatory",
@@ -8082,7 +8147,10 @@
       "name": "Vassar College Observatory",
       "latitude": 41.686,
       "longitude": -73.894,
-      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vassar%20College%20Observatory%2C%20March%202014.jpg"
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Vassar%20College%20Observatory%2C%20March%202014.jpg",
+      "type_metadata": {
+        "website": "http://physicsandastronomy.vassar.edu/observatory.html"
+      }
     },
     {
       "name": "Vatican Observatory",
