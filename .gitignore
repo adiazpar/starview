@@ -6,6 +6,7 @@
 celery_worker.log
 logs/
 tools/
+seed_data/temp
 
 # Byte-compiled / optimized / DLL files
 .env
