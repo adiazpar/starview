@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "description": "Observatories rejected from validated set",
+  "updated_at": "2026-01-02T15:34:39.022126",
+  "total_rejected": 2,
+  "rejected": [
+    {
+      "name": "Observatory",
+      "latitude": 53.532,
+      "longitude": -2.105,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Observatory%2C%20Alexandra%20park.jpg",
+      "rejection_reason": "Not an astronomical observatory - Alexandra Park Pagoda/Observatory in Oldham is a commemorative meteorological structure built in 1899",
+      "rejected_at": "2026-01-02T15:34:39.016363"
+    },
+    {
+      "name": "The Observatory",
+      "latitude": 50.151697,
+      "longitude": -5.069742,
+      "image_url": "http://commons.wikimedia.org/wiki/Special:FilePath/Old%20observatory%20tower%2C%20Falmouth%20%282220083837%29.jpg",
+      "rejection_reason": "Not an astronomical observatory - Falmouth Observatory Tower was a meteorological observatory (1867-1885), now a holiday rental",
+      "rejected_at": "2026-01-02T15:34:39.016623"
+    }
+  ]
+}
