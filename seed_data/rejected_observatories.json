@@ -1,8 +1,8 @@
 {
   "version": "1.0",
   "description": "Observatories rejected from validated set",
-  "updated_at": "2026-01-02T15:34:39.022126",
-  "total_rejected": 2,
+  "updated_at": "2026-01-02T09:15:50.001493",
+  "total_rejected": 5,
   "rejected": [
     {
       "name": "Observatory",
