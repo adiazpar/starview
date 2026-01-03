@@ -71,7 +71,7 @@
   --card-content-height: 80px;
 }
 
-.explore-map__card {
+.map-card {
   position: absolute;
   bottom: var(--card-margin);
   left: var(--card-margin);
@@ -89,19 +89,19 @@
   transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 
-.explore-map__card--visible {
+.map-card--visible {
   transform: translateY(0);
   opacity: 1;
 }
 
 /* Fade animation for switching between markers */
-.explore-map__card--switching {
+.map-card--switching {
   transition: opacity 0.15s ease-out;
   transform: translateY(0);
 }
 
 /* Card Loading State */
-.explore-map__card-loading {
+.map-card__loading {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,7 +111,7 @@
 }
 
 /* Card Image Container - uses grid for navigation mode collapse animation */
-.explore-map__card-image-container {
+.map-card__image-container {
   position: relative;
   width: 100%;
   display: grid;
@@ -120,21 +120,21 @@
 }
 
 /* Inner wrapper required for grid collapse animation */
-.explore-map__card-image-inner {
+.map-card__image-inner {
   position: relative;
   width: 100%;
   min-height: 0; /* Required for grid animation - allows shrinking to 0 */
   overflow: hidden;
 }
 
-.explore-map__card-image {
+.map-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 /* Card Button - shared base styles for all card buttons */
-.explore-map__card-btn {
+.map-card__btn {
   width: 40px;
   height: 40px;
   display: flex;
@@ -151,13 +151,13 @@
   transition: opacity 0.3s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.explore-map__card-btn:hover {
+.map-card__btn:hover {
   color: var(--text-primary);
   border-color: var(--text-muted);
 }
 
 /* Close button - top right */
-.explore-map__card-btn--close {
+.map-card__btn--close {
   position: absolute;
   top: var(--space-sm);
   right: var(--space-sm);
@@ -165,25 +165,25 @@
 }
 
 /* Favorite button - top right, next to close */
-.explore-map__card-btn--favorite {
+.map-card__btn--favorite {
   position: absolute;
   top: var(--space-sm);
   right: calc(var(--space-sm) + 40px + var(--space-xs));
   z-index: 3;
 }
 
-.explore-map__card-btn--favorite.active {
+.map-card__btn--favorite.active {
   color: #ef4444;
   border-color: #ef4444;
 }
 
-.explore-map__card-btn--favorite.active:hover {
+.map-card__btn--favorite.active:hover {
   color: #dc2626;
   border-color: #dc2626;
 }
 
 /* Observatory action buttons container - top left */
-.explore-map__card-actions {
+.map-card__actions {
   position: absolute;
   top: var(--space-sm);
   left: var(--space-sm);
@@ -198,24 +198,24 @@
    ======================================== */
 
 /* Collapse image container in navigation mode */
-.explore-map__card--navigation .explore-map__card-image-container {
+.map-card--navigation .map-card__image-container {
   grid-template-rows: 0fr;
 }
 
 /* Fade out all buttons in navigation mode */
-.explore-map__card--navigation .explore-map__card-btn,
-.explore-map__card--navigation .explore-map__card-actions {
+.map-card--navigation .map-card__btn,
+.map-card--navigation .map-card__actions {
   opacity: 0;
   pointer-events: none;
 }
 
 /* Disable card click behavior in navigation mode */
-.explore-map__card--navigation {
+.map-card--navigation {
   cursor: default;
 }
 
 /* Header row - flex container for header info and route stats */
-.explore-map__card-header-row {
+.map-card__header-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -223,12 +223,12 @@
 }
 
 /* In navigation mode, ensure header doesn't grow to push route stats */
-.explore-map__card-header-row--navigation .explore-map__card-header {
+.map-card__header-row--navigation .map-card__header {
   min-width: 0; /* Allow text truncation */
 }
 
 /* Route stats - inline display in navigation mode */
-.explore-map__card-route-stats {
+.map-card__route-stats {
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -238,22 +238,22 @@
   animation: route-stats-appear 0.3s ease 0.35s forwards;
 }
 
-.explore-map__card-route-stats > i {
+.map-card__route-stats > i {
   font-size: var(--text-xs);
   color: var(--info);
 }
 
-.explore-map__card-route-stats > span {
+.map-card__route-stats > span {
   font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 
 /* Hint state - muted colors when location unavailable */
-.explore-map__card-route-stats--hint > i {
+.map-card__route-stats--hint > i {
   color: var(--text-muted);
 }
 
-.explore-map__card-route-stats--hint > span {
+.map-card__route-stats--hint > span {
   color: var(--text-muted);
 }
 
@@ -262,28 +262,28 @@
    ======================================== */
 
 /* Metadata container - uses grid for smooth collapse */
-.explore-map__card-meta-container {
+.map-card__meta-container {
   display: grid;
   grid-template-rows: 1fr;
   transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.explore-map__card-meta-container--hidden {
+.map-card__meta-container--hidden {
   grid-template-rows: 0fr;
 }
 
-.explore-map__card-meta {
+.map-card__meta {
   min-height: 0;
   overflow: hidden;
 }
 
-.explore-map__card-meta-container--hidden .explore-map__card-meta {
+.map-card__meta-container--hidden .map-card__meta {
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
 /* Route info section - appears in navigation mode after card morphs */
-.explore-map__card-route {
+.map-card__route {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -300,14 +300,14 @@
   }
 }
 
-.explore-map__card-route-from {
+.map-card__route-from {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
 /* Right side - action buttons */
-.explore-map__card-route-actions {
+.map-card__route-actions {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -320,7 +320,7 @@
   font-size: 14px;
 }
 
-.explore-map__card-route-label {
+.map-card__route-label {
   font-size: 10px;
   font-weight: 600;
   color: var(--text-muted);
@@ -328,17 +328,17 @@
   letter-spacing: 0.5px;
 }
 
-.explore-map__card-route-value {
+.map-card__route-value {
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
-.explore-map__card-route-value--warning {
+.map-card__route-value--warning {
   color: var(--warning);
 }
 
-/* Route stats row - matches .explore-map__card-meta styling */
-.explore-map__card-route-stats {
+/* Route stats row - matches .map-card__meta styling */
+.map-card__route-stats {
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -348,33 +348,33 @@
 }
 
 /* Loading/error state text */
-.explore-map__card-route-stats > i {
+.map-card__route-stats > i {
   font-size: var(--text-xs);
   width: 12px;
   text-align: center;
   color: var(--accent);
 }
 
-.explore-map__card-route-stats > span {
+.map-card__route-stats > span {
   font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 
-.explore-map__card-route-stats--error {
+.map-card__route-stats--error {
   color: var(--text-muted);
 }
 
-.explore-map__card-route-stats--error > i {
+.map-card__route-stats--error > i {
   color: var(--text-muted);
 }
 
-.explore-map__card-route-stats--error > span {
+.map-card__route-stats--error > span {
   color: var(--text-muted);
 }
 
-/* Duration and distance items - match .explore-map__card-meta > div */
-.explore-map__card-route-duration,
-.explore-map__card-route-distance {
+/* Duration and distance items - match .map-card__meta > div */
+.map-card__route-duration,
+.map-card__route-distance {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -384,29 +384,29 @@
 }
 
 /* Duration is bolder to emphasize time */
-.explore-map__card-route-duration {
+.map-card__route-duration {
   font-weight: var(--font-semibold);
 }
 
-.explore-map__card-route-duration i,
-.explore-map__card-route-distance i {
+.map-card__route-duration i,
+.map-card__route-distance i {
   font-size: var(--text-xs);
   width: 12px;
   text-align: center;
 }
 
-.explore-map__card-route-duration i,
-.explore-map__card-route-distance i {
+.map-card__route-duration i,
+.map-card__route-distance i {
   color: var(--info);
 }
 
-.explore-map__card-route-estimated {
+.map-card__route-estimated {
   color: var(--text-muted);
   font-size: var(--text-xs);
   margin-left: 2px;
 }
 
-.explore-map__card-route-unavailable {
+.map-card__route-unavailable {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -414,7 +414,7 @@
   color: var(--warning);
 }
 
-.explore-map__card-route-unavailable i {
+.map-card__route-unavailable i {
   font-size: var(--text-xs);
   width: 12px;
   text-align: center;
@@ -428,7 +428,7 @@
 
 /* Mobile: Stack route stats vertically */
 @media (max-width: 480px) {
-  .explore-map__card-route-stats {
+  .map-card__route-stats {
     flex-direction: column;
     align-items: flex-end;
     gap: var(--space-xs);
@@ -436,20 +436,20 @@
 }
 
 /* Card Content - matches LocationCard */
-.explore-map__card-content {
+.map-card__content {
   padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.explore-map__card-header {
+.map-card__header {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.explore-map__card-name {
+.map-card__name {
   font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 600;
@@ -462,7 +462,7 @@
   text-overflow: ellipsis;
 }
 
-.explore-map__card-region {
+.map-card__region {
   font-size: var(--text-sm);
   color: var(--text-muted);
   /* Truncate long location strings */
@@ -472,7 +472,7 @@
 }
 
 /* Card Meta - matches LocationCard */
-.explore-map__card-meta {
+.map-card__meta {
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -482,7 +482,7 @@
   transition: opacity 0.15s ease;
 }
 
-.explore-map__card-meta > div {
+.map-card__meta > div {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -491,40 +491,40 @@
   line-height: 1;
 }
 
-.explore-map__card-meta i {
+.map-card__meta i {
   font-size: var(--text-xs);
   width: 12px;
   text-align: center;
 }
 
-.explore-map__card-meta span {
+.map-card__meta span {
   font-size: var(--text-xs);
 }
 
 /* Rating */
-.explore-map__card-rating i {
+.map-card__rating i {
   color: #fbbf24;
 }
 
-.explore-map__card-reviews {
+.map-card__reviews {
   color: var(--text-muted);
 }
 
-.explore-map__card-rating--empty {
+.map-card__rating--empty {
   color: var(--text-muted);
 }
 
-.explore-map__card-rating--empty i {
+.map-card__rating--empty i {
   color: var(--text-muted);
 }
 
 /* Elevation */
-.explore-map__card-elevation i {
+.map-card__elevation i {
   color: #f87171; /* light red */
 }
 
 /* Distance */
-.explore-map__card-distance i {
+.map-card__distance i {
   color: var(--info);
 }
 
@@ -1040,5 +1040,74 @@
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+
+/* ========================================
+   Popup Variant (Desktop/Tablet ≥768px)
+   Positioned centered on map marker via ref.
+   ======================================== */
+
+.map-card--popup {
+  /* Override bottom positioning */
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: 320px;
+
+  /* Center on marker point */
+  transform: translate(-50%, -50%);
+
+  /* No slide animation - use fade */
+  opacity: 1;
+
+  /* Fade-in animation */
+  animation: mapCardPopupFadeIn 0.2s ease-out;
+}
+
+@keyframes mapCardPopupFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Popup close animation */
+.map-card--popup.map-card--closing {
+  animation: mapCardPopupFadeOut 0.2s ease-out forwards;
+}
+
+@keyframes mapCardPopupFadeOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+/* Tablet: Slightly smaller popup */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .map-card--popup {
+    width: 280px;
+  }
+}
+
+/* Popup uses smaller buttons */
+.map-card--popup .map-card__btn {
+  width: 36px;
+  height: 36px;
+  font-size: var(--text-sm);
+}
+
+/* Adjust favorite position for smaller buttons */
+.map-card--popup .map-card__btn--favorite {
+  right: calc(var(--space-sm) + 36px + var(--space-xs));
 }
 

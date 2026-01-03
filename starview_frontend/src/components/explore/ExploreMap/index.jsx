@@ -179,10 +179,11 @@ import { useMapboxDirections } from '../../../hooks/useMapboxDirections';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
+import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
 import { formatDuration, formatDistance as formatRouteDistance, getPlatformNavigationUrl } from '../../../utils/navigation';
 import { useToast } from '../../../contexts/ToastContext';
-import ImageCarousel from '../../shared/ImageCarousel';
+import MapCard from './MapCard';
 import './styles.css';
 
 // Register PMTiles custom source type for Mapbox GL JS
@@ -320,11 +321,15 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const selectedIdRef = useRef(null); // Track selected ID for click handler
   const userLocationRef = useRef(null); // For accessing location in event handlers
   const navigationModeRef = useRef(false); // Track navigation mode for click handler
+  const isPopupModeRef = useRef(false); // Track popup mode for event handlers
+  const popupRef = useRef(null); // Ref for popup DOM element (direct position updates, no re-renders)
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
   const [isNavigationMode, setIsNavigationMode] = useState(false); // Navigation UI transformation
+  const [isPopupVisible, setIsPopupVisible] = useState(false); // Controls popup visibility (not position)
+  const [isPopupClosing, setIsPopupClosing] = useState(false); // Track popup close animation
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
@@ -345,6 +350,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const styleDropdown = useAnimatedDropdown();
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
 
+  // Viewport detection for popup mode (desktop/tablet ≥768px uses marker popup instead of bottom card)
+  const isPopupMode = useMediaQuery('(min-width: 768px)');
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -362,6 +370,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   useEffect(() => {
     dropdownOpenRef.current = iucnDropdown.isOpen || styleDropdown.isOpen;
   }, [iucnDropdown.isOpen, styleDropdown.isOpen]);
+
+  // Keep popup mode ref in sync for event handlers
+  useEffect(() => {
+    isPopupModeRef.current = isPopupMode;
+  }, [isPopupMode]);
 
   const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers();
   const { location: userLocation, source: userLocationSource } = useUserLocation();
@@ -388,6 +401,61 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     userLocationRef.current = userLocation;
     navigationModeRef.current = isNavigationMode;
   }, [markerMap, selectedLocation?.id, userLocation, isNavigationMode]);
+
+  // Unified close handler for popup (desktop/tablet)
+  const closePopup = useCallback(() => {
+    if (!isPopupModeRef.current || isPopupClosing) return;
+
+    // Clear selected marker's feature-state
+    if (map.current && selectedIdRef.current !== null) {
+      map.current.setFeatureState(
+        { source: 'locations', id: selectedIdRef.current },
+        { selected: false }
+      );
+    }
+
+    // Animate popup close
+    setIsPopupClosing(true);
+    setTimeout(() => {
+      setSelectedLocation(null);
+      setIsPopupVisible(false);
+      setIsPopupClosing(false);
+    }, 200);
+  }, [isPopupClosing]);
+
+  // Track popup position via direct DOM manipulation (no re-renders during pan/zoom)
+  useEffect(() => {
+    if (!isPopupMode || !selectedLocation || !map.current || !mapLoaded || isNavigationMode) {
+      setIsPopupVisible(false);
+      return;
+    }
+
+    // Show popup
+    setIsPopupVisible(true);
+
+    const updatePopupPosition = () => {
+      if (!map.current || !popupRef.current) return;
+
+      const lngLat = [selectedLocation.longitude, selectedLocation.latitude];
+      const point = map.current.project(lngLat);
+
+      // Direct DOM update - no React re-render
+      popupRef.current.style.left = `${point.x}px`;
+      popupRef.current.style.top = `${point.y}px`;
+    };
+
+    // Initial position
+    updatePopupPosition();
+
+    // Position updates: direct DOM manipulation (high frequency, no re-renders)
+    map.current.on('move', updatePopupPosition);
+
+    return () => {
+      if (map.current) {
+        map.current.off('move', updatePopupPosition);
+      }
+    };
+  }, [isPopupMode, selectedLocation, mapLoaded, isNavigationMode]);
 
   // Calculate optimal popup anchor based on cursor position relative to viewport
   const getOptimalPopupAnchor = useCallback((point) => {
@@ -444,18 +512,23 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Memoize event handlers to prevent recreating on every render
   const handleCloseCard = useCallback(() => {
-    // Clear selected marker's feature-state
-    if (map.current && selectedIdRef.current !== null) {
-      map.current.setFeatureState(
-        { source: 'locations', id: selectedIdRef.current },
-        { selected: false }
-      );
+    // Desktop/tablet popup mode (not in navigation): use unified popup close
+    if (isPopupModeRef.current && !navigationModeRef.current) {
+      closePopup();
+    } else {
+      // Mobile or navigation mode: animate card close
+      if (map.current && selectedIdRef.current !== null) {
+        map.current.setFeatureState(
+          { source: 'locations', id: selectedIdRef.current },
+          { selected: false }
+        );
+      }
+      setIsCardVisible(false);
+      setIsNavigationMode(false);
+      clearRoute();
+      setTimeout(() => setSelectedLocation(null), CARD_CLOSE_ANIMATION_MS);
     }
-    setIsCardVisible(false);
-    setIsNavigationMode(false);
-    clearRoute();
-    setTimeout(() => setSelectedLocation(null), CARD_CLOSE_ANIMATION_MS);
-  }, [clearRoute]);
+  }, [clearRoute, closePopup]);
 
   const handleViewLocation = useCallback(() => {
     if (selectedLocation) {
@@ -475,8 +548,25 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     e.stopPropagation();
     if (!selectedLocation) return;
 
-    // Enter navigation mode (cancel button will be added in future iteration)
-    setIsNavigationMode(true);
+    // Desktop/tablet: animate popup close, then slide in navigation card
+    if (isPopupModeRef.current) {
+      setIsPopupClosing(true);
+      setTimeout(() => {
+        setIsPopupClosing(false);
+        setIsPopupVisible(false);
+        setIsCardVisible(false); // Start card hidden for slide-up animation
+        setIsNavigationMode(true);
+        // Trigger slide-up animation after card mounts
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setIsCardVisible(true);
+          });
+        });
+      }, 200); // Match popup fade-out animation duration
+    } else {
+      // Mobile: just enter navigation mode (card morphs)
+      setIsNavigationMode(true);
+    }
 
     // Only fetch route if we have precise browser geolocation (not profile fallback)
     if (userLocation && userLocationSource === 'browser') {
@@ -698,10 +788,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       }
     });
 
-    // Close card when clicking on map (not on markers)
+    // Close card/popup when clicking on map (not on markers)
     map.current.on('click', (e) => {
-      // Don't close card when in navigation mode
+      // Don't close when in navigation mode
       if (navigationModeRef.current) return;
+      if (selectedIdRef.current === null) return;
 
       // Only query if the layer exists (may not be added yet if no locations)
       if (!map.current.getLayer('location-markers')) return;
@@ -713,17 +804,30 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const features = map.current.queryRenderedFeatures(e.point, {
         layers: markerLayers,
       });
+
+      // Clicked on empty map area - close popup/card
       if (features.length === 0) {
-        // Clear selected marker's feature-state
-        if (selectedIdRef.current !== null) {
+        if (isPopupModeRef.current) {
+          // Desktop/tablet: animate popup close
+          setIsPopupClosing(true);
           map.current.setFeatureState(
             { source: 'locations', id: selectedIdRef.current },
             { selected: false }
           );
+          setTimeout(() => {
+            setSelectedLocation(null);
+            setIsPopupVisible(false);
+            setIsPopupClosing(false);
+          }, 200);
+        } else {
+          // Mobile: animate card slide-down
+          map.current.setFeatureState(
+            { source: 'locations', id: selectedIdRef.current },
+            { selected: false }
+          );
+          setIsCardVisible(false);
+          setTimeout(() => setSelectedLocation(null), CARD_CLOSE_ANIMATION_MS);
         }
-        // Animate out, then unmount
-        setIsCardVisible(false);
-        setTimeout(() => setSelectedLocation(null), CARD_CLOSE_ANIMATION_MS);
       }
     });
 
@@ -1156,19 +1260,6 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       styleDropdown.close();
       closeMapPopups();
 
-      // Calculate dynamic card height for centering offset
-      // Read card dimensions from CSS variables to avoid duplication
-      const styles = getComputedStyle(mapContainer.current);
-      const cardMargin = parseFloat(styles.getPropertyValue('--card-margin')) || 16;
-      const cardAspectRatio = parseFloat(styles.getPropertyValue('--card-aspect-ratio')) || (7 / 16);
-      const cardContentHeight = parseFloat(styles.getPropertyValue('--card-content-height')) || 80;
-
-      const canvas = map.current.getCanvas();
-      const cardWidth = canvas.clientWidth - (cardMargin * 2);
-      const imageHeight = cardWidth * cardAspectRatio;
-      const cardHeight = imageHeight + cardContentHeight;
-      const offsetY = (cardHeight + cardMargin) / 2;
-
       // Zoom to threshold when far out, otherwise just center without zoom change
       // Use slower animation when very far (threshold - 1), faster when closer
       const currentZoom = map.current.getZoom();
@@ -1176,12 +1267,35 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const shouldZoom = currentZoom < targetZoom;
       const isFarOut = currentZoom < MARKER_ZOOM_THRESHOLD - 1;
 
-      map.current.flyTo({
-        center: coordinates,
-        zoom: shouldZoom ? targetZoom : currentZoom,
-        duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
-        offset: [0, -offsetY],
-      });
+      // Desktop/tablet popup mode: center marker without offset (popup floats above)
+      // Mobile: offset to keep marker visible above bottom card
+      if (isPopupModeRef.current) {
+        map.current.flyTo({
+          center: coordinates,
+          zoom: shouldZoom ? targetZoom : currentZoom,
+          duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
+          // No offset - popup floats above centered marker
+        });
+      } else {
+        // Calculate dynamic card height for centering offset (mobile only)
+        const styles = getComputedStyle(mapContainer.current);
+        const cardMargin = parseFloat(styles.getPropertyValue('--card-margin')) || 16;
+        const cardAspectRatio = parseFloat(styles.getPropertyValue('--card-aspect-ratio')) || (7 / 16);
+        const cardContentHeight = parseFloat(styles.getPropertyValue('--card-content-height')) || 80;
+
+        const canvas = map.current.getCanvas();
+        const cardWidth = canvas.clientWidth - (cardMargin * 2);
+        const imageHeight = cardWidth * cardAspectRatio;
+        const cardHeight = imageHeight + cardContentHeight;
+        const offsetY = (cardHeight + cardMargin) / 2;
+
+        map.current.flyTo({
+          center: coordinates,
+          zoom: shouldZoom ? targetZoom : currentZoom,
+          duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
+          offset: [0, -offsetY],
+        });
+      }
 
       if (selectedIdRef.current === id) return;
 
@@ -1202,16 +1316,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       // O(1) lookup using markerMapRef instead of .find()
       const location = markerMapRef.current.get(id);
       if (location) {
-        const isAlreadyOpen = !!document.querySelector('.explore-map__card');
-        if (isAlreadyOpen) {
+        // Check if we're switching between markers (for animation)
+        const isAlreadyOpen = selectedIdRef.current !== null;
+        if (isAlreadyOpen && !isPopupModeRef.current) {
+          // Mobile: use switching animation
           setIsSwitching(true);
           setIsCardVisible(false);
-          setIsNavigationMode(false); // Reset navigation mode when switching markers
+          setIsNavigationMode(false);
           setTimeout(() => {
             setSelectedLocation(location);
             setIsSwitching(false);
           }, CARD_SWITCH_ANIMATION_MS);
         } else {
+          // Desktop/tablet or first selection: instant update
+          setIsNavigationMode(false);
           setSelectedLocation(location);
         }
       }
@@ -1684,214 +1802,53 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         </div>
       </div>
 
-      {/* Bottom Card - Airbnb Style */}
-      {selectedLocation && (
-        <div
-          className={`explore-map__card ${isCardVisible ? 'explore-map__card--visible' : ''} ${isSwitching ? 'explore-map__card--switching' : ''} ${isNavigationMode ? 'explore-map__card--navigation' : ''}`}
-          onClick={isNavigationMode ? undefined : handleViewLocation}
-        >
-          {/* Image Carousel Section */}
-          <div className="explore-map__card-image-container">
-            <div className="explore-map__card-image-inner">
-              <ImageCarousel
-                images={selectedLocation.images || []}
-                alt={selectedLocation.name}
-                aspectRatio="16 / 7"
-              />
+      {/* Desktop/Tablet: Popup variant (centered on marker) */}
+      {isPopupMode && selectedLocation && isPopupVisible && !isNavigationMode && (
+        <MapCard
+          ref={popupRef}
+          variant="popup"
+          location={selectedLocation}
+          userLocation={userLocation}
+          isClosing={isPopupClosing}
+          onClose={handleCloseCard}
+          onNavigate={handleNavigate}
+          onToggleFavorite={() => {
+            if (!requireAuth()) return;
+            toggleFavorite.mutate(selectedLocation.id);
+          }}
+          onViewLocation={handleViewLocation}
+        />
+      )}
 
-              {/* Close Button */}
-              <button
-                className="explore-map__card-btn explore-map__card-btn--close"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseCard();
-                }}
-                aria-label="Close"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-
-              {/* Favorite Button */}
-              <button
-                className={`explore-map__card-btn explore-map__card-btn--favorite ${selectedLocation.is_favorited ? 'active' : ''}`}
-                onClick={handleToggleFavorite}
-                aria-label={selectedLocation.is_favorited ? 'Remove from saved' : 'Save location'}
-              >
-                <i className={`fa-${selectedLocation.is_favorited ? 'solid' : 'regular'} fa-heart`}></i>
-              </button>
-
-              {/* Action Buttons - top left (navigate for all, phone/website for observatories) */}
-              <div className="explore-map__card-actions">
-                {/* Navigate Button - enters navigation mode */}
-                <button
-                  className="explore-map__card-btn"
-                  onClick={handleNavigate}
-                  aria-label="Get directions"
-                >
-                  <i className="fa-solid fa-diamond-turn-right"></i>
-                </button>
-
-                {/* Observatory-specific buttons */}
-                {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.phone_number && (
-                  <a
-                    href={`tel:${selectedLocation.type_metadata.phone_number}`}
-                    className="explore-map__card-btn"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Call observatory"
-                  >
-                    <i className="fa-solid fa-phone"></i>
-                  </a>
-                )}
-                {selectedLocation.location_type === 'observatory' && selectedLocation.type_metadata?.website && (
-                  <a
-                    href={selectedLocation.type_metadata.website}
-                    className="explore-map__card-btn"
-                    onClick={(e) => e.stopPropagation()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit website"
-                  >
-                    <i className="fa-solid fa-globe"></i>
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Content Section */}
-          <div className="explore-map__card-content">
-            {/* Header row - flexbox with header info and route stats */}
-            <div className={`explore-map__card-header-row ${isNavigationMode ? 'explore-map__card-header-row--navigation' : ''}`}>
-              <div className="explore-map__card-header">
-                <h3 className="explore-map__card-name">{selectedLocation.name}</h3>
-                <span className="explore-map__card-region">
-                  {getLocationSubtitle(selectedLocation)}
-                </span>
-              </div>
-
-              {/* Route stats - inline in navigation mode */}
-              {isNavigationMode && (
-                <div className={`explore-map__card-route-stats ${userLocationSource !== 'browser' ? 'explore-map__card-route-stats--hint' : ''}`}>
-                  {userLocationSource === 'browser' ? (
-                    isRouteLoading ? (
-                      <>
-                        <i className="fa-solid fa-circle-notch fa-spin"></i>
-                        <span>Calculating...</span>
-                      </>
-                    ) : routeData?.noRouteFound ? (
-                      <div className="explore-map__card-route-unavailable">
-                        <i className="fa-solid fa-car"></i>
-                        <span>No driving route</span>
-                      </div>
-                    ) : routeData ? (
-                      <>
-                        <div className="explore-map__card-route-duration">
-                          <i className="fa-solid fa-clock"></i>
-                          <span>{formatDuration(routeData.duration)}</span>
-                        </div>
-                        <div className="explore-map__card-route-distance">
-                          <i className="fa-solid fa-road"></i>
-                          <span>{formatRouteDistance(routeData.distance)}</span>
-                          {routeData.isEstimated && (
-                            <span className="explore-map__card-route-estimated">(est.)</span>
-                          )}
-                        </div>
-                      </>
-                    ) : null
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-location-crosshairs"></i>
-                      <span>Enable location</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Default metadata - collapses in navigation mode */}
-            <div className={`explore-map__card-meta-container ${isNavigationMode ? 'explore-map__card-meta-container--hidden' : ''}`}>
-              <div className="explore-map__card-meta">
-                {/* Rating */}
-                {selectedLocation.review_count > 0 ? (
-                  <div className="explore-map__card-rating">
-                    <i className="fa-solid fa-star"></i>
-                    <span>{parseFloat(selectedLocation.average_rating).toFixed(1)}</span>
-                    <span className="explore-map__card-reviews">
-                      ({selectedLocation.review_count})
-                    </span>
-                  </div>
-                ) : (
-                  <div className="explore-map__card-rating explore-map__card-rating--empty">
-                    <i className="fa-regular fa-star"></i>
-                    <span>No reviews yet</span>
-                  </div>
-                )}
-
-                {/* Elevation */}
-                {selectedLocation.elevation !== null && selectedLocation.elevation !== undefined && (
-                  <div className="explore-map__card-elevation">
-                    <i className="fa-solid fa-mountain"></i>
-                    <span>{formatElevation(selectedLocation.elevation)}</span>
-                  </div>
-                )}
-
-                {/* Distance */}
-                {getDistance(selectedLocation) !== null && (
-                  <div className="explore-map__card-distance">
-                    <i className="fa-solid fa-location-arrow"></i>
-                    <span>{formatDistance(getDistance(selectedLocation))} away</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Navigation mode info - only render when navigating */}
-            {isNavigationMode && (
-              <div className="explore-map__card-route">
-                {/* FROM section */}
-                <div className="explore-map__card-route-from">
-                  <span className="explore-map__card-route-label">FROM</span>
-                  <span className={`explore-map__card-route-value ${userLocationSource !== 'browser' ? 'explore-map__card-route-value--warning' : ''}`}>
-                    {userLocationSource === 'browser' ? 'Your location' : 'Location unavailable'}
-                  </span>
-                </div>
-
-                {/* Action buttons */}
-                <div className="explore-map__card-route-actions">
-                  <button
-                    className="btn-danger btn-danger--sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsNavigationMode(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="btn-primary btn-primary--sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (userLocationSource !== 'browser') {
-                        showToast('Location access blocked. Click the icon in your address bar to enable.', 'warning');
-                        return;
-                      }
-                      if (selectedLocation) {
-                        const url = getPlatformNavigationUrl(
-                          selectedLocation.latitude,
-                          selectedLocation.longitude
-                        );
-                        window.open(url, '_blank');
-                      }
-                    }}
-                  >
-                    GO
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-        </div>
+      {/* Bottom variant: mobile always, desktop/tablet in navigation mode */}
+      {((!isPopupMode && selectedLocation) || (isPopupMode && selectedLocation && isNavigationMode)) && (
+        <MapCard
+          variant="bottom"
+          location={selectedLocation}
+          userLocation={userLocation}
+          isVisible={isCardVisible}
+          isSwitching={isSwitching}
+          isNavigationMode={isNavigationMode}
+          routeData={routeData}
+          isRouteLoading={isRouteLoading}
+          userLocationSource={userLocationSource}
+          onClose={handleCloseCard}
+          onNavigate={handleNavigate}
+          onToggleFavorite={handleToggleFavorite}
+          onViewLocation={handleViewLocation}
+          onCancelNavigation={() => setIsNavigationMode(false)}
+          onGo={(e) => {
+            e.stopPropagation();
+            if (userLocationSource !== 'browser') {
+              showToast('Location access blocked. Click the icon in your address bar to enable.', 'warning');
+              return;
+            }
+            if (selectedLocation) {
+              const url = getPlatformNavigationUrl(selectedLocation.latitude, selectedLocation.longitude);
+              window.open(url, '_blank');
+            }
+          }}
+        />
       )}
     </div>
   );
