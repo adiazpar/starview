@@ -78,10 +78,10 @@
   right: var(--card-margin);
   background: var(--bg-base);
   border-radius: calc(var(--radius) * 2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   cursor: pointer;
-  z-index: calc(var(--z-navbar) - 1); /* Above toggle button (28), below navbar (30) */
+  z-index: 5; /* Below map controls (10) */
 
   /* Slide-up animation */
   transform: translateY(calc(100% + var(--space-md)));
