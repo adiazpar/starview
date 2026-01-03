@@ -457,6 +457,28 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     };
   }, [isPopupMode, selectedLocation, mapLoaded, isNavigationMode]);
 
+  // Forward wheel events from popup overlay to map (enables zoom-through)
+  useEffect(() => {
+    if (!isPopupMode || !selectedLocation || !map.current || !popupRef.current || !isPopupVisible) {
+      return;
+    }
+
+    const popupElement = popupRef.current;
+
+    const handleWheel = (event) => {
+      event.preventDefault();
+      if (map.current.scrollZoom) {
+        map.current.scrollZoom.wheel(event);
+      }
+    };
+
+    popupElement.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      popupElement.removeEventListener('wheel', handleWheel);
+    };
+  }, [isPopupMode, selectedLocation, isPopupVisible]);
+
   // Calculate optimal popup anchor based on cursor position relative to viewport
   const getOptimalPopupAnchor = useCallback((point) => {
     if (!mapContainer.current) return 'bottom';
