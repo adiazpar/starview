@@ -1,7 +1,7 @@
 /* NotFound Page - "Lost in Space" Theme */
 
 .not-found {
-  min-height: calc(100vh - var(--navbar-offset, 70px));
+  min-height: calc(100lvh - var(--navbar-total-height));
   display: flex;
   align-items: center;
   justify-content: center;

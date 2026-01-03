@@ -2,14 +2,11 @@
 /* Matches NotFound page design for consistency */
 
 .error-boundary {
-  min-height: 100vh;
-  padding-top: var(--navbar-height, 72px);
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-left: var(--space-xl);
-  padding-right: var(--space-xl);
-  padding-bottom: var(--space-xl);
+  padding: var(--space-xl);
   text-align: center;
   box-sizing: border-box;
 }
@@ -137,6 +134,25 @@
   overflow: auto;
   max-height: 200px;
   text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+.error-boundary-stack::-webkit-scrollbar {
+  width: 4px;
+}
+
+.error-boundary-stack::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.error-boundary-stack::-webkit-scrollbar-thumb {
+  background: var(--glass-border-hover);
+  border-radius: 4px;
+}
+
+.error-boundary-stack::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .error-boundary-stack strong {
@@ -146,12 +162,6 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .error-boundary {
-    padding-top: var(--navbar-height-mobile, 64px);
-  }
-}
-
 @media (max-width: 640px) {
   .error-boundary {
     padding-left: 1.5rem;

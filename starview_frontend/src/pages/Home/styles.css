@@ -9,7 +9,7 @@
 
 .hero {
   position: relative;
-  min-height: calc(100lvh - var(--navbar-height));
+  min-height: calc(100lvh - var(--navbar-total-height));
   display: flex;
   align-items: center;
   justify-content: center;

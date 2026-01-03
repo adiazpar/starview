@@ -188,7 +188,6 @@ body {
   line-height: var(--leading-normal);
   color: var(--text-primary);
   background-color: transparent;
-  min-height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
 }
 
 #root {
@@ -259,10 +258,14 @@ h3 {
 /* LAYOUT */
 /* ============================================ */
 
+/* Global wrapper that accounts for navbar height - children can use 100% heights */
+.page-wrapper {
+  margin-top: var(--navbar-total-height);
+  min-height: calc(100lvh - var(--navbar-total-height));
+}
+
 .main-content {
-  /* Uses dynamically measured navbar height set by JavaScript */
-  padding-top: var(--navbar-total-height);
-  min-height: 100lvh;
+  min-height: 100%;
 }
 
 .page-container {
@@ -694,7 +697,7 @@ h3 {
 .auth-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100lvh - var(--navbar-height));
+  min-height: calc(100lvh - var(--navbar-total-height));
 }
 
 .auth-page__content {
@@ -714,10 +717,6 @@ h3 {
 }
 
 @media (max-width: 767px) {
-  .auth-page {
-    min-height: calc(100lvh - var(--navbar-height-mobile));
-  }
-
   .auth-page__content {
     padding: var(--space-lg);
   }

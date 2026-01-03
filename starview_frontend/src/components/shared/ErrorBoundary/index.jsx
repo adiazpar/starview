@@ -77,24 +77,6 @@ class ErrorBoundary extends Component {
               Something unexpected happened. Try refreshing the page or come back later.
             </p>
 
-            {/* Actions */}
-            <div className="error-boundary-actions">
-              <button
-                className="btn-primary"
-                onClick={() => window.location.reload()}
-              >
-                <i className="fa-solid fa-rotate-right"></i>
-                Refresh Page
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={this.handleRetry}
-              >
-                <i className="fa-solid fa-arrow-rotate-left"></i>
-                Try Again
-              </button>
-            </div>
-
             {/* Hint */}
             <p className="error-boundary-hint">
               If the problem persists, try clearing your browser cache

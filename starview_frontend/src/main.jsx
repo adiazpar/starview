@@ -30,9 +30,11 @@ createRoot(document.getElementById('root')).render(
           <ToastProvider>
             <Starfield />
             <Navbar />
-            <ErrorBoundary>
-              <App />
-            </ErrorBoundary>
+            <div className="page-wrapper">
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
+            </div>
             <ToastContainer />
           </ToastProvider>
         </AuthProvider>
