@@ -22,10 +22,12 @@ Prerequisites:
 """
 
 import gc
+import html
 import json
 import os
 import re
 import time
+import unicodedata
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 
@@ -64,6 +66,25 @@ RATE_LIMIT_COOLDOWN = 180  # 3 minutes for 429 errors
 
 # Non-recoverable HTTP status codes (don't retry these)
 NON_RECOVERABLE_STATUSES = {400, 401, 403, 404, 410, 451}
+
+
+def normalize_name_for_comparison(name):
+    """
+    Normalize a name for duplicate detection.
+
+    Converts Unicode to ASCII approximation and decodes HTML entities,
+    allowing detection of encoding variants like:
+    - Kremsmünster vs Kremsmunster
+    - & vs &amp;
+    """
+    # Decode HTML entities first (&amp; -> &)
+    name = html.unescape(name)
+    # Normalize Unicode to decomposed form, then strip diacritics
+    normalized = unicodedata.normalize('NFD', name)
+    ascii_approx = normalized.encode('ascii', 'ignore').decode('ascii')
+    # Normalize dashes (en-dash, em-dash -> hyphen)
+    ascii_approx = ascii_approx.replace('–', '-').replace('—', '-')
+    return ascii_approx.lower().strip()
 
 
 class ImageDownloadFailed(Exception):
@@ -215,7 +236,11 @@ class Command(BaseCommand):
 
                 json_lat = truncate_coord(loc_data.get('latitude', 0))
                 json_lng = truncate_coord(loc_data.get('longitude', 0))
+                json_name_normalized = normalize_name_for_comparison(name)
 
+                # Check for existing location by:
+                # 1. Exact name match (case-insensitive) + same coordinates
+                # 2. Normalized name match (catches encoding variants) + same coordinates
                 existing = None
                 for loc in Location.objects.filter(name__iexact=name):
                     db_lat = truncate_coord(loc.latitude)
@@ -223,6 +248,18 @@ class Command(BaseCommand):
                     if db_lat == json_lat and db_lng == json_lng:
                         existing = loc
                         break
+
+                # If no exact match, check for encoding variants at same coordinates
+                if not existing:
+                    for loc in Location.objects.filter(location_type=location_type):
+                        db_lat = truncate_coord(loc.latitude)
+                        db_lng = truncate_coord(loc.longitude)
+                        if db_lat == json_lat and db_lng == json_lng:
+                            # Same coordinates - check if names are encoding variants
+                            db_name_normalized = normalize_name_for_comparison(loc.name)
+                            if db_name_normalized == json_name_normalized:
+                                existing = loc
+                                break
 
                 if existing:
                     self.stdout.write(self.style.WARNING(f'  Skipped (already exists): ID {existing.id}'))
