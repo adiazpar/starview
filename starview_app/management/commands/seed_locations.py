@@ -56,9 +56,10 @@ VALID_LOCATION_TYPES = ['observatory', 'dark_sky_site', 'campground', 'viewpoint
 USER_AGENT = 'StarviewApp/1.0 (https://starview.app; seeding)'
 IMAGE_DOWNLOAD_DELAY = 2.0  # Seconds between downloads
 
-# Retry settings for downloads (infinite retries for recoverable errors)
+# Retry settings for downloads
 BASE_RETRY_DELAY = 10  # Starting delay in seconds
 MAX_RETRY_DELAY = 300  # Cap at 5 minutes between retries
+MAX_RETRIES = 5  # Give up after this many attempts
 RATE_LIMIT_COOLDOWN = 180  # 3 minutes for 429 errors
 
 # Non-recoverable HTTP status codes (don't retry these)
@@ -347,8 +348,8 @@ class Command(BaseCommand):
         image processing (resize to 1920x1920, JPEG conversion, thumbnail).
         This ensures consistent processing for seeded images and user uploads.
 
-        Retries indefinitely for recoverable errors (network issues, rate limits).
-        Only gives up on non-recoverable errors (404, 403, image processing failures).
+        Retries up to MAX_RETRIES times for recoverable errors (network issues, rate limits).
+        Gives up on non-recoverable errors (404, 403, SSL errors, image processing failures).
         """
         self.stdout.write(f'  Downloading image from URL...')
 
@@ -362,10 +363,16 @@ class Command(BaseCommand):
                     timeout=(10, 120),  # (connect, read) - longer read for large files
                 )
 
-                # Handle rate limiting (429) - always retry
+                # Handle rate limiting (429) - retry up to MAX_RETRIES
                 if response.status_code == 429:
+                    if attempt >= MAX_RETRIES:
+                        self.stdout.write(self.style.ERROR(
+                            f'    Rate limited (429). Max retries ({MAX_RETRIES}) exceeded. Skipping image.'
+                        ))
+                        return False
+
                     self.stdout.write(self.style.WARNING(
-                        f'    Rate limited (429). Waiting {RATE_LIMIT_COOLDOWN}s before retry #{attempt + 1}...'
+                        f'    Rate limited (429). Waiting {RATE_LIMIT_COOLDOWN}s (attempt {attempt}/{MAX_RETRIES})...'
                     ))
                     time.sleep(RATE_LIMIT_COOLDOWN)
                     continue
@@ -407,10 +414,16 @@ class Command(BaseCommand):
                 return True
 
             except requests.exceptions.RequestException as e:
-                # Network errors - retry with exponential backoff
+                # Network errors - retry with exponential backoff up to MAX_RETRIES
+                if attempt >= MAX_RETRIES:
+                    self.stdout.write(self.style.ERROR(
+                        f'    Network error: {e}. Max retries ({MAX_RETRIES}) exceeded. Skipping image.'
+                    ))
+                    return False
+
                 delay = min(BASE_RETRY_DELAY * (2 ** (attempt - 1)), MAX_RETRY_DELAY)
                 self.stdout.write(self.style.WARNING(
-                    f'    Network error: {e}. Retrying in {delay}s (attempt #{attempt + 1})...'
+                    f'    Network error: {e}. Retrying in {delay}s (attempt {attempt}/{MAX_RETRIES})...'
                 ))
                 time.sleep(delay)
                 continue
