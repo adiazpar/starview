@@ -320,7 +320,7 @@ h3 {
 /* Global wrapper that accounts for navbar height - children can use 100% heights */
 .page-wrapper {
   margin-top: var(--navbar-total-height);
-  min-height: calc(100lvh - var(--navbar-total-height));
+  min-height: calc(100dvh - var(--navbar-total-height));
 }
 
 .main-content {

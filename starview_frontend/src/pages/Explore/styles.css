@@ -22,7 +22,7 @@
   .explore-page:has(.explore-page__loading),
   .explore-page:has(.explore-page__error) {
     padding-bottom: 0;
-    height: calc(100lvh - var(--navbar-total-height));
+    height: calc(100dvh - var(--navbar-total-height));
     overflow: hidden;
   }
 
@@ -37,7 +37,7 @@
 
 .explore-page--map {
   /* Fill viewport minus navbar, no scroll */
-  height: calc(100lvh - var(--navbar-total-height));
+  height: calc(100dvh - var(--navbar-total-height));
   padding-bottom: 0;
   overflow: hidden;
 }
@@ -70,7 +70,7 @@
   pointer-events: none;
   /* Keep size so map doesn't need to resize when shown */
   width: 100%;
-  height: calc(100lvh - var(--navbar-total-height));
+  height: calc(100dvh - var(--navbar-total-height));
 }
 
 /* Immediately hide map controls when map is hidden (prevents animation lag) */
