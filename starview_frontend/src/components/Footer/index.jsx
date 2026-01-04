@@ -157,23 +157,18 @@ export default function Footer() {
           </nav>
         </div>
 
-        {/* Social links */}
+        {/* Support link */}
         <div className="footer__social">
-          <span className="footer__social-label">Connect with us</span>
-          <div className="footer__social-links">
-            {socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                className="footer__social-link"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.label}
-              >
-                <i className={social.icon} />
-              </a>
-            ))}
-          </div>
+          <span className="footer__social-label">Want to support Starview?</span>
+          <a
+            href="https://buymeacoffee.com/adiazpar"
+            className="footer__support-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i className="fa-solid fa-mug-hot" />
+            <span>Buy me a coffee</span>
+          </a>
         </div>
 
         {/* Bottom bar */}

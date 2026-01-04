@@ -272,6 +272,32 @@
   box-shadow: 0 0 15px var(--glow-primary);
 }
 
+.footer__support-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footer__support-link:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-border);
+  color: var(--accent-light);
+  box-shadow: 0 0 15px var(--glow-primary);
+}
+
+.footer__support-link i {
+  font-size: var(--text-base);
+  color: var(--accent);
+}
+
 /* ============================================ */
 /* BOTTOM BAR */
 /* ============================================ */
