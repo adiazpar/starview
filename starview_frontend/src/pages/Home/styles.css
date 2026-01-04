@@ -602,27 +602,13 @@
 
   .hero {
     padding: var(--space-lg) var(--space-md);
-    /* svh = small viewport height (stable, doesn't resize with browser chrome) */
-    min-height: calc(100svh - var(--navbar-total-height));
+    min-height: calc(100lvh - var(--navbar-total-height));
   }
 
-  /* Safari iOS fallback for older versions without svh support */
-  @supports (-webkit-touch-callout: none) and (not (min-height: 100svh)) {
-    .hero {
-      min-height: -webkit-fill-available;
-    }
-  }
-
-  .hero__container::before {
-    top: -30px;
-    left: var(--space-md);
-    font-size: 9px;
-  }
-
+  /* Hide coordinate markers on mobile */
+  .hero__container::before,
   .hero__container::after {
-    top: -30px;
-    right: var(--space-md);
-    font-size: 9px;
+    display: none;
   }
 
   .hero__title {
