@@ -47,7 +47,7 @@ class StaticViewSitemap(CanonicalSitemap):
 
     def items(self):
         # List of static page paths
-        return ['/']
+        return ['/', '/explore', '/privacy']
 
     def location(self, item):
         return item

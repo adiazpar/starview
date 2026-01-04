@@ -17,6 +17,7 @@ const PasswordResetConfirmPage = lazy(() => import('./pages/PasswordResetConfirm
 const ProfilePage = lazy(() => import('./pages/Profile'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile'));
 const ExplorePage = lazy(() => import('./pages/Explore'));
+const PrivacyPage = lazy(() => import('./pages/Privacy'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/users/:username" element={<PublicProfilePage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
