@@ -72,6 +72,28 @@
       })();
     </script>
 
+    <!-- WebView Detection + Viewport Height (inline to prevent layout shift) -->
+    <script>
+      (function() {
+        var ua = navigator.userAgent || '';
+        // Detect Google Search App (GSA), Facebook, Instagram, TikTok, and generic WebViews
+        var isWebView = /GSA\/|FBAN|FBAV|Instagram|TikTok|\bwv\b|WebView/i.test(ua);
+
+        if (isWebView) {
+          document.documentElement.classList.add('webview-browser');
+
+          // Set actual viewport height as CSS variable (in pixels)
+          var setViewportHeight = function() {
+            document.documentElement.style.setProperty('--actual-vh', window.innerHeight + 'px');
+          };
+          setViewportHeight();
+
+          // Update on resize (orientation change)
+          window.addEventListener('resize', setViewportHeight);
+        }
+      })();
+    </script>
+
     <!-- Suppress noisy Mapbox warnings in production -->
     <script>
       (function() {

@@ -8,6 +8,7 @@ import ErrorBoundary from './components/shared/ErrorBoundary'
 import ToastContainer from './components/shared/Toast'
 import Starfield from './components/starfield'
 import Navbar from './components/navbar'
+import Footer from './components/Footer'
 import './index.css'
 import App from './App.jsx'
 
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')).render(
               <ErrorBoundary>
                 <App />
               </ErrorBoundary>
+              <Footer />
             </div>
             <ToastContainer />
           </ToastProvider>

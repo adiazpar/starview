@@ -319,12 +319,19 @@ h3 {
 
 /* Global wrapper that accounts for navbar height - children can use 100% heights */
 .page-wrapper {
+  display: flex;
+  flex-direction: column;
   margin-top: var(--navbar-total-height);
   min-height: calc(100dvh - var(--navbar-total-height));
 }
 
+/* WebView fallback: use actual pixel height from JS instead of viewport units */
+html.webview-browser .page-wrapper {
+  min-height: calc(var(--actual-vh, 100vh) - var(--navbar-total-height));
+}
+
 .main-content {
-  min-height: 100%;
+  flex: 1 0 auto;
 }
 
 .page-container {
