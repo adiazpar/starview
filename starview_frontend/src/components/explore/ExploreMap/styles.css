@@ -173,13 +173,13 @@
 }
 
 .map-card__btn--favorite.active {
-  color: #ef4444;
-  border-color: #ef4444;
+  color: var(--favorite);
+  border-color: var(--favorite);
 }
 
 .map-card__btn--favorite.active:hover {
-  color: #dc2626;
-  border-color: #dc2626;
+  color: var(--favorite-hover);
+  border-color: var(--favorite-hover);
 }
 
 /* Observatory action buttons container - top left */
@@ -316,12 +316,12 @@
 
 /* Small button variant for route actions */
 .btn-secondary--sm {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
 }
 
 .map-card__route-label {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -503,7 +503,7 @@
 
 /* Rating */
 .map-card__rating i {
-  color: #fbbf24;
+  color: var(--star-filled);
 }
 
 .map-card__reviews {
@@ -520,7 +520,7 @@
 
 /* Elevation */
 .map-card__elevation i {
-  color: #f87171; /* light red */
+  color: var(--elevation);
 }
 
 /* Distance */
@@ -957,7 +957,7 @@
 }
 
 .marker-popup__type {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--accent);
   text-transform: uppercase;
@@ -995,8 +995,8 @@
 }
 
 .marker-popup__rating i {
-  color: #fbbf24;
-  font-size: 10px;
+  color: var(--star-filled);
+  font-size: var(--text-xs);
 }
 
 .marker-popup__rating--empty {
@@ -1013,7 +1013,7 @@
 }
 
 .marker-popup__favorite {
-  color: #ec4899;
+  color: var(--favorite);
   font-size: var(--text-xs);
 }
 

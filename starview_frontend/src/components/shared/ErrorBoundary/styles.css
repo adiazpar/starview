@@ -126,7 +126,7 @@
   background: var(--glass-bg-hover);
   border: 1px solid var(--error-border);
   border-radius: var(--radius);
-  font-family: 'Monaco', 'Consolas', monospace;
+  font-family: var(--font-technical);
   font-size: var(--text-xs);
   color: var(--text-secondary);
   white-space: pre-wrap;

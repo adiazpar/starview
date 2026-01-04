@@ -222,7 +222,7 @@
 
 .login-forgot-password {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 400;
   text-decoration: none;
   transition: color 0.15s ease;
@@ -262,7 +262,7 @@
 
 .login-divider-text {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 400;
   text-transform: lowercase;
 }
@@ -289,7 +289,7 @@
 
 .login-signup-text {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 400;
   margin: 0;
 }

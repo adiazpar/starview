@@ -25,7 +25,7 @@
 }
 
 .not-found-4 {
-  color: var(--text-primary, #f9fafb);
+  color: var(--text-primary);
   opacity: 0.9;
 }
 
@@ -54,7 +54,7 @@
 .not-found-title {
   font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 700;
-  color: var(--text-primary, #f9fafb);
+  color: var(--text-primary);
   margin: 0 0 var(--space-lg) 0;
   line-height: 1.1;
   animation: fadeInUp 0.6s ease-out 0.1s backwards;
@@ -69,8 +69,8 @@
 
 /* Message */
 .not-found-message {
-  font-size: 1.125rem;
-  color: var(--text-secondary, #d1d5db);
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 calc(var(--space-xl) + var(--space-sm)) 0;
   max-width: 440px;
@@ -87,19 +87,19 @@
 /* Hint */
 .not-found-hint {
   margin-top: var(--space-xl);
-  font-size: 0.875rem;
-  color: var(--text-muted, #9ca3af);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
   animation: fadeInUp 0.6s ease-out 0.4s backwards;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
   .not-found {
-    padding: 1.5rem;
+    padding: var(--space-lg);
   }
 
   .not-found-message {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }
 

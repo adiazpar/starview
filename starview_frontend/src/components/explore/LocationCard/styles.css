@@ -59,11 +59,11 @@
 }
 
 .location-card__save--active {
-  color: #ef4444;
+  color: var(--favorite);
 }
 
 .location-card__save--active:hover {
-  color: #dc2626;
+  color: var(--favorite-hover);
 }
 
 /* Content */
@@ -144,7 +144,7 @@
 
 /* Rating */
 .location-card__rating i {
-  color: #fbbf24;
+  color: var(--star-filled);
 }
 
 .location-card__reviews {
@@ -167,7 +167,7 @@
 
 /* Elevation */
 .location-card__elevation i {
-  color: #f87171; /* light red */
+  color: var(--elevation);
 }
 
 /* Distance */

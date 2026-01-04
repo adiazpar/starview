@@ -80,7 +80,7 @@ function HomePage() {
 
           <div className="features__grid">
             {/* Feature 1 */}
-            <div className="feature-card glass-card glass-card--interactive">
+            <div className="feature-card">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-star"></i>
               </div>
@@ -92,7 +92,7 @@ function HomePage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="feature-card glass-card glass-card--interactive">
+            <div className="feature-card">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-location-dot"></i>
               </div>
@@ -104,7 +104,7 @@ function HomePage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="feature-card glass-card glass-card--interactive">
+            <div className="feature-card">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-users"></i>
               </div>
@@ -116,7 +116,7 @@ function HomePage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="feature-card glass-card glass-card--interactive">
+            <div className="feature-card">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-moon"></i>
               </div>

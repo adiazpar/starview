@@ -59,7 +59,7 @@
 /* Diamond - Tier 4 */
 .badge-tier-diamond.badge-card-earned {
   border-color: var(--tier-diamond);
-  box-shadow: 0 0 16px hsla(191, 100%, 86%, 0.4);
+  box-shadow: 0 0 16px var(--tier-diamond-glow);
 }
 
 .badge-tier-diamond .badge-card-name {
@@ -69,7 +69,7 @@
 /* Elite - Tier 5 */
 .badge-tier-elite.badge-card-earned {
   border-color: var(--tier-elite);
-  box-shadow: 0 0 16px hsla(23, 100%, 50%, 0.4);
+  box-shadow: 0 0 16px var(--tier-elite-glow);
 }
 
 .badge-tier-elite .badge-card-name {
@@ -79,7 +79,7 @@
 /* Purple - ALL rare badges */
 .badge-tier-purple.badge-card-earned {
   border-color: var(--tier-purple);
-  box-shadow: 0 0 16px hsla(271, 91%, 65%, 0.4);
+  box-shadow: 0 0 16px var(--tier-purple-glow);
 }
 
 .badge-tier-purple .badge-card-name {
@@ -188,48 +188,48 @@
    ======================================================================== */
 
 .badge-card-category {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 4px 8px;
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius);
   display: inline-block;
 }
 
 /* Category colors based on badge_system docs */
 .badge-category-exploration {
-  background: rgba(59, 130, 246, 0.15);
+  background: var(--category-exploration-bg);
   color: var(--category-exploration);
 }
 
 .badge-category-contribution {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--category-contribution-bg);
   color: var(--category-contribution);
 }
 
 .badge-category-quality {
-  background: rgba(245, 158, 11, 0.15);
+  background: var(--category-quality-bg);
   color: var(--category-quality);
 }
 
 .badge-category-review {
-  background: rgba(139, 92, 246, 0.15);
+  background: var(--category-review-bg);
   color: var(--category-review);
 }
 
 .badge-category-community {
-  background: rgba(249, 115, 22, 0.15);
+  background: var(--category-community-bg);
   color: var(--category-community);
 }
 
 .badge-category-special {
-  background: rgba(236, 72, 153, 0.15);
+  background: var(--category-special-bg);
   color: var(--category-special);
 }
 
 .badge-category-tenure {
-  background: rgba(167, 139, 250, 0.15);
+  background: var(--category-tenure-bg);
   color: var(--category-tenure);
 }
 
@@ -275,7 +275,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-xs);
   font-size: var(--text-xs);
   font-weight: 400;
   margin-top: var(--space-xs);
@@ -329,7 +329,7 @@
 
 @media (max-width: 768px) {
   .badge-card {
-    padding: 16px;
+    padding: var(--space-md);
   }
 
   .badge-card-icon-wrapper {

@@ -7,58 +7,66 @@
 /* ============================================ */
 
 :root {
-  /* Background */
-  --bg-base: #111827;
-  --starfield-gradient: linear-gradient(to top, transparent 0%, #0f172a 20%, #1a1a2e 100%);
-  --navbar-bg: hsla(221, 39%, 11%, 0.7);
+  /* Background - Deep space observatory */
+  --bg-base: #0a0f1a;
+  --bg-elevated: #0d1320;
+  --starfield-gradient: linear-gradient(to top, transparent 0%, #080c14 20%, #0a0f1a 100%);
+  --navbar-bg: hsla(220, 40%, 8%, 0.85);
 
-  /* Text */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
+  /* Text - High contrast for readability */
+  --text-primary: #f0f4f8;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
 
-  /* Accent (Blue) */
-  --accent: #2563eb;
-  --accent-hover: #3b82f6;
-  --accent-light: #60a5fa;
-  --accent-bg: #3b82f61a;
-  --accent-border: rgba(37, 99, 235, 0.2);
+  /* Accent (Cyan/Teal - Observatory instrument glow) */
+  --accent: #00d4aa;
+  --accent-hover: #00e4b8;
+  --accent-light: #5eead4;
+  --accent-bg: rgba(0, 212, 170, 0.1);
+  --accent-border: rgba(0, 212, 170, 0.25);
 
-  /* Borders */
-  --border: #2f353e;
-  --border-focus: #3b82f6;
+  /* Borders - Subtle instrument panel lines */
+  --border: #1e293b;
+  --border-focus: #00d4aa;
 
-  /* Status Colors */
+  /* Status Colors - Instrument readouts */
   --success: #22c55e;
   --success-bg: rgba(34, 197, 94, 0.1);
   --success-border: rgba(34, 197, 94, 0.3);
-  --warning: #eab308;
-  --warning-bg: rgba(234, 179, 8, 0.1);
-  --warning-border: rgba(234, 179, 8, 0.3);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-border: rgba(245, 158, 11, 0.3);
   --error: #ef4444;
   --error-bg: rgba(239, 68, 68, 0.1);
   --error-border: rgba(239, 68, 68, 0.3);
-  --info: #0ea5e9;
-  --info-bg: rgba(14, 165, 233, 0.1);
-  --info-border: rgba(14, 165, 233, 0.3);
+  --info: #06b6d4;
+  --info-bg: rgba(6, 182, 212, 0.1);
+  --info-border: rgba(6, 182, 212, 0.3);
 
   /* Stars */
   --star-filled: #fbbf24;
-  --star-empty: #4b5563;
+  --star-empty: #334155;
 
-  /* Glass Card */
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-bg-hover: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-border-hover: rgba(255, 255, 255, 0.1);
+  /* Favorite/Heart */
+  --favorite: #ef4444;
+  --favorite-hover: #dc2626;
 
-  /* Decorative */
-  --glow-primary: rgba(37, 99, 235, 0.15);
-  --glow-secondary: rgba(139, 92, 246, 0.08);
-  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, #a78bfa 100%);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-accent: 0 4px 24px rgba(37, 99, 235, 0.3);
-  --shadow-accent-hover: 0 6px 32px rgba(37, 99, 235, 0.4);
+  /* Elevation indicator */
+  --elevation: #f87171;
+
+  /* Glass Card - Instrument panel surfaces */
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-bg-hover: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(0, 212, 170, 0.08);
+  --glass-border-hover: rgba(0, 212, 170, 0.15);
+
+  /* Decorative - Cyan glow effects */
+  --glow-primary: rgba(0, 212, 170, 0.2);
+  --glow-secondary: rgba(6, 182, 212, 0.1);
+  --gradient-accent: linear-gradient(135deg, #00d4aa 0%, #06b6d4 100%);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-accent: 0 0 20px rgba(0, 212, 170, 0.3), 0 0 40px rgba(0, 212, 170, 0.1);
+  --shadow-accent-hover: 0 0 30px rgba(0, 212, 170, 0.4), 0 0 60px rgba(0, 212, 170, 0.15);
 
   /* Spacing */
   --space-xs: 4px;
@@ -85,6 +93,27 @@
   --category-special: #ec4899;
   --category-tenure: #a78bfa;
 
+  /* Badge Category Background Colors */
+  --category-exploration-bg: rgba(59, 130, 246, 0.15);
+  --category-contribution-bg: rgba(16, 185, 129, 0.15);
+  --category-quality-bg: rgba(245, 158, 11, 0.15);
+  --category-review-bg: rgba(139, 92, 246, 0.15);
+  --category-community-bg: rgba(249, 115, 22, 0.15);
+  --category-special-bg: rgba(236, 72, 153, 0.15);
+  --category-tenure-bg: rgba(167, 139, 250, 0.15);
+
+  /* Badge Tier Glow Colors (for box-shadow) */
+  --tier-diamond-glow: hsla(191, 100%, 86%, 0.4);
+  --tier-elite-glow: hsla(23, 100%, 50%, 0.4);
+  --tier-purple-glow: hsla(271, 91%, 65%, 0.4);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+
+  /* Pinned Badge Glow */
+  --pinned-badge-glow: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+  --pinned-badge-glow-hover: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+
   /* Border Radius */
   --radius: 8px;
   --radius-full: 9999px;
@@ -102,10 +131,12 @@
   --navbar-filters-height: 58px;
   --container-max: 1000px;
 
-  /* Typography */
+  /* Typography - Observatory aesthetic */
   --font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Montserrat', sans-serif;
+  --font-display: 'Outfit', 'Montserrat', sans-serif;
+  --font-technical: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
 
+  --text-2xs: 10px;
   --text-xs: 12px;
   --text-label: 13px;
   --text-sm: 14px;
@@ -126,35 +157,63 @@
 /* ============================================ */
 
 [data-theme="light"] {
-  --bg-base: #ffffff;
-  --starfield-gradient: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  --navbar-bg: rgba(255, 255, 255, 0.85);
+  /* Background - Clean twilight observatory */
+  --bg-base: #f8fafc;
+  --bg-elevated: #ffffff;
+  --starfield-gradient: linear-gradient(to bottom, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --navbar-bg: rgba(255, 255, 255, 0.92);
 
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
 
-  --accent: hsl(35, 83%, 53%);
-  --accent-hover: hsl(35, 91%, 60%);
-  --accent-light: hsl(35, 94%, 68%);
-  --accent-bg: hsla(35, 91%, 60%, 0.102);
-  --accent-border: hsla(35, 91%, 60%, 0.2);
+  /* Accent (Deep indigo - twilight sky) */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-light: #818cf8;
+  --accent-bg: rgba(79, 70, 229, 0.08);
+  --accent-border: rgba(79, 70, 229, 0.2);
 
-  --border: #d1d5db;
-  --border-focus: hsl(30, 91%, 60%);
-  --star-empty: #d1d5db;
+  /* Borders */
+  --border: #e2e8f0;
+  --border-focus: #4f46e5;
+  --star-empty: #cbd5e1;
 
-  --glass-bg: rgba(0, 0, 0, 0.02);
-  --glass-bg-hover: rgba(0, 0, 0, 0.04);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-border-hover: rgba(0, 0, 0, 0.1);
+  /* Glass Card - Frosted panel surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-hover: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-border-hover: rgba(15, 23, 42, 0.12);
 
-  --glow-primary: rgba(217, 119, 6, 0.1);
-  --glow-secondary: rgba(234, 88, 12, 0.05);
-  --gradient-accent: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-accent: 0 4px 24px rgba(217, 119, 6, 0.25);
-  --shadow-accent-hover: 0 6px 32px rgba(217, 119, 6, 0.35);
+  /* Decorative - Twilight glow effects */
+  --glow-primary: rgba(79, 70, 229, 0.12);
+  --glow-secondary: rgba(99, 102, 241, 0.06);
+  --gradient-accent: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-accent: 0 4px 20px rgba(79, 70, 229, 0.2);
+  --shadow-accent-hover: 0 6px 28px rgba(79, 70, 229, 0.28);
+
+  /* Badge Tier Glow - Softer for light mode */
+  --tier-diamond-glow: hsla(191, 100%, 40%, 0.3);
+  --tier-elite-glow: hsla(23, 100%, 40%, 0.3);
+  --tier-purple-glow: hsla(271, 91%, 50%, 0.3);
+
+  /* Badge Category Backgrounds - Slightly stronger for light mode visibility */
+  --category-exploration-bg: rgba(59, 130, 246, 0.12);
+  --category-contribution-bg: rgba(16, 185, 129, 0.12);
+  --category-quality-bg: rgba(245, 158, 11, 0.12);
+  --category-review-bg: rgba(139, 92, 246, 0.12);
+  --category-community-bg: rgba(249, 115, 22, 0.12);
+  --category-special-bg: rgba(236, 72, 153, 0.12);
+  --category-tenure-bg: rgba(167, 139, 250, 0.12);
+
+  /* Overlay */
+  --overlay-bg: rgba(15, 23, 42, 0.5);
+
+  /* Pinned Badge Glow - Darker for light mode */
+  --pinned-badge-glow: drop-shadow(0 0 4px rgba(0, 0, 0, 0.2));
+  --pinned-badge-glow-hover: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
 }
 
 
@@ -292,32 +351,52 @@ h3 {
 /* BUTTONS */
 /* ============================================ */
 
-/* Primary Button - Solid accent with glow */
+/* Primary Button - Instrument panel action button */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
-  font-size: 15px;
-  font-weight: var(--font-medium);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: calc(var(--radius) * 1.5);
+  color: #ffffff;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-accent);
   text-decoration: none;
+  position: relative;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius);
+  background: var(--gradient-accent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
   box-shadow: var(--shadow-accent-hover);
 }
 
+.btn-primary:hover:not(:disabled)::before {
+  opacity: 0.3;
+}
+
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
@@ -330,21 +409,23 @@ h3 {
 /* Primary Button - Small variant for navbars and compact UI */
 .btn-primary--sm {
   padding: 8px 20px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-/* Secondary Button - Glass style */
+/* Secondary Button - Instrument panel secondary action */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-size: 14px;
   font-weight: var(--font-medium);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 1.5);
+  letter-spacing: 0.02em;
+  background: transparent;
+  border: 1px solid var(--glass-border-hover);
+  border-radius: var(--radius);
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -352,12 +433,13 @@ h3 {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
+  background: var(--glass-bg);
+  border-color: var(--accent-border);
+  color: var(--accent-light);
 }
 
 .btn-secondary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -367,57 +449,61 @@ h3 {
   aspect-ratio: 1;
 }
 
-/* Danger Button - Destructive/cancel actions */
+/* Danger Button - Critical action warning */
 .btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
-  font-size: 15px;
-  font-weight: var(--font-medium);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   background: var(--error);
   color: white;
-  border: none;
-  border-radius: calc(var(--radius) * 1.5);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
   text-decoration: none;
 }
 
 .btn-danger:hover:not(:disabled) {
   background: #dc2626;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+  border-color: #dc2626;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
 }
 
 .btn-danger:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Danger Button - Small variant */
 .btn-danger--sm {
   padding: 8px 20px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-/* Social Button - Icon-only glass style */
+/* Social Button - External authentication panel */
 .btn-social {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 12px;
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border-hover);
-  border-radius: calc(var(--radius) * 1.5);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-social:hover:not(:disabled) {
-  background: var(--glass-border);
+  background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
 }
 
@@ -442,7 +528,7 @@ h3 {
 
 
 /* ============================================ */
-/* FORMS - Glass-morphic style (Linear-inspired) */
+/* FORMS - Instrument panel input controls */
 /* ============================================ */
 
 .form-group {
@@ -451,9 +537,12 @@ h3 {
 
 .form-label {
   display: block;
-  font-size: 13px;
+  font-family: var(--font-technical);
+  font-size: 11px;
   font-weight: var(--font-medium);
-  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
   margin-bottom: var(--space-sm);
 }
 
@@ -461,8 +550,8 @@ h3 {
 .form-textarea {
   width: 100%;
   padding: 12px 16px;
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border-hover);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   color: var(--text-primary);
   font-family: inherit;
@@ -486,7 +575,7 @@ h3 {
   outline: none;
   border-color: var(--accent);
   background: var(--glass-bg-hover);
-  box-shadow: 0 0 0 3px var(--accent-bg);
+  box-shadow: 0 0 0 2px var(--accent-bg), 0 0 15px var(--glow-primary);
 }
 
 .form-input:disabled,
@@ -666,26 +755,44 @@ h3 {
 
 
 /* ============================================ */
-/* GLASS CARD UTILITY */
+/* GLASS CARD UTILITY - Instrument panel surfaces */
 /* ============================================ */
 
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+}
+
+/* Subtle corner accents for that instrument panel look */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+  opacity: 0.5;
 }
 
 /* Interactive variant - adds hover effects for clickable/interactive cards */
 .glass-card--interactive {
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .glass-card--interactive:hover {
   background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-  transform: translateY(-2px);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 20px var(--glow-primary);
+}
+
+.glass-card--interactive:hover::before {
+  opacity: 1;
 }
 
 
@@ -830,5 +937,106 @@ h3 {
   font-size: var(--text-xs);
   font-weight: 400;
   text-transform: lowercase;
+}
+
+
+
+/* ============================================ */
+/* TECHNICAL UTILITY CLASSES - Observatory aesthetic */
+/* ============================================ */
+
+/* Technical/monospace font for data displays */
+.font-technical {
+  font-family: var(--font-technical);
+  letter-spacing: 0.02em;
+}
+
+/* Display/headline font */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Accent text with glow */
+.text-accent {
+  color: var(--accent);
+}
+
+.text-accent-glow {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--glow-primary);
+}
+
+/* Gradient accent text */
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glow effects for elements */
+.glow {
+  box-shadow: var(--shadow-accent);
+}
+
+.glow-hover:hover {
+  box-shadow: var(--shadow-accent-hover);
+}
+
+/* Subtle pulse animation for status indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Status indicator dot */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--glow-primary);
+}
+
+.status-indicator--success {
+  background: var(--success);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.status-indicator--warning {
+  background: var(--warning);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.status-indicator--error {
+  background: var(--error);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* Data readout styling for numbers/stats */
+.data-readout {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.data-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
