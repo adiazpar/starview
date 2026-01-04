@@ -714,3 +714,22 @@
     transition: none;
   }
 }
+
+/* ============================================ */
+/* WEBVIEW FALLBACK */
+/* ============================================ */
+
+/* WebView browsers (Google app, Instagram, etc.) have buggy viewport units.
+   Use static padding and let content flow naturally instead. */
+html.webview-browser .hero {
+  min-height: auto;
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+@media (max-width: 768px) {
+  html.webview-browser .hero {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+}
