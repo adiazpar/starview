@@ -19,80 +19,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--space-lg);
   height: var(--navbar-height);
-}
-
-/* Brand Container - holds logo and search bar */
-.navbar__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  flex: 1;
-  max-width: 600px;
-  /* Smooth flex transition to prevent layout flash */
-  transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Center Section - search & filters on desktop explore page */
-.navbar__center {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex: 0 0 0;
-  justify-content: center;
-  /* Hidden by default - animated on explore page */
-  max-width: 0;
-  margin: 0;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: flex 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-              max-width 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-              margin 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Visible on explore page */
-.navbar__center--visible {
-  flex: 1;
-  max-width: 700px;
-  margin: 0 var(--space-xl);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Desktop center section: search bar styling */
-.navbar__center .navbar__search {
-  flex: 1;
-  max-width: 450px;
-  min-width: 280px;
-}
-
-/* Desktop filters button - animate alongside search */
-.navbar__center .navbar__filters-btn {
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.5s ease 0.25s,
-              transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.25s,
-              background 0.2s ease,
-              border-color 0.2s ease;
-}
-
-.navbar__center--visible .navbar__filters-btn {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* When center section exists, brand shouldn't expand */
-@media (min-width: 1024px) {
-  .navbar__brand--explore {
-    flex: 0 0 auto;
-    max-width: none;
-  }
+  box-sizing: border-box;
 }
 
 /* Logo */
@@ -103,13 +36,12 @@
   flex-shrink: 0;
 }
 
-/* Logo crop container - animates width to reveal/hide text */
+/* Logo crop container - clips to show only icon on explore page */
 .navbar__logo-crop {
   overflow: hidden;
   height: 36px;
-  /* Full logo aspect ratio is ~4:1 (2000x500), so width = height * 4 */
+  /* Full logo aspect ratio is 4:1 (2000x500), so width = height * 4 */
   width: 144px;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar__logo-img {
@@ -117,32 +49,25 @@
   width: auto;
   /* Prevent image from shrinking with container */
   min-width: 144px;
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
-/* Explore page: crop logo on mobile/tablet only */
-@media (max-width: 1023px) {
-  .navbar__brand--explore .navbar__logo-crop {
-    width: 40px;
-  }
+/* Explore page: crop to show only the icon (black hole) */
+.navbar__logo-crop--explore {
+  width: 40px;
 }
 
-/* Search Bar Crop Container - animates width like logo crop */
-.navbar__search-crop {
-  /* Start with no flex basis, grows when visible */
-  flex: 0 1 0;
-  min-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              min-width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-/* Reveal search bar on explore page */
-.navbar__brand--explore .navbar__search-crop {
-  flex: 1 1 0;
-  min-width: 120px;
-  opacity: 1;
+/* Center Section - desktop explore page */
+.navbar__center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  justify-content: center;
+  margin: 0 var(--space-xl);
 }
 
 /* Search Bar */
@@ -154,15 +79,23 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   padding: var(--space-sm) var(--space-md);
-  /* Fixed min-width prevents content squishing during animation */
-  min-width: 200px;
-  transition: border-color 0.2s ease,
-              background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .navbar__search:focus-within {
   border-color: var(--accent);
   background: var(--glass-bg-hover);
+}
+
+/* Mobile search bar */
+.navbar__search--mobile {
+  flex: 1;
+}
+
+/* Desktop center search bar */
+.navbar__center .navbar__search {
+  flex: 1;
+  max-width: 450px;
 }
 
 .navbar__search-icon {
@@ -182,7 +115,6 @@
   background: none;
   border: none;
   outline: none;
-  /* Match .form-input styles from global.css */
   color: var(--text-primary);
   font-family: inherit;
   font-size: 15px;
@@ -190,6 +122,36 @@
 }
 
 .navbar__search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Desktop Filters Button */
+.navbar__filters-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  line-height: 22px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navbar__filters-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.navbar__filters-btn i {
+  font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
@@ -223,7 +185,7 @@
   color: var(--text-primary);
 }
 
-/* CTA Button - Uses global .btn-primary .btn-primary--sm */
+/* CTA Button */
 .navbar__cta {
   margin-left: var(--space-sm);
 }
@@ -261,7 +223,6 @@
 }
 
 /* Hamburger animation - transforms into X */
-/* translateY = span height (2px) / 2 + gap (4px) + span height (2px) / 2 = 6px */
 .navbar__hamburger.open span:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
@@ -281,7 +242,7 @@
   top: 0;
   right: -100%;
   width: 280px;
-  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
+  height: 100lvh;
   background: var(--navbar-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -341,22 +302,13 @@
   color: var(--accent-light);
 }
 
-/* Mobile CTA - Uses global .btn-primary .btn-primary--full */
-.navbar__mobile-cta {
-  margin-top: auto;
-}
-
-.navbar__mobile-cta i {
-  color: white;
-}
-
 /* Mobile Menu Backdrop */
 .navbar__backdrop {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100lvh; /* Use large viewport height to prevent jitter on mobile */
+  height: 100lvh;
   background-color: rgba(0, 0, 0, 0.8);
   z-index: var(--z-navbar);
   animation: fadeIn 0.3s ease forwards;
@@ -376,100 +328,42 @@
   to { opacity: 0; }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .navbar__nav {
-    display: none;
-  }
-
-  .navbar__hamburger {
-    display: flex;
-  }
-
-  .navbar__container {
-    height: var(--navbar-height-mobile);
-  }
-
-  .navbar__logo-crop {
-    height: 32px;
-    width: 128px;
-  }
-
-  .navbar__logo-img {
-    height: 32px;
-    min-width: 128px;
-  }
-
-  .navbar__brand--explore .navbar__logo-crop {
-    width: 38px;
-  }
-
-  /* Mobile: search bar takes more space */
-  .navbar__brand {
-    max-width: none;
-    flex: 1;
-    margin-right: var(--space-md);
-  }
-
-  /* Mobile: smaller min-width for search bar */
-  .navbar__search {
-    min-width: 160px;
-  }
-}
-
-/* Filter Chips Row - uses grid animation for dynamic height */
+/* Filter Chips Row */
 .navbar__filters {
-  display: grid;
-  grid-template-rows: 0fr;
-  border-bottom: 1px solid transparent;
-  transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.navbar__filters--visible {
-  grid-template-rows: 1fr;
-  border-bottom-color: var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .navbar__filters-scroll {
-  min-height: 0; /* Required for grid animation */
   display: flex;
   gap: var(--space-sm);
-  overflow: hidden; /* Hidden by default */
-}
-
-/* Only show padding and scrollbar when filters are visible */
-.navbar__filters--visible .navbar__filters-scroll {
-  /* Dynamic padding to align with centered navbar container (1400px max-width) */
-  /* On wide screens: (100vw - 1400px) / 2 + space-lg = left edge of navbar content */
-  /* On narrow screens: just use space-lg */
   padding: var(--space-xs) max(var(--space-lg), calc((100vw - 1400px) / 2 + var(--space-lg)));
-  padding-bottom: calc(var(--space-xs) + 4px); /* Extra space for scrollbar */
+  padding-bottom: calc(var(--space-xs) + 4px);
   overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--glass-border-hover) transparent;
 }
 
-.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar {
+.navbar__filters-scroll::-webkit-scrollbar {
   height: 4px;
 }
 
-.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-track {
+.navbar__filters-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-thumb {
+.navbar__filters-scroll::-webkit-scrollbar-thumb {
   background: var(--glass-border-hover);
   border-radius: 4px;
 }
 
-.navbar__filters--visible .navbar__filters-scroll::-webkit-scrollbar-thumb:hover {
+.navbar__filters-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
 .navbar__filter-chip {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   background: var(--glass-bg);
@@ -481,35 +375,12 @@
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-/* Staggered animation for chips */
-.navbar__filters--visible .navbar__filter-chip {
-  animation: filterChipIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  animation-delay: calc(0.04s * var(--chip-index) + 0.15s);
-}
-
-@keyframes filterChipIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .navbar__filter-chip:hover {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
   color: var(--text-primary);
-}
-
-.navbar__filter-chip {
-  justify-content: center;
 }
 
 /* Icon styles for filter chips */
@@ -519,38 +390,36 @@
   opacity: 0.7;
 }
 
-/* Desktop Filters Button - matches search bar sizing */
-.navbar__filters-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  /* Match .navbar__search padding and sizing */
-  padding: var(--space-sm) var(--space-md);
-  line-height: 22px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-full);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: var(--font-medium);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
 
-.navbar__filters-btn:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-}
+@media (max-width: 768px) {
+  .navbar__nav {
+    display: none;
+  }
 
-.navbar__filters-btn i {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
+  .navbar__hamburger {
+    display: flex;
+  }
 
-/* Light Theme Adjustments
- * Most styles now handled by CSS variables in global.css:
- * --navbar-bg, --glass-bg-hover, --glass-border
- */
+  .navbar__container {
+    height: var(--navbar-height-mobile);
+    padding: 0 var(--space-lg);
+  }
+
+  .navbar__logo-crop {
+    height: 32px;
+    /* Mobile: 32px height * 4 aspect ratio = 128px */
+    width: 128px;
+  }
+
+  .navbar__logo-img {
+    height: 32px;
+    min-width: 128px;
+  }
+
+  .navbar__logo-crop--explore {
+    width: 36px;
+  }
+}

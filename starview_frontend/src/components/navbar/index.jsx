@@ -32,7 +32,7 @@ function Navbar() {
   );
   const navRef = useRef(null);
 
-  // Detect if we're on the explore page for navbar transformation
+  // Detect if we're on the explore page
   const isExplorePage = location.pathname === '/explore';
 
   // Show filter chips row only on mobile/tablet explore page
@@ -48,11 +48,8 @@ function Navbar() {
       document.documentElement.style.setProperty('--navbar-total-height', `${height}px`);
     };
 
-    // Use ResizeObserver to watch for height changes (including filter row animation)
     const resizeObserver = new ResizeObserver(updateNavbarHeight);
     resizeObserver.observe(nav);
-
-    // Initial measurement
     updateNavbarHeight();
 
     return () => resizeObserver.disconnect();
@@ -92,39 +89,32 @@ function Navbar() {
     <nav ref={navRef} className="navbar">
       <div className="navbar__container">
         {/* Logo with crop animation for explore page */}
-        <div className={`navbar__brand ${isExplorePage ? 'navbar__brand--explore' : ''}`}>
-          <Link to="/" className="navbar__logo">
-            {/* Logo container - crops from right to left on explore */}
-            <div className="navbar__logo-crop">
-              <img
-                src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
-                alt="Starview"
-                className="navbar__logo-img"
-              />
-            </div>
-          </Link>
+        <Link to="/" className="navbar__logo">
+          <div className={`navbar__logo-crop ${isExplorePage && !isDesktop ? 'navbar__logo-crop--explore' : ''}`}>
+            <img
+              src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
+              alt="Starview"
+              className="navbar__logo-img"
+            />
+          </div>
+        </Link>
 
-          {/* Search bar - appears on explore page (mobile: in brand, desktop: in center) */}
-          {/* Wrapper clips the search bar smoothly like the logo crop animation */}
-          {!isDesktop && (
-            <div className="navbar__search-crop">
-              <div className="navbar__search">
-                <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
-                <input
-                  type="text"
-                  className="navbar__search-input"
-                  placeholder="Search locations..."
-                  aria-label="Search locations"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Search bar - mobile: only on explore, desktop: only on explore */}
+        {isExplorePage && !isDesktop && (
+          <div className="navbar__search navbar__search--mobile">
+            <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+            <input
+              type="text"
+              className="navbar__search-input"
+              placeholder="Search locations..."
+              aria-label="Search locations"
+            />
+          </div>
+        )}
 
-        {/* Center section - search & filters on desktop explore page */}
-        {/* Always rendered on desktop for smooth animation, visibility controlled via CSS */}
-        {isDesktop && (
-          <div className={`navbar__center ${isExplorePage ? 'navbar__center--visible' : ''}`}>
+        {/* Center section - desktop explore page only */}
+        {isExplorePage && isDesktop && (
+          <div className="navbar__center">
             <div className="navbar__search">
               <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
               <input
@@ -132,10 +122,9 @@ function Navbar() {
                 className="navbar__search-input"
                 placeholder="Search stargazing locations..."
                 aria-label="Search locations"
-                tabIndex={isExplorePage ? 0 : -1}
               />
             </div>
-            <button className="navbar__filters-btn" tabIndex={isExplorePage ? 0 : -1}>
+            <button className="navbar__filters-btn">
               <i className="fa-solid fa-sliders"></i>
               <span>Filters</span>
             </button>
@@ -224,25 +213,26 @@ function Navbar() {
         )}
       </div>
 
-      {/* Filter Chips - appears on mobile/tablet explore page only */}
-      <div className={`navbar__filters ${showFilterChips ? 'navbar__filters--visible' : ''}`}>
-        <div className="navbar__filters-scroll">
-          {FILTERS.map((filter, index) => (
-            <button
-              key={filter.id}
-              className="navbar__filter-chip"
-              onClick={() => setActiveFilter(filter.id)}
-              style={{ '--chip-index': index }}
-            >
-              {filter.icon
-                ? <i className={`${filter.icon} navbar__filter-icon`}></i>
-                : <i className="fa-solid fa-caret-down navbar__filter-caret"></i>
-              }
-              <span>{filter.label}</span>
-            </button>
-          ))}
+      {/* Filter Chips - mobile/tablet explore page only */}
+      {showFilterChips && (
+        <div className="navbar__filters">
+          <div className="navbar__filters-scroll">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                className="navbar__filter-chip"
+                onClick={() => setActiveFilter(filter.id)}
+              >
+                {filter.icon
+                  ? <i className={`${filter.icon} navbar__filter-icon`}></i>
+                  : <i className="fa-solid fa-caret-down navbar__filter-caret"></i>
+                }
+                <span>{filter.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }
