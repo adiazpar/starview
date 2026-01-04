@@ -105,22 +105,26 @@ function Navbar() {
           </Link>
 
           {/* Search bar - appears on explore page (mobile: in brand, desktop: in center) */}
+          {/* Wrapper clips the search bar smoothly like the logo crop animation */}
           {!isDesktop && (
-            <div className="navbar__search">
-              <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
-              <input
-                type="text"
-                className="navbar__search-input"
-                placeholder="Search stargazing locations..."
-                aria-label="Search locations"
-              />
+            <div className="navbar__search-crop">
+              <div className="navbar__search">
+                <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+                <input
+                  type="text"
+                  className="navbar__search-input"
+                  placeholder="Search locations..."
+                  aria-label="Search locations"
+                />
+              </div>
             </div>
           )}
         </div>
 
         {/* Center section - search & filters on desktop explore page */}
-        {isExplorePage && isDesktop && (
-          <div className="navbar__center">
+        {/* Always rendered on desktop for smooth animation, visibility controlled via CSS */}
+        {isDesktop && (
+          <div className={`navbar__center ${isExplorePage ? 'navbar__center--visible' : ''}`}>
             <div className="navbar__search">
               <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
               <input
@@ -128,9 +132,10 @@ function Navbar() {
                 className="navbar__search-input"
                 placeholder="Search stargazing locations..."
                 aria-label="Search locations"
+                tabIndex={isExplorePage ? 0 : -1}
               />
             </div>
-            <button className="navbar__filters-btn">
+            <button className="navbar__filters-btn" tabIndex={isExplorePage ? 0 : -1}>
               <i className="fa-solid fa-sliders"></i>
               <span>Filters</span>
             </button>

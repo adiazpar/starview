@@ -32,6 +32,9 @@
   gap: var(--space-md);
   flex: 1;
   max-width: 600px;
+  /* Smooth flex transition to prevent layout flash */
+  transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Center Section - search & filters on desktop explore page */
@@ -39,16 +42,49 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  flex: 1;
+  flex: 0 0 0;
   justify-content: center;
-  margin: 0 var(--space-xl);
+  /* Hidden by default - animated on explore page */
+  max-width: 0;
+  margin: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: flex 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Search bar is always visible inside center section */
-.navbar__center .navbar__search {
-  max-width: 450px;
+/* Visible on explore page */
+.navbar__center--visible {
+  flex: 1;
+  max-width: 700px;
+  margin: 0 var(--space-xl);
   opacity: 1;
-  padding: var(--space-sm) var(--space-md);
+  pointer-events: auto;
+}
+
+/* Desktop center section: search bar styling */
+.navbar__center .navbar__search {
+  flex: 1;
+  max-width: 450px;
+  min-width: 280px;
+}
+
+/* Desktop filters button - animate alongside search */
+.navbar__center .navbar__filters-btn {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.5s ease 0.25s,
+              transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.25s,
+              background 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.navbar__center--visible .navbar__filters-btn {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* When center section exists, brand shouldn't expand */
@@ -73,7 +109,7 @@
   height: 36px;
   /* Full logo aspect ratio is ~4:1 (2000x500), so width = height * 4 */
   width: 144px;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar__logo-img {
@@ -90,6 +126,25 @@
   }
 }
 
+/* Search Bar Crop Container - animates width like logo crop */
+.navbar__search-crop {
+  /* Start with no flex basis, grows when visible */
+  flex: 0 1 0;
+  min-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reveal search bar on explore page */
+.navbar__brand--explore .navbar__search-crop {
+  flex: 1 1 0;
+  min-width: 120px;
+  opacity: 1;
+}
+
 /* Search Bar */
 .navbar__search {
   display: flex;
@@ -99,26 +154,15 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   padding: var(--space-sm) var(--space-md);
-  flex: 1;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.3s ease 0.1s,
-              padding 0.3s ease,
-              border-color 0.2s ease;
+  /* Fixed min-width prevents content squishing during animation */
+  min-width: 200px;
+  transition: border-color 0.2s ease,
+              background 0.2s ease;
 }
 
 .navbar__search:focus-within {
   border-color: var(--accent);
   background: var(--glass-bg-hover);
-}
-
-/* Search bar visible on explore page */
-.navbar__brand--explore .navbar__search {
-  max-width: 400px;
-  opacity: 1;
-  padding: var(--space-sm) var(--space-md);
 }
 
 .navbar__search-icon {
@@ -367,8 +411,9 @@
     margin-right: var(--space-md);
   }
 
-  .navbar__brand--explore .navbar__search {
-    max-width: 100%;
+  /* Mobile: smaller min-width for search bar */
+  .navbar__search {
+    min-width: 160px;
   }
 }
 
@@ -377,8 +422,8 @@
   display: grid;
   grid-template-rows: 0fr;
   border-bottom: 1px solid transparent;
-  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s ease;
+  transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar__filters--visible {
@@ -442,8 +487,8 @@
 
 /* Staggered animation for chips */
 .navbar__filters--visible .navbar__filter-chip {
-  animation: filterChipIn 0.3s ease forwards;
-  animation-delay: calc(0.05s * var(--chip-index) + 0.1s);
+  animation: filterChipIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: calc(0.04s * var(--chip-index) + 0.15s);
 }
 
 @keyframes filterChipIn {
