@@ -285,13 +285,14 @@
 /* Decorative glow - Targeting reticle */
 .hero__glow {
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
+  width: 700px;
+  height: 700px;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.5;
 }
 
 .hero__glow::before {
@@ -301,10 +302,10 @@
   background: radial-gradient(
     circle at center,
     var(--accent-bg) 0%,
-    var(--glow-secondary) 30%,
-    transparent 60%
+    var(--glow-secondary) 25%,
+    transparent 55%
   );
-  animation: pulseReticle 4s ease-in-out infinite;
+  animation: pulseReticle 5s ease-in-out infinite;
 }
 
 .hero__glow::after {
@@ -313,28 +314,29 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 300px;
-  height: 300px;
+  width: 250px;
+  height: 250px;
   border: 1px solid var(--accent-bg);
   border-radius: 50%;
-  animation: expandReticle 4s ease-in-out infinite;
+  opacity: 0.4;
+  animation: expandReticle 5s ease-in-out infinite;
 }
 
 @keyframes pulseReticle {
-  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.05); }
 }
 
 @keyframes expandReticle {
   0%, 100% {
-    opacity: 0.5;
+    opacity: 0.3;
     width: 200px;
     height: 200px;
   }
   50% {
-    opacity: 0.2;
-    width: 400px;
-    height: 400px;
+    opacity: 0.1;
+    width: 350px;
+    height: 350px;
   }
 }
 
@@ -611,9 +613,16 @@
     }
   }
 
-  .hero__container::before,
+  .hero__container::before {
+    top: -30px;
+    left: var(--space-md);
+    font-size: 9px;
+  }
+
   .hero__container::after {
-    display: none;
+    top: -30px;
+    right: var(--space-md);
+    font-size: 9px;
   }
 
   .hero__title {
@@ -652,8 +661,10 @@
   }
 
   .hero__glow {
-    width: 300px;
-    height: 300px;
+    width: 350px;
+    height: 350px;
+    top: 50%;
+    opacity: 0.4;
   }
 
   .features {
