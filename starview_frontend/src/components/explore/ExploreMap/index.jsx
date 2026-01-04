@@ -423,7 +423,19 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }, 200);
   }, [isPopupClosing]);
 
-  // Track popup position via direct DOM manipulation (no re-renders during pan/zoom)
+  // Shared position update function for popup
+  const updatePopupPosition = useCallback(() => {
+    if (!map.current || !popupRef.current || !selectedLocation) return;
+
+    const lngLat = [selectedLocation.longitude, selectedLocation.latitude];
+    const point = map.current.project(lngLat);
+
+    // Direct DOM update - no React re-render
+    popupRef.current.style.left = `${point.x}px`;
+    popupRef.current.style.top = `${point.y}px`;
+  }, [selectedLocation]);
+
+  // Control popup visibility based on mode
   useEffect(() => {
     if (!isPopupMode || !selectedLocation || !map.current || !mapLoaded || isNavigationMode) {
       setIsPopupVisible(false);
@@ -432,30 +444,30 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
     // Show popup
     setIsPopupVisible(true);
+  }, [isPopupMode, selectedLocation, mapLoaded, isNavigationMode]);
 
-    const updatePopupPosition = () => {
-      if (!map.current || !popupRef.current) return;
+  // Track popup position via direct DOM manipulation (no re-renders during pan/zoom)
+  // This effect runs AFTER isPopupVisible changes, ensuring popup is mounted
+  useEffect(() => {
+    if (!isPopupMode || !selectedLocation || !map.current || !mapLoaded || !isPopupVisible) {
+      return;
+    }
 
-      const lngLat = [selectedLocation.longitude, selectedLocation.latitude];
-      const point = map.current.project(lngLat);
-
-      // Direct DOM update - no React re-render
-      popupRef.current.style.left = `${point.x}px`;
-      popupRef.current.style.top = `${point.y}px`;
-    };
-
-    // Initial position
-    updatePopupPosition();
+    // Initial position - use RAF to ensure popup ref is populated after render
+    const rafId = requestAnimationFrame(() => {
+      updatePopupPosition();
+    });
 
     // Position updates: direct DOM manipulation (high frequency, no re-renders)
     map.current.on('move', updatePopupPosition);
 
     return () => {
+      cancelAnimationFrame(rafId);
       if (map.current) {
         map.current.off('move', updatePopupPosition);
       }
     };
-  }, [isPopupMode, selectedLocation, mapLoaded, isNavigationMode]);
+  }, [isPopupMode, selectedLocation, mapLoaded, isPopupVisible, updatePopupPosition]);
 
   // Forward wheel events from popup overlay to map (enables zoom-through)
   useEffect(() => {
