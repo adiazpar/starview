@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import('./pages/Profile'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile'));
 const ExplorePage = lazy(() => import('./pages/Explore'));
 const PrivacyPage = lazy(() => import('./pages/Privacy'));
+const TermsPage = lazy(() => import('./pages/Terms'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
           <Route path="/users/:username" element={<PublicProfilePage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
