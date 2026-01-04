@@ -5,6 +5,7 @@
  * Features observatory-themed aesthetic with glass-morphic styling.
  */
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import './styles.css';
@@ -36,7 +37,22 @@ const socialLinks = [
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const { effectiveTheme } = useTheme();
+  const { theme } = useTheme();
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => setSystemPrefersDark(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const effectiveTheme = theme === 'auto'
+    ? (systemPrefersDark ? 'dark' : 'light')
+    : theme;
 
   return (
     <footer className="footer">
@@ -50,7 +66,7 @@ export default function Footer() {
           <div className="footer__brand">
             <Link to="/" className="footer__logo">
               <img
-                src={effectiveTheme === 'dark' ? '/images/logo-light.png' : '/images/logo-dark.png'}
+                src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
                 alt="Starview"
                 className="footer__logo-img"
               />
