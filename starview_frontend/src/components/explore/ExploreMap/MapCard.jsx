@@ -100,7 +100,7 @@ const MapCard = forwardRef(function MapCard({
             className={`map-card__btn map-card__btn--favorite ${location.is_favorited ? 'active' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFavorite?.();
+              onToggleFavorite?.(e);
             }}
             aria-label={location.is_favorited ? 'Remove from saved' : 'Save location'}
           >

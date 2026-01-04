@@ -96,6 +96,94 @@
 }
 
 /* ============================================ */
+/* TELESCOPE ILLUSTRATION */
+/* ============================================ */
+
+.register-telescope {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: auto;
+  opacity: 0;
+  z-index: 0;
+  animation: telescopeReveal 1.8s ease-out 0.4s forwards;
+}
+
+.telescope-body {
+  fill: var(--text-muted);
+  opacity: 0.4;
+}
+
+.telescope-tripod {
+  fill: var(--text-muted);
+  opacity: 0.3;
+}
+
+.telescope-mount {
+  fill: var(--text-muted);
+  opacity: 0.35;
+}
+
+.discovery-star {
+  fill: var(--accent-light);
+  filter: drop-shadow(0 0 6px var(--accent-light)) drop-shadow(0 0 12px var(--accent-light));
+  opacity: 1;
+}
+
+@keyframes telescopeReveal {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 0.5;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+
+/* ============================================ */
+/* HORIZON SILHOUETTE */
+/* ============================================ */
+
+.register-horizon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 0;
+  pointer-events: none;
+  animation: horizonReveal 1.2s ease-out 0.6s backwards;
+}
+
+.register-horizon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.register-horizon .horizon-mountain {
+  fill: rgba(15, 23, 35, 0.7);
+}
+
+.register-horizon .horizon-hill {
+  fill: rgba(20, 30, 45, 0.85);
+}
+
+@keyframes horizonReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================ */
 /* FORM PANEL */
 /* ============================================ */
 
@@ -274,7 +362,13 @@
 @media (prefers-reduced-motion: reduce) {
   .register-hero-title,
   .register-hero-subtitle,
-  .register-form-content {
+  .register-form-content,
+  .register-telescope,
+  .register-horizon {
     animation: none;
+  }
+
+  .register-telescope {
+    opacity: 0.5;
   }
 }

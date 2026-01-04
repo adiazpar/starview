@@ -441,12 +441,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-width: 0; /* Allow text truncation */
+  overflow: hidden;
 }
 
 .map-card__header {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0; /* Allow text truncation in flex container */
 }
 
 .map-card__name {

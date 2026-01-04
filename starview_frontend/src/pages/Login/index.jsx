@@ -95,6 +95,32 @@ function LoginPage() {
     <div className="login-container">
       {/* Hero Panel (Desktop Only) */}
       <div className="login-hero">
+        {/* Constellation pattern */}
+        <svg className="login-constellation" viewBox="0 0 400 300" aria-hidden="true">
+          <g className="constellation-group">
+            {/* Orion-inspired pattern */}
+            <circle cx="120" cy="80" r="2" className="star-dot" />
+            <circle cx="180" cy="60" r="1.5" className="star-dot" />
+            <circle cx="200" cy="120" r="2.5" className="star-dot star-bright" />
+            <circle cx="160" cy="140" r="1.5" className="star-dot" />
+            <circle cx="220" cy="160" r="2" className="star-dot" />
+            <circle cx="140" cy="180" r="1.5" className="star-dot" />
+            <circle cx="240" cy="200" r="2" className="star-dot" />
+            {/* Connecting lines */}
+            <path d="M120,80 L180,60 L200,120 L160,140 L120,80" className="constellation-line" />
+            <path d="M200,120 L220,160 L240,200" className="constellation-line" />
+            <path d="M160,140 L140,180" className="constellation-line" />
+          </g>
+        </svg>
+
+        {/* Horizon silhouette */}
+        <div className="login-horizon" aria-hidden="true">
+          <svg viewBox="0 0 800 120" preserveAspectRatio="none">
+            <path d="M0,120 L0,80 Q100,60 200,70 T400,50 T600,65 T800,55 L800,120 Z" className="horizon-mountain" />
+            <path d="M0,120 L0,95 Q150,85 300,90 T600,80 T800,85 L800,120 Z" className="horizon-hill" />
+          </svg>
+        </div>
+
         <div className="login-hero-overlay">
           <h1 className="login-hero-title">
             Find Your Perfect

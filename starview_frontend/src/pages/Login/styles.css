@@ -96,6 +96,92 @@
 }
 
 /* ============================================ */
+/* CONSTELLATION ILLUSTRATION */
+/* ============================================ */
+
+.login-constellation {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  max-width: 450px;
+  height: auto;
+  opacity: 0;
+  z-index: 1;
+  animation: constellationFade 2s ease-out 0.3s forwards;
+}
+
+.star-dot {
+  fill: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.star-dot.star-bright {
+  fill: var(--accent-light);
+  opacity: 1;
+  filter: drop-shadow(0 0 8px var(--accent-light));
+}
+
+.constellation-line {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 0.75;
+  stroke-dasharray: 6 4;
+  opacity: 0.35;
+}
+
+@keyframes constellationFade {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.9);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* ============================================ */
+/* HORIZON SILHOUETTE */
+/* ============================================ */
+
+.login-horizon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 0;
+  pointer-events: none;
+  animation: horizonReveal 1.2s ease-out 0.5s backwards;
+}
+
+.login-horizon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.horizon-mountain {
+  fill: rgba(15, 23, 35, 0.7);
+}
+
+.horizon-hill {
+  fill: rgba(20, 30, 45, 0.85);
+}
+
+@keyframes horizonReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================ */
 /* FORM PANEL */
 /* ============================================ */
 
@@ -325,7 +411,13 @@
 @media (prefers-reduced-motion: reduce) {
   .login-hero-title,
   .login-hero-subtitle,
-  .login-form-content {
+  .login-form-content,
+  .login-constellation,
+  .login-horizon {
     animation: none;
+  }
+
+  .login-constellation {
+    opacity: 0.5;
   }
 }
