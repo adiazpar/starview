@@ -23,7 +23,7 @@ const navigationLinks = {
   ],
   company: [
     { label: 'About Starview', to: '/about', soon: true },
-    { label: 'Contact', to: '/contact', soon: true },
+    { label: 'Contact', href: 'mailto:contact@starview.app' },
     { label: 'API', to: '/api', soon: true },
   ],
 };
@@ -145,6 +145,10 @@ export default function Footer() {
                         {link.label}
                         <span className="footer__soon-badge">Soon</span>
                       </span>
+                    ) : link.href ? (
+                      <a href={link.href} className="footer__nav-link">
+                        {link.label}
+                      </a>
                     ) : (
                       <Link to={link.to} className="footer__nav-link">
                         {link.label}
