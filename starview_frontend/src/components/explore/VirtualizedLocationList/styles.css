@@ -1,0 +1,51 @@
+/* VirtualizedLocationList Styles
+ * Container and positioning for virtualized mobile list.
+ */
+
+.virtualized-list {
+  /* Fill available height for scroll container */
+  height: calc(100dvh - var(--navbar-total-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+.virtualized-list__inner {
+  position: relative;
+  width: 100%;
+  padding: var(--space-lg);
+}
+
+.virtualized-list__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 var(--space-lg);
+  padding-bottom: var(--space-md); /* Gap between cards */
+  box-sizing: border-box;
+}
+
+/* First item needs top padding to match original layout */
+.virtualized-list__item[data-index="0"] {
+  padding-top: var(--space-lg);
+}
+
+.virtualized-list__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.virtualized-list__loading i {
+  font-size: var(--text-base);
+}
+
+.virtualized-list__sentinel {
+  height: 1px;
+}

@@ -43,7 +43,8 @@ VALID_REACT_ROUTES = [
     r'^profile/?$',                                 # Profile: /profile
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
     r'^explore/?$',                                 # Explore: /explore
-    r'^map/?$',                                     # Map: /map
+    r'^privacy/?$',                                 # Privacy policy: /privacy
+    r'^terms/?$',                                   # Terms of service: /terms
 ]
 
 
@@ -124,7 +125,7 @@ def robots_txt(request):
     if is_production:
         # Production: Allow all crawlers for SEO and AI visibility
         content = """# Starview robots.txt
-# https://starview.app
+# https://www.starview.app
 
 # Allow all crawlers (Googlebot, Bingbot, GPTBot, ClaudeBot, etc.)
 User-agent: *
@@ -135,8 +136,8 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /accounts/
 
-# Sitemap
-Sitemap: https://starview.app/sitemap.xml
+# Sitemap (using canonical www domain)
+Sitemap: https://www.starview.app/sitemap.xml
 """
     else:
         # Staging/Development: Block all crawlers

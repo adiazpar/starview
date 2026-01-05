@@ -11,10 +11,13 @@ import { locationsApi } from '../services/locations';
 /**
  * Fetch and cache locations list with infinite scroll support
  * @param {Object} params - Query parameters (search, filters, etc.)
- * @param {Object} options - Additional options (enabled, etc.)
+ * @param {Object} options - Additional options (enabled, maxPages, etc.)
+ * @param {number} options.maxPages - Max pages to keep in memory (default: 5)
  * @returns {Object} Query result with locations data and pagination controls
  */
 export function useLocations(params = {}, options = {}) {
+  const { maxPages = 5, ...queryOptions } = options;
+
   const query = useInfiniteQuery({
     queryKey: ['locations', 'infinite', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -28,11 +31,17 @@ export function useLocations(params = {}, options = {}) {
       return url.searchParams.get('page');
     },
     initialPageParam: 1,
-    ...options,
+    ...queryOptions,
   });
 
-  // Flatten all pages into a single array of locations, deduplicating by ID
-  const allResults = query.data?.pages.flatMap((page) => page.results) || [];
+  // Only keep last N pages to limit memory usage on long scroll sessions
+  const pages = query.data?.pages || [];
+  const trimmedPages = maxPages > 0 && pages.length > maxPages
+    ? pages.slice(-maxPages)
+    : pages;
+
+  // Flatten pages into a single array of locations, deduplicating by ID
+  const allResults = trimmedPages.flatMap((page) => page.results);
   const locations = [...new Map(allResults.map((loc) => [loc.id, loc])).values()];
 
   return {

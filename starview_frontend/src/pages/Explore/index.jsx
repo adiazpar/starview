@@ -9,6 +9,7 @@ import { useExploreData } from '../../hooks/useExploreData';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import LocationCard from '../../components/explore/LocationCard';
+import VirtualizedLocationList from '../../components/explore/VirtualizedLocationList';
 import ViewToggle from '../../components/explore/ViewToggle';
 import Pagination from '../../components/explore/Pagination';
 import './styles.css';
@@ -65,7 +66,48 @@ function ExplorePage() {
   return (
     <div className={`explore-page ${view === 'map' && !isDesktop ? 'explore-page--map' : ''} ${isDesktop ? 'explore-page--desktop' : ''}`}>
       {/* List Panel - hidden only on mobile/tablet map view */}
-      <div className={`explore-page__list ${!isDesktop && view !== 'list' ? 'explore-page__list--hidden' : ''}`}>
+      {/* Mobile: Virtualized list for performance with large datasets */}
+      {!isDesktop && view === 'list' && (
+        isLoading ? (
+          <div className="explore-page__list">
+            <div className="explore-page__loading">
+              <i className="fa-solid fa-spinner fa-spin"></i>
+              <p>Loading locations...</p>
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="explore-page__list">
+            <div className="explore-page__error">
+              <i className="fa-solid fa-triangle-exclamation"></i>
+              <p>Failed to load locations</p>
+              <span className="explore-page__error-detail">
+                {error?.message || 'Please try again later'}
+              </span>
+            </div>
+          </div>
+        ) : locations.length === 0 ? (
+          <div className="explore-page__list">
+            <div className="empty-state animate-fade-in-up">
+              <i className="fa-solid fa-map-location-dot empty-state__icon"></i>
+              <p className="empty-state__title">No locations found</p>
+              <p className="empty-state__description">Be the first to add a stargazing spot!</p>
+            </div>
+          </div>
+        ) : (
+          <VirtualizedLocationList
+            locations={locations}
+            userLocation={userLocation}
+            onPressLocation={handlePressLocation}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
+            loadMoreRef={loadMoreRef}
+          />
+        )
+      )}
+
+      {/* Desktop: Standard grid with pagination (only 10 items, no virtualization needed) */}
+      <div className={`explore-page__list ${!isDesktop ? 'explore-page__list--hidden' : ''}`}>
         {/* Location count header - desktop only */}
         {isDesktop && !isLoading && locations.length > 0 && (
           <div className="explore-page__header">
@@ -75,12 +117,12 @@ function ExplorePage() {
           </div>
         )}
 
-        {isLoading ? (
+        {isDesktop && isLoading ? (
           <div className="explore-page__loading">
             <i className="fa-solid fa-spinner fa-spin"></i>
             <p>Loading locations...</p>
           </div>
-        ) : isError ? (
+        ) : isDesktop && isError ? (
           <div className="explore-page__error">
             <i className="fa-solid fa-triangle-exclamation"></i>
             <p>Failed to load locations</p>
@@ -88,13 +130,13 @@ function ExplorePage() {
               {error?.message || 'Please try again later'}
             </span>
           </div>
-        ) : locations.length === 0 ? (
+        ) : isDesktop && locations.length === 0 ? (
           <div className="empty-state animate-fade-in-up">
             <i className="fa-solid fa-map-location-dot empty-state__icon"></i>
             <p className="empty-state__title">No locations found</p>
             <p className="empty-state__description">Be the first to add a stargazing spot!</p>
           </div>
-        ) : (
+        ) : isDesktop && (
           <>
             {locations.map((location, index) => (
               <LocationCard
@@ -106,26 +148,11 @@ function ExplorePage() {
               />
             ))}
 
-            {/* Desktop: Pagination */}
-            {isDesktop && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            )}
-
-            {/* Mobile: Infinite scroll sentinel */}
-            {!isDesktop && (
-              <div ref={loadMoreRef} className="explore-page__sentinel">
-                {isFetchingNextPage && (
-                  <div className="explore-page__loading-more">
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    <span>Loading more...</span>
-                  </div>
-                )}
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </>
         )}
       </div>
