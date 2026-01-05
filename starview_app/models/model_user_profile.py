@@ -69,6 +69,18 @@ class UserProfile(models.Model):
         help_text="Up to 3 badge IDs to display on profile header"
     )
 
+    # Unit preference for distances and elevations:
+    UNIT_CHOICES = [
+        ('metric', 'Metric'),
+        ('imperial', 'Imperial'),
+    ]
+    unit_preference = models.CharField(
+        max_length=10,
+        choices=UNIT_CHOICES,
+        default='metric',
+        help_text="User's preferred unit system for distances and elevations"
+    )
+
 
     # Returns profile picture URL or default if none set:
     @property

@@ -2,9 +2,12 @@
  * Navigation Utilities
  *
  * Helper functions for GPS navigation feature:
- * - Duration/distance formatting
+ * - Duration formatting
  * - Deep link URL generation for navigation apps
  * - Address geocoding via Mapbox
+ *
+ * NOTE: For distance formatting with unit preference support,
+ * use the useUnits hook or utils/units.js instead.
  */
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -34,28 +37,6 @@ export function formatDuration(seconds) {
     return `${hours} hr`;
   } else {
     return `${hours} hr ${minutes} min`;
-  }
-}
-
-/**
- * Format distance in meters to human-readable string.
- * Uses miles for US users.
- * @param {number} meters - Distance in meters
- * @returns {string} - Formatted distance (e.g., "3.2 mi")
- */
-export function formatDistance(meters) {
-  if (!meters || meters < 0) return '0 mi';
-
-  const miles = meters / 1609.344;
-
-  if (miles < 0.1) {
-    // Show in feet for very short distances
-    const feet = Math.round(meters * 3.28084);
-    return `${feet} ft`;
-  } else if (miles < 10) {
-    return `${miles.toFixed(1)} mi`;
-  } else {
-    return `${Math.round(miles)} mi`;
   }
 }
 

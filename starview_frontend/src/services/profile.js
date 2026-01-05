@@ -105,6 +105,16 @@ export const profileApi = {
   },
 
   /**
+   * Update user's unit preference (metric or imperial)
+   * @param {Object} data - Unit preference data
+   * @param {string} data.unit_preference - 'metric' or 'imperial'
+   * @returns {Promise} - { detail: string, unit_preference: string }
+   */
+  updateUnitPreference: (data) => {
+    return api.patch('/users/me/update-unit-preference/', data);
+  },
+
+  /**
    * Get my full badge collection (earned, in-progress, locked)
    * For use on private /profile/badges page
    * @returns {Promise} - { earned: Array, in_progress: Array, locked: Array }

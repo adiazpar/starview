@@ -6,8 +6,9 @@
 
 import { memo, useMemo, forwardRef } from 'react';
 import ImageCarousel from '../../shared/ImageCarousel';
-import { formatDistance, formatElevation, calculateDistance } from '../../../utils/geo';
-import { formatDuration, formatDistance as formatRouteDistance, getPlatformNavigationUrl } from '../../../utils/navigation';
+import { useUnits } from '../../../hooks/useUnits';
+import { calculateDistance } from '../../../utils/geo';
+import { formatDuration } from '../../../utils/navigation';
 
 const MapCard = forwardRef(function MapCard({
   // Core data
@@ -34,6 +35,8 @@ const MapCard = forwardRef(function MapCard({
   onCancelNavigation,
   onGo,
 }, ref) {
+  const { formatDistance, formatElevation, formatRouteDistance } = useUnits();
+
   // Derive region subtitle
   const region = useMemo(() => {
     const parts = [];

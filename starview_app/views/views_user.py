@@ -571,6 +571,39 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
+    # Update user's unit preference (metric or imperial).                           #
+    #                                                                               #
+    # Controls how distances and elevations are displayed across the app.           #
+    #                                                                               #
+    # HTTP Method: PATCH                                                            #
+    # Endpoint: /api/users/me/update-unit-preference/                               #
+    # Authentication: Required                                                      #
+    # Body: JSON with unit_preference ('metric' or 'imperial')                      #
+    # Returns: DRF Response with success status and updated unit_preference         #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=False, methods=['patch'], url_path='me/update-unit-preference')
+    def update_unit_preference(self, request):
+        unit_preference = request.data.get('unit_preference', '').strip().lower()
+
+        # Validate choice
+        valid_choices = ['metric', 'imperial']
+        if unit_preference not in valid_choices:
+            raise exceptions.ValidationError(
+                f'Invalid unit preference. Must be one of: {", ".join(valid_choices)}'
+            )
+
+        # Update preference
+        profile = request.user.userprofile
+        profile.unit_preference = unit_preference
+        profile.save()
+
+        return Response({
+            'detail': 'Unit preference updated successfully.',
+            'unit_preference': unit_preference
+        }, status=status.HTTP_200_OK)
+
+
+    # ----------------------------------------------------------------------------- #
     # Get user's connected social accounts (Google OAuth, etc.)                     #
     #                                                                               #
     # Returns list of social accounts linked to the user with provider info,        #

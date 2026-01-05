@@ -6,13 +6,15 @@
 import { memo, useMemo, useCallback } from 'react';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
-import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
+import { useUnits } from '../../../hooks/useUnits';
+import { calculateDistance } from '../../../utils/geo';
 import ImageCarousel from '../../shared/ImageCarousel';
 import './styles.css';
 
 function LocationCard({ location, userLocation, onPress, style }) {
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
+  const { formatDistance, formatElevation } = useUnits();
 
   // Derive favorite status directly from location prop (cache updates are instant)
   const isSaved = location.is_favorited || false;

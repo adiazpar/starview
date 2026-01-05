@@ -1,5 +1,8 @@
 /**
  * Geographic utility functions for distance and location calculations.
+ *
+ * NOTE: For formatting distances and elevations with unit preference support,
+ * use the useUnits hook or utils/units.js instead.
  */
 
 /**
@@ -31,34 +34,4 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
  */
 function toRadians(degrees) {
   return degrees * (Math.PI / 180);
-}
-
-/**
- * Format distance for display
- * @param {number} km - Distance in kilometers
- * @returns {string} Formatted distance string
- */
-export function formatDistance(km) {
-  if (km < 1) {
-    return `${Math.round(km * 1000)} m`;
-  } else if (km < 10) {
-    return `${km.toFixed(1)} km`;
-  } else if (km < 1000) {
-    return `${Math.round(km)} km`;
-  } else {
-    return `${(km / 1000).toFixed(1)}k km`;
-  }
-}
-
-/**
- * Format elevation for display
- * @param {number} meters - Elevation in meters
- * @returns {string} Formatted elevation string
- */
-export function formatElevation(meters) {
-  if (meters < 0) {
-    return `${Math.round(meters)} m`; // Below sea level (e.g., Death Valley)
-  }
-  // Use locale formatting for thousands separator
-  return `${Math.round(meters).toLocaleString()} m`;
 }

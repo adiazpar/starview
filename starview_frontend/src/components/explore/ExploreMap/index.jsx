@@ -100,8 +100,10 @@ const IUCN_NAMES = {
 
 /**
  * Generate HTML content for protected area popup
+ * @param {Object} properties - Feature properties from PMTiles
+ * @param {Function} formatAreaFn - Format function from useUnits hook
  */
-function getProtectedAreaPopupHTML(properties) {
+function getProtectedAreaPopupHTML(properties, formatAreaFn) {
   const name = properties.name || 'Unknown Area';
   const designation = properties.desig || 'Protected Area';
   const iucnCat = properties.iucn_cat || 'Not Reported';
@@ -109,12 +111,8 @@ function getProtectedAreaPopupHTML(properties) {
   const color = IUCN_COLORS[iucnCat] || IUCN_COLORS['Not Reported'];
   const iucnName = IUCN_NAMES[iucnCat] || iucnCat;
 
-  // Format area with appropriate units
-  const areaFormatted = areaKm2
-    ? (areaKm2 >= 1000
-        ? `${(areaKm2 / 1000).toFixed(1)}k km²`
-        : `${Math.round(areaKm2).toLocaleString()} km²`)
-    : null;
+  // Format area with user's preferred unit system
+  const areaFormatted = areaKm2 ? formatAreaFn(areaKm2) : null;
 
   return `
     <div class="protected-area-popup">
@@ -180,8 +178,9 @@ import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useAnimatedDropdown } from '../../../hooks/useAnimatedDropdown';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
-import { calculateDistance, formatDistance, formatElevation } from '../../../utils/geo';
-import { formatDuration, formatDistance as formatRouteDistance, getPlatformNavigationUrl } from '../../../utils/navigation';
+import { useUnits } from '../../../hooks/useUnits';
+import { calculateDistance } from '../../../utils/geo';
+import { getPlatformNavigationUrl } from '../../../utils/navigation';
 import { useToast } from '../../../contexts/ToastContext';
 import MapCard from './MapCard';
 import './styles.css';
@@ -382,6 +381,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
+  const { formatArea } = useUnits();
+
+  // Ref for formatArea to use in event handlers (avoids stale closures)
+  const formatAreaRef = useRef(formatArea);
+  useEffect(() => {
+    formatAreaRef.current = formatArea;
+  }, [formatArea]);
 
   // Update selectedLocation when markers change (keeps card in sync with cache)
   useEffect(() => {
@@ -1014,7 +1020,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         }
 
         // Update popup content and position
-        const popupHTML = getProtectedAreaPopupHTML(feature.properties);
+        const popupHTML = getProtectedAreaPopupHTML(feature.properties, formatAreaRef.current);
         protectedAreaPopupRef.current
           .setLngLat(e.lngLat)
           .setHTML(popupHTML);
