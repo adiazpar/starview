@@ -221,6 +221,10 @@ function getLightPreset(lat, lng) {
 // Mapbox access token from environment
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
+// Prewarm WebGL context and workers for faster map initialization
+// This reduces initial load time by preparing resources before Map is created
+mapboxgl.prewarm();
+
 // Default center (world view) if no user location
 const DEFAULT_CENTER = [0, 20];
 const DEFAULT_ZOOM = 1.5;
@@ -323,6 +327,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const isPopupModeRef = useRef(false); // Track popup mode for event handlers
   const popupRef = useRef(null); // Ref for popup DOM element (direct position updates, no re-renders)
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [readyForHeavyLayers, setReadyForHeavyLayers] = useState(false); // Deferred loading after initial animation
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
   const [isSwitching, setIsSwitching] = useState(false); // Fade vs slide animation
@@ -331,6 +336,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const [isPopupClosing, setIsPopupClosing] = useState(false); // Track popup close animation
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
+  const initialAnimationCompleteRef = useRef(false); // Track when initial animation finishes
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
   const markerPopupRef = useRef(null); // Popup for location marker hover
@@ -816,6 +822,16 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     // Set up map load handler
     map.current.on('load', () => {
       setMapLoaded(true);
+
+      // If we have a saved viewport, no flyTo animation will occur
+      // Enable heavy layers after first idle to ensure smooth initial render
+      if (initialViewport) {
+        map.current.once('idle', () => {
+          initialAnimationCompleteRef.current = true;
+          setReadyForHeavyLayers(true);
+        });
+      }
+      // Otherwise, flyTo effect or fallback effect will enable heavy layers
     });
 
     // Save viewport when map moves
@@ -895,8 +911,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   }, []); // Empty deps - run once, refs are stable
 
   // Add Protected Areas layer from PMTiles on R2
+  // Deferred until after initial animation to prevent mobile GPU stutter
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded || !readyForHeavyLayers) return;
 
     // Skip if already added
     if (map.current.getSource('protected-areas')) return;
@@ -963,7 +980,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           IUCN_COLORS['Not Reported'],
         ],
         'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.3, 8, 0.8, 12, 1.5],
-        'line-opacity': 0.7,
+        'line-opacity': 0.2,
         // Emit light so borders display correctly in night mode
         'line-emissive-strength': 1,
       },
@@ -1085,7 +1102,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         map.current.off('zoom', handleZoomForProtectedAreas);
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, readyForHeavyLayers]);
 
   // Ref to track if marker event handlers are registered (for cleanup)
   const markerHandlersRef = useRef(null);
@@ -1452,17 +1469,48 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   }, [mapLoaded, !!markers.length]);
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
+  // After animation completes, enable heavy layers (protected areas) for smoother initial load
   useEffect(() => {
     if (hasFlownToUserRef.current) return; // Only fly once
     if (map.current && userLocation && mapLoaded && !initialViewport) {
       hasFlownToUserRef.current = true;
+      initialAnimationCompleteRef.current = false;
+
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
         zoom: USER_LOCATION_ZOOM,
         duration: INITIAL_FLYTO_DURATION_MS,
       });
+
+      // Wait for animation to complete before loading heavy layers
+      // Using 'idle' ensures both animation AND tile loading are done
+      map.current.once('idle', () => {
+        initialAnimationCompleteRef.current = true;
+        setReadyForHeavyLayers(true);
+      });
     }
   }, [userLocation, mapLoaded, initialViewport]);
+
+  // Fallback: enable heavy layers if no flyTo occurs (user never grants geolocation)
+  // This handles first-time users who dismiss the location prompt
+  useEffect(() => {
+    if (!map.current || !mapLoaded || readyForHeavyLayers || initialViewport) return;
+
+    // Wait for map to become idle, then enable heavy layers
+    // This fires quickly if there's no animation pending
+    const handleIdle = () => {
+      if (!readyForHeavyLayers && !hasFlownToUserRef.current) {
+        initialAnimationCompleteRef.current = true;
+        setReadyForHeavyLayers(true);
+      }
+    };
+
+    map.current.once('idle', handleIdle);
+
+    return () => {
+      map.current?.off('idle', handleIdle);
+    };
+  }, [mapLoaded, readyForHeavyLayers, initialViewport]);
 
   // Trigger geolocate control to show user location marker when browser location is available
   // This runs when: 1) initial load with browser permission, 2) user grants permission mid-session
@@ -1494,7 +1542,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       const isDaytime = preset === 'day' || preset === 'dawn';
       const fillOpacity = isDaytime ? 0.35 : 0.15;
       const fillHoverOpacity = isDaytime ? 0.5 : 0.25;
-      const lineOpacity = isDaytime ? 0.9 : 0.7;
+      const lineOpacity = isDaytime ? 0.5 : 0.2;
 
       // Update fill layer opacity
       if (map.current.getLayer('protected-areas-fill')) {
