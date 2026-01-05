@@ -54,24 +54,34 @@ class StaticViewSitemap(CanonicalSitemap):
 
 
 # Sitemap for public user profile pages.
-# Includes all users who have made their profiles public (have reviews/activity).
+# Only includes users with actual content to avoid soft 404 issues.
+# Google treats empty profiles as soft 404s because they lack substantive content.
 class UserProfileSitemap(CanonicalSitemap):
     priority = 0.6
     changefreq = 'weekly'
 
     def items(self):
-        # Only include users with profiles (active users)
-        # Filter to users who have at least some public activity
+        from django.db.models import Count
+        # Only include users who have at least 1 review (actual content)
+        # This prevents Google from flagging empty profiles as soft 404s
         return User.objects.filter(
             is_active=True
-        ).select_related('userprofile').order_by('-date_joined')[:1000]  # Limit to prevent huge sitemaps
+        ).annotate(
+            review_count=Count('location_reviews')
+        ).filter(
+            review_count__gt=0
+        ).select_related('userprofile').order_by('-date_joined')[:1000]
 
     def location(self, user):
         return f'/users/{user.username}'
 
     def lastmod(self, user):
-        # Use the user's last login as proxy for activity
-        return user.last_login or user.date_joined
+        # Use most recent review date if available, otherwise join date
+        from starview_app.models.model_review import Review
+        latest_review = Review.objects.filter(user=user).order_by('-created_at').first()
+        if latest_review:
+            return latest_review.created_at
+        return user.date_joined
 
 
 # Future: Add when location detail pages exist
