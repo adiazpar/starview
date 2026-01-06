@@ -11,13 +11,10 @@ import { locationsApi } from '../services/locations';
 /**
  * Fetch and cache locations list with infinite scroll support
  * @param {Object} params - Query parameters (search, filters, etc.)
- * @param {Object} options - Additional options (enabled, maxPages, etc.)
- * @param {number} options.maxPages - Max pages to keep in memory (default: 5)
+ * @param {Object} options - Additional options (enabled, etc.)
  * @returns {Object} Query result with locations data and pagination controls
  */
 export function useLocations(params = {}, options = {}) {
-  const { maxPages = 5, ...queryOptions } = options;
-
   const query = useInfiniteQuery({
     queryKey: ['locations', 'infinite', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -31,17 +28,12 @@ export function useLocations(params = {}, options = {}) {
       return url.searchParams.get('page');
     },
     initialPageParam: 1,
-    ...queryOptions,
+    ...options,
   });
 
-  // Only keep last N pages to limit memory usage on long scroll sessions
-  const pages = query.data?.pages || [];
-  const trimmedPages = maxPages > 0 && pages.length > maxPages
-    ? pages.slice(-maxPages)
-    : pages;
-
   // Flatten pages into a single array of locations, deduplicating by ID
-  const allResults = trimmedPages.flatMap((page) => page.results);
+  const pages = query.data?.pages || [];
+  const allResults = pages.flatMap((page) => page.results);
   const locations = [...new Map(allResults.map((loc) => [loc.id, loc])).values()];
 
   return {
@@ -138,7 +130,8 @@ export function useToggleFavorite() {
       // Snapshot previous values for rollback (use getQueriesData for partial key matching)
       const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
       const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
-      const previousMapGeoJSON = queryClient.getQueryData(['mapGeoJSON']);
+      // Match all mapGeoJSON queries (base + bbox variants)
+      const previousMapGeoJSON = queryClient.getQueriesData({ queryKey: ['mapGeoJSON'] });
 
       // Helper to toggle is_favorited optimistically
       const toggleFavorite = (loc) =>
@@ -168,8 +161,8 @@ export function useToggleFavorite() {
         return { ...old, results: old.results.map(toggleFavorite) };
       });
 
-      // Optimistically update map GeoJSON cache
-      queryClient.setQueryData(['mapGeoJSON'], (old) => {
+      // Optimistically update all map GeoJSON caches (base + bbox variants)
+      queryClient.setQueriesData({ queryKey: ['mapGeoJSON'] }, (old) => {
         if (!old?.features) return old;
         return { ...old, features: old.features.map(toggleFeatureFavorite) };
       });
@@ -192,9 +185,11 @@ export function useToggleFavorite() {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      // Restore map GeoJSON cache
+      // Restore all map GeoJSON caches
       if (context?.previousMapGeoJSON) {
-        queryClient.setQueryData(['mapGeoJSON'], context.previousMapGeoJSON);
+        context.previousMapGeoJSON.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
     },
 
@@ -227,8 +222,8 @@ export function useToggleFavorite() {
         return { ...old, results: old.results.map(setFavoriteState) };
       });
 
-      // Update map GeoJSON cache with server response
-      queryClient.setQueryData(['mapGeoJSON'], (old) => {
+      // Update all map GeoJSON caches with server response
+      queryClient.setQueriesData({ queryKey: ['mapGeoJSON'] }, (old) => {
         if (!old?.features) return old;
         return { ...old, features: old.features.map(setFeatureFavoriteState) };
       });

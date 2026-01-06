@@ -28,10 +28,12 @@ export const locationsApi = {
 
   /**
    * Get map locations as GeoJSON FeatureCollection
+   * @param {Object} params - Optional query parameters
+   * @param {string} params.bbox - Bounding box as "west,south,east,north"
    * @returns {Promise} - GeoJSON FeatureCollection ready for Mapbox
    */
-  getMapGeoJSON: () => {
-    return api.get('/locations/map_geojson/');
+  getMapGeoJSON: (params = {}) => {
+    return api.get('/locations/map_geojson/', { params });
   },
 
   /**

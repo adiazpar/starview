@@ -1,10 +1,11 @@
 /* VirtualizedLocationList Component
  * Renders a virtualized list of LocationCards for mobile infinite scroll.
+ * Uses window scrolling (no nested scroll container) for proper UX.
  * Only renders visible items plus overscan, dramatically reducing DOM nodes.
  */
 
-import { useRef, useCallback } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useCallback, useEffect } from 'react';
+import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import LocationCard from '../LocationCard';
 import './styles.css';
 
@@ -17,22 +18,15 @@ function VirtualizedLocationList({
   fetchNextPage,
   loadMoreRef,
 }) {
-  const parentRef = useRef(null);
-
-  // Estimate row height: 16:10 image + ~90px content = ~calc(width * 0.625 + 90)
+  // Estimate row height: 16:10 image + ~90px content + padding
   // For mobile viewport ~375px wide with padding, card width ~343px
-  // Estimated height: 343 * 0.625 + 90 ≈ 305px, plus gap
+  // Estimated height: 343 * 0.625 + 90 + 16 ≈ 320px
   const estimateSize = useCallback(() => 320, []);
 
-  const virtualizer = useVirtualizer({
+  const virtualizer = useWindowVirtualizer({
     count: locations.length,
-    getScrollElement: () => parentRef.current,
     estimateSize,
     overscan: 3, // Render 3 extra items above/below viewport
-    measureElement: (element) => {
-      // Measure actual height for accurate positioning after render
-      return element?.getBoundingClientRect().height ?? estimateSize();
-    },
   });
 
   const items = virtualizer.getVirtualItems();
@@ -42,12 +36,14 @@ function VirtualizedLocationList({
   const shouldLoadMore = lastItem && lastItem.index >= locations.length - 3;
 
   // Trigger fetch when approaching end
-  if (shouldLoadMore && hasNextPage && !isFetchingNextPage) {
-    fetchNextPage();
-  }
+  useEffect(() => {
+    if (shouldLoadMore && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [shouldLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div ref={parentRef} className="virtualized-list">
+    <div className="virtualized-list">
       <div
         className="virtualized-list__inner"
         style={{ height: `${virtualizer.getTotalSize()}px` }}

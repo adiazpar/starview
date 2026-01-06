@@ -1,20 +1,15 @@
 /* VirtualizedLocationList Styles
- * Container and positioning for virtualized mobile list.
+ * Positioning for virtualized mobile list using window scroll.
  */
 
 .virtualized-list {
-  /* Fill available height for scroll container */
-  height: calc(100dvh - var(--navbar-total-height));
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* Smooth scrolling on iOS */
-  -webkit-overflow-scrolling: touch;
+  /* No scroll container - uses window scroll */
+  width: 100%;
 }
 
 .virtualized-list__inner {
   position: relative;
   width: 100%;
-  padding: var(--space-lg);
 }
 
 .virtualized-list__item {

@@ -358,6 +358,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   // Viewport detection for popup mode (desktop/tablet ≥768px uses marker popup instead of bottom card)
   const isPopupMode = useMediaQuery('(min-width: 768px)');
 
+  // Viewport bounds for bbox-based marker loading (reduces payload for large datasets)
+  const [viewportBounds, setViewportBounds] = useState(null);
+  const boundsDebounceRef = useRef(null);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -381,7 +385,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     isPopupModeRef.current = isPopupMode;
   }, [isPopupMode]);
 
-  const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers();
+  // Fetch markers for current viewport (reduces initial payload for large datasets)
+  // Pass bounds to enable bbox filtering; null bounds fetches all markers
+  const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers({
+    bounds: viewportBounds,
+  });
   const { location: userLocation, source: userLocationSource } = useUserLocation();
   const { getRoute, routeData, isLoading: isRouteLoading, clearRoute } = useMapboxDirections();
   const { requireAuth } = useRequireAuth();
@@ -823,6 +831,9 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     map.current.on('load', () => {
       setMapLoaded(true);
 
+      // NOTE: Don't set initial viewport bounds here - let first query fetch ALL markers
+      // for fast initial load. Bbox filtering kicks in after user pans (via moveend handler).
+
       // If we have a saved viewport, no flyTo animation will occur
       // Enable heavy layers after first idle to ensure smooth initial render
       if (initialViewport) {
@@ -834,7 +845,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       // Otherwise, flyTo effect or fallback effect will enable heavy layers
     });
 
-    // Save viewport when map moves
+    // Save viewport when map moves + update bounds for viewport-based marker loading
     map.current.on('moveend', () => {
       if (onViewportChange) {
         onViewportChange({
@@ -842,6 +853,25 @@ function ExploreMap({ initialViewport, onViewportChange }) {
           zoom: map.current.getZoom(),
         });
       }
+
+      // Debounced bounds update for bbox-based marker loading
+      // Clears previous timeout to avoid rapid-fire API calls during pan/zoom
+      if (boundsDebounceRef.current) {
+        clearTimeout(boundsDebounceRef.current);
+      }
+      boundsDebounceRef.current = setTimeout(() => {
+        const bounds = map.current.getBounds();
+        // Add 20% padding to preload markers just outside viewport
+        const padding = 0.2;
+        const lngSpan = bounds.getEast() - bounds.getWest();
+        const latSpan = bounds.getNorth() - bounds.getSouth();
+        setViewportBounds({
+          west: bounds.getWest() - lngSpan * padding,
+          south: bounds.getSouth() - latSpan * padding,
+          east: bounds.getEast() + lngSpan * padding,
+          north: bounds.getNorth() + latSpan * padding,
+        });
+      }, 300); // 300ms debounce
     });
 
     // Close card/popup when clicking on map (not on markers)
@@ -888,6 +918,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     });
 
     return () => {
+      // Clear debounce timeout
+      if (boundsDebounceRef.current) {
+        clearTimeout(boundsDebounceRef.current);
+      }
       if (map.current) {
         map.current.remove();
         map.current = null;
@@ -1117,15 +1151,19 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     }
   }, [geojson, mapLoaded, isLoading]);
 
-  // Setup marker layers and event handlers - SEPARATED: one-time setup
+  // Setup marker layers and event handlers
+  // NOTE: This effect handles both layer creation AND handler registration.
+  // In React Strict Mode, cleanup removes handlers but layers persist in Mapbox.
+  // We must always re-register handlers even if source exists.
   useEffect(() => {
     if (!map.current || !mapLoaded || markers.length === 0) return;
 
-    // Skip if source already exists (layers already set up)
-    if (map.current.getSource('locations')) return;
+    const sourceExists = !!map.current.getSource('locations');
 
-    // Add new source with clustering enabled
-    map.current.addSource('locations', {
+    // Create source and layers only if they don't exist
+    if (!sourceExists) {
+      // Add new source with clustering enabled
+      map.current.addSource('locations', {
       type: 'geojson',
       data: geojson,
       cluster: true,
@@ -1262,6 +1300,20 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         'icon-allow-overlap': true,
       },
     });
+    } // End of if (!sourceExists)
+
+    // Remove any existing handlers before re-registering
+    // This prevents duplicate handlers if effect runs multiple times (React Strict Mode)
+    if (markerHandlersRef.current) {
+      const h = markerHandlersRef.current;
+      map.current.off('click', 'location-clusters', h.handleClusterClick);
+      map.current.off('mouseenter', 'location-clusters', h.handleClusterMouseEnter);
+      map.current.off('mouseleave', 'location-clusters', h.handleClusterMouseLeave);
+      const oldMarkerLayers = ['location-markers', 'location-marker-icons'];
+      map.current.off('click', oldMarkerLayers, h.handleLocationSelect);
+      map.current.off('mouseenter', oldMarkerLayers, h.handleMarkerMouseEnter);
+      map.current.off('mouseleave', oldMarkerLayers, h.handleMarkerMouseLeave);
+    }
 
     // Define named event handlers for cleanup
     const handleClusterClick = (e) => {
@@ -1370,7 +1422,8 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         { selected: true }
       );
 
-      // O(1) lookup using markerMapRef instead of .find()
+      // Get location from markerMap (has pre-parsed data)
+      // keepPreviousData in useMapMarkers ensures markerMap always has visible markers
       const location = markerMapRef.current.get(id);
       if (location) {
         // Check if we're switching between markers (for animation)

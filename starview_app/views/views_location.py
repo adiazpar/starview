@@ -406,24 +406,62 @@ class LocationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def map_geojson(self, request):
 
-        # Build cache key (different for authenticated vs anonymous users)
-        base_cache_key = map_geojson_key()
-        if request.user.is_authenticated:
-            cache_key = f'{base_cache_key}:user:{request.user.id}'
-        else:
-            cache_key = base_cache_key
+        # Parse optional bbox parameter (west,south,east,north)
+        # When bbox is provided, skip caching since viewports are highly variable
+        bbox_param = request.query_params.get('bbox')
+        bbox = None
+        if bbox_param:
+            try:
+                parts = [float(x) for x in bbox_param.split(',')]
+                if len(parts) == 4:
+                    west, south, east, north = parts
+                    # Validate bounds
+                    if -180 <= west <= 180 and -180 <= east <= 180 and -90 <= south <= 90 and -90 <= north <= 90:
+                        bbox = {'west': west, 'south': south, 'east': east, 'north': north}
+            except (ValueError, TypeError):
+                pass  # Invalid bbox format, ignore and return all locations
 
-        # Try to get from cache
-        cached_data = cache.get(cache_key)
-        if cached_data is not None:
-            return Response(cached_data)
+        # Only use cache when no bbox filter (full dataset)
+        cache_key = None
+        if not bbox:
+            base_cache_key = map_geojson_key()
+            if request.user.is_authenticated:
+                cache_key = f'{base_cache_key}:user:{request.user.id}'
+            else:
+                cache_key = base_cache_key
 
-        # Cache miss - get data from database with annotations
+            # Try to get from cache
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+
+        # Cache miss or bbox query - get data from database with annotations
         # Filter out extreme latitudes that don't render on Mapbox globe projection
         queryset = Location.objects.filter(
             latitude__gte=-MAX_RENDERABLE_LATITUDE,
             latitude__lte=MAX_RENDERABLE_LATITUDE
-        ).annotate(
+        )
+
+        # Apply bbox filter if provided (uses location_coords_idx index)
+        if bbox:
+            # Handle antimeridian crossing (west > east means crossing 180°)
+            if bbox['west'] > bbox['east']:
+                # Split into two ranges: west to 180 and -180 to east
+                queryset = queryset.filter(
+                    Q(longitude__gte=bbox['west'], longitude__lte=180) |
+                    Q(longitude__gte=-180, longitude__lte=bbox['east'])
+                )
+            else:
+                queryset = queryset.filter(
+                    longitude__gte=bbox['west'],
+                    longitude__lte=bbox['east']
+                )
+            queryset = queryset.filter(
+                latitude__gte=bbox['south'],
+                latitude__lte=bbox['north']
+            )
+
+        queryset = queryset.annotate(
             review_count_annotated=Count('reviews'),
             average_rating_annotated=Avg('reviews__rating')
         ).prefetch_related(
@@ -514,8 +552,9 @@ class LocationViewSet(viewsets.ModelViewSet):
             'features': features
         }
 
-        # Cache for 30 minutes
-        cache.set(cache_key, geojson, timeout=1800)
+        # Only cache full dataset (no bbox filter)
+        if cache_key:
+            cache.set(cache_key, geojson, timeout=1800)
 
         return Response(geojson)
 
