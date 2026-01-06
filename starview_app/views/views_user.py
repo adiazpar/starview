@@ -112,6 +112,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     #                                                                               #
     # Returns public information only (no email, no sensitive data).                #
     # Includes user stats: review count, locations reviewed, favorites, votes.      #
+    # System accounts return 404 to hide them from public access.                   #
     #                                                                               #
     # HTTP Method: GET                                                              #
     # Endpoint: /api/users/{username}/                                              #
@@ -120,6 +121,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     def retrieve(self, request, username=None):
         user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
+        # Hide system accounts from public access
+        if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
+            raise exceptions.NotFound('User not found.')
         serializer = PublicUserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
@@ -127,6 +131,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Get public reviews for any user by username.                                  #
     #                                                                               #
     # Returns paginated list of user's public reviews with location info.           #
+    # System accounts return 404 to hide them from public access.                   #
     #                                                                               #
     # HTTP Method: GET                                                              #
     # Endpoint: /api/users/{username}/reviews/                                      #
@@ -135,7 +140,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=True, methods=['get'], url_path='reviews')
     def reviews(self, request, username=None):
-        user = get_object_or_404(User, username=username)
+        user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
+        # Hide system accounts from public access
+        if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
+            raise exceptions.NotFound('User not found.')
         reviews = Review.objects.filter(user=user).select_related('location', 'user__userprofile').order_by('-created_at')
 
         # Pagination

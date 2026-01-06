@@ -59,6 +59,10 @@ class UserProfile(models.Model):
         default=False,
         help_text="Verified badge status for user profile"
     )
+    is_system_account = models.BooleanField(
+        default=False,
+        help_text="System accounts are hidden from public profiles, sitemaps, and cannot be followed"
+    )
 
     # Badge pinning (max 3 pinned badges displayed on profile header):
     pinned_badge_ids = ArrayField(

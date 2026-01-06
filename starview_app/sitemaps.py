@@ -54,33 +54,52 @@ class StaticViewSitemap(CanonicalSitemap):
 
 
 # Sitemap for public user profile pages.
-# Only includes users with actual content to avoid soft 404 issues.
+# Only includes users with actual content/activity to avoid soft 404 issues.
 # Google treats empty profiles as soft 404s because they lack substantive content.
+# System accounts are always excluded from the sitemap.
 class UserProfileSitemap(CanonicalSitemap):
     priority = 0.6
     changefreq = 'weekly'
 
     def items(self):
-        from django.db.models import Count
-        # Only include users who have at least 1 review (actual content)
+        from django.db.models import Q, Count
+        # Include users who show any sign of activity:
+        # - has 1+ reviews
+        # - has a bio
+        # - has 1+ followers
+        # - is following 1+ people
+        # - has pinned badges
+        # - is verified
         # This prevents Google from flagging empty profiles as soft 404s
+        # while still indexing engaged users without reviews yet
         return User.objects.filter(
-            is_active=True
+            is_active=True,
+            userprofile__is_system_account=False
         ).annotate(
-            review_count=Count('location_reviews')
+            review_count=Count('location_reviews', distinct=True),
+            follower_count=Count('followers', distinct=True),
+            following_count=Count('following', distinct=True)
         ).filter(
-            review_count__gt=0
+            Q(review_count__gt=0) |
+            Q(userprofile__bio__gt='') |
+            Q(follower_count__gt=0) |
+            Q(following_count__gt=0) |
+            Q(userprofile__pinned_badge_ids__len__gt=0) |
+            Q(userprofile__is_verified=True)
         ).select_related('userprofile').order_by('-date_joined')[:1000]
 
     def location(self, user):
         return f'/users/{user.username}'
 
     def lastmod(self, user):
-        # Use most recent review date if available, otherwise join date
+        # Use most recent activity date (review or profile update)
         from starview_app.models.model_review import Review
         latest_review = Review.objects.filter(user=user).order_by('-created_at').first()
         if latest_review:
             return latest_review.created_at
+        # Fall back to profile update time or join date
+        if hasattr(user, 'userprofile') and user.userprofile.updated_at:
+            return user.userprofile.updated_at
         return user.date_joined
 
 

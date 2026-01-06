@@ -36,7 +36,7 @@ from ..serializers import PublicUserSerializer
 # Follow/unfollow a user.                                                       #
 #                                                                               #
 # Creates or deletes a Follow relationship between the authenticated user and  #
-# the target user. Prevents self-follows via model validation.                 #
+# the target user. Prevents self-follows and following system accounts.        #
 #                                                                               #
 # HTTP Method: POST (follow) / DELETE (unfollow)                                #
 # Endpoint: /api/users/{username}/follow/                                       #
@@ -47,7 +47,11 @@ from ..serializers import PublicUserSerializer
 @permission_classes([IsAuthenticated])
 def toggle_follow(request, username):
     # Get the user to follow/unfollow
-    target_user = get_object_or_404(User, username=username)
+    target_user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
+
+    # Prevent following system accounts
+    if hasattr(target_user, 'userprofile') and target_user.userprofile.is_system_account:
+        raise exceptions.NotFound("User not found.")
 
     # Prevent self-follows
     if request.user == target_user:
@@ -92,6 +96,7 @@ def toggle_follow(request, username):
 
 # ----------------------------------------------------------------------------- #
 # Check if authenticated user is following a specific user.                     #
+# System accounts return 404 to hide them from public access.                   #
 #                                                                               #
 # HTTP Method: GET                                                              #
 # Endpoint: /api/users/{username}/is-following/                                 #
@@ -101,7 +106,11 @@ def toggle_follow(request, username):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def check_following(request, username):
-    target_user = get_object_or_404(User, username=username)
+    target_user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
+
+    # Hide system accounts
+    if hasattr(target_user, 'userprofile') and target_user.userprofile.is_system_account:
+        raise exceptions.NotFound("User not found.")
 
     is_following = Follow.objects.filter(
         follower=request.user,
@@ -116,6 +125,7 @@ def check_following(request, username):
 
 # ----------------------------------------------------------------------------- #
 # Get list of users who follow the specified user (followers).                  #
+# System accounts are hidden from this list and cannot be queried.              #
 #                                                                               #
 # HTTP Method: GET                                                              #
 # Endpoint: /api/users/{username}/followers/                                    #
@@ -125,11 +135,16 @@ def check_following(request, username):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_followers(request, username):
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
 
-    # Get all users who follow this user
+    # Hide system accounts
+    if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
+        raise exceptions.NotFound("User not found.")
+
+    # Get all users who follow this user (excluding system accounts)
     followers = Follow.objects.filter(
-        following=user
+        following=user,
+        follower__userprofile__is_system_account=False
     ).select_related('follower__userprofile')
 
     # Extract the follower users
@@ -147,6 +162,7 @@ def get_followers(request, username):
 
 # ----------------------------------------------------------------------------- #
 # Get list of users that the specified user is following.                       #
+# System accounts are hidden from this list and cannot be queried.              #
 #                                                                               #
 # HTTP Method: GET                                                              #
 # Endpoint: /api/users/{username}/following/                                    #
@@ -156,11 +172,16 @@ def get_followers(request, username):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_following(request, username):
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(User.objects.select_related('userprofile'), username=username)
 
-    # Get all users that this user follows
+    # Hide system accounts
+    if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
+        raise exceptions.NotFound("User not found.")
+
+    # Get all users that this user follows (excluding system accounts)
     following = Follow.objects.filter(
-        follower=user
+        follower=user,
+        following__userprofile__is_system_account=False
     ).select_related('following__userprofile')
 
     # Extract the following users
