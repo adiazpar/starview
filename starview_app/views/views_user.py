@@ -579,6 +579,28 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
+    # Dismiss the location onboarding prompt.                                       #
+    #                                                                               #
+    # Called when user clicks "Skip for now" on the location onboarding modal.      #
+    # Prevents the modal from appearing again on subsequent logins.                 #
+    #                                                                               #
+    # HTTP Method: POST                                                             #
+    # Endpoint: /api/users/me/dismiss-location-prompt/                              #
+    # Authentication: Required                                                      #
+    # Returns: DRF Response with success status                                     #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=False, methods=['post'], url_path='me/dismiss-location-prompt')
+    def dismiss_location_prompt(self, request):
+        profile = request.user.userprofile
+        profile.location_prompt_dismissed = True
+        profile.save()
+
+        return Response({
+            'detail': 'Location prompt dismissed.'
+        }, status=status.HTTP_200_OK)
+
+
+    # ----------------------------------------------------------------------------- #
     # Update user's unit preference (metric or imperial).                           #
     #                                                                               #
     # Controls how distances and elevations are displayed across the app.           #

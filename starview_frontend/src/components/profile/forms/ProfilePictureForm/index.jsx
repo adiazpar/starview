@@ -4,6 +4,7 @@
  * Form component for uploading and removing profile pictures.
  * Uses view/edit mode pattern for cleaner UX.
  * Includes validation for file size (5MB max) and file type (images only).
+ * Supports deep-linking via scrollTo prop.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -11,8 +12,9 @@ import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import './styles.css';
 
-function ProfilePictureForm({ user, refreshAuth }) {
+function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
   const fileInputRef = useRef(null);
+  const sectionRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -27,6 +29,16 @@ function ProfilePictureForm({ user, refreshAuth }) {
       setProfilePicture(user.profile_picture_url);
     }
   }, [user?.profile_picture_url]);
+
+  // Scroll to this section when linked from another page
+  useEffect(() => {
+    if (scrollTo && sectionRef.current) {
+      // Small delay to ensure collapsible section is expanded
+      setTimeout(() => {
+        sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [scrollTo]);
 
   const handlePictureUpload = async (e) => {
     const file = e.target.files[0];
@@ -89,7 +101,7 @@ function ProfilePictureForm({ user, refreshAuth }) {
   };
 
   return (
-    <div className="profile-form-section">
+    <div className="profile-form-section" ref={sectionRef}>
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">

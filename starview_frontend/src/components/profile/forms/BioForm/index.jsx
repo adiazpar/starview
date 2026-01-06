@@ -4,17 +4,19 @@
  * Form component for updating user bio.
  * Uses view/edit mode pattern for cleaner UX.
  * Max 150 characters with character counter.
+ * Supports deep-linking via scrollTo prop.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
 import './styles.css';
 
-function BioForm({ user, refreshAuth }) {
+function BioForm({ user, refreshAuth, scrollTo = false }) {
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState(user?.bio || '');
+  const sectionRef = useRef(null);
 
   // Update bio when user data changes
   useEffect(() => {
@@ -22,6 +24,16 @@ function BioForm({ user, refreshAuth }) {
       setBio(user.bio || '');
     }
   }, [user?.bio]);
+
+  // Scroll to this section when linked from another page
+  useEffect(() => {
+    if (scrollTo && sectionRef.current) {
+      // Small delay to ensure collapsible section is expanded
+      setTimeout(() => {
+        sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [scrollTo]);
 
   const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
     onSubmit: async () => await profileApi.updateBio({ bio }),
@@ -39,7 +51,7 @@ function BioForm({ user, refreshAuth }) {
   };
 
   return (
-    <div className="profile-form-section">
+    <div className="profile-form-section" ref={sectionRef}>
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">

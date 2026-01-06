@@ -105,6 +105,15 @@ export const profileApi = {
   },
 
   /**
+   * Dismiss the location onboarding prompt
+   * Called when user clicks "Skip for now" on the location modal
+   * @returns {Promise} - { detail: string }
+   */
+  dismissLocationPrompt: () => {
+    return api.post('/users/me/dismiss-location-prompt/');
+  },
+
+  /**
    * Update user's unit preference (metric or imperial)
    * @param {Object} data - Unit preference data
    * @param {string} data.unit_preference - 'metric' or 'imperial'

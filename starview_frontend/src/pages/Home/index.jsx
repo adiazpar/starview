@@ -3,14 +3,25 @@
  * Features animated hero, real platform stats, and feature highlights.
  */
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePlatformStats } from '../../hooks/useStats';
 import { useAuth } from '../../context/AuthContext';
+import ProfileSetupCard from '../../components/home/ProfileSetupCard';
 import './styles.css';
 
 function HomePage() {
   const { stats, showStats } = usePlatformStats();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Navigate to profile settings, optionally scrolling to a specific section
+  const handleNavigateToSettings = (scrollTo) => {
+    if (scrollTo) {
+      navigate(`/profile?scrollTo=${scrollTo}`);
+    } else {
+      navigate('/profile');
+    }
+  };
 
   return (
     <main className="home">
@@ -69,6 +80,14 @@ function HomePage() {
         {/* Decorative glow */}
         <div className="hero__glow"></div>
       </section>
+
+      {/* Profile setup card for authenticated users */}
+      {isAuthenticated && user && (
+        <ProfileSetupCard
+          user={user}
+          onNavigateToSettings={handleNavigateToSettings}
+        />
+      )}
 
       {/* Features Section */}
       <section className="features">

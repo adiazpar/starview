@@ -1,0 +1,442 @@
+/* ========================================================================
+   ProfileSetupCard Component Styles
+   Observatory instrument panel aesthetic - "System Calibration" card
+   ======================================================================== */
+
+/* Wrapper - provides spacing context */
+.profile-setup-card-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.profile-setup-card {
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  animation: cardFadeIn 0.5s ease-out backwards;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* Top accent line */
+.profile-setup-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+  opacity: 0.6;
+}
+
+/* Subtle scan line animation */
+.profile-setup-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+  opacity: 0;
+  animation: scanLine 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes scanLine {
+  0%, 100% { top: 0; opacity: 0; }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ========================================================================
+   Corner Accents - Instrument panel brackets
+   ======================================================================== */
+
+.profile-setup-card__corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0.5;
+}
+
+.profile-setup-card__corner--tl {
+  top: 8px;
+  left: 8px;
+  border-top: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+}
+
+.profile-setup-card__corner--tr {
+  top: 8px;
+  right: 8px;
+  border-top: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+}
+
+.profile-setup-card__corner--bl {
+  bottom: 8px;
+  left: 8px;
+  border-bottom: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+}
+
+.profile-setup-card__corner--br {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+}
+
+/* ========================================================================
+   Header - Progress ring and title
+   ======================================================================== */
+
+.profile-setup-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Progress Ring */
+.profile-setup-card__progress {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.profile-setup-card__ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.profile-setup-card__ring-track {
+  stroke: var(--border);
+}
+
+.profile-setup-card__ring-progress {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 6px var(--glow-primary));
+  transition: stroke-dashoffset 0.6s ease-out;
+}
+
+.profile-setup-card__ring-glow {
+  opacity: 0.5;
+}
+
+/* Percentage display in center of ring */
+.profile-setup-card__percentage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.profile-setup-card__percentage-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.profile-setup-card__percentage-symbol {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Title area */
+.profile-setup-card__title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-setup-card__label {
+  display: inline-block;
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: var(--space-xs);
+  padding: 2px 8px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+}
+
+.profile-setup-card__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-xs);
+  letter-spacing: -0.01em;
+}
+
+.profile-setup-card__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ========================================================================
+   Task Checklist
+   ======================================================================== */
+
+.profile-setup-card__tasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.profile-setup-card__task {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  animation: taskSlideIn 0.4s ease-out backwards;
+}
+
+@keyframes taskSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.profile-setup-card__task:hover {
+  background: rgba(0, 212, 170, 0.05);
+  border-color: var(--accent-border);
+}
+
+/* Completed task styling */
+.profile-setup-card__task--complete {
+  opacity: 0.6;
+}
+
+.profile-setup-card__task--complete:hover {
+  opacity: 0.8;
+  background: var(--bg-base);
+  border-color: var(--border);
+}
+
+/* Task status indicator */
+.profile-setup-card__task-status {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+  transition: all 0.2s ease;
+}
+
+/* Incomplete task indicator */
+.profile-setup-card__task:not(.profile-setup-card__task--complete) .profile-setup-card__task-status {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+}
+
+.profile-setup-card__task:not(.profile-setup-card__task--complete):hover .profile-setup-card__task-status {
+  background: rgba(0, 212, 170, 0.15);
+  box-shadow: 0 0 12px var(--glow-primary);
+}
+
+/* Completed task indicator */
+.profile-setup-card__task--complete .profile-setup-card__task-status {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+}
+
+/* Task content */
+.profile-setup-card__task-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-setup-card__task-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.profile-setup-card__task--complete .profile-setup-card__task-label {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted);
+}
+
+.profile-setup-card__task-description {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Arrow indicator */
+.profile-setup-card__task-arrow {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.profile-setup-card__task:hover .profile-setup-card__task-arrow {
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* ========================================================================
+   Footer CTA
+   ======================================================================== */
+
+.profile-setup-card__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profile-setup-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-setup-card__cta:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--glow-primary);
+}
+
+.profile-setup-card__cta i {
+  font-size: var(--text-xs);
+  transition: transform 0.2s ease;
+}
+
+.profile-setup-card__cta:hover i {
+  transform: translateX(3px);
+}
+
+/* ========================================================================
+   Responsive
+   ======================================================================== */
+
+@media (max-width: 768px) {
+  .profile-setup-card-wrapper {
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-setup-card {
+    padding: var(--space-md);
+  }
+
+  .profile-setup-card__header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .profile-setup-card__progress {
+    width: 72px;
+    height: 72px;
+  }
+
+  .profile-setup-card__percentage-value {
+    font-size: var(--text-xl);
+  }
+
+  .profile-setup-card__title {
+    font-size: var(--text-base);
+  }
+
+  .profile-setup-card__task {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .profile-setup-card__task-status {
+    width: 28px;
+    height: 28px;
+    font-size: var(--text-xs);
+  }
+
+  .profile-setup-card__footer {
+    justify-content: center;
+  }
+
+  .profile-setup-card__cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========================================================================
+   Reduced Motion
+   ======================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-setup-card,
+  .profile-setup-card__task,
+  .profile-setup-card::after {
+    animation: none;
+  }
+
+  .profile-setup-card__ring-progress {
+    transition: none;
+  }
+}

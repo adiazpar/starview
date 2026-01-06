@@ -85,6 +85,12 @@ class UserProfile(models.Model):
         help_text="User's preferred unit system for distances and elevations"
     )
 
+    # Onboarding tracking:
+    location_prompt_dismissed = models.BooleanField(
+        default=False,
+        help_text="Whether user has dismissed the location onboarding modal"
+    )
+
 
     # Returns profile picture URL or default if none set:
     @property

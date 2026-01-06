@@ -115,6 +115,44 @@ export function getAvailableNavigationApps() {
 }
 
 /**
+ * Reverse geocode coordinates to a place name using Mapbox Geocoding API.
+ * Returns a human-readable location string (e.g., "Seattle, Washington, United States").
+ * @param {number} latitude - Latitude coordinate
+ * @param {number} longitude - Longitude coordinate
+ * @returns {Promise<{placeName: string, latitude: number, longitude: number}>}
+ * @throws {Error} - If coordinates cannot be reverse geocoded
+ */
+export async function reverseGeocode(latitude, longitude) {
+  if (!MAPBOX_TOKEN) {
+    throw new Error('Geocoding service unavailable');
+  }
+
+  const response = await fetch(
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?` +
+    `access_token=${MAPBOX_TOKEN}&types=place,locality,region&limit=1`
+  );
+
+  if (!response.ok) {
+    throw new Error('Unable to determine location');
+  }
+
+  const data = await response.json();
+
+  if (!data.features || data.features.length === 0) {
+    throw new Error('Location not found');
+  }
+
+  // Use the place_name which includes city, region, country
+  const placeName = data.features[0].place_name;
+
+  return {
+    placeName,
+    latitude,
+    longitude
+  };
+}
+
+/**
  * Geocode an address string to coordinates using Mapbox Geocoding API.
  * @param {string} address - Address string to geocode
  * @returns {Promise<{latitude: number, longitude: number}>} - Coordinates
