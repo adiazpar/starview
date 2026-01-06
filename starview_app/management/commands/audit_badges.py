@@ -1,18 +1,21 @@
 """
 Django management command to audit and fix user badges.
 
-This command checks all users' badges to ensure they still meet the criteria.
-Useful for cleaning up orphaned badges after bulk deletions or system changes.
+This command checks all users' badges to ensure they still meet the criteria,
+and can also award badges to users who qualify but don't have them.
 
 Usage:
     python manage.py audit_badges              # Preview mode (shows what would be fixed)
     python manage.py audit_badges --fix        # Actually revoke invalid badges
+    python manage.py audit_badges --award      # Award missing badges to qualifying users
+    python manage.py audit_badges --fix --award # Both revoke invalid and award missing
     python manage.py audit_badges --user stony # Audit specific user only
 
 Features:
 - Checks all badge categories (Exploration, Contribution, Quality, Review, Community, Special)
 - Shows detailed report of invalid badges
-- Safe preview mode by default (--fix required to make changes)
+- Awards missing badges to qualifying users (--award flag)
+- Safe preview mode by default (--fix/--award required to make changes)
 - Can audit specific user or all users
 - Colorized output for easy reading
 """
@@ -36,6 +39,11 @@ class Command(BaseCommand):
             help='Actually revoke invalid badges (default is preview mode)',
         )
         parser.add_argument(
+            '--award',
+            action='store_true',
+            help='Award missing badges to users who qualify',
+        )
+        parser.add_argument(
             '--user',
             type=str,
             help='Audit specific user only (username)',
@@ -43,17 +51,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fix_mode = options['fix']
+        award_mode = options['award']
         username = options.get('user')
 
         self.stdout.write("=" * 70)
         self.stdout.write(self.style.SUCCESS("BADGE AUDIT REPORT"))
         self.stdout.write("=" * 70)
 
-        if fix_mode:
-            self.stdout.write(self.style.WARNING("\n⚠️  FIX MODE: Invalid badges WILL be revoked\n"))
+        if fix_mode or award_mode:
+            if fix_mode:
+                self.stdout.write(self.style.WARNING("\n⚠️  FIX MODE: Invalid badges WILL be revoked"))
+            if award_mode:
+                self.stdout.write(self.style.WARNING("⚠️  AWARD MODE: Missing badges WILL be awarded"))
+            self.stdout.write("")
         else:
             self.stdout.write(self.style.NOTICE("\n📋 PREVIEW MODE: No changes will be made"))
-            self.stdout.write(self.style.NOTICE("    Use --fix to actually revoke invalid badges\n"))
+            self.stdout.write(self.style.NOTICE("    Use --fix to revoke invalid badges"))
+            self.stdout.write(self.style.NOTICE("    Use --award to award missing badges\n"))
 
         # Get users to audit (excluding system users)
         if username:
@@ -76,12 +90,16 @@ class Command(BaseCommand):
             'users_with_issues': 0,
             'total_invalid_badges': 0,
             'by_category': {},
+            'users_missing_badges': 0,
+            'total_missing_badges': 0,
+            'missing_by_category': {},
         }
 
         # Audit each user
         for user in users:
             stats['users_checked'] += 1
             invalid_badges = self.audit_user(user, fix_mode)
+            missing_badges = self.check_missing_badges(user, award_mode)
 
             if invalid_badges:
                 stats['users_with_issues'] += 1
@@ -106,6 +124,30 @@ class Command(BaseCommand):
                     )
                     self.stdout.write(f"      Reason: {reason}")
 
+            if missing_badges:
+                stats['users_missing_badges'] += 1
+                stats['total_missing_badges'] += len(missing_badges)
+
+                if not invalid_badges:
+                    self.stdout.write(self.style.NOTICE(f"\n👤 User: {user.username}"))
+                self.stdout.write(f"   Missing badges: {len(missing_badges)}")
+
+                for badge_info in missing_badges:
+                    badge = badge_info['badge']
+                    reason = badge_info['reason']
+
+                    # Track by category
+                    cat = badge.category
+                    stats['missing_by_category'][cat] = stats['missing_by_category'].get(cat, 0) + 1
+
+                    status = "✓ AWARDED" if award_mode else "➕ WOULD AWARD"
+                    color = self.style.SUCCESS if award_mode else self.style.NOTICE
+
+                    self.stdout.write(
+                        f"   {color(status)}: {badge.name} ({badge.category})"
+                    )
+                    self.stdout.write(f"      Reason: {reason}")
+
         # Print summary
         self.stdout.write("\n" + "=" * 70)
         self.stdout.write(self.style.SUCCESS("AUDIT SUMMARY"))
@@ -113,26 +155,40 @@ class Command(BaseCommand):
         self.stdout.write(f"Users checked: {stats['users_checked']}")
         self.stdout.write(f"Users with invalid badges: {stats['users_with_issues']}")
         self.stdout.write(f"Total invalid badges: {stats['total_invalid_badges']}")
+        self.stdout.write(f"Users missing badges: {stats['users_missing_badges']}")
+        self.stdout.write(f"Total missing badges: {stats['total_missing_badges']}")
 
         if stats['by_category']:
             self.stdout.write("\nInvalid badges by category:")
             for category, count in sorted(stats['by_category'].items()):
                 self.stdout.write(f"  - {category}: {count}")
 
-        if stats['total_invalid_badges'] == 0:
-            self.stdout.write(self.style.SUCCESS("\n✅ All badges are valid! No issues found."))
-        elif not fix_mode:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"\n⚠️  Run with --fix to revoke {stats['total_invalid_badges']} invalid badge(s)"
-                )
-            )
+        if stats['missing_by_category']:
+            self.stdout.write("\nMissing badges by category:")
+            for category, count in sorted(stats['missing_by_category'].items()):
+                self.stdout.write(f"  - {category}: {count}")
+
+        # Summary messages
+        messages = []
+
+        if stats['total_invalid_badges'] == 0 and stats['total_missing_badges'] == 0:
+            self.stdout.write(self.style.SUCCESS("\n✅ All badges are valid and complete! No issues found."))
         else:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"\n✅ Successfully revoked {stats['total_invalid_badges']} invalid badge(s)"
-                )
-            )
+            if stats['total_invalid_badges'] > 0:
+                if fix_mode:
+                    messages.append(self.style.SUCCESS(f"✅ Revoked {stats['total_invalid_badges']} invalid badge(s)"))
+                else:
+                    messages.append(self.style.WARNING(f"⚠️  Run with --fix to revoke {stats['total_invalid_badges']} invalid badge(s)"))
+
+            if stats['total_missing_badges'] > 0:
+                if award_mode:
+                    messages.append(self.style.SUCCESS(f"✅ Awarded {stats['total_missing_badges']} missing badge(s)"))
+                else:
+                    messages.append(self.style.NOTICE(f"➕ Run with --award to award {stats['total_missing_badges']} missing badge(s)"))
+
+            self.stdout.write("")
+            for msg in messages:
+                self.stdout.write(msg)
 
     def audit_user(self, user, fix_mode):
         """
@@ -250,6 +306,14 @@ class Command(BaseCommand):
                         should_revoke = True
                         reason = f"Has {photo_count} photos, needs 25"
 
+                # Check Mission Ready badge (profile completion)
+                elif badge.slug == 'mission-ready':
+                    status = BadgeService.get_profile_completion_status(user)
+                    if not status['is_complete']:
+                        incomplete = [i['field'] for i in status['items'] if not i['complete']]
+                        should_revoke = True
+                        reason = f"Profile incomplete: missing {', '.join(incomplete)}"
+
             elif badge.category == 'TENURE':
                 # Pioneer badge - never revoke (it's a historical achievement)
                 # Users who were in first 100 keep it permanently
@@ -266,3 +330,37 @@ class Command(BaseCommand):
                     user_badge.delete()
 
         return invalid_badges
+
+    def check_missing_badges(self, user, award_mode):
+        """
+        Check if user qualifies for badges they don't have yet.
+
+        Args:
+            user: User object to check
+            award_mode: If True, actually award missing badges
+
+        Returns:
+            List of dicts with 'badge' and 'reason' keys
+        """
+        missing_badges = []
+
+        # Get badges user already has
+        user_badge_ids = set(UserBadge.objects.filter(user=user).values_list('badge_id', flat=True))
+
+        # Check Mission Ready badge (profile completion)
+        mission_ready = Badge.objects.filter(slug='mission-ready').first()
+        if mission_ready and mission_ready.id not in user_badge_ids:
+            status = BadgeService.get_profile_completion_status(user)
+            if status['is_complete']:
+                missing_badges.append({
+                    'badge': mission_ready,
+                    'reason': f"Profile complete ({status['completed']}/{status['total']} fields)"
+                })
+
+                if award_mode:
+                    BadgeService.award_badge(user, mission_ready)
+
+        # Could add other badge checks here in the future
+        # For example: exploration badges, contribution badges, etc.
+
+        return missing_badges

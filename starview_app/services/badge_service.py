@@ -530,6 +530,12 @@ class BadgeService:
             'comment_count': ReviewComment.objects.filter(user=user).count(),
         }
 
+        # Calculate profile completion progress (for Mission Ready badge)
+        # Uses centralized PROFILE_COMPLETION_REQUIREMENTS config
+        profile_status = BadgeService.get_profile_completion_status(user)
+        stats['profile_fields_complete'] = profile_status['completed']
+        stats['total_profile_fields'] = profile_status['total']
+
         # OPTIMIZATION: Use select_related to fetch badge data in single query
         # This eliminates N+1 pattern by fetching all UserBadge records with
         # their related Badge data in one query with a JOIN
@@ -572,13 +578,20 @@ class BadgeService:
                     # Calculate progress
                     progress = BadgeService._calculate_progress(user, badge, stats)
 
-                    if progress > 0 and progress < badge.criteria_value and not next_tier_found:
+                    # For PROFILE_COMPLETE, use dynamic total from requirements config
+                    # This ensures adding new requirements doesn't require DB updates
+                    if badge.criteria_type == 'PROFILE_COMPLETE':
+                        criteria_value = stats['total_profile_fields']
+                    else:
+                        criteria_value = badge.criteria_value
+
+                    if progress > 0 and progress < criteria_value and not next_tier_found:
                         # In progress - only the FIRST unearned badge with progress
                         result['in_progress'].append({
                             'badge': badge,
                             'current_progress': progress,
-                            'criteria_value': badge.criteria_value,
-                            'percentage': int((progress / badge.criteria_value) * 100)
+                            'criteria_value': criteria_value,
+                            'percentage': int((progress / criteria_value) * 100)
                         })
                         next_tier_found = True  # Mark that we found the next tier
                     else:
@@ -597,7 +610,7 @@ class BadgeService:
     #                                                                               #
     # Maps badge criteria type to the corresponding stat value.                     #
     #                                                                               #
-    # Args:     user (User): The user (unused, for future enhancements)             #
+    # Args:     user (User): The user to calculate progress for                     #
     #           badge (Badge): The badge to calculate progress for                  #
     #           stats (dict): Pre-calculated user stats                             #
     # Returns:  int: Current progress toward badge                                  #
@@ -611,6 +624,11 @@ class BadgeService:
             'FOLLOWER_COUNT': stats['follower_count'],
             'COMMENTS_WRITTEN': stats['comment_count'],
         }
+
+        # Handle PROFILE_COMPLETE specially (count completed fields out of total)
+        if badge.criteria_type == 'PROFILE_COMPLETE':
+            return stats.get('profile_fields_complete', 0)
+
         return criteria_map.get(badge.criteria_type, 0)
 
 
@@ -901,3 +919,103 @@ class BadgeService:
                 return [photographer_badge.id]
 
         return []
+
+
+    # ----------------------------------------------------------------------------- #
+    # Profile completion requirements configuration.                                #
+    #                                                                               #
+    # SINGLE SOURCE OF TRUTH for what fields are required for profile completion.   #
+    # Add new requirements here - badge logic automatically adapts.                 #
+    #                                                                               #
+    # Each entry is a tuple: (field_name, check_function)                           #
+    # - field_name: Human-readable name for the requirement                         #
+    # - check_function: Lambda that takes profile and returns True if complete      #
+    # ----------------------------------------------------------------------------- #
+    PROFILE_COMPLETION_REQUIREMENTS = [
+        ('location', lambda p: bool(p.location)),
+        ('bio', lambda p: bool(p.bio)),
+        ('profile_picture', lambda p: bool(p.profile_picture) and hasattr(p.profile_picture, 'url')),
+        # Add new requirements here, e.g.:
+        # ('website', lambda p: bool(p.website)),
+        # ('social_connected', lambda p: p.has_connected_social),
+    ]
+
+    # ----------------------------------------------------------------------------- #
+    # Get profile completion status for a user.                                     #
+    #                                                                               #
+    # Returns count of completed fields and total required fields.                  #
+    # Used by badge check and can be exposed via API for frontend progress display. #
+    #                                                                               #
+    # Args:     user (User): The user to check                                      #
+    # Returns:  dict: {'completed': int, 'total': int, 'is_complete': bool}         #
+    # ----------------------------------------------------------------------------- #
+    @staticmethod
+    def get_profile_completion_status(user):
+        profile = user.userprofile
+        requirements = BadgeService.PROFILE_COMPLETION_REQUIREMENTS
+
+        # Build detailed status for each requirement
+        items = []
+        for field_name, check in requirements:
+            is_complete = check(profile)
+            items.append({
+                'field': field_name,
+                'complete': is_complete
+            })
+
+        completed = sum(1 for item in items if item['complete'])
+        total = len(requirements)
+
+        return {
+            'completed': completed,
+            'total': total,
+            'is_complete': completed == total,
+            'items': items  # Detailed breakdown of each requirement
+        }
+
+    # ----------------------------------------------------------------------------- #
+    # Check/update Mission Ready badge (profile completion).                        #
+    #                                                                               #
+    # REVOCABLE BADGE: Awards when profile is complete, revokes when incomplete.    #
+    #                                                                               #
+    # Triggered by profile updates (location, bio, profile picture).                #
+    # Uses PROFILE_COMPLETION_REQUIREMENTS config - add new fields there.           #
+    #                                                                               #
+    # Args:     user (User): The user to check profile completion for               #
+    # Returns:  dict: {'awarded': bool, 'revoked': bool, 'badge_id': int|None}      #
+    # ----------------------------------------------------------------------------- #
+    @staticmethod
+    def check_profile_complete_badge(user):
+        if is_system_user(user):
+            return {'awarded': False, 'revoked': False, 'badge_id': None}
+
+        # Get the Mission Ready badge (cached - no database query after first call)
+        mission_ready_badge = get_badge_by_slug('mission-ready')
+
+        if not mission_ready_badge:
+            return {'awarded': False, 'revoked': False, 'badge_id': None}
+
+        # Check profile completion using centralized config
+        status = BadgeService.get_profile_completion_status(user)
+        is_complete = status['is_complete']
+
+        # Check if user currently has the badge
+        user_badge = UserBadge.objects.filter(
+            user=user,
+            badge=mission_ready_badge
+        ).first()
+
+        result = {'awarded': False, 'revoked': False, 'badge_id': mission_ready_badge.id}
+
+        if is_complete and not user_badge:
+            # Profile complete and user doesn't have badge - award it
+            BadgeService.award_badge(user, mission_ready_badge)
+            result['awarded'] = True
+
+        elif not is_complete and user_badge:
+            # Profile incomplete and user has badge - revoke it
+            user_badge.delete()
+            BadgeService.invalidate_badge_progress_cache(user)
+            result['revoked'] = True
+
+        return result

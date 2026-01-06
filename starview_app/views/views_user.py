@@ -218,6 +218,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user_profile.profile_picture = profile_picture
         user_profile.save()
 
+        # Check profile completion badge (may award Mission Ready)
+        from starview_app.services.badge_service import BadgeService
+        BadgeService.check_profile_complete_badge(request.user)
+
         return Response({
             'detail': 'Profile picture updated successfully',
             'image_url': user_profile.profile_picture.url
@@ -244,6 +248,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Reset to default (model returns default URL when profile_picture is None)
         user_profile.profile_picture = None
         user_profile.save()
+
+        # Check profile completion badge (may revoke Mission Ready)
+        from starview_app.services.badge_service import BadgeService
+        BadgeService.check_profile_complete_badge(request.user)
 
         return Response({
             'detail': 'Profile picture removed successfully',
@@ -523,6 +531,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         profile.bio = bio
         profile.save()
 
+        # Check profile completion badge (may award/revoke Mission Ready)
+        from starview_app.services.badge_service import BadgeService
+        BadgeService.check_profile_complete_badge(request.user)
+
         return Response({
             'detail': 'Bio updated successfully.',
             'bio': bio
@@ -570,6 +582,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 profile.location_longitude = None
 
         profile.save()
+
+        # Check profile completion badge (may award/revoke Mission Ready)
+        from starview_app.services.badge_service import BadgeService
+        BadgeService.check_profile_complete_badge(request.user)
 
         # Only return location text - coordinates are private
         return Response({
