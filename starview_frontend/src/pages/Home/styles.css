@@ -4,28 +4,6 @@
  */
 
 /* ============================================ */
-/* OBSERVATORY GRID BACKGROUND */
-/* ============================================ */
-
-.home {
-  position: relative;
-}
-
-.home::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--accent-bg) 1px, transparent 1px),
-    linear-gradient(90deg, var(--accent-bg) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 70%);
-}
-
-/* ============================================ */
 /* HERO SECTION - COMMAND CENTER */
 /* ============================================ */
 
@@ -596,10 +574,6 @@
 /* ============================================ */
 
 @media (max-width: 768px) {
-  .home::before {
-    background-size: 40px 40px;
-  }
-
   .hero {
     padding: var(--space-lg) var(--space-md);
     min-height: calc(100svh - var(--navbar-total-height));
