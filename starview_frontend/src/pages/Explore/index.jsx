@@ -44,6 +44,8 @@ function ExplorePage() {
 
   const handleToggleView = useCallback(() => {
     setView(prev => prev === 'list' ? 'map' : 'list');
+    // Reset scroll position when switching views
+    window.scrollTo(0, 0);
   }, []);
 
   const handlePressLocation = useCallback((location) => {
