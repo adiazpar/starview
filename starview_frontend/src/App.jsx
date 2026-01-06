@@ -30,10 +30,16 @@ function App() {
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   // Show location onboarding modal for authenticated users without location
+  // Delay appearance to let the home page render first for a smoother experience
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
       const shouldShowModal = !user.location && !user.location_prompt_dismissed;
-      setShowLocationModal(shouldShowModal);
+      if (shouldShowModal) {
+        const timer = setTimeout(() => {
+          setShowLocationModal(true);
+        }, 600);
+        return () => clearTimeout(timer);
+      }
     }
   }, [loading, isAuthenticated, user]);
 

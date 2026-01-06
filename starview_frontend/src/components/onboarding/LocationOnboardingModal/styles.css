@@ -3,7 +3,7 @@
    Observatory aesthetic with glass-morphism effects
    ======================================================================== */
 
-/* Overlay - Dark backdrop with subtle animation */
+/* Overlay - Dark backdrop with smooth fade-in animation */
 .location-modal-overlay {
   position: fixed;
   inset: 0;
@@ -15,15 +15,19 @@
   justify-content: center;
   z-index: var(--z-modal);
   padding: var(--space-md);
-  animation: fadeIn 0.2s ease-out;
+  animation: overlayFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes fadeIn {
+@keyframes overlayFadeIn {
   from {
     opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
   }
   to {
     opacity: 1;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 }
 
@@ -37,7 +41,9 @@
   border-radius: calc(var(--radius) * 1.5);
   padding: var(--space-xl);
   text-align: center;
-  animation: slideUp 0.3s ease-out;
+  animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
   box-shadow:
     0 0 0 1px rgba(0, 212, 170, 0.08),
     0 25px 50px -12px rgba(0, 0, 0, 0.6),
@@ -56,14 +62,23 @@
   opacity: 0.6;
 }
 
-@keyframes slideUp {
+@keyframes modalSlideUp {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
+    transform: translateY(24px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -329,5 +344,10 @@
   .location-modal,
   .location-modal__selected {
     animation: none;
+  }
+
+  .location-modal {
+    opacity: 1;
+    transform: none;
   }
 }
