@@ -71,6 +71,11 @@ from .views_stats import (
     get_platform_stats,
 )
 
+# Moon views:
+from .views_moon import (
+    get_moon_phases,
+)
+
 # Expose all views for easier imports:
 __all__ = [
     # Location views
@@ -111,4 +116,7 @@ __all__ = [
 
     # Stats views
     'get_platform_stats',
+
+    # Moon views
+    'get_moon_phases',
 ]
