@@ -24,6 +24,7 @@ export function useUserLocation() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [source, setSource] = useState(null); // 'browser' | 'profile' | null
+  const [permissionState, setPermissionState] = useState(null); // 'granted' | 'denied' | 'prompt' | null
   const { user, loading: authLoading } = useAuth();
 
   const cacheLocation = useCallback((coords) => {
@@ -91,6 +92,8 @@ export function useUserLocation() {
     const handlePermissionChange = async () => {
       if (!isSubscribed) return;
 
+      setPermissionState(permissionStatus?.state || null);
+
       if (permissionStatus?.state === 'granted') {
         // User just granted permission - fetch their location
         const gotLocation = await requestBrowserLocation();
@@ -116,6 +119,7 @@ export function useUserLocation() {
       if (navigator.permissions) {
         try {
           permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+          setPermissionState(permissionStatus.state);
           if (permissionStatus.state === 'denied') {
             localStorage.removeItem(CACHE_KEY);
           }
@@ -182,6 +186,7 @@ export function useUserLocation() {
     isLoading,
     error,
     source, // 'browser' | 'profile' | null - indicates where location came from
+    permissionState, // 'granted' | 'denied' | 'prompt' | null
     refresh,
   };
 }

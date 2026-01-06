@@ -28,6 +28,8 @@ MOON_CACHE_TIMEOUT = 86400
 
 # Maximum date range allowed per request
 MAX_DATE_RANGE_DAYS = 31
+# Extended range for key_dates_only (returns far fewer results)
+MAX_DATE_RANGE_KEY_DATES = 90
 
 
 def get_moon_phases(request):
@@ -68,6 +70,9 @@ def get_moon_phases(request):
             'status_code': 400
         }, status=400)
 
+    # Parse key_dates_only early (affects validation limits)
+    key_dates_only = request.GET.get('key_dates_only', '').lower() in ('true', '1', 'yes')
+
     # Validate date range
     if end_date < start_date:
         return JsonResponse({
@@ -76,10 +81,12 @@ def get_moon_phases(request):
             'status_code': 400
         }, status=400)
 
-    if (end_date - start_date).days > MAX_DATE_RANGE_DAYS:
+    # Allow extended range for key_dates_only (returns far fewer results)
+    max_days = MAX_DATE_RANGE_KEY_DATES if key_dates_only else MAX_DATE_RANGE_DAYS
+    if (end_date - start_date).days > max_days:
         return JsonResponse({
             'error': 'validation_error',
-            'message': f'Date range cannot exceed {MAX_DATE_RANGE_DAYS} days.',
+            'message': f'Date range cannot exceed {max_days} days.',
             'status_code': 400
         }, status=400)
 
@@ -101,9 +108,6 @@ def get_moon_phases(request):
                 'message': 'Invalid lat/lng. lat must be -90 to 90, lng must be -180 to 180.',
                 'status_code': 400
             }, status=400)
-
-    # Check for key_dates_only mode
-    key_dates_only = request.GET.get('key_dates_only', '').lower() in ('true', '1', 'yes')
 
     # Build cache key
     cache_key = f"moon_phases:{start_date}:{end_date}"

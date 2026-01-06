@@ -12,19 +12,6 @@
   padding-bottom: var(--space-xl);
 }
 
-.moon-page__loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: var(--space-md);
-  color: var(--text-muted);
-  font-family: var(--font-technical);
-  font-size: var(--text-sm);
-  letter-spacing: 0.05em;
-}
-
 /* ============================================ */
 /* HERO SECTION - MAIN MOON DISPLAY */
 /* ============================================ */
@@ -149,12 +136,13 @@
   display: flex;
   align-items: stretch;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 0;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   overflow: hidden;
-  max-width: 360px;
+  max-width: 600px;
   margin: 0 auto var(--space-lg);
   opacity: 0;
   animation: fadeInUp 0.6s ease-out 0.4s forwards;
@@ -162,8 +150,9 @@
 
 .moon-hero__stat {
   flex: 1;
+  min-width: 100px;
   text-align: center;
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
 }
 
 .moon-hero__stat-value {
@@ -195,6 +184,47 @@
   width: 1px;
   background: var(--glass-border);
   align-self: stretch;
+}
+
+/* Location notice - inline text with links like register page */
+.moon-hero__location-notice {
+  margin: var(--space-lg) 0 0 0;
+  max-width: 360px;
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.5s forwards;
+}
+
+.moon-hero__location-notice a {
+  color: var(--accent-light);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.moon-hero__location-notice a:hover {
+  color: var(--text-primary);
+}
+
+.moon-hero__location-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  color: var(--accent-light);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.moon-hero__location-link:hover {
+  color: var(--text-primary);
 }
 
 /* Stargazing indicator */
@@ -780,27 +810,36 @@
   }
 
   .moon-hero__stats {
-    flex-direction: column;
-    max-width: 200px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 280px;
   }
 
   .moon-hero__stat {
-    padding: var(--space-md) var(--space-lg);
+    flex: 1 1 50%;
+    min-width: auto;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  /* Hide vertical dividers on mobile, show horizontal lines between rows */
+  .moon-hero__stat-divider {
+    display: none;
   }
 
   .moon-hero__stat-value {
     font-size: clamp(20px, 5vw, 26px);
   }
 
-  .moon-hero__stat-divider {
-    width: 100%;
-    height: 1px;
-  }
-
   .moon-hero__glow {
     width: 300px;
     height: 300px;
     opacity: 0.3;
+  }
+
+  .moon-hero__location-notice {
+    margin-top: var(--space-md);
+    max-width: 280px;
+    font-size: var(--text-2xs);
   }
 
   .moon-forecast {
@@ -892,6 +931,7 @@
   .moon-hero__phase-name,
   .moon-hero__stats,
   .moon-hero__indicator,
+  .moon-hero__location-notice,
   .moon-hero__coords,
   .moon-forecast__card,
   .moon-calendar__event {

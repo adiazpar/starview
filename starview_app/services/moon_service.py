@@ -10,11 +10,24 @@
 # - Standalone functions (no state required for astronomical calculations)                            #
 # - Results are cached at the view layer for 24 hours (moon data is deterministic)                   #
 # - Date range queries bounded to 31 days to prevent expensive computations                          #
+# - Moonrise/moonset times are converted to local timezone using timezonefinder                      #
 # ----------------------------------------------------------------------------------------------------- #
 
 import ephem
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any
+from zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
+
+# Singleton timezone finder (expensive to initialize)
+_tf = None
+
+def _get_timezone_finder():
+    """Lazily initialize the TimezoneFinder singleton."""
+    global _tf
+    if _tf is None:
+        _tf = TimezoneFinder()
+    return _tf
 
 # Phase name/emoji mappings based on illumination and waxing/waning state
 PHASE_DATA = {
@@ -42,14 +55,19 @@ def get_phase_for_date(
 
     Returns dictionary with phase_name, phase_emoji, illumination, phase_angle,
     is_good_for_stargazing, and optionally moonrise/moonset times if location provided.
-    """
-    observer = ephem.Observer()
-    observer.date = ephem.Date(date)
 
-    # Set location if provided (for moonrise/moonset calculations)
-    if lat is not None and lng is not None:
-        observer.lat = str(lat)
-        observer.lon = str(lng)
+    For illumination: Uses current UTC time if date is today, otherwise noon UTC.
+    For moonrise/moonset: Calculates for the observer's local date and converts to local time.
+    """
+    # Use current time for today (most accurate), noon UTC for future dates (consistent)
+    today = datetime.utcnow().date()
+    if date.date() == today:
+        calc_time = datetime.utcnow()
+    else:
+        calc_time = datetime(date.year, date.month, date.day, 12, 0, 0)
+
+    observer = ephem.Observer()
+    observer.date = ephem.Date(calc_time)
 
     moon = ephem.Moon()
     moon.compute(observer)
@@ -75,8 +93,9 @@ def get_phase_for_date(
 
     # Add moonrise/moonset if location provided
     if lat is not None and lng is not None:
-        result['moonrise'] = _get_moonrise(observer, moon)
-        result['moonset'] = _get_moonset(observer, moon)
+        moonrise, moonset = _get_moonrise_moonset_local(date, lat, lng)
+        result['moonrise'] = moonrise
+        result['moonset'] = moonset
 
     return result
 
@@ -111,23 +130,73 @@ def _determine_phase(date: datetime, illumination: float) -> str:
         return 'waxing_gibbous' if is_waxing else 'waning_gibbous'
 
 
-def _get_moonrise(observer: ephem.Observer, moon: ephem.Moon) -> Optional[str]:
-    """Get moonrise time for the observer's date and location."""
-    try:
-        rise_time = observer.next_rising(moon)
-        return ephem.Date(rise_time).datetime().strftime('%H:%M')
-    except (ephem.AlwaysUpError, ephem.NeverUpError):
-        # Moon doesn't rise/set at extreme latitudes during certain periods
-        return None
+def _get_moonrise_moonset_local(
+    date: datetime,
+    lat: float,
+    lng: float
+) -> tuple[Optional[str], Optional[str]]:
+    """
+    Get moonrise and moonset times for a specific date and location, in local time.
 
+    This function:
+    1. Determines the local timezone from lat/lng
+    2. Sets up the observer for midnight local time
+    3. Finds moonrise/moonset events within the local calendar day
+    4. Returns times formatted in local timezone (HH:MM)
+    """
+    # Get timezone for this location
+    tf = _get_timezone_finder()
+    tz_name = tf.timezone_at(lat=lat, lng=lng)
+    if not tz_name:
+        return None, None
 
-def _get_moonset(observer: ephem.Observer, moon: ephem.Moon) -> Optional[str]:
-    """Get moonset time for the observer's date and location."""
+    local_tz = ZoneInfo(tz_name)
+
+    # Create local midnight for the requested date
+    local_midnight = datetime(date.year, date.month, date.day, 0, 0, 0, tzinfo=local_tz)
+    local_end_of_day = local_midnight + timedelta(days=1)
+
+    # Convert to UTC for PyEphem
+    utc_start = local_midnight.astimezone(ZoneInfo('UTC'))
+
+    # Set up observer at the location, starting from local midnight (in UTC)
+    observer = ephem.Observer()
+    observer.lat = str(lat)
+    observer.lon = str(lng)
+    observer.date = ephem.Date(utc_start.replace(tzinfo=None))
+
+    moon = ephem.Moon()
+
+    # Find moonrise within the local day
+    moonrise_str = None
     try:
-        set_time = observer.next_setting(moon)
-        return ephem.Date(set_time).datetime().strftime('%H:%M')
+        rise_time_ephem = observer.next_rising(moon)
+        rise_time_utc = ephem.Date(rise_time_ephem).datetime().replace(tzinfo=ZoneInfo('UTC'))
+        rise_time_local = rise_time_utc.astimezone(local_tz)
+
+        # Only include if it falls within the local calendar day
+        if local_midnight <= rise_time_local < local_end_of_day:
+            moonrise_str = rise_time_local.strftime('%H:%M')
     except (ephem.AlwaysUpError, ephem.NeverUpError):
-        return None
+        pass
+
+    # Reset observer to find moonset
+    observer.date = ephem.Date(utc_start.replace(tzinfo=None))
+
+    # Find moonset within the local day
+    moonset_str = None
+    try:
+        set_time_ephem = observer.next_setting(moon)
+        set_time_utc = ephem.Date(set_time_ephem).datetime().replace(tzinfo=ZoneInfo('UTC'))
+        set_time_local = set_time_utc.astimezone(local_tz)
+
+        # Only include if it falls within the local calendar day
+        if local_midnight <= set_time_local < local_end_of_day:
+            moonset_str = set_time_local.strftime('%H:%M')
+    except (ephem.AlwaysUpError, ephem.NeverUpError):
+        pass
+
+    return moonrise_str, moonset_str
 
 
 def get_phases_for_range(

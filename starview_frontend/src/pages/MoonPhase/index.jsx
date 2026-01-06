@@ -4,26 +4,49 @@
  */
 
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   useTodayMoonPhase,
   useWeeklyMoonPhases,
   useMoonPhases,
 } from '../../hooks/useMoonPhases';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import { useUserLocation } from '../../hooks/useUserLocation';
+import { useAuth } from '../../context/AuthContext';
 import './styles.css';
 
 function MoonPhasePage() {
-  // Fetch moon data
-  const { todayPhase, keyDates, isLoading: todayLoading } = useTodayMoonPhase();
-  const { phases: weeklyPhases, isLoading: weeklyLoading } = useWeeklyMoonPhases();
+  // Get user location for moonrise/moonset calculations
+  const {
+    location,
+    isLoading: locationLoading,
+    permissionState,
+    refresh: refreshLocation,
+  } = useUserLocation();
+  const { isAuthenticated } = useAuth();
 
-  // Get upcoming key dates for the next 60 days
+  // Extract lat/lng if available
+  const lat = location?.latitude;
+  const lng = location?.longitude;
+
+  // Handle location permission request
+  const handleEnableLocation = () => {
+    // This will trigger a browser permission prompt
+    refreshLocation();
+  };
+
+  // Fetch moon data (with location for moonrise/moonset if available)
+  // Using suspense mode so React Suspense boundary handles loading
+  const { todayPhase, keyDates } = useTodayMoonPhase({ lat, lng, suspense: true });
+  const { phases: weeklyPhases } = useWeeklyMoonPhases({ lat, lng, suspense: true });
+
+  // Get upcoming key dates for the next 60 days (no location needed)
   const today = new Date();
   const sixtyDaysLater = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
-  const { phases: upcomingKeyDates, isLoading: keyDatesLoading } = useMoonPhases({
+  const { phases: upcomingKeyDates } = useMoonPhases({
     startDate: today.toISOString().split('T')[0],
     endDate: sixtyDaysLater.toISOString().split('T')[0],
     keyDatesOnly: true,
+    suspense: true,
   });
 
   // Format date for display
@@ -67,18 +90,14 @@ function MoonPhasePage() {
     return weeklyPhases.filter((p) => p.is_good_for_stargazing);
   }, [weeklyPhases]);
 
-  const isLoading = todayLoading || weeklyLoading || keyDatesLoading;
-
-  if (isLoading) {
-    return (
-      <main className="moon-page">
-        <div className="moon-page__loading">
-          <LoadingSpinner />
-          <p>Calculating lunar ephemeris...</p>
-        </div>
-      </main>
-    );
-  }
+  // Format time for display (e.g., "9:47 PM")
+  const formatTime = (timeStr) => {
+    if (!timeStr) return null;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
 
   return (
     <main className="moon-page">
@@ -123,7 +142,57 @@ function MoonPhasePage() {
                 </span>
                 <span className="moon-hero__stat-label">Sky Conditions</span>
               </div>
+              {/* Moonrise/Moonset - shown when location available */}
+              {todayPhase?.moonrise && todayPhase?.moonset && (
+                <>
+                  <div className="moon-hero__stat-divider"></div>
+                  <div className="moon-hero__stat">
+                    <span className="moon-hero__stat-value">
+                      {formatTime(todayPhase.moonrise)}
+                    </span>
+                    <span className="moon-hero__stat-label">Moonrise</span>
+                  </div>
+                  <div className="moon-hero__stat-divider"></div>
+                  <div className="moon-hero__stat">
+                    <span className="moon-hero__stat-value">
+                      {formatTime(todayPhase.moonset)}
+                    </span>
+                    <span className="moon-hero__stat-label">Moonset</span>
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* Location prompt - shown when no moonrise/moonset data */}
+            {!todayPhase?.moonrise && !locationLoading && (
+              <p className="moon-hero__location-notice">
+                {permissionState === 'denied' ? (
+                  <>
+                    Location access was blocked. Enable it in your browser settings
+                    {isAuthenticated ? (
+                      <> or <Link to="/settings">set your location</Link> in settings.</>
+                    ) : (
+                      <> or <Link to="/login">sign in</Link> to set your preferred location.</>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="moon-hero__location-link"
+                      onClick={handleEnableLocation}
+                    >
+                      Enable location
+                    </button>
+                    {' '}for moonrise/moonset times
+                    {isAuthenticated ? (
+                      <>, or <Link to="/settings">set it in settings</Link>.</>
+                    ) : (
+                      <>, or <Link to="/login">sign in</Link> to set your preferred location.</>
+                    )}
+                  </>
+                )}
+              </p>
+            )}
 
             {/* Stargazing indicator */}
             {todayPhase?.is_good_for_stargazing && (
