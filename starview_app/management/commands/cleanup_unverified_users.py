@@ -67,9 +67,11 @@ class Command(BaseCommand):
         self.stdout.write('='*60)
 
         # Find all unverified email addresses for users registered before cutoff date
+        # Exclude system accounts (like the seeder user) which don't need email verification
         unverified_emails = EmailAddress.objects.filter(
             verified=False,
-            user__date_joined__lt=cutoff_date
+            user__date_joined__lt=cutoff_date,
+            user__profile__is_system_account=False
         ).select_related('user')
 
         user_count = unverified_emails.count()
