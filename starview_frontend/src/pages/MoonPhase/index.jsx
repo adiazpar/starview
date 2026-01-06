@@ -170,7 +170,7 @@ function MoonPhasePage() {
                   <>
                     Location access was blocked. Enable it in your browser settings
                     {isAuthenticated ? (
-                      <> or <Link to="/settings">set your location</Link> in settings.</>
+                      <> or <Link to="/profile?scrollTo=location">set your location</Link> in settings.</>
                     ) : (
                       <> or <Link to="/login">sign in</Link> to set your preferred location.</>
                     )}
@@ -185,7 +185,7 @@ function MoonPhasePage() {
                     </button>
                     {' '}for moonrise/moonset times
                     {isAuthenticated ? (
-                      <>, or <Link to="/settings">set it in settings</Link>.</>
+                      <>, or <Link to="/profile?scrollTo=location">set it in settings</Link>.</>
                     ) : (
                       <>, or <Link to="/login">sign in</Link> to set your preferred location.</>
                     )}

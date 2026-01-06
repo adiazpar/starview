@@ -7,7 +7,7 @@
  * Shows which location source is being used for map features.
  */
 
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import profileApi from '../../../../services/profile';
 import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
@@ -16,8 +16,9 @@ import { useUserLocation } from '../../../../hooks/useUserLocation';
 // Lazy load Mapbox autocomplete (185 kB) - only loads when user clicks Edit
 const LocationAutocomplete = lazy(() => import('../../../shared/LocationAutocomplete'));
 
-function LocationForm({ user, refreshAuth }) {
+function LocationForm({ user, refreshAuth, scrollTo = false }) {
   const [isEditing, setIsEditing] = useState(false);
+  const sectionRef = useRef(null);
   const [locationData, setLocationData] = useState({
     location: user?.location || '',
     latitude: null,
@@ -34,6 +35,16 @@ function LocationForm({ user, refreshAuth }) {
       }));
     }
   }, [user?.location]);
+
+  // Scroll to this section when linked from another page
+  useEffect(() => {
+    if (scrollTo && sectionRef.current) {
+      // Small delay to ensure collapsible section is expanded
+      setTimeout(() => {
+        sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [scrollTo]);
 
   const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
     onSubmit: async () => await profileApi.updateLocation(locationData),
@@ -64,7 +75,7 @@ function LocationForm({ user, refreshAuth }) {
   };
 
   return (
-    <div className="profile-form-section">
+    <div className="profile-form-section" ref={sectionRef}>
       {/* Alerts above section title */}
       {success && <Alert type="success" message={success} onClose={clearMessages} />}
       {error && <Alert type="error" message={error} onClose={clearMessages} />}

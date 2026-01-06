@@ -55,7 +55,15 @@ function LocationAutocomplete({
   // Handle input text changes (typing)
   const handleChange = useCallback((newValue) => {
     setInputValue(newValue);
-  }, []);
+    // If user clears the input, notify parent to clear location data
+    if (!newValue || newValue.trim() === '') {
+      onSelect?.({
+        location: '',
+        latitude: null,
+        longitude: null
+      });
+    }
+  }, [onSelect]);
 
   // Theme to match app's design system
   const theme = {
