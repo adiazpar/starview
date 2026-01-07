@@ -12,6 +12,7 @@ import {
 } from '../../hooks/useMoonPhases';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
+import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
 
 /**
@@ -130,8 +131,14 @@ function MoonPhasePage() {
 
           {/* Main moon display */}
           <div className="moon-hero__display">
-            <div className="moon-hero__emoji-container">
-              <span className="moon-hero__emoji">{todayPhase?.phase_emoji}</span>
+            <div className="moon-hero__moon-container">
+              <MoonPhaseGraphic
+                illumination={todayPhase?.illumination ?? 50}
+                isWaning={todayPhase?.is_waning ?? false}
+                rotationAngle={todayPhase?.rotation_angle ?? 0}
+                size={180}
+                className="moon-hero__moon"
+              />
               <div className="moon-hero__ring"></div>
               <div className="moon-hero__ring moon-hero__ring--outer"></div>
             </div>

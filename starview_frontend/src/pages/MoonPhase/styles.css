@@ -55,8 +55,8 @@
   text-align: center;
 }
 
-/* Moon emoji container with rings */
-.moon-hero__emoji-container {
+/* Moon graphic container with rings */
+.moon-hero__moon-container {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -64,27 +64,20 @@
   margin-bottom: var(--space-xl);
 }
 
-.moon-hero__emoji {
-  font-size: clamp(120px, 25vw, 180px);
-  line-height: 1;
-  filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.3))
-    drop-shadow(0 0 80px rgba(200, 200, 200, 0.2));
-  animation: glowIn 0.8s ease-out backwards;
+.moon-hero__moon {
   position: relative;
   z-index: 2;
+  animation: moonFadeIn 0.8s ease-out forwards;
 }
 
-@keyframes glowIn {
+@keyframes moonFadeIn {
   from {
     opacity: 0;
-    transform: scale(0.8);
-    filter: blur(20px);
+    scale: 0.8;
   }
   to {
     opacity: 1;
-    transform: scale(1);
-    filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.3))
-      drop-shadow(0 0 80px rgba(200, 200, 200, 0.2));
+    scale: 1;
   }
 }
 
@@ -786,11 +779,12 @@
     display: none;
   }
 
-  .moon-hero__emoji {
-    font-size: clamp(100px, 30vw, 140px);
+  .moon-hero__moon {
+    width: clamp(120px, 35vw, 160px) !important;
+    height: clamp(120px, 35vw, 160px) !important;
   }
 
-  .moon-hero__emoji-container {
+  .moon-hero__moon-container {
     margin-bottom: var(--space-lg);
   }
 
@@ -812,13 +806,17 @@
   .moon-hero__stats {
     flex-direction: row;
     flex-wrap: wrap;
-    max-width: 280px;
+    max-width: 320px;
   }
 
   .moon-hero__stat {
     flex: 1 1 50%;
     min-width: auto;
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm) var(--space-sm);
+  }
+
+  .moon-hero__stat-value {
+    white-space: nowrap;
   }
 
   /* Hide vertical dividers on mobile, show horizontal lines between rows */
@@ -926,7 +924,7 @@
 /* ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .moon-hero__emoji,
+  .moon-hero__moon,
   .moon-hero__ring,
   .moon-hero__phase-name,
   .moon-hero__stats,
@@ -937,7 +935,6 @@
   .moon-calendar__event {
     animation: none;
     opacity: 1;
-    transform: none;
   }
 
   .moon-hero__indicator-dot,

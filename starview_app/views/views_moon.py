@@ -15,16 +15,12 @@
 
 from datetime import datetime, timedelta
 from django.http import JsonResponse
-from django.core.cache import cache
 
 from ..services.moon_service import (
     get_phases_for_range,
     get_next_key_dates,
     get_key_dates_in_range,
 )
-
-# Cache timeout: 24 hours (moon data is deterministic for any date)
-MOON_CACHE_TIMEOUT = 86400
 
 # Maximum date range allowed per request
 MAX_DATE_RANGE_DAYS = 31
@@ -109,18 +105,6 @@ def get_moon_phases(request):
                 'status_code': 400
             }, status=400)
 
-    # Build cache key
-    cache_key = f"moon_phases:{start_date}:{end_date}"
-    if lat is not None:
-        cache_key += f":{lat:.4f}:{lng:.4f}"
-    if key_dates_only:
-        cache_key += ":key_only"
-
-    # Check cache first
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data)
-
     # Convert to datetime for service functions
     start_dt = datetime.combine(start_date, datetime.min.time())
     end_dt = datetime.combine(end_date, datetime.min.time())
@@ -138,8 +122,5 @@ def get_moon_phases(request):
 
         if lat is not None:
             response_data['location'] = {'lat': lat, 'lng': lng}
-
-    # Cache and return
-    cache.set(cache_key, response_data, MOON_CACHE_TIMEOUT)
 
     return JsonResponse(response_data)

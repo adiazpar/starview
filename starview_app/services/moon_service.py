@@ -14,6 +14,7 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 import ephem
+import math
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any
 from zoneinfo import ZoneInfo
@@ -59,12 +60,8 @@ def get_phase_for_date(
     For illumination: Uses current UTC time if date is today, otherwise noon UTC.
     For moonrise/moonset: Calculates for the observer's local date and converts to local time.
     """
-    # Use current time for today (most accurate), noon UTC for future dates (consistent)
-    today = datetime.utcnow().date()
-    if date.date() == today:
-        calc_time = datetime.utcnow()
-    else:
-        calc_time = datetime(date.year, date.month, date.day, 12, 0, 0)
+    # Always use current UTC time for real-time accuracy
+    calc_time = datetime.utcnow()
 
     observer = ephem.Observer()
     observer.date = ephem.Date(calc_time)
@@ -79,7 +76,7 @@ def get_phase_for_date(
     phase_angle = round(float(moon.phase) * 3.6, 1)
 
     # Determine phase name based on illumination and trend
-    phase_key = _determine_phase(date, illumination)
+    phase_key, is_waning = _determine_phase(date, illumination)
     phase_info = PHASE_DATA[phase_key]
 
     result = {
@@ -88,46 +85,127 @@ def get_phase_for_date(
         'phase_emoji': phase_info['emoji'],
         'illumination': illumination,
         'phase_angle': phase_angle,
+        'is_waning': is_waning,
         'is_good_for_stargazing': illumination < STARGAZING_THRESHOLD,
     }
 
-    # Add moonrise/moonset if location provided
+    # Add moonrise/moonset and rotation angle if location provided
     if lat is not None and lng is not None:
         moonrise, moonset = _get_moonrise_moonset_local(date, lat, lng)
         result['moonrise'] = moonrise
         result['moonset'] = moonset
 
+        # Calculate rotation angle for accurate moon display
+        # Combines position angle of bright limb + parallactic angle
+        rotation = _get_moon_rotation_angle(calc_time, lat, lng)
+        result['rotation_angle'] = rotation
+
     return result
 
 
-def _determine_phase(date: datetime, illumination: float) -> str:
+def _get_moon_rotation_angle(calc_time: datetime, lat: float, lng: float) -> float:
     """
-    Determine the phase name based on illumination and whether waxing/waning.
+    Calculate the rotation angle for displaying the moon as seen from a specific location.
 
-    Compares today's illumination with tomorrow's to determine if the moon
-    is waxing (getting brighter) or waning (getting dimmer).
+    This combines two angles:
+    1. Position angle of the bright limb - which direction the sun is relative to the moon
+       (determines which side of the moon is illuminated)
+    2. Parallactic angle - how the celestial coordinate system is tilted relative to
+       the observer's horizon (depends on latitude and moon's position in sky)
+
+    Returns angle in degrees for rotating the moon graphic, where:
+    - 0 means the bright limb is at the top
+    - Positive values rotate clockwise
+    """
+    observer = ephem.Observer()
+    observer.lat = str(lat)
+    observer.lon = str(lng)
+    observer.date = ephem.Date(calc_time)
+
+    moon = ephem.Moon()
+    moon.compute(observer)
+
+    sun = ephem.Sun()
+    sun.compute(observer)
+
+    # === Position Angle of the Bright Limb ===
+    # This is the angle from celestial north to the sun, measured eastward from the moon
+    # It tells us which side of the moon is illuminated
+    ra_moon = float(moon.ra)
+    dec_moon = float(moon.dec)
+    ra_sun = float(sun.ra)
+    dec_sun = float(sun.dec)
+
+    # Calculate position angle from moon to sun
+    delta_ra = ra_sun - ra_moon
+    position_angle = math.atan2(
+        math.cos(dec_sun) * math.sin(delta_ra),
+        math.sin(dec_sun) * math.cos(dec_moon) - math.cos(dec_sun) * math.sin(dec_moon) * math.cos(delta_ra)
+    )
+
+    # === Parallactic Angle ===
+    # How much the celestial coordinate system is tilted from the observer's perspective
+    lst = float(observer.sidereal_time())
+    hour_angle = lst - ra_moon
+
+    lat_rad = math.radians(lat)
+    sin_h = math.sin(hour_angle)
+    cos_h = math.cos(hour_angle)
+    sin_dec = math.sin(dec_moon)
+    cos_dec = math.cos(dec_moon)
+    tan_lat = math.tan(lat_rad)
+
+    parallactic = math.atan2(sin_h, tan_lat * cos_dec - sin_dec * cos_h)
+
+    # === Combined Rotation ===
+    # The bright limb angle in horizon coordinates
+    # Position angle gives direction to sun in celestial coords
+    # Parallactic angle converts to horizon coords
+    rotation = position_angle + parallactic
+
+    # Convert to degrees and normalize to -180 to 180
+    # Negate because CSS rotation is clockwise but astronomical angles are counter-clockwise
+    rotation_deg = -math.degrees(rotation)
+    rotation_deg = ((rotation_deg + 180) % 360) - 180
+
+    return round(rotation_deg, 1)
+
+
+def _determine_phase(date: datetime, illumination: float) -> tuple[str, bool]:
+    """
+    Determine the phase name and waning status based on illumination and trend.
+
+    Compares current illumination with illumination 24 hours from now to determine
+    if the moon is waxing (getting brighter) or waning (getting dimmer).
+
+    Returns:
+        tuple: (phase_key, is_waning) where phase_key is used for PHASE_DATA lookup
     """
     # Check if waxing (illumination increasing) or waning
-    tomorrow = date + timedelta(days=1)
+    # Use current UTC time + 24 hours for accurate comparison
+    tomorrow_time = datetime.utcnow() + timedelta(days=1)
     observer_tomorrow = ephem.Observer()
-    observer_tomorrow.date = ephem.Date(tomorrow)
+    observer_tomorrow.date = ephem.Date(tomorrow_time)
     moon_tomorrow = ephem.Moon()
     moon_tomorrow.compute(observer_tomorrow)
     tomorrow_illumination = moon_tomorrow.phase
 
     is_waxing = tomorrow_illumination > illumination
+    is_waning = not is_waxing
 
     # Determine phase based on illumination percentage and trend
     if illumination < 1:
-        return 'new_moon'
+        phase_key = 'new_moon'
     elif illumination > 99:
-        return 'full_moon'
+        phase_key = 'full_moon'
     elif 49 < illumination < 51:
-        return 'first_quarter' if is_waxing else 'last_quarter'
+        phase_key = 'first_quarter' if is_waxing else 'last_quarter'
     elif illumination < 50:
-        return 'waxing_crescent' if is_waxing else 'waning_crescent'
+        phase_key = 'waxing_crescent' if is_waxing else 'waning_crescent'
     else:  # illumination > 50
-        return 'waxing_gibbous' if is_waxing else 'waning_gibbous'
+        phase_key = 'waxing_gibbous' if is_waxing else 'waning_gibbous'
+
+    return phase_key, is_waning
 
 
 def _get_moonrise_moonset_local(

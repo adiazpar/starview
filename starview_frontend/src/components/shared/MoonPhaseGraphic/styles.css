@@ -1,0 +1,32 @@
+/**
+ * MoonPhaseGraphic Styles
+ *
+ * Styling for the accurate moon phase SVG component.
+ */
+
+.moon-graphic {
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2))
+          drop-shadow(0 0 40px rgba(255, 250, 220, 0.15));
+  transition: transform 0.3s ease;
+}
+
+.moon-graphic__surface {
+  /* Subtle animation for ambient glow */
+}
+
+.moon-graphic__shadow {
+  /* Shadow has slight blur at edge for realism */
+  filter: blur(0.5px);
+}
+
+.moon-graphic__mare {
+  /* Mare patches - the dark "seas" on the moon */
+  pointer-events: none;
+}
+
+/* Hover effect - subtle glow increase */
+.moon-graphic:hover {
+  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.3))
+          drop-shadow(0 0 50px rgba(255, 250, 220, 0.2));
+}

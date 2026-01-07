@@ -63,7 +63,9 @@ export function useMoonPhases({
   const queryConfig = {
     queryKey: ['moonPhases', startDate, endDate, lat, lng, keyDatesOnly],
     queryFn: createMoonQueryFn({ startDate, endDate, lat, lng, keyDatesOnly }),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0, // No caching - moon data should always be fresh for accuracy
+    gcTime: 0, // Don't keep old data in memory
+    refetchOnMount: 'always', // Always refetch when component mounts
   };
 
   // Use suspense query when requested (integrates with React Suspense boundaries)
