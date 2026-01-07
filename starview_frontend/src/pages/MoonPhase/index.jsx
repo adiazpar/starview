@@ -161,33 +161,33 @@ function MoonPhasePage() {
                 </span>
                 <span className="moon-hero__stat-label">Sky Conditions</span>
               </div>
-              {/* Next Moonrise/Moonset - shown when location available */}
-              {todayPhase?.next_moonrise && (
-                <>
-                  <div className="moon-hero__stat-divider"></div>
-                  <div className="moon-hero__stat">
+              {/* Next Moonrise/Moonset - shown in chronological order */}
+              {(() => {
+                const rise = todayPhase?.next_moonrise;
+                const set = todayPhase?.next_moonset;
+                if (!rise && !set) return null;
+
+                // Compare datetime to determine which comes first
+                const riseDateTime = rise ? new Date(`${rise.date}T${rise.time}`) : null;
+                const setDateTime = set ? new Date(`${set.date}T${set.time}`) : null;
+                const moonsetFirst = setDateTime && (!riseDateTime || setDateTime < riseDateTime);
+
+                const events = moonsetFirst
+                  ? [{ ...set, type: 'Moonset' }, { ...rise, type: 'Moonrise' }]
+                  : [{ ...rise, type: 'Moonrise' }, { ...set, type: 'Moonset' }];
+
+                return events.filter(Boolean).flatMap((event) => [
+                  <div key={`${event.type}-divider`} className="moon-hero__stat-divider"></div>,
+                  <div key={event.type} className="moon-hero__stat">
                     <span className="moon-hero__stat-value">
-                      {formatTime(todayPhase.next_moonrise.time)}
+                      {formatTime(event.time)}
                     </span>
                     <span className="moon-hero__stat-label">
-                      Moonrise · {todayPhase.next_moonrise.label}
+                      {event.type} · {event.label}
                     </span>
                   </div>
-                </>
-              )}
-              {todayPhase?.next_moonset && (
-                <>
-                  <div className="moon-hero__stat-divider"></div>
-                  <div className="moon-hero__stat">
-                    <span className="moon-hero__stat-value">
-                      {formatTime(todayPhase.next_moonset.time)}
-                    </span>
-                    <span className="moon-hero__stat-label">
-                      Moonset · {todayPhase.next_moonset.label}
-                    </span>
-                  </div>
-                </>
-              )}
+                ]);
+              })()}
             </div>
 
             {/* Location prompt - shown when no moonrise/moonset data */}

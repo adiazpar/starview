@@ -96,9 +96,20 @@ def get_phase_for_date(
         result['next_moonset'] = rise_set_data['moonset']
 
         # Calculate rotation angle for accurate moon display
-        # Combines position angle of bright limb + parallactic angle
-        rotation = _get_moon_rotation_angle(calc_time, lat, lng)
-        result['rotation_angle'] = rotation
+        # _get_moon_rotation_angle returns θ: where bright limb SHOULD be from "up"
+        theta = _get_moon_rotation_angle(calc_time, lat, lng)
+
+        # Offset for SVG shadow orientation:
+        # SVG draws waning with bright limb at -90° (left), waxing at +90° (right)
+        # To show bright limb at θ: rotation = θ - SVG_default_position
+        if is_waning:
+            rotation = theta - (-90)  # θ + 90
+        else:
+            rotation = theta - 90
+
+        # Normalize to -180 to 180
+        rotation = ((rotation + 180) % 360) - 180
+        result['rotation_angle'] = round(rotation, 1)
 
     return result
 
@@ -159,9 +170,10 @@ def _get_moon_rotation_angle(calc_time: datetime, lat: float, lng: float) -> flo
 
     # === Combined Rotation ===
     # The bright limb angle in horizon coordinates
-    # Position angle gives direction to sun in celestial coords
-    # Parallactic angle converts to horizon coords
-    rotation = position_angle + parallactic
+    # Position angle (PA) gives direction from celestial north to bright limb
+    # Parallactic angle (q) is the angle from celestial north to zenith at the moon's position
+    # Bright limb from zenith = PA - q (transform from celestial to horizon coords)
+    rotation = position_angle - parallactic
 
     # Convert to degrees and normalize to -180 to 180
     # Negate because CSS rotation is clockwise but astronomical angles are counter-clockwise
