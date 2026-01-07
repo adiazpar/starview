@@ -9,9 +9,9 @@
 
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
 import { useUserLocation } from '../../../../hooks/useUserLocation';
+import { useToast } from '../../../../contexts/ToastContext';
 
 // Lazy load Mapbox autocomplete (185 kB) - only loads when user clicks Edit
 const LocationAutocomplete = lazy(() => import('../../../shared/LocationAutocomplete'));
@@ -25,6 +25,7 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
     longitude: null
   });
   const { source: locationSource, isLoading: locationLoading } = useUserLocation();
+  const { showToast } = useToast();
 
   // Update location when user data changes
   useEffect(() => {
@@ -46,13 +47,17 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
     }
   }, [scrollTo]);
 
-  const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
+  const { loading, handleSubmit } = useFormSubmit({
     onSubmit: async () => await profileApi.updateLocation(locationData),
     onSuccess: () => {
+      showToast('Location updated successfully!', 'success');
       refreshAuth();
       setIsEditing(false);
     },
-    successMessage: 'Location updated successfully!',
+    onError: (err) => {
+      const message = err.response?.data?.detail || 'Failed to update location';
+      showToast(message, 'error');
+    },
   });
 
   // Handle location selection from autocomplete
@@ -71,15 +76,10 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
       longitude: null
     });
     setIsEditing(false);
-    clearMessages();
   };
 
   return (
     <div className="profile-form-section" ref={sectionRef}>
-      {/* Alerts above section title */}
-      {success && <Alert type="success" message={success} onClose={clearMessages} />}
-      {error && <Alert type="error" message={error} onClose={clearMessages} />}
-
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">
@@ -115,28 +115,16 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
           {!locationLoading && (
             <div className="location-source-hint">
               {locationSource === 'browser' && (
-                <>
-                  <i className="fa-solid fa-location-crosshairs"></i>
-                  <span>Using your browser's location to show distances, day/night map lighting, and nearby locations.</span>
-                </>
+                <span>Using your browser's location to show distances, day/night map lighting, and nearby locations.</span>
               )}
               {locationSource === 'profile' && (
-                <>
-                  <i className="fa-solid fa-map-pin"></i>
-                  <span>Using this location to show distances, day/night map lighting, and nearby locations.</span>
-                </>
+                <span>Using this location to show distances, day/night map lighting, and nearby locations.</span>
               )}
               {!locationSource && !user?.location && (
-                <>
-                  <i className="fa-solid fa-circle-info"></i>
-                  <span>Set a location to see distances to stargazing spots, day/night map lighting, and nearby locations.</span>
-                </>
+                <span>Set a location to see distances to stargazing spots, day/night map lighting, and nearby locations.</span>
               )}
               {!locationSource && user?.location && (
-                <>
-                  <i className="fa-solid fa-triangle-exclamation"></i>
-                  <span>Location coordinates missing — edit and re-save to enable distances and map features.</span>
-                </>
+                <span>Location coordinates missing — edit and re-save to enable distances and map features.</span>
               )}
             </div>
           )}

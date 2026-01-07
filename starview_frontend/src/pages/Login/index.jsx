@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth';
-import Alert from '../../components/shared/Alert';
+import { useToast } from '../../contexts/ToastContext';
 import './styles.css';
 
 function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   // Initialize rememberMe from localStorage
@@ -25,7 +25,13 @@ function LoginPage() {
 
   // Check if redirected due to session expiry
   const sessionExpired = searchParams.get('expired') === 'true';
-  const [showExpiredAlert, setShowExpiredAlert] = useState(sessionExpired);
+
+  // Show session expired toast on mount
+  useEffect(() => {
+    if (sessionExpired) {
+      showToast('Your session has expired. Please sign in again.', 'warning');
+    }
+  }, [sessionExpired, showToast]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,13 +39,10 @@ function LoginPage() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -68,11 +71,11 @@ function LoginPage() {
 
       // Display other errors normally
       if (errorMessage) {
-        setError(errorMessage);
+        showToast(errorMessage, 'error');
       } else if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
+        showToast(err.response.data.detail, 'error');
       } else {
-        setError('Unable to login. Please check your connection and try again.');
+        showToast('Unable to login. Please check your connection and try again.', 'error');
       }
     } finally {
       setLoading(false);
@@ -143,24 +146,6 @@ function LoginPage() {
               Sign in to continue exploring the cosmos
             </p>
           </div>
-
-          {/* Session Expired Message */}
-          {showExpiredAlert && !error && (
-            <Alert
-              type="warning"
-              message="Your session has expired. Please sign in again."
-              onClose={() => setShowExpiredAlert(false)}
-            />
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <Alert
-              type="error"
-              message={error}
-              onClose={() => setError('')}
-            />
-          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="login-form">

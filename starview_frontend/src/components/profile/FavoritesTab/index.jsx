@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profileApi from '../../../services/profile';
-import Alert from '../../shared/Alert';
 import LoadingSpinner from '../../shared/LoadingSpinner';
+import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
 /**
@@ -12,16 +12,14 @@ import './styles.css';
  */
 function FavoritesTab() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   // Fetch favorites on mount
   useEffect(() => {
     const fetchFavorites = async () => {
       setLoading(true);
-      setError('');
       try {
         const response = await profileApi.getFavorites();
         console.log('Favorites response:', response.data);
@@ -37,7 +35,7 @@ function FavoritesTab() {
       } catch (err) {
         console.error('Error fetching favorites:', err);
         const errorMessage = err.response?.data?.detail || 'Failed to load favorites';
-        setError(errorMessage);
+        showToast(errorMessage, 'error');
         setFavorites([]);
       } finally {
         setLoading(false);
@@ -45,7 +43,7 @@ function FavoritesTab() {
     };
 
     fetchFavorites();
-  }, []);
+  }, [showToast]);
 
   const handleRemoveFavorite = async (favoriteId, locationName) => {
     // eslint-disable-next-line no-restricted-globals
@@ -54,11 +52,11 @@ function FavoritesTab() {
     try {
       await profileApi.removeFavorite(favoriteId);
       setFavorites(favorites.filter(fav => fav.id !== favoriteId));
-      setSuccess('Favorite removed successfully!');
+      showToast('Favorite removed successfully!', 'success');
     } catch (err) {
       console.error('Error removing favorite:', err);
       const errorMessage = err.response?.data?.detail || 'Failed to remove favorite';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -68,22 +66,6 @@ function FavoritesTab() {
       <p className="profile-section-description">
         Your saved stargazing locations
       </p>
-
-      {/* Success/Error Messages */}
-      {success && (
-        <Alert
-          type="success"
-          message={success}
-          onClose={() => setSuccess('')}
-        />
-      )}
-      {error && (
-        <Alert
-          type="error"
-          message={error}
-          onClose={() => setError('')}
-        />
-      )}
 
       {loading ? (
         <LoadingSpinner size="lg" message="Loading favorites..." />

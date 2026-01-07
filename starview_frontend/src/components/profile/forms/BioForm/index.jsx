@@ -9,14 +9,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
+import { useToast } from '../../../../contexts/ToastContext';
 import './styles.css';
 
 function BioForm({ user, refreshAuth, scrollTo = false }) {
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState(user?.bio || '');
   const sectionRef = useRef(null);
+  const { showToast } = useToast();
 
   // Update bio when user data changes
   useEffect(() => {
@@ -35,19 +36,22 @@ function BioForm({ user, refreshAuth, scrollTo = false }) {
     }
   }, [scrollTo]);
 
-  const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
+  const { loading, handleSubmit } = useFormSubmit({
     onSubmit: async () => await profileApi.updateBio({ bio }),
     onSuccess: () => {
+      showToast('Bio updated successfully!', 'success');
       refreshAuth();
       setIsEditing(false);
     },
-    successMessage: 'Bio updated successfully!',
+    onError: (err) => {
+      const message = err.response?.data?.detail || 'Failed to update bio';
+      showToast(message, 'error');
+    },
   });
 
   const handleCancel = () => {
     setBio(user?.bio || '');
     setIsEditing(false);
-    clearMessages();
   };
 
   return (
@@ -75,9 +79,6 @@ function BioForm({ user, refreshAuth, scrollTo = false }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
 
       {/* View Mode */}
       {!isEditing && (

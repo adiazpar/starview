@@ -13,29 +13,33 @@ import { createContext, useContext, useState, useCallback } from 'react';
 
 const ToastContext = createContext(null);
 
+// Animation duration must match CSS (toastExit animation)
+const EXIT_ANIMATION_DURATION = 200;
+
 let toastId = 0;
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
+  const dismissToast = useCallback((id) => {
+    // First, mark toast as exiting to trigger animation
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, exiting: true } : t))
+    );
+
+    // Then remove after animation completes
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, EXIT_ANIMATION_DURATION);
+  }, []);
+
   const showToast = useCallback((message, type = 'info', duration = 4000) => {
     const id = ++toastId;
 
-    // Replace any existing toasts (only show one at a time)
-    setToasts([{ id, message, type }]);
-
-    // Auto-dismiss after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, duration);
-    }
+    // Replace any existing toasts immediately
+    setToasts([{ id, message, type, duration, exiting: false }]);
 
     return id;
-  }, []);
-
-  const dismissToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   return (

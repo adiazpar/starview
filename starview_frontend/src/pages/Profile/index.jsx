@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useToast } from '../../contexts/ToastContext';
 import useProfileData from '../../hooks/useProfileData';
-import Alert from '../../components/shared/Alert';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import SettingsTab from '../../components/profile/SettingsTab';
@@ -15,9 +15,8 @@ function ProfilePage() {
   const { user, refreshAuth, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('settings');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   // Use React Query hook for profile data (cached, deduplicated)
   const {
@@ -37,22 +36,22 @@ function ProfilePage() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('social_connected') === 'true') {
-      setSuccessMessage('Social account connected successfully!');
+      showToast('Social account connected successfully!', 'success');
       navigate('/profile', { replace: true });
     }
     if (params.get('social_disconnected') === 'true') {
-      setSuccessMessage('Social account disconnected successfully!');
+      showToast('Social account disconnected successfully!', 'success');
       navigate('/profile', { replace: true });
     }
     if (params.get('error') === 'email_conflict') {
-      setErrorMessage('This social account is already registered to another user.');
+      showToast('This social account is already registered to another user.', 'error');
       navigate('/profile', { replace: true });
     }
     if (params.get('error') === 'social_already_connected') {
-      setErrorMessage('This social account is already connected to another user.');
+      showToast('This social account is already connected to another user.', 'error');
       navigate('/profile', { replace: true });
     }
-  }, [location.search, navigate]);
+  }, [location.search, navigate, showToast]);
 
   // Loading state - uses same LoadingSpinner as ProtectedRoute for seamless transition
   if (isLoading) {
@@ -69,24 +68,6 @@ function ProfilePage() {
           onEditPage={true}
           pinnedBadges={pinnedBadges}
         />
-
-        {/* Success Message */}
-        {successMessage && (
-          <Alert
-            type="success"
-            message={successMessage}
-            onClose={() => setSuccessMessage('')}
-          />
-        )}
-
-        {/* Error Message */}
-        {errorMessage && (
-          <Alert
-            type="error"
-            message={errorMessage}
-            onClose={() => setErrorMessage('')}
-          />
-        )}
 
         {/* Tab Navigation */}
         <div className="profile-tabs glass-card animate-fade-in-up animate-delay-1">

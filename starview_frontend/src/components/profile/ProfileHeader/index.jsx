@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { publicUserApi } from '../../../services/profile';
-import Alert from '../../shared/Alert';
 import PinnedBadges from '../../badges/PinnedBadges';
 import BadgeModal from '../../badges/BadgeModal';
 import ProfilePictureModal from '../../shared/ProfilePictureModal';
+import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
 /**
@@ -26,12 +26,11 @@ import './styles.css';
 function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowBadgesClick, badgesVisible = false, pinnedBadges = [], onFollowChange }) {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   // Use the is_following value from the user object (from API)
   const [isFollowing, setIsFollowing] = useState(user?.is_following || false);
   const [isLoadingFollow, setIsLoadingFollow] = useState(false);
   const [followerCount, setFollowerCount] = useState(user?.stats?.follower_count || 0);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
 
@@ -67,9 +66,6 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
       return;
     }
 
-    // Clear any previous messages
-    setErrorMessage('');
-    setSuccessMessage('');
     setIsLoadingFollow(true);
 
     try {
@@ -78,7 +74,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         const response = await publicUserApi.unfollowUser(user.username);
         setIsFollowing(false);
         setFollowerCount(prev => prev - 1);
-        setSuccessMessage(response.data.detail || `You have unfollowed ${user.username}.`);
+        showToast(response.data.detail || `You have unfollowed ${user.username}.`, 'success');
         // Notify parent of follower count change
         onFollowChange?.(-1);
       } else {
@@ -86,7 +82,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         const response = await publicUserApi.followUser(user.username);
         setIsFollowing(true);
         setFollowerCount(prev => prev + 1);
-        setSuccessMessage(response.data.detail || `You are now following ${user.username}.`);
+        showToast(response.data.detail || `You are now following ${user.username}.`, 'success');
         // Notify parent of follower count change
         onFollowChange?.(1);
       }
@@ -98,7 +94,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
         || error.response?.data?.message
         || 'Failed to update follow status. Please try again.';
 
-      setErrorMessage(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setIsLoadingFollow(false);
     }
@@ -106,22 +102,6 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
 
   return (
     <div className="profile-header glass-card">
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <Alert
-          type="success"
-          message={successMessage}
-          onClose={() => setSuccessMessage('')}
-        />
-      )}
-      {errorMessage && (
-        <Alert
-          type="error"
-          message={errorMessage}
-          onClose={() => setErrorMessage('')}
-        />
-      )}
-
       <div className="profile-header-content">
         {/* Profile Picture */}
         <button

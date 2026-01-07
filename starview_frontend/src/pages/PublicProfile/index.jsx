@@ -7,7 +7,6 @@ import { mapBadgeIdsToBadges } from '../../utils/badges';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileStats from '../../components/profile/ProfileStats';
 import BadgeSection from '../../components/badges/BadgeSection';
-import Alert from '../../components/shared/Alert';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -139,9 +138,15 @@ function PublicProfilePage() {
     return (
       <div className="public-profile-page">
         <div className="public-profile-container">
-          <Alert type="error" message={error} />
-          <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button className="btn-secondary" onClick={() => navigate('/')}>
+          <div className="public-profile-error glass-card">
+            <div className="public-profile-error__icon">
+              <i className="fa-solid fa-user-slash"></i>
+            </div>
+            <h2 className="public-profile-error__title">{error}</h2>
+            <p className="public-profile-error__description">
+              The profile you're looking for doesn't exist or may have been removed.
+            </p>
+            <button className="btn-primary" onClick={() => navigate('/')}>
               <i className="fa-solid fa-home"></i>
               Go Home
             </button>

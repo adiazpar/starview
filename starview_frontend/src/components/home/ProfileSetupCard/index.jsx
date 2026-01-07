@@ -19,7 +19,7 @@ const SETUP_TASKS = [
     id: 'location',
     icon: 'fa-solid fa-location-crosshairs',
     label: 'Set your location',
-    description: 'Get accurate moonrise times and distances',
+    description: 'Powers your location features across the app',
     field: 'location',
     scrollTo: 'location'
   },

@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
-import Alert from '../../shared/Alert';
+import { useState, useCallback, useEffect } from 'react';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import BadgeCard from '../../badges/BadgeCard';
+import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
 /**
@@ -13,6 +13,7 @@ import './styles.css';
  */
 function BadgesTab({ pinnedBadgesHook, badgeData }) {
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   // Destructure the pinned badges hook passed from parent
   const {
@@ -22,6 +23,21 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
     successMessage: pinSuccess,
     clearMessages
   } = pinnedBadgesHook;
+
+  // Show toast notifications for pin/unpin operations
+  useEffect(() => {
+    if (pinError) {
+      showToast(pinError, 'error');
+      clearMessages();
+    }
+  }, [pinError, showToast, clearMessages]);
+
+  useEffect(() => {
+    if (pinSuccess) {
+      showToast(pinSuccess, 'success');
+      clearMessages();
+    }
+  }, [pinSuccess, showToast, clearMessages]);
 
   // Handle pin/unpin - memoized to prevent unnecessary BadgeCard re-renders
   const handlePinToggle = useCallback(async (badgeId) => {
@@ -37,12 +53,10 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
     );
   }
 
+  // Show error toast and return empty state if error
   if (error) {
-    return (
-      <div className="profile-section">
-        <Alert type="error" message={error} onClose={() => setError(null)} />
-      </div>
-    );
+    showToast(error, 'error');
+    setError(null);
   }
 
   const { earned, in_progress, locked } = badgeData;
@@ -54,14 +68,6 @@ function BadgesTab({ pinnedBadgesHook, badgeData }) {
       <p className="profile-section-description">
         Track your achievements and progress
       </p>
-
-      {/* Pin Status Messages */}
-      {pinError && (
-        <Alert type="error" message={pinError} onClose={clearMessages} />
-      )}
-      {pinSuccess && (
-        <Alert type="success" message={pinSuccess} onClose={clearMessages} />
-      )}
 
       {/* Inline Badge Stats */}
       <div className="badge-inline-stats">

@@ -8,14 +8,13 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
+import { useToast } from '../../../../contexts/ToastContext';
 
 function EmailForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
   const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   // Update email when user data changes
   useEffect(() => {
@@ -27,9 +26,6 @@ function EmailForm({ user, refreshAuth }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setSuccess('');
-    setError('');
-
     setLoading(true);
     try {
       const response = await profileApi.updateEmail({
@@ -38,15 +34,15 @@ function EmailForm({ user, refreshAuth }) {
 
       // Check if verification is required
       if (response.data.verification_required) {
-        setSuccess(response.data.detail);
+        showToast(response.data.detail, 'success');
       } else {
-        setSuccess('Email updated successfully!');
+        showToast('Email updated successfully!', 'success');
         await refreshAuth();
       }
       setIsEditing(false);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to update email';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -55,8 +51,6 @@ function EmailForm({ user, refreshAuth }) {
   const handleCancel = () => {
     setEmail(user?.email || '');
     setIsEditing(false);
-    setError('');
-    setSuccess('');
   };
 
   return (
@@ -84,9 +78,6 @@ function EmailForm({ user, refreshAuth }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
 
       {/* View Mode */}
       {!isEditing && (

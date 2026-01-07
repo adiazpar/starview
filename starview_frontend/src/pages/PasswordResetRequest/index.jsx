@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import authApi from '../../services/auth';
-import Alert from '../../components/shared/Alert';
+import { useToast } from '../../contexts/ToastContext';
 import './styles.css';
 
 function PasswordResetRequestPage() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -20,7 +19,7 @@ function PasswordResetRequestPage() {
       setSuccess(true);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to send password reset email. Please try again.';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -67,14 +66,6 @@ function PasswordResetRequestPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="password-reset-form">
-              {error && (
-                <Alert
-                  type="error"
-                  message={error}
-                  onClose={() => setError('')}
-                />
-              )}
-
               <div className="form-group">
                 <label htmlFor="email" className="form-label">
                   Email address
@@ -84,10 +75,7 @@ function PasswordResetRequestPage() {
                   id="email"
                   name="email"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) setError('');
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="form-input"
                   placeholder="you@example.com"
                   required

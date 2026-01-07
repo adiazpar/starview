@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import profileApi from '../../../services/profile';
-import Alert from '../../shared/Alert';
 import CollapsibleSection from '../CollapsibleSection';
+import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
 /**
@@ -11,22 +10,21 @@ import './styles.css';
  * Receives social accounts from parent to avoid redundant API calls
  */
 function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { showToast } = useToast();
 
   const handleDisconnect = async (accountId, providerName) => {
     if (!window.confirm(`Are you sure you want to disconnect your ${providerName} account?`)) return;
 
     try {
       const response = await profileApi.disconnectSocialAccount(accountId);
-      setSuccess(response.data.detail);
+      showToast(response.data.detail, 'success');
       // Refresh the social accounts list from parent
       if (onRefresh) {
         await onRefresh();
       }
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to disconnect account';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -52,22 +50,6 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
 
   return (
     <CollapsibleSection title="Connected Accounts" defaultExpanded={false}>
-      {/* Success/Error Messages */}
-      {success && (
-        <Alert
-          type="success"
-          message={success}
-          onClose={() => setSuccess('')}
-        />
-      )}
-      {error && (
-        <Alert
-          type="error"
-          message={error}
-          onClose={() => setError('')}
-        />
-      )}
-
       {socialAccounts.length > 0 ? (
         <div className="connected-accounts-list">
           {socialAccounts.map((account) => (
@@ -94,12 +76,11 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
               </div>
             </div>
           ))}
-          <div style={{ marginTop: '16px' }}>
-            <Alert
-              type="info"
-              message="Your profile email may differ from your social account email. Both can be used to access your account - your profile email for password login, and your social account for OAuth login."
-              showIcon={true}
-            />
+          <div className="connected-accounts-note">
+            <i className="fa-solid fa-circle-info"></i>
+            <p>
+              Your profile email may differ from your social account email. Both can be used to access your account - your profile email for password login, and your social account for OAuth login.
+            </p>
           </div>
         </div>
       ) : (

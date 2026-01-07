@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Alert from '../../components/shared/Alert';
+import { useToast } from '../../contexts/ToastContext';
 import './styles.css';
 
 function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { showToast } = useToast();
 
   const emailFromUrl = searchParams.get('email');
   const fromPage = searchParams.get('from');
 
   const [email, setEmail] = useState(emailFromUrl || '');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [canResend, setCanResend] = useState(true);
   const [alreadyVerified, setAlreadyVerified] = useState(false);
@@ -53,12 +52,10 @@ function VerifyEmailPage() {
 
   const handleResendEmail = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
 
     if (!email) {
-      setError('Please enter your email address.');
+      showToast('Please enter your email address.', 'error');
       setLoading(false);
       return;
     }
@@ -75,7 +72,7 @@ function VerifyEmailPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(data.detail || 'Verification email sent! Check your inbox.');
+        showToast(data.detail || 'Verification email sent! Check your inbox.', 'success');
         setCountdown(60);
         setCanResend(false);
       } else {
@@ -83,13 +80,12 @@ function VerifyEmailPage() {
         const errorMessage = data.detail || '';
         if (errorMessage.toLowerCase().includes('already verified')) {
           setAlreadyVerified(true);
-          setError('');
         } else {
-          setError(errorMessage || 'Failed to send verification email. Please try again.');
+          showToast(errorMessage || 'Failed to send verification email. Please try again.', 'error');
         }
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      showToast('An error occurred. Please try again later.', 'error');
     } finally {
       setLoading(false);
     }
@@ -152,24 +148,6 @@ function VerifyEmailPage() {
                     autoComplete="email"
                   />
                 </div>
-              )}
-
-              {/* Success Message */}
-              {success && (
-                <Alert
-                  type="success"
-                  message={success}
-                  onClose={() => setSuccess('')}
-                />
-              )}
-
-              {/* Error Message */}
-              {error && (
-                <Alert
-                  type="error"
-                  message={error}
-                  onClose={() => setError('')}
-                />
               )}
 
               {/* Resend Button */}

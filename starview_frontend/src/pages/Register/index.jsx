@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../services/auth';
-import Alert from '../../components/shared/Alert';
+import { useToast } from '../../contexts/ToastContext';
 import './styles.css';
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -16,7 +17,6 @@ function RegisterPage() {
     password2: ''
   });
 
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
@@ -68,13 +68,10 @@ function RegisterPage() {
       validatePasswordMatch(newFormData.password1, value);
     }
 
-    // Clear error when user starts typing
-    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -96,7 +93,7 @@ function RegisterPage() {
         navigate(response.data.redirect_url || '/');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      showToast(err.response?.data?.detail || 'Registration failed. Please try again.', 'error');
       setLoading(false);
     }
   };
@@ -160,15 +157,6 @@ function RegisterPage() {
             <h2 className="register-form-title">Create Account</h2>
             <p className="register-form-subtitle">Ready to embark on a cosmic adventure?</p>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <Alert
-              type="error"
-              message={error}
-              onClose={() => setError('')}
-            />
-          )}
 
           {/* Registration Form */}
           <form onSubmit={handleSubmit} className="register-form">

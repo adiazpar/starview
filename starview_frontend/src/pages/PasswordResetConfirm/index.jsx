@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import authApi from '../../services/auth';
-import Alert from '../../components/shared/Alert';
+import { useToast } from '../../contexts/ToastContext';
 import './styles.css';
 
 function PasswordResetConfirmPage() {
   const { uidb64, token } = useParams();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     password1: '',
     password2: ''
   });
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword1, setShowPassword1] = useState(false);
@@ -63,18 +63,15 @@ function PasswordResetConfirmPage() {
       validatePasswordMatch(newFormData.password1, value);
     }
 
-    // Clear error when user starts typing
-    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     // Basic validation
     if (formData.password1 !== formData.password2) {
-      setError('Passwords do not match.');
+      showToast('Passwords do not match.', 'error');
       setLoading(false);
       return;
     }
@@ -87,7 +84,7 @@ function PasswordResetConfirmPage() {
       setSuccess(true);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to reset password. The link may be invalid or expired.';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -135,14 +132,6 @@ function PasswordResetConfirmPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="password-reset-confirm-form">
-              {error && (
-                <Alert
-                  type="error"
-                  message={error}
-                  onClose={() => setError('')}
-                />
-              )}
-
               {/* New Password Field */}
               <div className="form-group">
                 <label htmlFor="password1" className="form-label">

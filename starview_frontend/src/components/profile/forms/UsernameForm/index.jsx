@@ -8,12 +8,13 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
+import { useToast } from '../../../../contexts/ToastContext';
 
 function UsernameForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState(user?.username || '');
+  const { showToast } = useToast();
 
   // Update username when user data changes
   useEffect(() => {
@@ -22,22 +23,25 @@ function UsernameForm({ user, refreshAuth }) {
     }
   }, [user?.username]);
 
-  const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
+  const { loading, handleSubmit } = useFormSubmit({
     onSubmit: async () =>
       await profileApi.updateUsername({
         new_username: username,
       }),
     onSuccess: () => {
+      showToast('Username updated successfully!', 'success');
       refreshAuth();
       setIsEditing(false);
     },
-    successMessage: 'Username updated successfully!',
+    onError: (err) => {
+      const message = err.response?.data?.detail || 'Failed to update username';
+      showToast(message, 'error');
+    },
   });
 
   const handleCancel = () => {
     setUsername(user?.username || '');
     setIsEditing(false);
-    clearMessages();
   };
 
   return (
@@ -65,9 +69,6 @@ function UsernameForm({ user, refreshAuth }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
 
       {/* View Mode */}
       {!isEditing && (

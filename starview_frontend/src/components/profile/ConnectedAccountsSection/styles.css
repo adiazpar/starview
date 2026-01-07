@@ -86,3 +86,27 @@
   color: var(--text-secondary);
   font-weight: var(--font-medium);
 }
+
+/* Info note styling - replaces Alert component */
+.connected-accounts-note {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.connected-accounts-note i {
+  flex-shrink: 0;
+  color: var(--info);
+  margin-top: 2px;
+}
+
+.connected-accounts-note p {
+  margin: 0;
+}

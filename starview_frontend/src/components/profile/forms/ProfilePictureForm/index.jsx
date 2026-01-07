@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
+import { useToast } from '../../../../contexts/ToastContext';
 import './styles.css';
 
 function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
@@ -17,8 +17,7 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
   const sectionRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const { showToast } = useToast();
   const [profilePicture, setProfilePicture] = useState(
     user?.profile_picture_url || '/images/default_profile_pic.jpg'
   );
@@ -44,18 +43,15 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    setSuccess('');
-    setError('');
-
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be less than 5MB');
+      showToast('Image must be less than 5MB', 'error');
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
+      showToast('Please upload an image file', 'error');
       return;
     }
 
@@ -63,12 +59,12 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
     try {
       const response = await profileApi.uploadProfilePicture(file);
       setProfilePicture(response.data.image_url);
-      setSuccess('Profile picture updated successfully!');
+      showToast('Profile picture updated successfully!', 'success');
       setIsEditing(false);
       await refreshAuth();
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to upload image';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -77,19 +73,16 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
   const handlePictureRemove = async () => {
     if (!confirm('Are you sure you want to remove your profile picture?')) return;
 
-    setSuccess('');
-    setError('');
-
     setLoading(true);
     try {
       const response = await profileApi.removeProfilePicture();
       setProfilePicture(response.data.default_image_url);
-      setSuccess('Profile picture removed successfully!');
+      showToast('Profile picture removed successfully!', 'success');
       setIsEditing(false);
       await refreshAuth();
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to remove image';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -97,7 +90,6 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setError('');
   };
 
   return (
@@ -125,9 +117,6 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
       {/* Edit Mode - Picture and actions visible */}
       {isEditing && (

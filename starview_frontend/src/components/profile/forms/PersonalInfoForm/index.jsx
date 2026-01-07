@@ -7,8 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
+import { useToast } from '../../../../contexts/ToastContext';
 
 function PersonalInfoForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -16,6 +16,7 @@ function PersonalInfoForm({ user, refreshAuth }) {
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
   });
+  const { showToast } = useToast();
 
   // Update personal info when user data changes
   useEffect(() => {
@@ -27,17 +28,21 @@ function PersonalInfoForm({ user, refreshAuth }) {
     }
   }, [user]);
 
-  const { loading, error, success, handleSubmit, clearMessages } = useFormSubmit({
+  const { loading, handleSubmit } = useFormSubmit({
     onSubmit: async () =>
       await profileApi.updateName({
         first_name: personalInfo.first_name,
         last_name: personalInfo.last_name,
       }),
     onSuccess: () => {
+      showToast('Name updated successfully!', 'success');
       refreshAuth();
       setIsEditing(false);
     },
-    successMessage: 'Name updated successfully!',
+    onError: (err) => {
+      const message = err.response?.data?.detail || 'Failed to update name';
+      showToast(message, 'error');
+    },
   });
 
   const handleCancel = () => {
@@ -47,7 +52,6 @@ function PersonalInfoForm({ user, refreshAuth }) {
       last_name: user?.last_name || '',
     });
     setIsEditing(false);
-    clearMessages();
   };
 
   const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
@@ -77,9 +81,6 @@ function PersonalInfoForm({ user, refreshAuth }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
 
       {/* View Mode */}
       {!isEditing && (

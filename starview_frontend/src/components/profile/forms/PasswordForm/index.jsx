@@ -8,15 +8,14 @@
 
 import { useState } from 'react';
 import profileApi from '../../../../services/profile';
-import Alert from '../../../shared/Alert';
 import usePasswordValidation from '../../../../hooks/usePasswordValidation';
+import { useToast } from '../../../../contexts/ToastContext';
 import './styles.css';
 
 function PasswordForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   const [passwordData, setPasswordData] = useState({
     current_password: '',
@@ -42,18 +41,15 @@ function PasswordForm({ user, refreshAuth }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setSuccess('');
-    setError('');
-
     // Validate all password requirements are met
     if (!isPasswordValid()) {
-      setError('Please meet all password requirements');
+      showToast('Please meet all password requirements', 'error');
       return;
     }
 
     // Validate passwords match
     if (!passwordMatch) {
-      setError('Passwords do not match');
+      showToast('Passwords do not match', 'error');
       return;
     }
 
@@ -64,7 +60,7 @@ function PasswordForm({ user, refreshAuth }) {
         new_password: passwordData.new_password,
       });
 
-      setSuccess('Password updated successfully!');
+      showToast('Password updated successfully!', 'success');
 
       // Clear password fields and validation state
       setPasswordData({
@@ -79,7 +75,7 @@ function PasswordForm({ user, refreshAuth }) {
       await refreshAuth();
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to update password';
-      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -93,8 +89,6 @@ function PasswordForm({ user, refreshAuth }) {
     });
     resetValidation();
     setIsEditing(false);
-    setError('');
-    setSuccess('');
   };
 
   return (
@@ -126,9 +120,6 @@ function PasswordForm({ user, refreshAuth }) {
           <i className={`fa-solid ${isEditing ? 'fa-xmark' : 'fa-pencil'}`}></i>
         </button>
       </div>
-
-      {success && <Alert type="success" message={success} />}
-      {error && <Alert type="error" message={error} />}
 
       {/* View Mode */}
       {!isEditing && (
