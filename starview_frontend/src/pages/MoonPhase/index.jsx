@@ -199,7 +199,7 @@ function MoonPhasePage() {
                     {isAuthenticated ? (
                       <> or <Link to="/profile?scrollTo=location">set your location</Link> in settings.</>
                     ) : (
-                      <> or <Link to="/login">sign in</Link> to set your preferred location.</>
+                      <> or <Link to="/login?next=/moon">sign in</Link> to set your preferred location.</>
                     )}
                   </>
                 ) : (
@@ -214,7 +214,7 @@ function MoonPhasePage() {
                     {isAuthenticated ? (
                       <>, or <Link to="/profile?scrollTo=location">set it in settings</Link>.</>
                     ) : (
-                      <>, or <Link to="/login">sign in</Link> to set your preferred location.</>
+                      <>, or <Link to="/login?next=/moon">sign in</Link> to set your preferred location.</>
                     )}
                   </>
                 )}
