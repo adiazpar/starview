@@ -20,6 +20,7 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState({
@@ -57,6 +58,11 @@ function RegisterPage() {
 
     setFormData(newFormData);
 
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: null }));
+    }
+
     // Validate password as user types
     if (name === 'password1') {
       validatePassword(value);
@@ -67,7 +73,6 @@ function RegisterPage() {
     if (name === 'password2') {
       validatePasswordMatch(newFormData.password1, value);
     }
-
   };
 
   const handleSubmit = async (e) => {
@@ -93,7 +98,29 @@ function RegisterPage() {
         navigate(response.data.redirect_url || '/');
       }
     } catch (err) {
-      showToast(err.response?.data?.detail || 'Registration failed. Please try again.', 'error');
+      const errorData = err.response?.data || {};
+      const fieldErrorData = errorData.errors || {};
+
+      // Parse field-specific errors from backend
+      const newFieldErrors = {};
+      const fieldNames = ['email', 'username', 'firstName', 'lastName', 'password1', 'password2'];
+
+      // Backend returns errors as { errors: { field: ["error message"] } }
+      fieldNames.forEach(field => {
+        // Check snake_case versions too (first_name, last_name)
+        const snakeField = field.replace(/([A-Z])/g, '_$1').toLowerCase();
+        const error = fieldErrorData[field] || fieldErrorData[snakeField];
+        if (error) {
+          newFieldErrors[field] = Array.isArray(error) ? error[0] : error;
+        }
+      });
+
+      setFieldErrors(newFieldErrors);
+
+      // Show toast with field error message or general message
+      const firstFieldError = Object.values(newFieldErrors)[0];
+      const errorMessage = firstFieldError || errorData.detail || 'Registration failed. Please try again.';
+      showToast(errorMessage, 'error');
       setLoading(false);
     }
   };
@@ -168,7 +195,7 @@ function RegisterPage() {
                   type="text"
                   id="firstName"
                   name="firstName"
-                  className="form-input"
+                  className={`form-input${fieldErrors.firstName ? ' error' : ''}`}
                   placeholder="First name"
                   value={formData.firstName}
                   onChange={handleChange}
@@ -184,7 +211,7 @@ function RegisterPage() {
                   type="text"
                   id="lastName"
                   name="lastName"
-                  className="form-input"
+                  className={`form-input${fieldErrors.lastName ? ' error' : ''}`}
                   placeholder="Last name"
                   value={formData.lastName}
                   onChange={handleChange}
@@ -202,7 +229,7 @@ function RegisterPage() {
                 type="text"
                 id="username"
                 name="username"
-                className="form-input"
+                className={`form-input${fieldErrors.username ? ' error' : ''}`}
                 placeholder="Choose a username (or leave blank)"
                 value={formData.username}
                 onChange={handleChange}
@@ -224,7 +251,7 @@ function RegisterPage() {
                 type="email"
                 id="email"
                 name="email"
-                className="form-input"
+                className={`form-input${fieldErrors.email ? ' error' : ''}`}
                 placeholder="your@email.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -242,7 +269,7 @@ function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   id="password1"
                   name="password1"
-                  className="form-input has-toggle"
+                  className={`form-input has-toggle${fieldErrors.password1 ? ' error' : ''}`}
                   placeholder="Create a password"
                   value={formData.password1}
                   onChange={handleChange}
@@ -290,7 +317,7 @@ function RegisterPage() {
                   type={showPassword2 ? 'text' : 'password'}
                   id="password2"
                   name="password2"
-                  className="form-input has-toggle"
+                  className={`form-input has-toggle${fieldErrors.password2 ? ' error' : ''}`}
                   placeholder="Confirm your password"
                   value={formData.password2}
                   onChange={handleChange}

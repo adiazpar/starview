@@ -15,6 +15,7 @@ function PasswordResetConfirmPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword1, setShowPassword1] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState({
@@ -52,6 +53,11 @@ function PasswordResetConfirmPage() {
 
     setFormData(newFormData);
 
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: null }));
+    }
+
     // Validate password as user types
     if (name === 'password1') {
       validatePassword(value);
@@ -62,7 +68,6 @@ function PasswordResetConfirmPage() {
     if (name === 'password2') {
       validatePasswordMatch(newFormData.password1, value);
     }
-
   };
 
   const handleSubmit = async (e) => {
@@ -83,7 +88,23 @@ function PasswordResetConfirmPage() {
       });
       setSuccess(true);
     } catch (err) {
-      const errorMessage = err.response?.data?.detail || 'Failed to reset password. The link may be invalid or expired.';
+      const errorData = err.response?.data || {};
+      const fieldErrorData = errorData.errors || {};
+
+      // Parse field-specific errors from backend
+      const newFieldErrors = {};
+      ['password1', 'password2'].forEach(field => {
+        const error = fieldErrorData[field];
+        if (error) {
+          newFieldErrors[field] = Array.isArray(error) ? error[0] : error;
+        }
+      });
+
+      setFieldErrors(newFieldErrors);
+
+      // Show toast with field error message or general message
+      const firstFieldError = Object.values(newFieldErrors)[0];
+      const errorMessage = firstFieldError || errorData.detail || 'Failed to reset password. The link may be invalid or expired.';
       showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
@@ -144,7 +165,7 @@ function PasswordResetConfirmPage() {
                     name="password1"
                     value={formData.password1}
                     onChange={handleChange}
-                    className="form-input has-toggle"
+                    className={`form-input has-toggle${fieldErrors.password1 ? ' error' : ''}`}
                     placeholder="Enter new password"
                     required
                     disabled={loading}
@@ -194,7 +215,7 @@ function PasswordResetConfirmPage() {
                     name="password2"
                     value={formData.password2}
                     onChange={handleChange}
-                    className="form-input has-toggle"
+                    className={`form-input has-toggle${fieldErrors.password2 ? ' error' : ''}`}
                     placeholder="Confirm new password"
                     required
                     disabled={loading}

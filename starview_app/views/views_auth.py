@@ -102,25 +102,25 @@ def register(request):
 
             # Validate format (3-30 chars, alphanumeric + underscore + hyphen)
             if len(username) < 3:
-                raise exceptions.ValidationError('Username must be at least 3 characters.')
+                raise exceptions.ValidationError({'username': 'Username must be at least 3 characters.'})
             if len(username) > 30:
-                raise exceptions.ValidationError('Username must be 30 characters or less.')
+                raise exceptions.ValidationError({'username': 'Username must be 30 characters or less.'})
             if not re.match(r'^[a-z0-9_-]+$', username):
-                raise exceptions.ValidationError('Username can only contain letters, numbers, underscores, and hyphens.')
+                raise exceptions.ValidationError({'username': 'Username can only contain letters, numbers, underscores, and hyphens.'})
 
             # Validate username uniqueness
             if User.objects.filter(username=username).exists():
-                raise exceptions.ValidationError('This username is already taken.')
+                raise exceptions.ValidationError({'username': 'This username is already taken.'})
 
         # Validate email format using Django's built-in validator
         try:
             validate_email(email)
         except ValidationError:
-            raise exceptions.ValidationError('Please enter a valid email address.')
+            raise exceptions.ValidationError({'email': 'Please enter a valid email address.'})
 
         # Validate email uniqueness
         if User.objects.filter(email=email.lower()).exists():
-            raise exceptions.ValidationError('This email address is already registered.')
+            raise exceptions.ValidationError({'email': 'This email address is already registered.'})
 
         # Check if email is associated with a social account on another user
         # This prevents hijacking social accounts by creating regular accounts with the same email
@@ -132,12 +132,12 @@ def register(request):
         for social_account in SocialAccount.objects.all():
             social_email = social_account.extra_data.get('email', '').lower()
             if social_email == email.lower():
-                raise exceptions.ValidationError('This email address is already registered.')
+                raise exceptions.ValidationError({'email': 'This email address is already registered.'})
 
         # Validate that passwords match
         passwords_match, match_error = PasswordService.validate_passwords_match(pass1, pass2)
         if not passwords_match:
-            raise exceptions.ValidationError(match_error)
+            raise exceptions.ValidationError({'password2': match_error})
 
         # Prepare user data (DRY - used for both validation and creation)
         user_data = {
@@ -153,7 +153,7 @@ def register(request):
         # Validate password strength (context-aware using temp_user)
         password_valid, validation_error = PasswordService.validate_password_strength(pass1, user=temp_user)
         if not password_valid:
-            raise exceptions.ValidationError(validation_error)
+            raise exceptions.ValidationError({'password1': validation_error})
 
         # Wrap user creation and email sending in a transaction
         # If email sending fails, user creation will be rolled back
@@ -573,12 +573,12 @@ def confirm_password_reset(request, uidb64, token):
 
     # Validate required fields
     if not password1 or not password2:
-        raise exceptions.ValidationError('Both password fields are required.')
+        raise exceptions.ValidationError({'password1': 'Both password fields are required.'})
 
     # Validate that passwords match
     passwords_match, match_error = PasswordService.validate_passwords_match(password1, password2)
     if not passwords_match:
-        raise exceptions.ValidationError(match_error)
+        raise exceptions.ValidationError({'password2': match_error})
 
     # Decode user ID from base64
     try:
@@ -612,7 +612,7 @@ def confirm_password_reset(request, uidb64, token):
     # Validate password strength (context-aware)
     password_valid, validation_error = PasswordService.validate_password_strength(password1, user=user)
     if not password_valid:
-        raise exceptions.ValidationError(validation_error)
+        raise exceptions.ValidationError({'password1': validation_error})
 
     # Set new password using PasswordService
     success, error = PasswordService.set_password(user, password1)
