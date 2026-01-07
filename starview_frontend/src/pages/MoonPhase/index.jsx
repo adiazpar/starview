@@ -14,6 +14,18 @@ import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
 import './styles.css';
 
+/**
+ * Format a Date object as YYYY-MM-DD in local timezone
+ * IMPORTANT: Do not use toISOString() as it returns UTC date,
+ * which can be the wrong day when it's evening in western timezones.
+ */
+const formatLocalDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function MoonPhasePage() {
   // Get user location for moonrise/moonset calculations
   const {
@@ -43,8 +55,8 @@ function MoonPhasePage() {
   const today = new Date();
   const sixtyDaysLater = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
   const { phases: upcomingKeyDates } = useMoonPhases({
-    startDate: today.toISOString().split('T')[0],
-    endDate: sixtyDaysLater.toISOString().split('T')[0],
+    startDate: formatLocalDate(today),
+    endDate: formatLocalDate(sixtyDaysLater),
     keyDatesOnly: true,
     suspense: true,
   });
