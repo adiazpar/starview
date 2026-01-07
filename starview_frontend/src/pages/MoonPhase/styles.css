@@ -220,6 +220,27 @@
   color: var(--text-primary);
 }
 
+/* Location source hint */
+.moon-hero__location-source {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin: var(--space-md) 0 0 0;
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+}
+
+.moon-hero__location-source i {
+  font-size: 0.7em;
+  color: var(--accent-border);
+}
+
 /* Stargazing indicator */
 .moon-hero__indicator {
   display: inline-flex;
@@ -930,6 +951,7 @@
   .moon-hero__stats,
   .moon-hero__indicator,
   .moon-hero__location-notice,
+  .moon-hero__location-source,
   .moon-hero__coords,
   .moon-forecast__card,
   .moon-calendar__event {

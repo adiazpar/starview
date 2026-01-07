@@ -33,9 +33,10 @@ function MoonPhasePage() {
     location,
     isLoading: locationLoading,
     permissionState,
+    source,
     refresh: refreshLocation,
   } = useUserLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   // Extract lat/lng if available
   const lat = location?.latitude;
@@ -217,6 +218,18 @@ function MoonPhasePage() {
                       <>, or <Link to="/login?next=/moon">sign in</Link> to set your preferred location.</>
                     )}
                   </>
+                )}
+              </p>
+            )}
+
+            {/* Location source hint */}
+            {location && (
+              <p className="moon-hero__location-source">
+                <i className="fa-solid fa-location-dot"></i>
+                {source === 'profile' && user?.location ? (
+                  <span>{user.location}</span>
+                ) : (
+                  <span>Your location</span>
                 )}
               </p>
             )}
