@@ -144,20 +144,20 @@ export default function MoonPhaseGraphic({
         <g transform="translate(64, 64)">
           <path
             d={shadowPath}
-            fill="rgba(10, 15, 30, 0.92)"
+            fill="rgba(10, 15, 30, 0.82)"
             className="moon-graphic__shadow"
           />
         </g>
       )}
 
-      {/* Subtle edge ring for definition */}
+      {/* Solid border around moon */}
       <circle
         cx="64"
         cy="64"
         r="59"
         fill="none"
-        stroke="rgba(255, 255, 255, 0.08)"
-        strokeWidth="1"
+        stroke="rgba(30, 40, 55, 0.9)"
+        strokeWidth="2.5"
       />
     </svg>
   );

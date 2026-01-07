@@ -161,29 +161,37 @@ function MoonPhasePage() {
                 </span>
                 <span className="moon-hero__stat-label">Sky Conditions</span>
               </div>
-              {/* Moonrise/Moonset - shown when location available */}
-              {todayPhase?.moonrise && todayPhase?.moonset && (
+              {/* Next Moonrise/Moonset - shown when location available */}
+              {todayPhase?.next_moonrise && (
                 <>
                   <div className="moon-hero__stat-divider"></div>
                   <div className="moon-hero__stat">
                     <span className="moon-hero__stat-value">
-                      {formatTime(todayPhase.moonrise)}
+                      {formatTime(todayPhase.next_moonrise.time)}
                     </span>
-                    <span className="moon-hero__stat-label">Moonrise</span>
+                    <span className="moon-hero__stat-label">
+                      Moonrise · {todayPhase.next_moonrise.label}
+                    </span>
                   </div>
+                </>
+              )}
+              {todayPhase?.next_moonset && (
+                <>
                   <div className="moon-hero__stat-divider"></div>
                   <div className="moon-hero__stat">
                     <span className="moon-hero__stat-value">
-                      {formatTime(todayPhase.moonset)}
+                      {formatTime(todayPhase.next_moonset.time)}
                     </span>
-                    <span className="moon-hero__stat-label">Moonset</span>
+                    <span className="moon-hero__stat-label">
+                      Moonset · {todayPhase.next_moonset.label}
+                    </span>
                   </div>
                 </>
               )}
             </div>
 
             {/* Location prompt - shown when no moonrise/moonset data */}
-            {!todayPhase?.moonrise && !locationLoading && (
+            {!todayPhase?.next_moonrise && !locationLoading && (
               <p className="moon-hero__location-notice">
                 {permissionState === 'denied' ? (
                   <>

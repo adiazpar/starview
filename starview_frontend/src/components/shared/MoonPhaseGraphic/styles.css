@@ -24,9 +24,3 @@
   /* Mare patches - the dark "seas" on the moon */
   pointer-events: none;
 }
-
-/* Hover effect - subtle glow increase */
-.moon-graphic:hover {
-  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.3))
-          drop-shadow(0 0 50px rgba(255, 250, 220, 0.2));
-}
