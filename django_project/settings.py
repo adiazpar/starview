@@ -95,6 +95,8 @@ CONTENT_SECURITY_POLICY = {
             "https://api.mapbox.com",                   # Mapbox GL JS library
             "https://cdn.jsdelivr.net",                 # CDN for libraries (if needed)
             "https://kit.fontawesome.com",              # Font Awesome kit
+            "https://www.googletagmanager.com",         # Google Tag Manager / Analytics
+            "https://www.google-analytics.com",         # Google Analytics
         ),
         'style-src': (
             "'self'",
@@ -137,6 +139,8 @@ CONTENT_SECURITY_POLICY = {
             "https://*.fontawesome.com",                # Font Awesome API (all subdomains)
             "https://accounts.google.com",              # Google OAuth
             "https://media.starview.app",               # Cloudflare R2 media storage (PMTiles, images)
+            "https://www.google-analytics.com",         # Google Analytics data collection
+            "https://analytics.google.com",             # Google Analytics 4
         ),
         'frame-ancestors': ("'none'",),                 # Prevent framing (same as X-Frame-Options: DENY)
         'base-uri': ("'self'",),                        # Restrict <base> tag URLs
