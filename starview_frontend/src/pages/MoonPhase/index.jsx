@@ -8,24 +8,11 @@ import { Link } from 'react-router-dom';
 import {
   useTodayMoonPhase,
   useWeeklyMoonPhases,
-  useMoonPhases,
 } from '../../hooks/useMoonPhases';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
-
-/**
- * Format a Date object as YYYY-MM-DD in local timezone
- * IMPORTANT: Do not use toISOString() as it returns UTC date,
- * which can be the wrong day when it's evening in western timezones.
- */
-const formatLocalDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 function MoonPhasePage() {
   // Get user location for moonrise/moonset calculations
@@ -52,16 +39,6 @@ function MoonPhasePage() {
   // Using suspense mode so React Suspense boundary handles loading
   const { todayPhase, keyDates } = useTodayMoonPhase({ lat, lng, suspense: true });
   const { phases: weeklyPhases } = useWeeklyMoonPhases({ lat, lng, suspense: true });
-
-  // Get upcoming key dates for the next 60 days (no location needed)
-  const today = new Date();
-  const sixtyDaysLater = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
-  const { phases: upcomingKeyDates } = useMoonPhases({
-    startDate: formatLocalDate(today),
-    endDate: formatLocalDate(sixtyDaysLater),
-    keyDatesOnly: true,
-    suspense: true,
-  });
 
   // Format date for display
   const formatDate = (dateStr) => {
@@ -264,7 +241,13 @@ function MoonPhasePage() {
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <span className="moon-forecast__day">{getDayName(phase.date)}</span>
-                <span className="moon-forecast__emoji">{phase.phase_emoji}</span>
+                <div className="moon-forecast__moon">
+                  <MoonPhaseGraphic
+                    illumination={phase.illumination}
+                    isWaning={phase.is_waning}
+                    size={48}
+                  />
+                </div>
                 <span className="moon-forecast__illumination">
                   {phase.illumination.toFixed(0)}%
                 </span>
@@ -301,118 +284,38 @@ function MoonPhasePage() {
           </div>
 
           <div className="moon-events__grid">
-            {/* Next New Moon */}
-            {keyDates?.next_new_moon && (
-              <div className="moon-event">
-                <div className="moon-event__icon">
-                  <span>🌑</span>
-                </div>
-                <div className="moon-event__content">
-                  <span className="moon-event__name">New Moon</span>
-                  <span className="moon-event__date">
-                    {formatDate(keyDates.next_new_moon)}
-                  </span>
-                </div>
-                <div className="moon-event__countdown">
-                  {daysUntil(keyDates.next_new_moon)}
-                </div>
-              </div>
-            )}
-
-            {/* Next First Quarter */}
-            {keyDates?.next_first_quarter && (
-              <div className="moon-event">
-                <div className="moon-event__icon">
-                  <span>🌓</span>
-                </div>
-                <div className="moon-event__content">
-                  <span className="moon-event__name">First Quarter</span>
-                  <span className="moon-event__date">
-                    {formatDate(keyDates.next_first_quarter)}
-                  </span>
-                </div>
-                <div className="moon-event__countdown">
-                  {daysUntil(keyDates.next_first_quarter)}
-                </div>
-              </div>
-            )}
-
-            {/* Next Full Moon */}
-            {keyDates?.next_full_moon && (
-              <div className="moon-event">
-                <div className="moon-event__icon moon-event__icon--full">
-                  <span>🌕</span>
-                </div>
-                <div className="moon-event__content">
-                  <span className="moon-event__name">Full Moon</span>
-                  <span className="moon-event__date">
-                    {formatDate(keyDates.next_full_moon)}
-                  </span>
-                </div>
-                <div className="moon-event__countdown">
-                  {daysUntil(keyDates.next_full_moon)}
-                </div>
-              </div>
-            )}
-
-            {/* Next Last Quarter */}
-            {keyDates?.next_last_quarter && (
-              <div className="moon-event">
-                <div className="moon-event__icon">
-                  <span>🌗</span>
-                </div>
-                <div className="moon-event__content">
-                  <span className="moon-event__name">Last Quarter</span>
-                  <span className="moon-event__date">
-                    {formatDate(keyDates.next_last_quarter)}
-                  </span>
-                </div>
-                <div className="moon-event__countdown">
-                  {daysUntil(keyDates.next_last_quarter)}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Phase Calendar - Upcoming Key Dates */}
-      {upcomingKeyDates && upcomingKeyDates.length > 0 && (
-        <section className="moon-calendar">
-          <div className="moon-calendar__container">
-            <div className="moon-calendar__header">
-              <span className="moon-calendar__label">60-Day Outlook</span>
-              <h2 className="moon-calendar__title">Lunar Calendar</h2>
-            </div>
-
-            <div className="moon-calendar__timeline">
-              {upcomingKeyDates.map((event, index) => (
-                <div
-                  key={`${event.date}-${event.phase_name}`}
-                  className="moon-calendar__event"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="moon-calendar__date">
-                    <span className="moon-calendar__date-day">
-                      {new Date(event.date + 'T00:00:00').getDate()}
-                    </span>
-                    <span className="moon-calendar__date-month">
-                      {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', {
-                        month: 'short',
-                      })}
+            {/* Sort events chronologically */}
+            {keyDates && [
+              { date: keyDates.next_new_moon, name: 'New Moon', illumination: 0, isWaning: false },
+              { date: keyDates.next_first_quarter, name: 'First Quarter', illumination: 50, isWaning: false },
+              { date: keyDates.next_full_moon, name: 'Full Moon', illumination: 100, isWaning: false },
+              { date: keyDates.next_last_quarter, name: 'Last Quarter', illumination: 50, isWaning: true },
+            ]
+              .filter((event) => event.date)
+              .sort((a, b) => new Date(a.date) - new Date(b.date))
+              .map((event) => (
+                <div key={event.name} className="moon-event">
+                  <div className="moon-event__icon">
+                    <MoonPhaseGraphic
+                      illumination={event.illumination}
+                      isWaning={event.isWaning}
+                      size={48}
+                    />
+                  </div>
+                  <div className="moon-event__content">
+                    <span className="moon-event__name">{event.name}</span>
+                    <span className="moon-event__date">
+                      {formatDate(event.date)}
                     </span>
                   </div>
-                  <div className="moon-calendar__line"></div>
-                  <div className="moon-calendar__details">
-                    <span className="moon-calendar__emoji">{event.phase_emoji}</span>
-                    <span className="moon-calendar__name">{event.phase_name}</span>
+                  <div className="moon-event__countdown">
+                    {daysUntil(event.date)}
                   </div>
                 </div>
               ))}
-            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Info Panel */}
       <section className="moon-info">

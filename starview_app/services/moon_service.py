@@ -60,8 +60,16 @@ def get_phase_for_date(
     For illumination: Uses current UTC time if date is today, otherwise noon UTC.
     For moonrise/moonset: Calculates for the observer's local date and converts to local time.
     """
-    # Always use current UTC time for real-time accuracy
-    calc_time = datetime.utcnow()
+    # Use current time for today, noon UTC for future dates
+    now = datetime.utcnow()
+    today = now.date()
+    target_date = date.date() if isinstance(date, datetime) else date
+
+    if target_date == today:
+        calc_time = now
+    else:
+        # Use noon UTC for future/past dates
+        calc_time = datetime(target_date.year, target_date.month, target_date.day, 12, 0, 0)
 
     observer = ephem.Observer()
     observer.date = ephem.Date(calc_time)
@@ -76,7 +84,7 @@ def get_phase_for_date(
     phase_angle = round(float(moon.phase) * 3.6, 1)
 
     # Determine phase name based on illumination and trend
-    phase_key, is_waning = _determine_phase(date, illumination)
+    phase_key, is_waning = _determine_phase(calc_time, illumination)
     phase_info = PHASE_DATA[phase_key]
 
     result = {
@@ -183,19 +191,19 @@ def _get_moon_rotation_angle(calc_time: datetime, lat: float, lng: float) -> flo
     return round(rotation_deg, 1)
 
 
-def _determine_phase(date: datetime, illumination: float) -> tuple[str, bool]:
+def _determine_phase(calc_time: datetime, illumination: float) -> tuple[str, bool]:
     """
     Determine the phase name and waning status based on illumination and trend.
 
-    Compares current illumination with illumination 24 hours from now to determine
+    Compares illumination at calc_time with illumination 24 hours later to determine
     if the moon is waxing (getting brighter) or waning (getting dimmer).
 
     Returns:
         tuple: (phase_key, is_waning) where phase_key is used for PHASE_DATA lookup
     """
     # Check if waxing (illumination increasing) or waning
-    # Use current UTC time + 24 hours for accurate comparison
-    tomorrow_time = datetime.utcnow() + timedelta(days=1)
+    # Compare with 24 hours later
+    tomorrow_time = calc_time + timedelta(days=1)
     observer_tomorrow = ephem.Observer()
     observer_tomorrow.date = ephem.Date(tomorrow_time)
     moon_tomorrow = ephem.Moon()
