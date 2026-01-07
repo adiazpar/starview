@@ -37,7 +37,13 @@ function MoonPhasePage() {
 
   // Fetch moon data (with location for moonrise/moonset if available)
   // Using suspense mode so React Suspense boundary handles loading
-  const { todayPhase, keyDates } = useTodayMoonPhase({ lat, lng, suspense: true });
+  // Real-time updates every 60 seconds for live moon tracking
+  const { todayPhase, keyDates } = useTodayMoonPhase({
+    lat,
+    lng,
+    suspense: true,
+    refetchInterval: 60000, // Update every minute
+  });
   const { phases: weeklyPhases } = useWeeklyMoonPhases({ lat, lng, suspense: true });
 
   // Format date for display

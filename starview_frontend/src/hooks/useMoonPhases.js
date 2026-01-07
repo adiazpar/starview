@@ -49,6 +49,7 @@ const createMoonQueryFn = ({ startDate, endDate, lat, lng, keyDatesOnly }) => {
  * @param {boolean} options.keyDatesOnly - Return only key phase dates
  * @param {boolean} options.enabled - Enable/disable the query
  * @param {boolean} options.suspense - Use Suspense mode (integrates with React.lazy)
+ * @param {number} options.refetchInterval - Auto-refetch interval in ms (for real-time updates)
  * @returns {Object} Query result with phases, keyDates, and loading state
  */
 export function useMoonPhases({
@@ -59,6 +60,7 @@ export function useMoonPhases({
   keyDatesOnly = false,
   enabled = true,
   suspense = false,
+  refetchInterval,
 } = {}) {
   const queryConfig = {
     queryKey: ['moonPhases', startDate, endDate, lat, lng, keyDatesOnly],
@@ -66,6 +68,7 @@ export function useMoonPhases({
     staleTime: 0, // No caching - moon data should always be fresh for accuracy
     gcTime: 0, // Don't keep old data in memory
     refetchOnMount: 'always', // Always refetch when component mounts
+    refetchInterval, // Auto-refetch for real-time updates (undefined = disabled)
   };
 
   // Use suspense query when requested (integrates with React Suspense boundaries)
@@ -137,9 +140,10 @@ export function useMonthlyMoonPhases({ lat, lng } = {}) {
  * @param {number} options.lat - Optional latitude
  * @param {number} options.lng - Optional longitude
  * @param {boolean} options.suspense - Use Suspense mode
+ * @param {number} options.refetchInterval - Auto-refetch interval in ms (for real-time updates)
  * @returns {Object} Query result with todayPhase shortcut
  */
-export function useTodayMoonPhase({ lat, lng, suspense = false } = {}) {
+export function useTodayMoonPhase({ lat, lng, suspense = false, refetchInterval } = {}) {
   const today = formatLocalDate(new Date());
 
   const result = useMoonPhases({
@@ -148,6 +152,7 @@ export function useTodayMoonPhase({ lat, lng, suspense = false } = {}) {
     lat,
     lng,
     suspense,
+    refetchInterval,
   });
 
   return {
