@@ -136,6 +136,14 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /accounts/
 
+# Block auth and utility pages (no search value)
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /account/
+
 # Sitemap (using canonical www domain)
 Sitemap: https://www.starview.app/sitemap.xml
 """

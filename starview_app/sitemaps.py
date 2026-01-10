@@ -46,8 +46,8 @@ class StaticViewSitemap(CanonicalSitemap):
     changefreq = 'weekly'
 
     def items(self):
-        # List of static page paths
-        return ['/', '/explore', '/moon', '/privacy', '/terms']
+        # List of static page paths (exclude legal pages - low search value)
+        return ['/', '/explore', '/moon']
 
     def location(self, item):
         return item
