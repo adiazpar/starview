@@ -76,6 +76,11 @@ from .views_moon import (
     get_moon_phases,
 )
 
+# Weather views:
+from .views_weather import (
+    get_weather_forecast,
+)
+
 # Expose all views for easier imports:
 __all__ = [
     # Location views
@@ -119,4 +124,7 @@ __all__ = [
 
     # Moon views
     'get_moon_phases',
+
+    # Weather views
+    'get_weather_forecast',
 ]

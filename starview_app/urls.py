@@ -56,6 +56,8 @@ from .views import (
     get_platform_stats,
     # Moon views
     get_moon_phases,
+    # Weather views
+    get_weather_forecast,
 )
 
 router = DefaultRouter()
@@ -81,6 +83,9 @@ urlpatterns = [
 
     # Moon phases (for stargazing planning):
     path('api/moon-phases/', get_moon_phases, name='moon_phases'),
+
+    # Weather forecast (for stargazing planning):
+    path('api/weather/', get_weather_forecast, name='weather_forecast'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),

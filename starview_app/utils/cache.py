@@ -90,6 +90,29 @@ def user_favorites_key(user_id):
     return f'favorites:user:{user_id}'
 
 
+# ----------------------------------------------------------------------------- #
+# Weather Cache Configuration                                                   #
+#                                                                               #
+# Weather data from external APIs (7Timer, Open-Meteo) is cached to reduce     #
+# API calls and improve response times. Coordinates are rounded to 2 decimal   #
+# places (~1km grid) to increase cache hit rate while maintaining accuracy.    #
+# ----------------------------------------------------------------------------- #
+WEATHER_CACHE_TIMEOUT = 1800  # 30 minutes
+
+
+# Generate cache key for weather forecast data:
+def weather_cache_key(lat, lng):
+    """
+    Generate cache key with rounded coordinates to reduce fragmentation.
+
+    Rounding to 2 decimal places (~1km) means nearby requests share cache.
+    Weather doesn't change significantly within 1km, so this is acceptable.
+    """
+    rounded_lat = round(float(lat), 2)
+    rounded_lng = round(float(lng), 2)
+    return f'weather:forecast:{rounded_lat}:{rounded_lng}'
+
+
 
 # ----------------------------------------------------------------------------------------------------- #
 #                                                                                                       #
