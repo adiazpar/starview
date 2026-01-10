@@ -162,6 +162,11 @@
   text-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
 }
 
+.moon-hero__stat-value--secondary {
+  font-size: clamp(18px, 3vw, 22px);
+  color: var(--text-secondary);
+}
+
 .moon-hero__stat-label {
   display: block;
   font-family: var(--font-technical);
@@ -841,6 +846,10 @@
 
   .moon-hero__stat-value {
     font-size: clamp(20px, 5vw, 26px);
+  }
+
+  .moon-hero__stat-value--secondary {
+    font-size: clamp(16px, 4vw, 18px);
   }
 
   .moon-hero__glow {

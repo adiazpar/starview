@@ -163,7 +163,7 @@ function MoonPhasePage() {
                 return events.filter(Boolean).flatMap((event) => [
                   <div key={`${event.type}-divider`} className="moon-hero__stat-divider"></div>,
                   <div key={event.type} className="moon-hero__stat">
-                    <span className="moon-hero__stat-value">
+                    <span className="moon-hero__stat-value moon-hero__stat-value--secondary">
                       {formatTime(event.time)}
                     </span>
                     <span className="moon-hero__stat-label">

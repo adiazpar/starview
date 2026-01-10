@@ -60,15 +60,25 @@ def get_phase_for_date(
     For illumination: Uses current UTC time if date is today, otherwise noon UTC.
     For moonrise/moonset: Calculates for the observer's local date and converts to local time.
     """
-    # Use current time for today, noon UTC for future dates
+    # Use current time for "today" (accounting for global timezone differences)
+    #
+    # The maximum timezone offset from UTC is ±14 hours, meaning a user's local
+    # "today" can differ from UTC "today" by up to 1 day in either direction:
+    #   - Western timezones (e.g., LA at 10 PM = next day 6 AM UTC)
+    #   - Eastern timezones (e.g., Tokyo at 8 AM = previous day 11 PM UTC)
+    #
+    # For real-time accuracy, use current UTC time if the target date is within
+    # ±1 day of UTC today. This ensures users worldwide get accurate live data.
     now = datetime.utcnow()
     today = now.date()
     target_date = date.date() if isinstance(date, datetime) else date
 
-    if target_date == today:
+    days_diff = abs((today - target_date).days)
+    if days_diff <= 1:
+        # Within ±1 day of UTC today: use current time for real-time accuracy
         calc_time = now
     else:
-        # Use noon UTC for future/past dates
+        # Future or past dates: use noon UTC for consistency
         calc_time = datetime(target_date.year, target_date.month, target_date.day, 12, 0, 0)
 
     observer = ephem.Observer()
@@ -214,15 +224,23 @@ def _determine_phase(calc_time: datetime, illumination: float) -> tuple[str, boo
     is_waning = not is_waxing
 
     # Determine phase based on illumination percentage and trend
-    if illumination < 1:
+    #
+    # Thresholds based on scientific definitions (U.S. Naval Observatory):
+    # - Primary phases (New, Quarter, Full) are specific moments, not ranges
+    # - Crescent: <50% illumination, Gibbous: >50% illumination
+    #
+    # We use a 6% window (47-53%) for quarter phases, which corresponds to
+    # roughly 1 day around the actual quarter event (~6-7% change per day).
+    # This balances scientific accuracy with practical display needs.
+    if illumination < 2:
         phase_key = 'new_moon'
-    elif illumination > 99:
+    elif illumination > 98:
         phase_key = 'full_moon'
-    elif 49 < illumination < 51:
+    elif 47 <= illumination <= 53:
         phase_key = 'first_quarter' if is_waxing else 'last_quarter'
-    elif illumination < 50:
+    elif illumination < 47:
         phase_key = 'waxing_crescent' if is_waxing else 'waning_crescent'
-    else:  # illumination > 50
+    else:  # illumination > 53
         phase_key = 'waxing_gibbous' if is_waxing else 'waning_gibbous'
 
     return phase_key, is_waning
