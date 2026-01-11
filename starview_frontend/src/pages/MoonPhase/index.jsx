@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useTodayMoonPhase } from '../../hooks/useMoonPhases';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
+import { useSEO } from '../../hooks/useSEO';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
 
@@ -194,6 +195,12 @@ function MoonPhaseContent({ lat, lng, permissionState, isAuthenticated, user, so
  * Waits for location to resolve before rendering moon content to avoid double API calls.
  */
 function MoonPhasePage() {
+  useSEO({
+    title: 'Moon Phases | Starview',
+    description: 'Track tonight\'s moon phase for optimal stargazing. See current lunar illumination, moonrise and moonset times, and find the best nights for dark sky observation.',
+    path: '/moon',
+  });
+
   // Get user location for moonrise/moonset calculations
   const {
     location,

@@ -5,10 +5,17 @@
 
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useSEO } from '../../hooks/useSEO';
 import './styles.css';
 
 function TermsPage() {
   const location = useLocation();
+
+  useSEO({
+    title: 'Terms of Service | Starview',
+    description: 'Read Starview\'s Terms of Service covering eligibility, content licensing, acceptable use policies, and DMCA procedures for our stargazing community.',
+    path: '/terms',
+  });
 
   // Scroll to section if hash is present
   useEffect(() => {

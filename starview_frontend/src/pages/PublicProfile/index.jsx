@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { publicUserApi } from '../../services/profile';
 import usePinnedBadges from '../../hooks/usePinnedBadges';
+import { useSEO } from '../../hooks/useSEO';
 import { mapBadgeIdsToBadges } from '../../utils/badges';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileStats from '../../components/profile/ProfileStats';
@@ -35,6 +36,22 @@ function PublicProfilePage() {
 
   // Check if viewing own profile
   const isOwnProfile = currentUser?.username === username;
+
+  // Dynamic SEO - updates when profile loads
+  const displayName = profileUser?.first_name && profileUser?.last_name
+    ? `${profileUser.first_name} ${profileUser.last_name}`
+    : profileUser?.first_name || username;
+  const reviewCount = profileUser?.stats?.review_count || 0;
+
+  useSEO({
+    title: profileUser
+      ? `${displayName} (@${username}) | Starview`
+      : `@${username} | Starview`,
+    description: profileUser
+      ? `View ${displayName}'s stargazing profile on Starview. ${reviewCount} review${reviewCount !== 1 ? 's' : ''} of dark sky locations.`
+      : `View @${username}'s stargazing profile on Starview.`,
+    path: `/users/${username}`,
+  });
 
   // Use pinned badges hook (don't auto-fetch, we get data from API)
   const { updatePinnedBadgeIds } = usePinnedBadges(false);

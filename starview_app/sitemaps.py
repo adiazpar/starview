@@ -46,8 +46,20 @@ class StaticViewSitemap(CanonicalSitemap):
     changefreq = 'weekly'
 
     def items(self):
-        # List of static page paths (exclude legal pages - low search value)
         return ['/', '/explore', '/moon']
+
+    def location(self, item):
+        return item
+
+
+# Sitemap for legal pages (Terms, Privacy)
+# Lower priority since they're informational, not primary content:
+class LegalPageSitemap(CanonicalSitemap):
+    priority = 0.3
+    changefreq = 'monthly'
+
+    def items(self):
+        return ['/terms', '/privacy']
 
     def location(self, item):
         return item
@@ -127,6 +139,7 @@ class UserProfileSitemap(CanonicalSitemap):
 # Dictionary of all sitemaps for use in urls.py
 sitemaps = {
     'static': StaticViewSitemap,
+    'legal': LegalPageSitemap,
     'users': UserProfileSitemap,
     # 'locations': LocationSitemap,  # Uncomment when location pages exist
 }

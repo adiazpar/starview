@@ -8,6 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useExploreData } from '../../hooks/useExploreData';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import { useSEO } from '../../hooks/useSEO';
 import LocationCard from '../../components/explore/LocationCard';
 import VirtualizedLocationList from '../../components/explore/VirtualizedLocationList';
 import ViewToggle from '../../components/explore/ViewToggle';
@@ -18,6 +19,12 @@ import './styles.css';
 const ExploreMap = lazy(() => import('../../components/explore/ExploreMap'));
 
 function ExplorePage() {
+  useSEO({
+    title: 'Explore Stargazing Locations | Starview',
+    description: 'Discover the best stargazing spots near you. Browse user-reviewed dark sky locations with light pollution ratings, accessibility info, and photos.',
+    path: '/explore',
+  });
+
   const [searchParams] = useSearchParams();
   const initialView = searchParams.get('view') === 'map' ? 'map' : 'list';
   const [view, setView] = useState(initialView);

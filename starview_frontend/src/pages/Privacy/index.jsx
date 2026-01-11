@@ -5,10 +5,17 @@
 
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useSEO } from '../../hooks/useSEO';
 import './styles.css';
 
 function PrivacyPage() {
   const location = useLocation();
+
+  useSEO({
+    title: 'Privacy Policy | Starview',
+    description: 'Learn how Starview collects, uses, and protects your data. Our privacy policy covers account information, location data, cookies, and your rights.',
+    path: '/privacy',
+  });
 
   // Scroll to section if hash is present
   useEffect(() => {
