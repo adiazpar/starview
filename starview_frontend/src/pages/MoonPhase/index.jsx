@@ -10,30 +10,12 @@ import { useAuth } from '../../context/AuthContext';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
 
-function MoonPhasePage() {
-  // Get user location for moonrise/moonset calculations
-  const {
-    location,
-    isLoading: locationLoading,
-    permissionState,
-    source,
-    refresh: refreshLocation,
-  } = useUserLocation();
-  const { isAuthenticated, user } = useAuth();
-
-  // Extract lat/lng if available
-  const lat = location?.latitude;
-  const lng = location?.longitude;
-
-  // Handle location permission request
-  const handleEnableLocation = () => {
-    // This will trigger a browser permission prompt
-    refreshLocation();
-  };
-
-  // Fetch moon data (with location for moonrise/moonset if available)
-  // Using suspense mode so React Suspense boundary handles loading
-  // Real-time updates every 60 seconds for live moon tracking
+/**
+ * Inner component that fetches moon data with suspense.
+ * Only rendered after location is resolved to avoid double API calls.
+ */
+function MoonPhaseContent({ lat, lng, permissionState, isAuthenticated, user, source, location, onEnableLocation }) {
+  // Fetch moon data - only called once since location is already resolved
   const { todayPhase } = useTodayMoonPhase({
     lat,
     lng,
@@ -129,7 +111,7 @@ function MoonPhasePage() {
             </div>
 
             {/* Location prompt - shown when no moonrise/moonset data */}
-            {!todayPhase?.next_moonrise && !locationLoading && (
+            {!todayPhase?.next_moonrise && (
               <p className="moon-hero__location-notice">
                 {permissionState === 'denied' ? (
                   <>
@@ -144,7 +126,7 @@ function MoonPhasePage() {
                   <>
                     <button
                       className="moon-hero__location-link"
-                      onClick={handleEnableLocation}
+                      onClick={onEnableLocation}
                     >
                       Enable location
                     </button>
@@ -204,6 +186,77 @@ function MoonPhasePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+/**
+ * Main page component that handles location loading.
+ * Waits for location to resolve before rendering moon content to avoid double API calls.
+ */
+function MoonPhasePage() {
+  // Get user location for moonrise/moonset calculations
+  const {
+    location,
+    isLoading: locationLoading,
+    permissionState,
+    source,
+    refresh: refreshLocation,
+  } = useUserLocation();
+  const { isAuthenticated, user } = useAuth();
+
+  // Extract lat/lng if available
+  const lat = location?.latitude;
+  const lng = location?.longitude;
+
+  // While location is loading, show the page skeleton
+  // This prevents double API calls (one without location, one with)
+  if (locationLoading) {
+    return (
+      <main className="moon-page">
+        <section className="moon-hero">
+          <div className="moon-hero__container">
+            <div className="moon-hero__coords">
+              <span className="moon-hero__coord">LUNAR PHASE</span>
+              <span className="moon-hero__coord">
+                {new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+            <div className="moon-hero__display">
+              <div className="moon-hero__moon-container">
+                <MoonPhaseGraphic
+                  illumination={50}
+                  isWaning={false}
+                  rotationAngle={0}
+                  size={180}
+                  className="moon-hero__moon moon-hero__moon--loading"
+                />
+                <div className="moon-hero__ring"></div>
+                <div className="moon-hero__ring moon-hero__ring--outer"></div>
+              </div>
+              <h1 className="moon-hero__phase-name">Loading...</h1>
+            </div>
+          </div>
+          <div className="moon-hero__glow"></div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <MoonPhaseContent
+      lat={lat}
+      lng={lng}
+      permissionState={permissionState}
+      isAuthenticated={isAuthenticated}
+      user={user}
+      source={source}
+      location={location}
+      onEnableLocation={refreshLocation}
+    />
   );
 }
 

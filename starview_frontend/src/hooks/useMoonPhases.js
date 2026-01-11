@@ -137,7 +137,7 @@ export function useMonthlyMoonPhases({ lat, lng } = {}) {
 }
 
 /**
- * Get today's moon phase
+ * Get today's moon phase (NOW mode)
  * @param {Object} options - Hook options
  * @param {number} options.lat - Optional latitude
  * @param {number} options.lng - Optional longitude
@@ -146,11 +146,8 @@ export function useMonthlyMoonPhases({ lat, lng } = {}) {
  * @returns {Object} Query result with todayPhase shortcut
  */
 export function useTodayMoonPhase({ lat, lng, suspense = false, refetchInterval } = {}) {
-  const today = formatLocalDate(new Date());
-
+  // Don't pass dates - API defaults to "now mode" (today only)
   const result = useMoonPhases({
-    startDate: today,
-    endDate: today,
     lat,
     lng,
     suspense,
