@@ -24,8 +24,8 @@
 # places (~1km) to increase cache hit rate while maintaining accuracy for weather data.                #
 # ----------------------------------------------------------------------------------------------------- #
 
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import date, datetime, timedelta, timezone
+from typing import Optional, List, Dict, Any
 
 import requests
 
@@ -36,7 +36,14 @@ class WeatherService:
     # API Configuration
     SEVEN_TIMER_URL = "http://www.7timer.info/bin/api.pl"
     OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+    OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
     REQUEST_TIMEOUT = 10  # seconds
+
+    # Historical data configuration
+    HISTORICAL_YEARS = [2025, 2024, 2023, 2022, 2021]  # 5 years for averaging
+    WINDOW_PADDING_DAYS = 5  # ±5 days when fetching historical averages
+    FORECAST_MAX_DAYS = 16  # Open-Meteo forecast limit
+    ARCHIVE_DELAY_DAYS = 5  # Open-Meteo archive has ~5 day delay
 
     # 7Timer seeing scale: value -> (arcseconds range, description)
     SEEING_SCALE = {
@@ -554,3 +561,445 @@ class WeatherService:
             lat,
             lng
         )
+
+
+
+    # ------------------------------------------------------------------------------------------------- #
+    #                                                                                                   #
+    #                                    UNIFIED API METHODS                                            #
+    #                                                                                                   #
+    # These methods support the unified astronomy API contract with date ranges,                        #
+    # automatic data source selection (forecast vs historical vs historical average),                   #
+    # and consistent response structure.                                                                #
+    # ------------------------------------------------------------------------------------------------- #
+
+    @staticmethod
+    def classify_date(target_date: date) -> str:
+        """
+        Classify a date to determine which data source to use.
+
+        Args:
+            target_date: The date to classify
+
+        Returns:
+            'forecast': Today to +16 days (use forecast APIs)
+            'historical': Past dates beyond archive delay (use archive API)
+            'historical_average': >16 days in future (average past years)
+        """
+        today = date.today()
+        days_away = (target_date - today).days
+
+        if days_away < -WeatherService.ARCHIVE_DELAY_DAYS:
+            # Past date (with buffer for archive delay)
+            return "historical"
+        elif days_away <= WeatherService.FORECAST_MAX_DAYS:
+            # Today to +16 days - use forecast
+            return "forecast"
+        else:
+            # Far future - use historical averages
+            return "historical_average"
+
+
+    @staticmethod
+    def fetch_open_meteo_historical(
+        lat: float,
+        lng: float,
+        start_date: date,
+        end_date: date
+    ) -> Optional[dict]:
+        """
+        Fetch historical weather from Open-Meteo Archive API.
+
+        Returns past weather data (actual recorded weather).
+        Archive has ~5 day delay from present.
+
+        Args:
+            lat: Latitude
+            lng: Longitude
+            start_date: Start date for historical data
+            end_date: End date for historical data
+
+        Returns:
+            Normalized weather data or None if request fails
+        """
+        rounded_lat, rounded_lng = WeatherService._round_coordinates(lat, lng)
+
+        hourly_vars = ",".join([
+            "cloud_cover",
+            "cloud_cover_low",
+            "cloud_cover_mid",
+            "cloud_cover_high",
+            "visibility",
+            "relative_humidity_2m",
+            "wind_speed_10m",
+            "temperature_2m"
+        ])
+
+        url = (
+            f"{WeatherService.OPEN_METEO_ARCHIVE_URL}"
+            f"?latitude={rounded_lat}&longitude={rounded_lng}"
+            f"&start_date={start_date.isoformat()}"
+            f"&end_date={end_date.isoformat()}"
+            f"&hourly={hourly_vars}"
+        )
+
+        data = WeatherService._make_request(url)
+        if not data:
+            return None
+
+        return WeatherService._normalize_open_meteo_response(data)
+
+
+    @staticmethod
+    def get_historical_average(
+        lat: float,
+        lng: float,
+        start_date: date,
+        end_date: date
+    ) -> Dict[str, Any]:
+        """
+        Compute historical averages for a date range from past 5 years.
+
+        For dates >16 days in the future, we can't get forecasts.
+        Instead, we fetch the same month/day from past years and average.
+
+        Applies window padding (±5 days) to improve cache efficiency.
+
+        Args:
+            lat: Latitude
+            lng: Longitude
+            start_date: Start date for averages
+            end_date: End date for averages
+
+        Returns:
+            Dict with 'hourly' containing averaged data per date
+        """
+        # Apply window padding for better caching
+        padded_start = start_date - timedelta(days=WeatherService.WINDOW_PADDING_DAYS)
+        padded_end = end_date + timedelta(days=WeatherService.WINDOW_PADDING_DAYS)
+
+        # Collect data from each historical year
+        all_years_data: List[dict] = []
+
+        for year in WeatherService.HISTORICAL_YEARS:
+            try:
+                # Adjust dates to the historical year
+                hist_start = padded_start.replace(year=year)
+                hist_end = padded_end.replace(year=year)
+            except ValueError:
+                # Handle Feb 29 in non-leap years
+                # Adjust to Feb 28 if necessary
+                try:
+                    hist_start = padded_start.replace(year=year, day=min(padded_start.day, 28))
+                    hist_end = padded_end.replace(year=year, day=min(padded_end.day, 28))
+                except ValueError:
+                    continue
+
+            historical_data = WeatherService.fetch_open_meteo_historical(
+                lat, lng, hist_start, hist_end
+            )
+
+            if historical_data and 'hourly' in historical_data:
+                all_years_data.append(historical_data)
+
+        if not all_years_data:
+            return {'hourly': [], 'years_averaged': 0}
+
+        # Average the data across years
+        return WeatherService._average_historical_data(all_years_data, start_date, end_date)
+
+
+    @staticmethod
+    def _average_historical_data(
+        all_years_data: List[dict],
+        start_date: date,
+        end_date: date
+    ) -> Dict[str, Any]:
+        """
+        Average hourly weather data across multiple years.
+
+        Groups data by month-day-hour, then computes mean for each field.
+
+        Args:
+            all_years_data: List of normalized weather responses from different years
+            start_date: Original requested start date
+            end_date: Original requested end date
+
+        Returns:
+            Dict with averaged 'hourly' data and metadata
+        """
+        from collections import defaultdict
+
+        # Group data by month-day-hour key
+        hourly_buckets = defaultdict(list)
+
+        for year_data in all_years_data:
+            for entry in year_data.get('hourly', []):
+                time_str = entry.get('time', '')
+                if not time_str:
+                    continue
+
+                try:
+                    # Parse timestamp to get month-day-hour
+                    dt = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                    key = (dt.month, dt.day, dt.hour)
+                    hourly_buckets[key].append(entry)
+                except (ValueError, AttributeError):
+                    continue
+
+        # Compute averages for each bucket
+        averaged_hourly = []
+
+        # Generate time slots for the requested date range
+        current_date = start_date
+        while current_date <= end_date:
+            for hour in range(24):
+                key = (current_date.month, current_date.day, hour)
+                entries = hourly_buckets.get(key, [])
+
+                if not entries:
+                    continue
+
+                # Average numeric fields
+                avg_entry = {
+                    'time': f"{current_date.isoformat()}T{hour:02d}:00",
+                    'cloud_cover': WeatherService._safe_avg([e.get('cloud_cover') for e in entries]),
+                    'cloud_cover_low': WeatherService._safe_avg([e.get('cloud_cover_low') for e in entries]),
+                    'cloud_cover_mid': WeatherService._safe_avg([e.get('cloud_cover_mid') for e in entries]),
+                    'cloud_cover_high': WeatherService._safe_avg([e.get('cloud_cover_high') for e in entries]),
+                    'visibility': WeatherService._safe_avg([e.get('visibility') for e in entries]),
+                    'humidity': WeatherService._safe_avg([e.get('humidity') for e in entries]),
+                    'wind_speed': WeatherService._safe_avg([e.get('wind_speed') for e in entries]),
+                    'temperature': WeatherService._safe_avg([e.get('temperature') for e in entries]),
+                    'precipitation_probability': None,  # Not available in historical
+                    'seeing': None,  # 7Timer data not available for historical
+                    'transparency': None,
+                }
+                averaged_hourly.append(avg_entry)
+
+            current_date += timedelta(days=1)
+
+        return {
+            'hourly': averaged_hourly,
+            'years_averaged': len(all_years_data),
+            'confidence': 'high' if len(all_years_data) >= 5 else ('medium' if len(all_years_data) >= 3 else 'low')
+        }
+
+
+    @staticmethod
+    def _safe_avg(values: List) -> Optional[float]:
+        """Compute average of numeric values, ignoring None."""
+        valid = [v for v in values if v is not None]
+        if not valid:
+            return None
+        return round(sum(valid) / len(valid), 1)
+
+
+    @staticmethod
+    def summarize_daily(hourly_data: List[dict], target_date: date) -> Dict[str, Any]:
+        """
+        Compute daily summary statistics from hourly data.
+
+        Args:
+            hourly_data: List of hourly weather entries
+            target_date: The date to summarize
+
+        Returns:
+            Dict with summary statistics (averages, highs, lows)
+        """
+        date_str = target_date.isoformat()
+
+        # Filter to entries for this date
+        day_entries = [
+            e for e in hourly_data
+            if e.get('time', '').startswith(date_str)
+        ]
+
+        if not day_entries:
+            return {}
+
+        # Extract values
+        cloud_covers = [e.get('cloud_cover') for e in day_entries if e.get('cloud_cover') is not None]
+        temperatures = [e.get('temperature') for e in day_entries if e.get('temperature') is not None]
+        humidities = [e.get('humidity') for e in day_entries if e.get('humidity') is not None]
+        wind_speeds = [e.get('wind_speed') for e in day_entries if e.get('wind_speed') is not None]
+        precip_probs = [e.get('precipitation_probability') for e in day_entries if e.get('precipitation_probability') is not None]
+
+        summary = {}
+
+        if cloud_covers:
+            summary['cloud_cover_avg'] = round(sum(cloud_covers) / len(cloud_covers), 1)
+
+        if temperatures:
+            summary['temperature_high'] = round(max(temperatures), 1)
+            summary['temperature_low'] = round(min(temperatures), 1)
+
+        if humidities:
+            summary['humidity_avg'] = round(sum(humidities) / len(humidities), 1)
+
+        if wind_speeds:
+            summary['wind_speed_max'] = round(max(wind_speeds), 1)
+
+        if precip_probs:
+            summary['precipitation_probability_max'] = round(max(precip_probs), 1)
+
+        return summary
+
+
+    @staticmethod
+    def get_weather_for_range(
+        lat: float,
+        lng: float,
+        start_date: date,
+        end_date: date
+    ) -> Dict[str, Any]:
+        """
+        Get weather data for a date range with automatic source selection.
+
+        Main entry point for the unified API. Routes each date to the
+        appropriate data source (forecast, historical, or historical average)
+        and returns a consistent response structure.
+
+        Args:
+            lat: Latitude (-90 to 90)
+            lng: Longitude (-180 to 180)
+            start_date: Start of date range
+            end_date: End of date range
+
+        Returns:
+            Unified weather response with 'current', 'daily', and metadata
+        """
+        rounded_lat = round(float(lat), 1)
+        rounded_lng = round(float(lng), 1)
+
+        # Always get current conditions (real-time from forecast API)
+        seven_timer_now = WeatherService.fetch_seven_timer_forecast(lat, lng)
+        open_meteo_now = WeatherService.fetch_open_meteo_forecast(lat, lng, days=1)
+
+        # Build current conditions from merged data
+        current_merged = WeatherService._merge_weather_data(
+            seven_timer_now, open_meteo_now, lat, lng
+        )
+
+        # Initialize response
+        response = {
+            'location': {'lat': rounded_lat, 'lng': rounded_lng},
+            'generated_at': datetime.now(timezone.utc).isoformat(),
+            'current': {
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                **current_merged.get('current_conditions', {})
+            },
+            'daily': [],
+            'sources': current_merged.get('sources', {}),
+            'warnings': []
+        }
+
+        # Group dates by classification
+        forecast_dates = []
+        historical_dates = []
+        hist_avg_dates = []
+
+        current_date = start_date
+        while current_date <= end_date:
+            classification = WeatherService.classify_date(current_date)
+            if classification == 'forecast':
+                forecast_dates.append(current_date)
+            elif classification == 'historical':
+                historical_dates.append(current_date)
+            else:
+                hist_avg_dates.append(current_date)
+            current_date += timedelta(days=1)
+
+        # Fetch forecast data (if any forecast dates)
+        forecast_hourly = {}
+        if forecast_dates:
+            days_needed = (max(forecast_dates) - date.today()).days + 1
+            days_needed = min(days_needed, WeatherService.FORECAST_MAX_DAYS)
+
+            seven_timer_data = WeatherService.fetch_seven_timer_forecast(lat, lng)
+            open_meteo_data = WeatherService.fetch_open_meteo_forecast(lat, lng, days_needed)
+            merged = WeatherService._merge_weather_data(seven_timer_data, open_meteo_data, lat, lng)
+
+            for entry in merged.get('hourly_forecast', []):
+                time_str = entry.get('time', '')
+                if time_str:
+                    date_key = time_str[:10]  # YYYY-MM-DD
+                    if date_key not in forecast_hourly:
+                        forecast_hourly[date_key] = []
+                    forecast_hourly[date_key].append(entry)
+
+        # Fetch historical data (if any historical dates)
+        historical_hourly = {}
+        if historical_dates:
+            hist_start = min(historical_dates)
+            hist_end = max(historical_dates)
+            historical_data = WeatherService.fetch_open_meteo_historical(lat, lng, hist_start, hist_end)
+
+            if historical_data:
+                for entry in historical_data.get('hourly', []):
+                    time_str = entry.get('time', '')
+                    if time_str:
+                        date_key = time_str[:10]
+                        if date_key not in historical_hourly:
+                            historical_hourly[date_key] = []
+                        historical_hourly[date_key].append(entry)
+
+        # Fetch historical averages (if any hist_avg dates)
+        hist_avg_data = {}
+        years_averaged = 0
+        confidence = 'high'
+        if hist_avg_dates:
+            avg_start = min(hist_avg_dates)
+            avg_end = max(hist_avg_dates)
+            avg_result = WeatherService.get_historical_average(lat, lng, avg_start, avg_end)
+            years_averaged = avg_result.get('years_averaged', 0)
+            confidence = avg_result.get('confidence', 'low')
+
+            for entry in avg_result.get('hourly', []):
+                time_str = entry.get('time', '')
+                if time_str:
+                    date_key = time_str[:10]
+                    if date_key not in hist_avg_data:
+                        hist_avg_data[date_key] = []
+                    hist_avg_data[date_key].append(entry)
+
+        # Build daily array
+        current_date = start_date
+        while current_date <= end_date:
+            date_str = current_date.isoformat()
+            classification = WeatherService.classify_date(current_date)
+
+            daily_entry = {
+                'date': date_str,
+                'data_type': classification,
+            }
+
+            if classification == 'forecast':
+                hourly = forecast_hourly.get(date_str, [])
+                daily_entry['hourly'] = hourly
+                daily_entry['summary'] = WeatherService.summarize_daily(hourly, current_date)
+                daily_entry['confidence'] = 'high'
+            elif classification == 'historical':
+                hourly = historical_hourly.get(date_str, [])
+                daily_entry['hourly'] = hourly
+                daily_entry['summary'] = WeatherService.summarize_daily(hourly, current_date)
+                daily_entry['confidence'] = 'high'
+            else:  # historical_average
+                hourly = hist_avg_data.get(date_str, [])
+                daily_entry['hourly'] = hourly
+                daily_entry['summary'] = WeatherService.summarize_daily(hourly, current_date)
+                daily_entry['years_averaged'] = years_averaged
+                daily_entry['confidence'] = confidence
+
+            response['daily'].append(daily_entry)
+            current_date += timedelta(days=1)
+
+        # Add warnings if needed
+        if hist_avg_dates and years_averaged < 5:
+            response['warnings'].append({
+                'type': 'reduced_confidence',
+                'message': f'Historical averages based on {years_averaged} year(s) instead of 5',
+                'affected_dates': [d.isoformat() for d in hist_avg_dates]
+            })
+
+        return response

@@ -94,22 +94,124 @@ def user_favorites_key(user_id):
 # Weather Cache Configuration                                                   #
 #                                                                               #
 # Weather data from external APIs (7Timer, Open-Meteo) is cached to reduce     #
-# API calls and improve response times. Coordinates are rounded to 2 decimal   #
-# places (~1km grid) to increase cache hit rate while maintaining accuracy.    #
+# API calls and improve response times. Different data types have different    #
+# cache durations and coordinate precision.                                    #
+#                                                                               #
+# Data Types:                                                                  #
+# - Forecast (today to +16 days): 30 min TTL, ~11km grid (1 decimal)          #
+# - Historical (past dates): 7 day TTL, ~11km grid (immutable data)           #
+# - Historical Average (>16 days future): 30 day TTL, ~11km grid              #
+#                                                                               #
+# Coordinate Precision:                                                         #
+# - Weather uses 1 decimal (~11km) - weather is regional                       #
+# - Moon uses 2 decimals (~1km) - moonrise/moonset times need precision        #
 # ----------------------------------------------------------------------------- #
-WEATHER_CACHE_TIMEOUT = 1800  # 30 minutes
+WEATHER_FORECAST_CACHE_TIMEOUT = 1800       # 30 minutes - forecasts change
+WEATHER_HISTORICAL_CACHE_TIMEOUT = 604800   # 7 days - past weather is immutable
+WEATHER_HIST_AVG_CACHE_TIMEOUT = 2592000    # 30 days - statistical averages are stable
+MOON_CACHE_TIMEOUT = 86400                  # 24 hours - moon data with location
+MOON_NO_LOCATION_CACHE_TIMEOUT = 604800     # 7 days - moon phases without location
+
+# Legacy constant for backward compatibility
+WEATHER_CACHE_TIMEOUT = WEATHER_FORECAST_CACHE_TIMEOUT
 
 
-# Generate cache key for weather forecast data:
+def weather_forecast_cache_key(lat, lng, date_str):
+    """
+    Cache key for forecast data (today to +16 days).
+
+    Uses 1 decimal precision (~11km grid) because weather is regional -
+    same cloud cover applies across a ~10km area.
+
+    Args:
+        lat: Latitude
+        lng: Longitude
+        date_str: Date string (YYYY-MM-DD)
+
+    Returns:
+        Cache key string
+    """
+    rounded_lat = round(float(lat), 1)
+    rounded_lng = round(float(lng), 1)
+    return f'weather:forecast:{rounded_lat}:{rounded_lng}:{date_str}'
+
+
+def weather_historical_cache_key(lat, lng, date_str):
+    """
+    Cache key for historical weather data (past dates).
+
+    Same ~11km grid as forecast. Historical data is immutable so
+    cache TTL is longer (7 days).
+
+    Args:
+        lat: Latitude
+        lng: Longitude
+        date_str: Date string (YYYY-MM-DD)
+
+    Returns:
+        Cache key string
+    """
+    rounded_lat = round(float(lat), 1)
+    rounded_lng = round(float(lng), 1)
+    return f'weather:historical:{rounded_lat}:{rounded_lng}:{date_str}'
+
+
+def weather_hist_avg_cache_key(lat, lng, month, day):
+    """
+    Cache key for historical average data (>16 days in future).
+
+    Key uses month/day only (no year) because the average for
+    "March 15th" is the same regardless of which year is requested.
+
+    Args:
+        lat: Latitude
+        lng: Longitude
+        month: Month (1-12)
+        day: Day (1-31)
+
+    Returns:
+        Cache key string
+    """
+    rounded_lat = round(float(lat), 1)
+    rounded_lng = round(float(lng), 1)
+    return f'weather:hist_avg:{rounded_lat}:{rounded_lng}:{month:02d}:{day:02d}'
+
+
+def moon_cache_key(lat, lng, start_date, end_date):
+    """
+    Cache key for moon phase data.
+
+    Uses 2 decimal precision (~1km grid) because moonrise/moonset
+    times vary more with location than weather does.
+
+    Args:
+        lat: Latitude (or None for no location)
+        lng: Longitude (or None for no location)
+        start_date: Start date string (YYYY-MM-DD)
+        end_date: End date string (YYYY-MM-DD)
+
+    Returns:
+        Cache key string
+    """
+    if lat is not None and lng is not None:
+        rounded_lat = round(float(lat), 2)
+        rounded_lng = round(float(lng), 2)
+        return f'moon:{rounded_lat}:{rounded_lng}:{start_date}:{end_date}'
+    else:
+        # No location - moon phases are global
+        return f'moon:phases:{start_date}:{end_date}'
+
+
+# Legacy function for backward compatibility (deprecated)
 def weather_cache_key(lat, lng):
     """
-    Generate cache key with rounded coordinates to reduce fragmentation.
+    DEPRECATED: Use weather_forecast_cache_key() instead.
 
-    Rounding to 2 decimal places (~1km) means nearby requests share cache.
-    Weather doesn't change significantly within 1km, so this is acceptable.
+    Generate cache key with rounded coordinates to reduce fragmentation.
+    Kept for backward compatibility during transition period.
     """
-    rounded_lat = round(float(lat), 2)
-    rounded_lng = round(float(lng), 2)
+    rounded_lat = round(float(lat), 1)
+    rounded_lng = round(float(lng), 1)
     return f'weather:forecast:{rounded_lat}:{rounded_lng}'
 
 

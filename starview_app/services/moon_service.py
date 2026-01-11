@@ -402,3 +402,88 @@ def get_key_dates_in_range(
     # Sort by date
     key_dates.sort(key=lambda x: x['date'])
     return key_dates
+
+
+def get_moon_data_unified(
+    start_date: datetime,
+    end_date: datetime,
+    lat: Optional[float] = None,
+    lng: Optional[float] = None
+) -> Dict[str, Any]:
+    """
+    Get moon data in the unified astronomy API format.
+
+    Returns a consistent response structure matching the weather API,
+    enabling frontend code to handle both APIs uniformly.
+
+    Args:
+        start_date: Start of date range
+        end_date: End of date range
+        lat: Optional latitude for moonrise/moonset
+        lng: Optional longitude for moonrise/moonset
+
+    Returns:
+        Unified response with:
+        - location: {lat, lng} if coordinates provided
+        - generated_at: ISO timestamp
+        - current: Real-time phase data for NOW
+        - daily: Array of daily phase data with data_type: "computed"
+    """
+    from datetime import timezone as tz
+
+    now = datetime.now(tz.utc)
+
+    # Build response
+    response: Dict[str, Any] = {
+        'generated_at': now.isoformat(),
+        'current': {},
+        'daily': [],
+    }
+
+    # Add location if provided
+    if lat is not None and lng is not None:
+        response['location'] = {
+            'lat': round(float(lat), 2),
+            'lng': round(float(lng), 2)
+        }
+
+    # Get current (NOW) moon data
+    current_phase = get_phase_for_date(now, lat, lng)
+    response['current'] = {
+        'timestamp': now.isoformat(),
+        'phase_name': current_phase.get('phase_name'),
+        'phase_emoji': current_phase.get('phase_emoji'),
+        'illumination': current_phase.get('illumination'),
+        'phase_angle': current_phase.get('phase_angle'),
+        'is_waning': current_phase.get('is_waning'),
+        'is_good_for_stargazing': current_phase.get('is_good_for_stargazing'),
+    }
+
+    # Add moonrise/moonset to current if location provided
+    if lat is not None and lng is not None:
+        response['current']['next_moonrise'] = current_phase.get('next_moonrise')
+        response['current']['next_moonset'] = current_phase.get('next_moonset')
+        response['current']['rotation_angle'] = current_phase.get('rotation_angle')
+
+    # Get daily phase data for the date range
+    phases = get_phases_for_range(start_date, end_date, lat, lng)
+
+    for phase in phases:
+        daily_entry = {
+            'date': phase.get('date'),
+            'data_type': 'computed',
+            'phase_name': phase.get('phase_name'),
+            'phase_emoji': phase.get('phase_emoji'),
+            'illumination': phase.get('illumination'),
+            'phase_angle': phase.get('phase_angle'),
+            'is_waning': phase.get('is_waning'),
+            'is_good_for_stargazing': phase.get('is_good_for_stargazing'),
+        }
+
+        # Include rotation angle if location provided
+        if lat is not None and lng is not None and 'rotation_angle' in phase:
+            daily_entry['rotation_angle'] = phase.get('rotation_angle')
+
+        response['daily'].append(daily_entry)
+
+    return response

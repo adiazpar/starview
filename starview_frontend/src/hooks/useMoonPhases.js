@@ -77,13 +77,15 @@ export function useMoonPhases({
     : useQuery({ ...queryConfig, enabled });
 
   // When keyDatesOnly is true, backend returns { key_dates: [...] } as an array
-  // When false, it returns { phases: [...], key_dates: {...} } where key_dates is an object
+  // When false, it returns { daily: [...], current: {...}, key_dates: {...} }
+  // Note: API returns 'daily' array, we map to 'phases' for backward compatibility
   const phases = keyDatesOnly
     ? (Array.isArray(query.data?.key_dates) ? query.data.key_dates : [])
-    : (query.data?.phases || []);
+    : (query.data?.daily || []);
 
   return {
     phases,
+    current: query.data?.current || null, // Real-time moon data with moonrise/moonset
     keyDates: keyDatesOnly ? {} : (query.data?.key_dates || {}),
     location: query.data?.location,
     isLoading: query.isLoading ?? false,
@@ -155,9 +157,11 @@ export function useTodayMoonPhase({ lat, lng, suspense = false, refetchInterval 
     refetchInterval,
   });
 
+  // Use 'current' for real-time data (includes moonrise/moonset/rotation)
+  // Fall back to daily[0] if current not available
   return {
     ...result,
-    todayPhase: result.phases[0] || null,
+    todayPhase: result.current || result.phases[0] || null,
   };
 }
 
