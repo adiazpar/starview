@@ -100,11 +100,13 @@ function MoonPhaseContent({ lat, lng, permissionState, isAuthenticated, user, so
                 return events.filter(Boolean).flatMap((event) => [
                   <div key={`${event.type}-divider`} className="moon-hero__stat-divider"></div>,
                   <div key={event.type} className="moon-hero__stat">
-                    <span className="moon-hero__stat-value moon-hero__stat-value--secondary">
+                    <span className="moon-hero__stat-value">
                       {formatTime(event.time)}
                     </span>
                     <span className="moon-hero__stat-label">
-                      {event.type} · {event.label}
+                      {event.type}
+                      <span className="moon-hero__stat-separator"> · </span>
+                      {event.label}
                     </span>
                   </div>
                 ]);
