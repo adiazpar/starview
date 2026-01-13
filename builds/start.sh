@@ -9,8 +9,9 @@
 
 set -o errexit
 
-# Navigate to project root (parent of builds/ directory)
+# Navigate to project root (parent of builds/ directory) and store the path
 cd "$(dirname "$0")/.."
+PROJECT_ROOT="$(pwd)"
 
 # Download World Atlas GeoTIFF for Bortle API (only if not already present)
 # The /var/data disk persists across deploys, so this only runs once
@@ -27,7 +28,7 @@ if [ ! -f "$GEOTIFF_PATH" ]; then
     unzip -o world_atlas.zip World_Atlas_2015.tif
     rm world_atlas.zip World_Atlas_2015.tpk README.txt 2>/dev/null || true
     echo "GeoTIFF downloaded: $GEOTIFF_PATH"
-    cd "$(dirname "$0")/.."
+    cd "$PROJECT_ROOT"
 else
     echo "World Atlas GeoTIFF already present at $GEOTIFF_PATH"
 fi
