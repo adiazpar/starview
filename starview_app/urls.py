@@ -58,6 +58,8 @@ from .views import (
     get_moon_phases,
     # Weather views
     get_weather_forecast,
+    # Bortle views
+    get_bortle,
 )
 
 router = DefaultRouter()
@@ -86,6 +88,9 @@ urlpatterns = [
 
     # Weather forecast (for stargazing planning):
     path('api/weather/', get_weather_forecast, name='weather_forecast'),
+
+    # Bortle scale / light pollution (for stargazing planning):
+    path('api/bortle/', get_bortle, name='bortle'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),

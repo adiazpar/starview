@@ -111,6 +111,7 @@ WEATHER_HISTORICAL_CACHE_TIMEOUT = 604800   # 7 days - past weather is immutable
 WEATHER_HIST_AVG_CACHE_TIMEOUT = 2592000    # 30 days - statistical averages are stable
 MOON_CACHE_TIMEOUT = 86400                  # 24 hours - moon data with location
 MOON_NO_LOCATION_CACHE_TIMEOUT = 604800     # 7 days - moon phases without location
+BORTLE_CACHE_TIMEOUT = 2592000              # 30 days - light pollution changes slowly (years)
 
 # Legacy constant for backward compatibility
 WEATHER_CACHE_TIMEOUT = WEATHER_FORECAST_CACHE_TIMEOUT
@@ -200,6 +201,25 @@ def moon_cache_key(lat, lng, start_date, end_date):
     else:
         # No location - moon phases are global
         return f'moon:phases:{start_date}:{end_date}'
+
+
+def bortle_cache_key(lat, lng):
+    """
+    Cache key for Bortle scale / light pollution data.
+
+    Uses 2 decimal precision (~1km grid) for reasonable cache density.
+    Light pollution changes very slowly (years), so aggressive caching is safe.
+
+    Args:
+        lat: Latitude
+        lng: Longitude
+
+    Returns:
+        Cache key string
+    """
+    rounded_lat = round(float(lat), 2)
+    rounded_lng = round(float(lng), 2)
+    return f'bortle:{rounded_lat}:{rounded_lng}'
 
 
 # Legacy function for backward compatibility (deprecated)

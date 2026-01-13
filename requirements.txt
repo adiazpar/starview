@@ -55,3 +55,4 @@ ephem==4.1.6
 flatbuffers==25.12.19
 h3==4.4.1
 numpy==2.4.0
+rasterio==1.4.3

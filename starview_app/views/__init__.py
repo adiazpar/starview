@@ -81,6 +81,11 @@ from .views_weather import (
     get_weather_forecast,
 )
 
+# Bortle views:
+from .views_bortle import (
+    get_bortle,
+)
+
 # Expose all views for easier imports:
 __all__ = [
     # Location views
@@ -127,4 +132,7 @@ __all__ = [
 
     # Weather views
     'get_weather_forecast',
+
+    # Bortle views
+    'get_bortle',
 ]
