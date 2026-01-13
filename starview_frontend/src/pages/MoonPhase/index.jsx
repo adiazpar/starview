@@ -156,13 +156,6 @@ function MoonPhaseContent({ lat, lng, permissionState, isAuthenticated, user, so
               </p>
             )}
 
-            {/* Stargazing indicator */}
-            {todayPhase?.is_good_for_stargazing && (
-              <div className="moon-hero__indicator">
-                <span className="moon-hero__indicator-dot"></span>
-                <span>Good for stargazing tonight</span>
-              </div>
-            )}
           </div>
         </div>
 
