@@ -332,6 +332,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const isPopupModeRef = useRef(false); // Track popup mode for event handlers
   const popupRef = useRef(null); // Ref for popup DOM element (direct position updates, no re-renders)
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(false); // Stays true once set (prevents re-animation on style changes)
   const [readyForHeavyLayers, setReadyForHeavyLayers] = useState(false); // Deferred loading after initial animation
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isCardVisible, setIsCardVisible] = useState(false); // Controls animation
@@ -343,6 +344,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const initialAnimationCompleteRef = useRef(false); // Track when initial animation finishes
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
+  const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once on initial load
   const protectedAreaPopupRef = useRef(null); // Popup for protected area info
   const markerPopupRef = useRef(null); // Popup for location marker hover
   const markerPopupAnchorRef = useRef('bottom'); // Track marker popup anchor
@@ -1622,16 +1624,28 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Trigger geolocate control to show user location marker when browser location is available
   // This runs when: 1) initial load with browser permission, 2) user grants permission mid-session
+  // Uses hasTriggeredGeolocateRef to prevent re-triggering on style changes (which toggle mapLoaded)
   useEffect(() => {
     // Only trigger for browser geolocation (not profile fallback)
     if (userLocationSource !== 'browser') return;
     if (!geolocateControlRef.current || !userLocation || !mapLoaded) return;
+    // Only trigger once - prevents map jumping back to user location on style changes
+    if (hasTriggeredGeolocateRef.current) return;
+
+    hasTriggeredGeolocateRef.current = true;
 
     // Trigger after a short delay to ensure control is ready
     setTimeout(() => {
       geolocateControlRef.current?.trigger();
     }, GEOLOCATE_TRIGGER_DELAY_MS);
   }, [userLocation, userLocationSource, mapLoaded]);
+
+  // Set controlsVisible to true once map loads (never resets, prevents re-animation on style changes)
+  useEffect(() => {
+    if (mapLoaded && !controlsVisible) {
+      setControlsVisible(true);
+    }
+  }, [mapLoaded, controlsVisible]);
 
   // Apply dynamic day/night lighting based on user's location
   useEffect(() => {
@@ -1830,7 +1844,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       <div ref={mapContainer} className={`explore-map__container ${mapLoaded ? 'explore-map__container--loaded' : ''}`} />
 
       {/* Left Controls - Zoom & Location */}
-      <div className={`explore-map__controls explore-map__controls--left ${mapLoaded ? 'explore-map__controls--loaded' : ''}`}>
+      <div className={`explore-map__controls explore-map__controls--left ${controlsVisible ? 'explore-map__controls--loaded' : ''}`}>
         {/* Zoom In */}
         <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
           <button
@@ -1916,7 +1930,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       </div>
 
       {/* Right Controls - stagger delay: 0.3s base + 0.15s per item */}
-      <div className={`explore-map__controls ${mapLoaded ? 'explore-map__controls--loaded' : ''}`} ref={controlsRef}>
+      <div className={`explore-map__controls ${controlsVisible ? 'explore-map__controls--loaded' : ''}`} ref={controlsRef}>
         {/* IUCN Filter */}
         <div className="explore-map__control" style={{ '--stagger-delay': '0.3s' }}>
           <button
