@@ -15,6 +15,11 @@ const PROTECTED_AREAS_PMTILES_URL = 'https://media.starview.app/data/protected-a
 const PROTECTED_AREAS_LAYER = 'protected_areas'; // Layer name set by tippecanoe -l flag
 const PROTECTED_AREAS_MINZOOM = 5; // Used for both layer minzoom and popup zoom check
 
+// Light Pollution Tiles Configuration
+// Raster tiles generated from World Atlas 2015, hosted on Cloudflare R2
+const LIGHT_POLLUTION_TILES_URL = 'https://media.starview.app/light-pollution/{z}/{x}/{y}.png';
+const LIGHT_POLLUTION_MAXZOOM = 8;
+
 // Card layout values are defined in CSS (--card-margin, --card-aspect-ratio, --card-content-height)
 // and read dynamically via getComputedStyle() to avoid duplication
 
@@ -354,6 +359,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   // Map style picker dropdown state
   const styleDropdown = useAnimatedDropdown();
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
+  const [showLightPollution, setShowLightPollution] = useState(false); // Light pollution overlay toggle
 
   // Viewport detection for popup mode (desktop/tablet ≥768px uses marker popup instead of bottom card)
   const isPopupMode = useMediaQuery('(min-width: 768px)');
@@ -1138,6 +1144,55 @@ function ExploreMap({ initialViewport, onViewportChange }) {
     };
   }, [mapLoaded, readyForHeavyLayers]);
 
+  // Add Light Pollution raster tile layer
+  // Uses XYZ tiles generated from World Atlas 2015 data
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !readyForHeavyLayers) return;
+    if (map.current.getSource('light-pollution')) return;
+
+    map.current.addSource('light-pollution', {
+      type: 'raster',
+      tiles: [LIGHT_POLLUTION_TILES_URL],
+      tileSize: 256,
+      maxzoom: LIGHT_POLLUTION_MAXZOOM,
+      attribution: 'Light pollution © World Atlas 2015'
+    });
+
+    map.current.addLayer({
+      id: 'light-pollution-layer',
+      type: 'raster',
+      source: 'light-pollution',
+      slot: 'bottom',
+      layout: {
+        visibility: 'none'  // Start hidden, toggled by user
+      },
+      paint: {
+        'raster-opacity': 0.7,
+        'raster-opacity-transition': { duration: 300 },
+        // Boost colors to make light pollution more vibrant
+        'raster-saturation': 0.4,   // Increase color intensity
+        'raster-contrast': 0.3,     // Increase contrast between light/dark areas
+        'raster-brightness-min': 0.1, // Lift shadows slightly
+        // Emit light so colors glow through Mapbox Standard night mode
+        // This makes light pollution visible as actual "light" at night
+        'raster-emissive-strength': 1.2  // Increased for stronger glow
+      }
+    }, 'protected-areas-fill');  // Insert below protected areas
+
+  }, [mapLoaded, readyForHeavyLayers]);
+
+  // Toggle light pollution layer visibility
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    if (!map.current.getLayer('light-pollution-layer')) return;
+
+    map.current.setLayoutProperty(
+      'light-pollution-layer',
+      'visibility',
+      showLightPollution ? 'visible' : 'none'
+    );
+  }, [showLightPollution, mapLoaded]);
+
   // Ref to track if marker event handlers are registered (for cleanup)
   const markerHandlersRef = useRef(null);
 
@@ -1612,6 +1667,13 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         map.current.setPaintProperty('protected-areas-border', 'line-opacity', lineOpacity);
       }
 
+      // Update light pollution layer opacity based on lighting
+      // Higher opacity at night since the emissive glow effect is more prominent
+      if (map.current.getLayer('light-pollution-layer')) {
+        const lightPollutionOpacity = isDaytime ? 0.6 : 0.8;
+        map.current.setPaintProperty('light-pollution-layer', 'raster-opacity', lightPollutionOpacity);
+      }
+
       // Update marker colors based on lighting
       // Day/dawn: black markers, Night/dusk: white markers
       if (map.current.getLayer('location-markers')) {
@@ -1940,6 +2002,18 @@ function ExploreMap({ initialViewport, onViewportChange }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Light Pollution Toggle */}
+        <div className="explore-map__control" style={{ '--stagger-delay': '0.55s' }}>
+          <button
+            className={`explore-map__control-btn ${showLightPollution ? 'explore-map__control-btn--active' : ''}`}
+            onClick={() => setShowLightPollution(prev => !prev)}
+            aria-label="Toggle light pollution overlay"
+            title="Light Pollution"
+          >
+            <i className="fa-solid fa-lightbulb"></i>
+          </button>
         </div>
       </div>
 
