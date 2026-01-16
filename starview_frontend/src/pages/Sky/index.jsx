@@ -3,12 +3,36 @@
  * Clean layout with visual elements for each topic area.
  */
 
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useSEO } from '../../hooks/useSEO';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
 
 function SkyPage() {
+  const featuresRef = useRef([]);
+
+  // Scroll-triggered animations using Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('sky-feature--visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    featuresRef.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   useSEO({
     title: 'Sky Conditions | Starview',
     description: "Plan your stargazing sessions with real-time sky conditions, moon phases, weather forecasts, and light pollution data.",
@@ -30,7 +54,7 @@ function SkyPage() {
       </header>
 
       {/* Tonight Feature */}
-      <section className="sky-feature">
+      <section className="sky-feature" ref={(el) => (featuresRef.current[0] = el)}>
         <div className="sky-feature__visual">
           <div className="sky-feature__card">
             <div className="sky-feature__ring-container">
@@ -95,7 +119,7 @@ function SkyPage() {
       </section>
 
       {/* Moon Feature */}
-      <section className="sky-feature">
+      <section className="sky-feature" ref={(el) => (featuresRef.current[1] = el)}>
         <div className="sky-feature__visual">
           <div className="sky-feature__moon-display">
             <MoonPhaseGraphic
@@ -112,10 +136,7 @@ function SkyPage() {
           </div>
         </div>
         <div className="sky-feature__content">
-          <div className="sky-feature__header">
-            <span className="sky-feature__eyebrow">Moon Calendar</span>
-            <span className="sky-feature__badge">Coming Soon</span>
-          </div>
+          <span className="sky-feature__eyebrow">Moon Calendar</span>
           <h2 className="sky-feature__title">
             Plan around the moon
           </h2>
@@ -124,11 +145,12 @@ function SkyPage() {
             for deep-sky observation, while full moons are perfect for lunar
             photography and nighttime hikes.
           </p>
+          <span className="sky-feature__badge">Coming Soon</span>
         </div>
       </section>
 
       {/* Light Pollution Feature */}
-      <section className="sky-feature">
+      <section className="sky-feature" ref={(el) => (featuresRef.current[2] = el)}>
         <div className="sky-feature__visual">
           <div className="sky-feature__bortle">
             <div className="sky-feature__bortle-scale">
@@ -162,7 +184,7 @@ function SkyPage() {
       </section>
 
       {/* Forecast Feature */}
-      <section className="sky-feature">
+      <section className="sky-feature" ref={(el) => (featuresRef.current[3] = el)}>
         <div className="sky-feature__visual">
           <div className="sky-feature__forecast">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
@@ -178,10 +200,7 @@ function SkyPage() {
           </div>
         </div>
         <div className="sky-feature__content">
-          <div className="sky-feature__header">
-            <span className="sky-feature__eyebrow">7-Day Forecast</span>
-            <span className="sky-feature__badge">Coming Soon</span>
-          </div>
+          <span className="sky-feature__eyebrow">7-Day Forecast</span>
           <h2 className="sky-feature__title">
             Plan your week
           </h2>
@@ -190,6 +209,7 @@ function SkyPage() {
             predictions with astronomical data to highlight the optimal evenings
             for stargazing in the week ahead.
           </p>
+          <span className="sky-feature__badge">Coming Soon</span>
         </div>
       </section>
 
