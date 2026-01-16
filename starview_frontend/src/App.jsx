@@ -22,6 +22,7 @@ const PublicProfilePage = lazy(() => import('./pages/PublicProfile'));
 const ExplorePage = lazy(() => import('./pages/Explore'));
 const TonightPage = lazy(() => import('./pages/Tonight'));
 const SkyPage = lazy(() => import('./pages/Sky'));
+const BortlePage = lazy(() => import('./pages/Bortle'));
 const PrivacyPage = lazy(() => import('./pages/Privacy'));
 const TermsPage = lazy(() => import('./pages/Terms'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
@@ -93,6 +94,7 @@ function App() {
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/sky" element={<SkyPage />} />
           <Route path="/tonight" element={<TonightPage />} />
+          <Route path="/bortle" element={<BortlePage />} />
           <Route path="/moon" element={<Navigate to="/tonight" replace />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

@@ -14,7 +14,7 @@ const navigationLinks = {
   explore: [
     { label: 'Discover Locations', to: '/explore' },
     { label: 'Star Map', to: '/explore', soon: true },
-    { label: 'Light Pollution Data', to: '/explore', soon: true },
+    { label: 'Light Pollution Data', to: '/bortle' },
   ],
   sky: [
     { label: 'Sky Conditions', to: '/sky' },

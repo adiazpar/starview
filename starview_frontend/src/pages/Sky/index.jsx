@@ -329,9 +329,9 @@ function SkyPage() {
             Find darker skies
           </h2>
           <p className="sky-feature__text">
-            The Bortle scale measures sky darkness from 1 (pristine) to 9 (inner-city).
-            Understanding your local light pollution helps set realistic expectations
-            and discover better observing sites nearby.
+            The <Link to="/bortle" className="sky-feature__inline-link">Bortle scale</Link> measures
+            sky darkness from 1 (pristine) to 9 (inner-city). Understanding your local light
+            pollution helps set realistic expectations and discover better observing sites nearby.
           </p>
           <Link to="/explore" className="sky-feature__link">
             Explore the map

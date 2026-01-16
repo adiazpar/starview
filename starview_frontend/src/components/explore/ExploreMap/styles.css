@@ -631,6 +631,36 @@
   border-color: var(--accent-hover);
 }
 
+/* Bortle info button - positioned next to Mapbox attribution button */
+.explore-map__bortle-info {
+  position: absolute;
+  bottom: 10px;
+  right: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: 50%;
+  color: #000;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 1;
+}
+
+@keyframes bortleInfoFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Dropdown positioned to the left of buttons */
 .explore-map__dropdown {
   --dropdown-animation-duration: 0.1s;

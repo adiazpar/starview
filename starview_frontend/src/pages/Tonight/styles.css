@@ -312,6 +312,24 @@
   color: var(--text-secondary);
 }
 
+.tonight-card__info-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+  border-radius: 50%;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tonight-card__info-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
 /* Card body */
 .tonight-card__body {
   flex: 1;
@@ -483,7 +501,7 @@
 .tonight-card__cta:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--bg-base);
+  color: #fff;
 }
 
 .tonight-card__cta i {
@@ -586,22 +604,16 @@
 /* ============================================ */
 
 .tonight-back {
+  padding: var(--space-lg);
   text-align: center;
-  margin-top: var(--space-xl);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--glass-border);
-  opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out 0.4s forwards;
 }
 
 .tonight-back__link {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  font-family: var(--font-technical);
   font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -693,6 +705,7 @@
 
   /* Left column: Icon + Title */
   .tonight-card__header {
+    position: relative;
     grid-column: 1;
     grid-row: 1 / -1;
     flex-direction: column;
@@ -717,6 +730,17 @@
   .tonight-card__title {
     font-size: 10px;
     letter-spacing: 0.12em;
+  }
+
+  /* Info button: position absolutely in corner */
+  .tonight-card__info-btn {
+    position: absolute;
+    top: var(--space-xs);
+    left: var(--space-xs);
+    margin-left: 0;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
   }
 
   /* Right column: Body content */

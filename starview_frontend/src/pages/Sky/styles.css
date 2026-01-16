@@ -32,13 +32,13 @@
 @keyframes subtleGlow {
   0%, 100% {
     box-shadow:
-      0 0 20px rgba(0, 212, 170, 0.15),
-      0 0 40px rgba(0, 212, 170, 0.05);
+      0 0 20px var(--glow-primary),
+      0 0 40px var(--glow-secondary);
   }
   50% {
     box-shadow:
-      0 0 25px rgba(0, 212, 170, 0.2),
-      0 0 50px rgba(0, 212, 170, 0.1);
+      0 0 25px var(--glow-primary),
+      0 0 50px var(--glow-secondary);
   }
 }
 
@@ -80,10 +80,10 @@
 
 @keyframes statusPulse {
   0%, 100% {
-    box-shadow: 0 0 4px rgba(0, 255, 136, 0.6);
+    box-shadow: 0 0 4px var(--glow-primary);
   }
   50% {
-    box-shadow: 0 0 8px rgba(0, 255, 136, 0.9), 0 0 16px rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 8px var(--glow-primary), 0 0 16px var(--glow-secondary);
   }
 }
 
@@ -148,7 +148,7 @@
   /* Subtle atmospheric glow */
   background: radial-gradient(
     ellipse at center,
-    rgba(0, 212, 170, 0.03) 0%,
+    var(--glow-secondary) 0%,
     transparent 70%
   );
 }
@@ -162,8 +162,8 @@
   animation: gridFadeIn 1s ease-out 0.8s both;
   /* Subtle grid pattern */
   background-image:
-    linear-gradient(to right, rgba(0, 212, 170, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, var(--glass-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--glass-border) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -177,9 +177,9 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(0, 212, 170, 0.4) 20%,
-    rgba(0, 212, 170, 0.6) 50%,
-    rgba(0, 212, 170, 0.4) 80%,
+    var(--glow-primary) 20%,
+    var(--accent-border) 50%,
+    var(--glow-primary) 80%,
     transparent
   );
   animation: scanlineSweep 4s ease-in-out 1.5s infinite;
@@ -254,12 +254,12 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #00ff88;
+  background: var(--accent);
   animation: statusPulse 2s ease-in-out infinite;
 }
 
 .sky-hero__status-text {
-  color: #00ff88;
+  color: var(--accent);
 }
 
 .sky-hero__status-label {
@@ -345,7 +345,7 @@
   letter-spacing: 0.08em;
   color: var(--accent);
   padding: 2px 6px;
-  background: rgba(0, 212, 170, 0.1);
+  background: var(--accent-bg);
   border-radius: 3px;
 }
 
@@ -439,6 +439,18 @@
   color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 var(--space-lg);
+}
+
+.sky-feature__inline-link {
+  color: var(--accent-light);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-border);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.sky-feature__inline-link:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 .sky-feature__link {
@@ -865,7 +877,7 @@
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
   background: var(--accent);
-  color: var(--bg-primary);
+  color: #fff;
   font-family: var(--font-technical);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -896,9 +908,7 @@
 
 .sky-bottom__cta:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 4px 16px rgba(0, 212, 170, 0.3),
-    0 0 32px rgba(0, 212, 170, 0.15);
+  box-shadow: var(--shadow-accent-hover);
 }
 
 .sky-bottom__cta:hover::before {
@@ -1278,7 +1288,7 @@
   }
 
   .sky-feature__card {
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.15);
+    box-shadow: var(--shadow-accent);
   }
 
   .sky-feature__link:hover i {

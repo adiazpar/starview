@@ -464,6 +464,9 @@ function TonightContent({
                   <i className="fa-solid fa-eye"></i>
                 </div>
                 <div className="tonight-card__title">Darkness</div>
+                <Link to="/bortle" className="tonight-card__info-btn" aria-label="Learn about the Bortle scale">
+                  <i className="fa-solid fa-circle-question"></i>
+                </Link>
               </div>
 
               <div className="tonight-card__body">

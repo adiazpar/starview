@@ -172,6 +172,7 @@ function getMarkerPopupHTML(properties) {
 }
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { PmTilesSource } from 'mapbox-pmtiles';
@@ -2042,6 +2043,18 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
           </button>
         </div>
       </div>
+
+      {/* Bortle info button - bottom right, next to Mapbox attribution */}
+      {showLightPollution && (
+        <Link
+          to="/bortle"
+          className="explore-map__bortle-info"
+          aria-label="Learn about the Bortle scale"
+          title="What is the Bortle scale?"
+        >
+          <i className="fa-solid fa-circle-question"></i>
+        </Link>
+      )}
 
       {/* Desktop/Tablet: Popup variant (centered on marker) */}
       {isPopupMode && selectedLocation && isPopupVisible && !isNavigationMode && (
