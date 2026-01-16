@@ -28,7 +28,8 @@ function ExplorePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const initialView = searchParams.get('view') === 'map' ? 'map' : 'list';
-  const initialLightPollution = searchParams.get('lightPollution') === 'true';
+  // Use ref to preserve initial value across re-renders (survives URL cleanup during lazy load)
+  const initialLightPollutionRef = useRef(searchParams.get('lightPollution') === 'true');
   const [view, setView] = useState(initialView);
   const mapViewport = useRef(null); // Persist map position across view toggles
 
@@ -189,7 +190,7 @@ function ExplorePage() {
           <ExploreMap
             initialViewport={mapViewport.current}
             onViewportChange={handleMapViewportChange}
-            initialLightPollution={initialLightPollution}
+            initialLightPollution={initialLightPollutionRef.current}
           />
         </Suspense>
       </div>

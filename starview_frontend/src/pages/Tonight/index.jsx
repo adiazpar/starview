@@ -75,6 +75,52 @@ const formatTime = (timeStr) => {
 };
 
 /**
+ * Convert moonrise/moonset event to a comparable timestamp
+ * Returns milliseconds since epoch for comparison
+ */
+const eventToTimestamp = (event) => {
+  if (!event?.time) return Infinity;
+  const [hours, minutes] = event.time.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  // If event is tomorrow, add a day
+  if (event.label?.toLowerCase() === 'tomorrow') {
+    date.setDate(date.getDate() + 1);
+  }
+  return date.getTime();
+};
+
+/**
+ * Get moon events sorted by which happens next
+ */
+const getSortedMoonEvents = (moonData) => {
+  const events = [];
+
+  if (moonData?.next_moonrise) {
+    events.push({
+      type: 'rise',
+      label: 'Rise',
+      time: moonData.next_moonrise.time,
+      dayLabel: moonData.next_moonrise.label,
+      timestamp: eventToTimestamp(moonData.next_moonrise),
+    });
+  }
+
+  if (moonData?.next_moonset) {
+    events.push({
+      type: 'set',
+      label: 'Set',
+      time: moonData.next_moonset.time,
+      dayLabel: moonData.next_moonset.label,
+      timestamp: eventToTimestamp(moonData.next_moonset),
+    });
+  }
+
+  // Sort by timestamp (soonest first)
+  return events.sort((a, b) => a.timestamp - b.timestamp);
+};
+
+/**
  * Get Bortle class description
  */
 const getBortleDescription = (bortleClass) => {
@@ -332,28 +378,17 @@ function TonightContent({
                 </div>
 
                 <div className="tonight-card__times">
-                  {moonData?.next_moonrise && (
-                    <div className="tonight-card__time">
-                      <span className="tonight-card__time-label">Rise</span>
+                  {getSortedMoonEvents(moonData).map((event) => (
+                    <div key={event.type} className="tonight-card__time">
+                      <span className="tonight-card__time-label">{event.label}</span>
                       <span className="tonight-card__time-value">
-                        {formatTime(moonData.next_moonrise.time)}
+                        {formatTime(event.time)}
                       </span>
-                      {moonData.next_moonrise.label && (
-                        <span className="tonight-card__time-day">{moonData.next_moonrise.label}</span>
+                      {event.dayLabel && (
+                        <span className="tonight-card__time-day">{event.dayLabel}</span>
                       )}
                     </div>
-                  )}
-                  {moonData?.next_moonset && (
-                    <div className="tonight-card__time">
-                      <span className="tonight-card__time-label">Set</span>
-                      <span className="tonight-card__time-value">
-                        {formatTime(moonData.next_moonset.time)}
-                      </span>
-                      {moonData.next_moonset.label && (
-                        <span className="tonight-card__time-day">{moonData.next_moonset.label}</span>
-                      )}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
