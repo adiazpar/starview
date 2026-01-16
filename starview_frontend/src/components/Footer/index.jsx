@@ -16,6 +16,12 @@ const navigationLinks = {
     { label: 'Star Map', to: '/explore', soon: true },
     { label: 'Light Pollution Data', to: '/explore', soon: true },
   ],
+  sky: [
+    { label: 'Sky Conditions', to: '/sky' },
+    { label: "Tonight's Forecast", to: '/tonight' },
+    { label: '7-Day Forecast', to: '/forecast', soon: true },
+    { label: 'Moon Calendar', to: '/calendar', soon: true },
+  ],
   community: [
     { label: 'Top Contributors', to: '/explore', soon: true },
     { label: 'Recent Reviews', to: '/explore', soon: true },
@@ -93,6 +99,29 @@ export default function Footer() {
               </h3>
               <ul className="footer__nav-list">
                 {navigationLinks.explore.map((link) => (
+                  <li key={link.label}>
+                    {link.soon ? (
+                      <span className="footer__nav-link footer__nav-link--disabled">
+                        {link.label}
+                        <span className="footer__soon-badge">Soon</span>
+                      </span>
+                    ) : (
+                      <Link to={link.to} className="footer__nav-link">
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="footer__nav-column">
+              <h3 className="footer__nav-title">
+                <i className="fa-solid fa-cloud-moon" />
+                Sky
+              </h3>
+              <ul className="footer__nav-list">
+                {navigationLinks.sky.map((link) => (
                   <li key={link.label}>
                     {link.soon ? (
                       <span className="footer__nav-link footer__nav-link--disabled">

@@ -135,7 +135,7 @@ function HomePage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="feature-card">
+            <Link to="/sky" className="feature-card feature-card--link">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-moon"></i>
               </div>
@@ -144,7 +144,7 @@ function HomePage() {
                 Check weather forecasts, moon phases, and optimal viewing
                 windows for any location.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

@@ -135,6 +135,7 @@ function Navbar() {
         <div className="navbar__nav">
           <NavLink to="/" className="navbar__link" end>Home</NavLink>
           <NavLink to="/explore" className="navbar__link">Explore</NavLink>
+          <NavLink to="/sky" className="navbar__link">Sky</NavLink>
 
           {isAuthenticated ? (
             <>
@@ -174,6 +175,10 @@ function Navbar() {
           <NavLink to="/explore" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-solid fa-magnifying-glass"></i>
             Explore
+          </NavLink>
+          <NavLink to="/sky" className="navbar__mobile-link" onClick={closeMobileMenu}>
+            <i className="fa-solid fa-cloud-moon"></i>
+            Sky
           </NavLink>
 
           {isAuthenticated ? (

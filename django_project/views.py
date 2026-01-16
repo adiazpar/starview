@@ -43,6 +43,7 @@ VALID_REACT_ROUTES = [
     r'^profile/?$',                                 # Profile: /profile
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
     r'^explore/?$',                                 # Explore: /explore
+    r'^sky/?$',                                     # Sky hub: /sky
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
     r'^moon/?$',                                    # Legacy redirect to /tonight
     r'^privacy/?$',                                 # Privacy policy: /privacy

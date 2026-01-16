@@ -467,6 +467,14 @@
   color: var(--text-secondary);
 }
 
+/* Clickable feature card variant */
+.feature-card--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+}
+
 /* ============================================ */
 /* CTA SECTION - MISSION CONTROL */
 /* ============================================ */
