@@ -28,6 +28,72 @@ import os
 import re
 
 
+# ----------------------------------------------------------------------------- #
+# SEO Meta Tags - Server-side injection for social media crawlers              #
+#                                                                               #
+# Social media crawlers (Facebook, Twitter, Discord) don't execute JavaScript, #
+# so they can't see React's client-side meta tag updates. This dictionary      #
+# defines meta tags that Django injects server-side before serving index.html. #
+#                                                                               #
+# IMPORTANT: Keep these in sync with useSEO() calls in React page components!  #
+# ----------------------------------------------------------------------------- #
+SITE_URL = 'https://www.starview.app'
+DEFAULT_TITLE = 'Starview - Stargazing Location Reviews'
+DEFAULT_DESCRIPTION = 'Discover and share exceptional stargazing locations'
+
+# Route-specific SEO meta tags (path -> {title, description})
+# Add new routes here when creating new pages
+SEO_META_TAGS = {
+    '/': {
+        'title': DEFAULT_TITLE,
+        'description': DEFAULT_DESCRIPTION,
+    },
+    '/explore': {
+        'title': 'Explore Stargazing Locations | Starview',
+        'description': 'Discover the best stargazing spots near you. Browse user-reviewed dark sky locations with light pollution ratings, accessibility info, and photos.',
+    },
+    '/sky': {
+        'title': 'Sky Conditions | Starview',
+        'description': 'Plan your stargazing sessions with real-time sky conditions, moon phases, weather forecasts, and light pollution data.',
+    },
+    '/tonight': {
+        'title': "Tonight's Sky Conditions | Starview",
+        'description': 'Should you go stargazing tonight? Check real-time sky conditions including moon phase, weather, and light pollution at your location.',
+    },
+    '/bortle': {
+        'title': 'Understanding the Bortle Scale | Starview',
+        'description': 'Learn about the Bortle Dark-Sky Scale, a nine-level numeric scale that measures night sky brightness. Understand what you can see at each level and find darker skies.',
+    },
+    '/privacy': {
+        'title': 'Privacy Policy | Starview',
+        'description': 'Learn how Starview collects, uses, and protects your data. Our privacy policy covers account information, location data, cookies, and your rights.',
+    },
+    '/terms': {
+        'title': 'Terms of Service | Starview',
+        'description': "Read Starview's Terms of Service covering eligibility, content licensing, acceptable use policies, and DMCA procedures for our stargazing community.",
+    },
+}
+
+
+def get_seo_meta_for_path(path):
+    """Get SEO meta tags for a given path, with fallback to defaults."""
+    # Normalize path (remove trailing slash except for root)
+    clean_path = '/' + path.strip('/')
+    if clean_path != '/':
+        clean_path = clean_path.rstrip('/')
+
+    meta = SEO_META_TAGS.get(clean_path, {
+        'title': DEFAULT_TITLE,
+        'description': DEFAULT_DESCRIPTION,
+    })
+
+    return {
+        'title': meta['title'],
+        'description': meta['description'],
+        'url': f"{SITE_URL}{clean_path}",
+    }
+
+
 # Valid React routes - must match App.jsx routes
 # Update this list when adding new routes to the React app
 VALID_REACT_ROUTES = [
@@ -45,6 +111,7 @@ VALID_REACT_ROUTES = [
     r'^explore/?$',                                 # Explore: /explore
     r'^sky/?$',                                     # Sky hub: /sky
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
+    r'^bortle/?$',                                  # Bortle scale guide: /bortle
     r'^moon/?$',                                    # Legacy redirect to /tonight
     r'^privacy/?$',                                 # Privacy policy: /privacy
     r'^terms/?$',                                   # Terms of service: /terms
@@ -71,6 +138,7 @@ def is_valid_react_route(path):
 # SEO behavior:                                                                 #
 # - Valid routes return HTTP 200 with index.html                                #
 # - Invalid routes return HTTP 404 with index.html (React shows 404 page)       #
+# - Meta tags are injected server-side for social media crawlers                #
 # This ensures search engines properly understand which pages exist.            #
 #                                                                               #
 # Development workflow:                                                         #
@@ -99,13 +167,95 @@ class ReactAppView(TemplateView):
         # User should run `npm run dev` instead of accessing via Django
         return ['dev_placeholder.html']
 
+    def inject_seo_meta_tags(self, html_content, path):
+        """
+        Inject route-specific SEO meta tags into HTML for social media crawlers.
+        Replaces default meta tags with page-specific values.
+        """
+        meta = get_seo_meta_for_path(path)
+
+        # Replace <title> tag
+        html_content = re.sub(
+            r'<title>[^<]*</title>',
+            f'<title>{meta["title"]}</title>',
+            html_content
+        )
+
+        # Replace meta description
+        html_content = re.sub(
+            r'<meta name="description" content="[^"]*"',
+            f'<meta name="description" content="{meta["description"]}"',
+            html_content
+        )
+
+        # Replace Open Graph tags
+        html_content = re.sub(
+            r'<meta property="og:title" content="[^"]*"',
+            f'<meta property="og:title" content="{meta["title"]}"',
+            html_content
+        )
+        html_content = re.sub(
+            r'<meta property="og:description" content="[^"]*"',
+            f'<meta property="og:description" content="{meta["description"]}"',
+            html_content
+        )
+        html_content = re.sub(
+            r'<meta property="og:url" content="[^"]*"',
+            f'<meta property="og:url" content="{meta["url"]}"',
+            html_content
+        )
+
+        # Replace Twitter Card tags
+        html_content = re.sub(
+            r'<meta name="twitter:title" content="[^"]*"',
+            f'<meta name="twitter:title" content="{meta["title"]}"',
+            html_content
+        )
+        html_content = re.sub(
+            r'<meta name="twitter:description" content="[^"]*"',
+            f'<meta name="twitter:description" content="{meta["description"]}"',
+            html_content
+        )
+        html_content = re.sub(
+            r'<meta name="twitter:url" content="[^"]*"',
+            f'<meta name="twitter:url" content="{meta["url"]}"',
+            html_content
+        )
+
+        # Add or update canonical link
+        if '<link rel="canonical"' in html_content:
+            html_content = re.sub(
+                r'<link rel="canonical" href="[^"]*"',
+                f'<link rel="canonical" href="{meta["url"]}"',
+                html_content
+            )
+        else:
+            # Insert canonical link before </head>
+            html_content = html_content.replace(
+                '</head>',
+                f'<link rel="canonical" href="{meta["url"]}" />\n  </head>'
+            )
+
+        return html_content
+
     def render_to_response(self, context, **response_kwargs):
-        """Override to return 404 status for invalid routes."""
+        """Override to inject SEO meta tags and return 404 for invalid routes."""
         response = super().render_to_response(context, **response_kwargs)
 
         # Check if this is a valid React route
         if not is_valid_react_route(self.request.path):
             response.status_code = 404
+
+        # Inject SEO meta tags for social media crawlers
+        # This runs for all routes (valid or not) to ensure proper meta tags
+        if hasattr(response, 'render'):
+            response.render()
+        if hasattr(response, 'content'):
+            html_content = response.content.decode('utf-8')
+            html_content = self.inject_seo_meta_tags(html_content, self.request.path)
+            response.content = html_content.encode('utf-8')
+            # Update Content-Length header after modification
+            response['Content-Length'] = len(response.content)
 
         return response
 
