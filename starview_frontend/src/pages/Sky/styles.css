@@ -250,7 +250,7 @@
   width: 280px;
   padding: var(--space-lg);
   background: var(--glass-bg);
-  border: 1px solid rgba(0, 212, 170, 0.2);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   text-align: center;
   position: relative;
@@ -262,23 +262,11 @@
 }
 
 .sky-feature--visible .sky-feature__card {
-  animation: fadeInScale 0.6s ease-out 0.2s both, subtleGlow 4s ease-in-out 1s infinite;
+  animation: fadeInScale 0.6s ease-out 0.2s both;
 }
 
 .sky-feature__card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(0, 212, 170, 0.35);
-}
-
-/* Observatory accent line at top */
-.sky-feature__card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  transform: translateY(-2px);
 }
 
 /* Ring container for SVG score ring */
@@ -292,7 +280,6 @@
 .sky-feature__ring {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 10px rgba(0, 212, 170, 0.2));
 }
 
 .sky-feature__ring-track {
@@ -300,9 +287,8 @@
 }
 
 .sky-feature__ring-progress {
-  stroke: var(--accent);
+  stroke: var(--text-muted);
   transition: stroke-dashoffset 1s ease-out;
-  filter: drop-shadow(0 0 6px rgba(0, 212, 170, 0.5));
 }
 
 .sky-feature__score {
@@ -318,10 +304,9 @@
   font-family: var(--font-display);
   font-size: 52px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-secondary);
   line-height: 1;
   letter-spacing: -0.02em;
-  text-shadow: 0 0 30px rgba(0, 212, 170, 0.3);
 }
 
 .sky-feature__score-label {
@@ -358,52 +343,69 @@
 }
 
 .sky-feature__stat i {
-  color: var(--accent);
+  color: var(--text-muted);
   font-size: var(--text-xs);
-  opacity: 0.7;
 }
 
 /* ============================================ */
-/* MOON DISPLAY VISUAL */
+/* LUNAR CYCLE VISUAL */
 /* ============================================ */
 
-.sky-feature__moon-display {
+.sky-feature__lunar-cycle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   /* Animation paused until parent is visible */
   opacity: 0;
   transform: scale(0.95);
 }
 
-.sky-feature--visible .sky-feature__moon-display {
+.sky-feature--visible .sky-feature__lunar-cycle {
   animation: fadeInScale 0.6s ease-out 0.2s both;
 }
 
-/* MoonPhaseGraphic component wrapper */
-.sky-feature__moon-graphic {
-  filter: drop-shadow(0 0 30px rgba(252, 229, 172, 0.2))
-          drop-shadow(0 0 60px rgba(252, 229, 172, 0.1));
+/* Horizontal strip of moon phases */
+.sky-feature__lunar-strip {
+  display: flex;
+  align-items: center;
 }
 
-.sky-feature__moon-info {
-  text-align: center;
+.sky-feature__lunar-phase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-xs);
+  /* Animation: start hidden, animate in when parent visible */
+  opacity: 0;
+  transform: scale(0.8);
 }
 
-.sky-feature__moon-name {
-  display: block;
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2px;
+/* Staggered moon phase animations - only when parent visible */
+.sky-feature--visible .sky-feature__lunar-phase {
+  animation: fadeInScale 0.4s ease-out both;
+}
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(1) { animation-delay: 0.25s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(2) { animation-delay: 0.32s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(3) { animation-delay: 0.39s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(4) { animation-delay: 0.46s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(5) { animation-delay: 0.53s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(6) { animation-delay: 0.60s; }
+.sky-feature--visible .sky-feature__lunar-phase:nth-child(7) { animation-delay: 0.67s; }
+
+/* Subtle glow on the moons */
+.sky-feature__lunar-moon {
+  filter: drop-shadow(0 0 8px rgba(252, 229, 172, 0.15));
 }
 
-.sky-feature__moon-illum {
+.sky-feature__lunar-label {
   font-family: var(--font-technical);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: var(--text-muted);
+  margin: 0;
 }
 
 /* ============================================ */
@@ -425,9 +427,6 @@
   display: flex;
   gap: 4px;
   margin-bottom: var(--space-md);
-  padding: var(--space-sm);
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius-lg);
 }
 
 .sky-feature__bortle-bar {
@@ -502,10 +501,6 @@
   display: flex;
   gap: var(--space-sm);
   align-items: flex-end;
-  padding: var(--space-lg);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
   /* Animation paused until parent is visible */
   opacity: 0;
   transform: scale(0.95);
@@ -542,10 +537,10 @@
   height: var(--height, 50%);
   min-height: 24px;
   max-height: 70px;
-  background: linear-gradient(to top, rgba(0, 212, 170, 0.3), var(--accent));
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.1), var(--text-muted));
   border-radius: var(--radius);
-  opacity: 0.8;
-  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
   transform-origin: bottom;
   /* Animation paused until parent is visible */
   transform: scaleY(0);
@@ -562,24 +557,16 @@
 .sky-feature--visible .sky-feature__forecast-day:nth-child(7) .sky-feature__forecast-bar { animation-delay: 0.6s; }
 
 .sky-feature__forecast-day:hover .sky-feature__forecast-bar {
-  opacity: 1;
-  transform: scaleY(1.05);
-  box-shadow: 0 0 12px rgba(0, 212, 170, 0.3);
+  opacity: 0.8;
 }
 
 .sky-feature__forecast-day i {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.sky-feature__forecast-day:hover i {
-  transform: scale(1.1);
 }
 
 .sky-feature__forecast-day i.fa-star {
-  color: var(--accent);
-  text-shadow: 0 0 8px rgba(0, 212, 170, 0.5);
+  color: var(--text-secondary);
 }
 
 /* ============================================ */
@@ -680,9 +667,13 @@
     font-size: clamp(22px, 5vw, 28px);
   }
 
-  .sky-feature__moon-graphic {
-    width: 110px;
-    height: 110px;
+  .sky-feature__lunar-phase {
+    padding: 0 2px;
+  }
+
+  .sky-feature__lunar-moon {
+    width: 36px;
+    height: 36px;
   }
 
   .sky-feature__ring-container {
@@ -735,9 +726,9 @@
     gap: var(--space-md);
   }
 
-  .sky-feature__moon-graphic {
-    width: 90px;
-    height: 90px;
+  .sky-feature__lunar-moon {
+    width: 28px;
+    height: 28px;
   }
 
   .sky-feature__bortle-bar {
@@ -765,7 +756,8 @@
   .sky-hero__text,
   .sky-hero__cta,
   .sky-feature__card,
-  .sky-feature__moon-display,
+  .sky-feature__lunar-cycle,
+  .sky-feature__lunar-phase,
   .sky-feature__bortle,
   .sky-feature__bortle-bar,
   .sky-feature__forecast,

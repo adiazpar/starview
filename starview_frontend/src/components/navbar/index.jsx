@@ -177,7 +177,7 @@ function Navbar() {
             Explore
           </NavLink>
           <NavLink to="/sky" className="navbar__mobile-link" onClick={closeMobileMenu}>
-            <i className="fa-solid fa-cloud-moon"></i>
+            <i className="fa-regular fa-moon"></i>
             Sky
           </NavLink>
 

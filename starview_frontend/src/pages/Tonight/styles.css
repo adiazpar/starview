@@ -582,6 +582,44 @@
 }
 
 /* ============================================ */
+/* BACK LINK */
+/* ============================================ */
+
+.tonight-back {
+  text-align: center;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--glass-border);
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out 0.4s forwards;
+}
+
+.tonight-back__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.tonight-back__link:hover {
+  color: var(--text-primary);
+}
+
+.tonight-back__link i {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.tonight-back__link:hover i {
+  transform: translateX(-4px);
+}
+
+/* ============================================ */
 /* ANIMATIONS */
 /* ============================================ */
 
@@ -902,7 +940,8 @@
   .tonight-header,
   .tonight-hero,
   .tonight-cards,
-  .tonight-tip {
+  .tonight-tip,
+  .tonight-back {
     animation: none;
     opacity: 1;
   }
@@ -918,6 +957,10 @@
   }
 
   .tonight-card:hover {
+    transform: none;
+  }
+
+  .tonight-back__link:hover i {
     transform: none;
   }
 }

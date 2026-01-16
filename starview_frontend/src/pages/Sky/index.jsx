@@ -121,18 +121,30 @@ function SkyPage() {
       {/* Moon Feature */}
       <section className="sky-feature" ref={(el) => (featuresRef.current[1] = el)}>
         <div className="sky-feature__visual">
-          <div className="sky-feature__moon-display">
-            <MoonPhaseGraphic
-              illumination={12}
-              isWaning={false}
-              rotationAngle={0}
-              size={140}
-              className="sky-feature__moon-graphic"
-            />
-            <div className="sky-feature__moon-info">
-              <span className="sky-feature__moon-name">Waxing Crescent</span>
-              <span className="sky-feature__moon-illum">12% illuminated</span>
+          <div className="sky-feature__lunar-cycle">
+            {/* Lunar cycle strip: new → full → new */}
+            <div className="sky-feature__lunar-strip">
+              {[
+                { illumination: 0, isWaning: false },    // New Moon
+                { illumination: 25, isWaning: false },   // Waxing Crescent
+                { illumination: 50, isWaning: false },   // First Quarter
+                { illumination: 75, isWaning: false },   // Waxing Gibbous
+                { illumination: 100, isWaning: false },  // Full Moon
+                { illumination: 75, isWaning: true },    // Waning Gibbous
+                { illumination: 50, isWaning: true },    // Last Quarter
+              ].map((phase, i) => (
+                <div key={i} className="sky-feature__lunar-phase">
+                  <MoonPhaseGraphic
+                    illumination={phase.illumination}
+                    isWaning={phase.isWaning}
+                    rotationAngle={0}
+                    size={44}
+                    className="sky-feature__lunar-moon"
+                  />
+                </div>
+              ))}
             </div>
+            <p className="sky-feature__lunar-label">Lunar Cycle</p>
           </div>
         </div>
         <div className="sky-feature__content">
