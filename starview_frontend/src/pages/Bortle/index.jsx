@@ -397,8 +397,9 @@ function BortlePage() {
         </div>
 
         <div className="bortle-tips">
-          <div className="bortle-tips__card">
-            <div className="bortle-tips__icon">
+          {/* Hero card - spans 2 rows */}
+          <div className="bortle-tips__card bortle-tips__card--hero">
+            <div className="bortle-tips__icon bortle-tips__icon--large">
               <i className="fa-solid fa-car" />
             </div>
             <h3 className="bortle-tips__title">Travel to Darker Sites</h3>
@@ -406,6 +407,10 @@ function BortlePage() {
               Even a 30-minute drive from urban areas can improve your Bortle class by 2-3 levels.
               Look for state parks, rural roads, or designated dark sky preserves.
             </p>
+            <div className="bortle-tips__stat">
+              <span className="bortle-tips__stat-value">2-3</span>
+              <span className="bortle-tips__stat-label">class improvement</span>
+            </div>
           </div>
 
           <div className="bortle-tips__card">
@@ -414,8 +419,7 @@ function BortlePage() {
             </div>
             <h3 className="bortle-tips__title">Time Your Sessions</h3>
             <p className="bortle-tips__text">
-              Plan around the moon phase. A new moon week provides the darkest skies.
-              Even at light-polluted sites, a moonless night makes a noticeable difference.
+              Plan around the moon phase. New moon week provides the darkest skies.
             </p>
           </div>
 
@@ -425,20 +429,22 @@ function BortlePage() {
             </div>
             <h3 className="bortle-tips__title">Dark Adapt Your Eyes</h3>
             <p className="bortle-tips__text">
-              Allow 20-30 minutes for your eyes to fully adapt. Avoid bright screens and use
-              red light only. This can reveal 1-2 more magnitudes of stars.
+              Allow 20-30 minutes to fully adapt. Use red light only.
             </p>
           </div>
 
-          <div className="bortle-tips__card">
+          {/* Wide card - spans 2 columns */}
+          <div className="bortle-tips__card bortle-tips__card--wide">
             <div className="bortle-tips__icon">
               <i className="fa-solid fa-mountain" />
             </div>
-            <h3 className="bortle-tips__title">Use Terrain Wisely</h3>
-            <p className="bortle-tips__text">
-              Hills and mountains can block light pollution from nearby cities.
-              Position yourself so terrain shields you from the worst light domes.
-            </p>
+            <div className="bortle-tips__content">
+              <h3 className="bortle-tips__title">Use Terrain Wisely</h3>
+              <p className="bortle-tips__text">
+                Hills and mountains can block light pollution from nearby cities.
+                Position yourself so terrain shields you from the worst light domes.
+              </p>
+            </div>
           </div>
         </div>
       </section>

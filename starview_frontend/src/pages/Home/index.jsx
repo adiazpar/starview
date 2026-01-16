@@ -144,6 +144,9 @@ function HomePage() {
                 Check weather forecasts, moon phases, and optimal viewing
                 windows for any location.
               </p>
+              <span className="feature-card__cta">
+                See full forecast <i className="fa-solid fa-arrow-right"></i>
+              </span>
             </Link>
           </div>
         </div>

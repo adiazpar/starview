@@ -613,28 +613,74 @@
 }
 
 /* ============================================ */
-/* TIPS SECTION */
+/* TIPS SECTION - BENTO LAYOUT */
 /* ============================================ */
 
 .bortle-tips {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
   gap: var(--space-md);
 }
 
+/* Base card styles */
 .bortle-tips__card {
   padding: var(--space-lg);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .bortle-tips__card:hover {
   transform: translateY(-2px);
   border-color: var(--accent-border);
+  box-shadow: 0 8px 32px var(--shadow-accent);
 }
 
+/* Hero card - spans 2 rows, left column */
+.bortle-tips__card--hero {
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl);
+  background: linear-gradient(
+    135deg,
+    var(--glass-bg) 0%,
+    var(--accent-bg) 100%
+  );
+}
+
+.bortle-tips__card--hero .bortle-tips__title {
+  font-size: var(--text-lg);
+}
+
+.bortle-tips__card--hero .bortle-tips__text {
+  flex: 1;
+}
+
+/* Wide card - spans 2 columns, bottom */
+.bortle-tips__card--wide {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.bortle-tips__card--wide .bortle-tips__icon {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.bortle-tips__card--wide .bortle-tips__content {
+  flex: 1;
+}
+
+.bortle-tips__card--wide .bortle-tips__title {
+  margin-bottom: var(--space-xs);
+}
+
+/* Icon styles */
 .bortle-tips__icon {
   width: 44px;
   height: 44px;
@@ -646,11 +692,22 @@
   margin-bottom: var(--space-md);
 }
 
+.bortle-tips__icon--large {
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-lg);
+}
+
 .bortle-tips__icon i {
   font-size: 18px;
   color: var(--accent);
 }
 
+.bortle-tips__icon--large i {
+  font-size: 24px;
+}
+
+/* Typography */
 .bortle-tips__title {
   font-family: var(--font-display);
   font-size: var(--text-base);
@@ -664,6 +721,31 @@
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
+}
+
+/* Stat callout for hero card */
+.bortle-tips__stat {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.bortle-tips__stat-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.bortle-tips__stat-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ============================================ */
@@ -1026,9 +1108,36 @@
     padding: var(--space-md);
   }
 
-  .bortle-visibility__tier,
+  .bortle-visibility__tier {
+    padding: var(--space-md);
+  }
+
+  /* Bento to single column on mobile */
+  .bortle-tips {
+    grid-template-columns: 1fr;
+  }
+
   .bortle-tips__card {
     padding: var(--space-md);
+  }
+
+  .bortle-tips__card--hero {
+    grid-row: span 1;
+    padding: var(--space-lg);
+  }
+
+  .bortle-tips__card--wide {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bortle-tips__card--wide .bortle-tips__icon {
+    margin-bottom: var(--space-md);
+  }
+
+  .bortle-tips__stat-value {
+    font-size: 24px;
   }
 
   .bortle-user {

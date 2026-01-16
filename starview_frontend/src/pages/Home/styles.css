@@ -475,6 +475,29 @@
   display: block;
 }
 
+/* Feature card CTA link text */
+.feature-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.feature-card__cta i {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.feature-card--link:hover .feature-card__cta i {
+  transform: translateX(4px);
+}
+
 /* ============================================ */
 /* CTA SECTION - MISSION CONTROL */
 /* ============================================ */

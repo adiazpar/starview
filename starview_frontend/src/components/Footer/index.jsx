@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
+import { usePlatformStats } from '../../hooks/useStats';
 import './styles.css';
 
 const navigationLinks = {
@@ -44,6 +45,7 @@ const socialLinks = [
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { theme } = useTheme();
+  const { stats } = usePlatformStats();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
@@ -85,7 +87,7 @@ export default function Footer() {
             <div className="footer__coordinates">
               <span className="footer__coord">
                 <i className="fa-solid fa-location-crosshairs" />
-                Tracking {new Intl.NumberFormat().format(1200)}+ locations
+                Tracking {stats?.locations?.count ? `${new Intl.NumberFormat().format(stats.locations.count)}+` : '—'} locations
               </span>
             </div>
           </div>
