@@ -442,7 +442,6 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-  cursor: pointer;
   transform-origin: bottom;
   /* Animation paused until parent is visible */
   transform: scaleY(0);
