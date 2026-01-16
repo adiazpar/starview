@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const CACHE_KEY = 'starview_user_location';
-const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
+const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes - short cache for responsive location updates
 
 /**
  * Get user's location with fallback chain
@@ -59,7 +59,7 @@ export function useUserLocation() {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: false,
           timeout: 10000,
-          maximumAge: CACHE_DURATION,
+          maximumAge: 60000, // 1 minute - get relatively fresh position from browser
         });
       });
 
@@ -114,13 +114,16 @@ export function useUserLocation() {
     const resolveLocation = async () => {
       setIsLoading(true);
 
-      // Check if geolocation permission is denied - if so, clear cache
-      // Also set up listener for permission changes
+      // Check geolocation permission state
+      let permissionGranted = false;
       if (navigator.permissions) {
         try {
           permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
           setPermissionState(permissionStatus.state);
-          if (permissionStatus.state === 'denied') {
+          permissionGranted = permissionStatus.state === 'granted';
+
+          // Clear cache if permission denied or prompt (user hasn't granted)
+          if (permissionStatus.state !== 'granted') {
             localStorage.removeItem(CACHE_KEY);
           }
           // Listen for permission changes
@@ -130,30 +133,33 @@ export function useUserLocation() {
         }
       }
 
-      // Check cache (only if permission wasn't denied)
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        try {
-          const { coords, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            setLocation(coords);
-            setSource('browser');
-            setIsLoading(false);
-            return;
+      // Only use localStorage cache if geolocation permission is granted
+      // This prevents stale cached locations from overriding profile location
+      if (permissionGranted) {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          try {
+            const { coords, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+              setLocation(coords);
+              setSource('browser');
+              setIsLoading(false);
+              return;
+            }
+          } catch {
+            localStorage.removeItem(CACHE_KEY);
           }
-        } catch {
-          localStorage.removeItem(CACHE_KEY);
+        }
+
+        // Try browser geolocation
+        const gotBrowserLocation = await requestBrowserLocation();
+        if (gotBrowserLocation) {
+          setIsLoading(false);
+          return;
         }
       }
 
-      // Try browser geolocation
-      const gotBrowserLocation = await requestBrowserLocation();
-      if (gotBrowserLocation) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Fallback to profile location
+      // Fallback to profile location (used when geolocation not granted)
       checkProfileLocation();
       setIsLoading(false);
     };

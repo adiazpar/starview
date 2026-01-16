@@ -89,7 +89,7 @@ function LocationAutocomplete({
         placeholder={placeholder}
         theme={theme}
         options={{
-          types: 'place,region',
+          types: 'place', // Only cities - regions have imprecise center coordinates
           limit: 5
         }}
       />

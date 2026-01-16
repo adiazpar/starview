@@ -3,8 +3,8 @@
  * Mobile: infinite scroll, Desktop: pagination with sticky map.
  */
 
-import { useState, useCallback, useRef, lazy, Suspense } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useExploreData } from '../../hooks/useExploreData';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
@@ -26,9 +26,21 @@ function ExplorePage() {
   });
 
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialView = searchParams.get('view') === 'map' ? 'map' : 'list';
+  const initialLightPollution = searchParams.get('lightPollution') === 'true';
   const [view, setView] = useState(initialView);
   const mapViewport = useRef(null); // Persist map position across view toggles
+
+  // Clean up URL after consuming query params (keeps view=map, removes one-time params)
+  useEffect(() => {
+    const hasLightPollution = searchParams.get('lightPollution');
+    if (hasLightPollution) {
+      // Replace URL to remove lightPollution param, keep view param if map
+      const newUrl = view === 'map' ? '/explore?view=map' : '/explore';
+      navigate(newUrl, { replace: true });
+    }
+  }, []); // Only run once on mount
 
   // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
@@ -177,6 +189,7 @@ function ExplorePage() {
           <ExploreMap
             initialViewport={mapViewport.current}
             onViewportChange={handleMapViewportChange}
+            initialLightPollution={initialLightPollution}
           />
         </Suspense>
       </div>

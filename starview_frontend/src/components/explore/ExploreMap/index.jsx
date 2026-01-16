@@ -322,7 +322,7 @@ function loadIconImage(svgString, size = 24, fillColor = 'white') {
 }
 
 
-function ExploreMap({ initialViewport, onViewportChange }) {
+function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
@@ -361,7 +361,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
   // Map style picker dropdown state
   const styleDropdown = useAnimatedDropdown();
   const [mapStyle, setMapStyle] = useState('standard'); // 'standard' or 'satellite'
-  const [showLightPollution, setShowLightPollution] = useState(false); // Light pollution overlay toggle
+  const [showLightPollution, setShowLightPollution] = useState(initialLightPollution); // Light pollution overlay toggle
 
   // Viewport detection for popup mode (desktop/tablet ≥768px uses marker popup instead of bottom card)
   const isPopupMode = useMediaQuery('(min-width: 768px)');
@@ -1148,8 +1148,11 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Add Light Pollution raster tile layer
   // Uses XYZ tiles generated from World Atlas 2015 data
+  // When initialLightPollution is true, skip the readyForHeavyLayers delay
   useEffect(() => {
-    if (!map.current || !mapLoaded || !readyForHeavyLayers) return;
+    if (!map.current || !mapLoaded) return;
+    // Skip delay when user specifically requested light pollution view
+    if (!readyForHeavyLayers && !initialLightPollution) return;
     if (map.current.getSource('light-pollution')) return;
 
     map.current.addSource('light-pollution', {
@@ -1160,17 +1163,22 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       attribution: 'Light pollution © World Atlas 2015'
     });
 
+    // Only specify beforeId if the layer exists (it won't when loading early)
+    const beforeId = map.current.getLayer('protected-areas-fill') ? 'protected-areas-fill' : undefined;
+
     map.current.addLayer({
       id: 'light-pollution-layer',
       type: 'raster',
       source: 'light-pollution',
       slot: 'bottom',
       layout: {
-        visibility: 'none'  // Start hidden, toggled by user
+        // Start visible if user requested light pollution view, otherwise hidden
+        visibility: initialLightPollution ? 'visible' : 'none'
       },
       paint: {
         'raster-opacity': 0.7,
-        'raster-opacity-transition': { duration: 300 },
+        // Skip transition on initial load for instant appearance, smooth transition when toggling
+        'raster-opacity-transition': { duration: initialLightPollution ? 0 : 300 },
         // Boost colors to make light pollution more vibrant
         'raster-saturation': 0.4,   // Increase color intensity
         'raster-contrast': 0.3,     // Increase contrast between light/dark areas
@@ -1179,13 +1187,15 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         // This makes light pollution visible as actual "light" at night
         'raster-emissive-strength': 1.2  // Increased for stronger glow
       }
-    }, 'protected-areas-fill');  // Insert below protected areas
+    }, beforeId);
 
-  }, [mapLoaded, readyForHeavyLayers]);
+  }, [mapLoaded, readyForHeavyLayers, initialLightPollution]);
 
   // Toggle light pollution layer visibility
+  // Skip readyForHeavyLayers check when initialLightPollution (layer loads early in that case)
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
+    if (!readyForHeavyLayers && !initialLightPollution) return;
     if (!map.current.getLayer('light-pollution-layer')) return;
 
     map.current.setLayoutProperty(
@@ -1193,7 +1203,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
       'visibility',
       showLightPollution ? 'visible' : 'none'
     );
-  }, [showLightPollution, mapLoaded]);
+  }, [showLightPollution, mapLoaded, readyForHeavyLayers, initialLightPollution]);
 
   // Ref to track if marker event handlers are registered (for cleanup)
   const markerHandlersRef = useRef(null);
@@ -1580,8 +1590,10 @@ function ExploreMap({ initialViewport, onViewportChange }) {
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
   // After animation completes, enable heavy layers (protected areas) for smoother initial load
+  // Skip fly-to when initialLightPollution is true (user is exploring the light pollution map)
   useEffect(() => {
     if (hasFlownToUserRef.current) return; // Only fly once
+    if (initialLightPollution) return; // Skip when exploring light pollution map
     if (map.current && userLocation && mapLoaded && !initialViewport) {
       hasFlownToUserRef.current = true;
       initialAnimationCompleteRef.current = false;
@@ -1599,7 +1611,7 @@ function ExploreMap({ initialViewport, onViewportChange }) {
         setReadyForHeavyLayers(true);
       });
     }
-  }, [userLocation, mapLoaded, initialViewport]);
+  }, [userLocation, mapLoaded, initialViewport, initialLightPollution]);
 
   // Fallback: enable heavy layers if no flyTo occurs (user never grants geolocation)
   // This handles first-time users who dismiss the location prompt

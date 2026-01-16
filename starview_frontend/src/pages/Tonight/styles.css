@@ -1,0 +1,933 @@
+/* Tonight's Sky Conditions Page
+ * Mission Control Dashboard aesthetic - clean, confident, data-driven.
+ * Answers "Should I go stargazing tonight?" at a glance.
+ */
+
+/* ============================================ */
+/* PAGE LAYOUT */
+/* ============================================ */
+
+.tonight-page {
+  min-height: calc(100vh - var(--navbar-total-height));
+  padding: var(--space-xl) var(--space-lg);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
+
+.tonight-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out forwards;
+}
+
+.tonight-header__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-xs);
+}
+
+.tonight-header__subtitle {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* ============================================ */
+/* HERO: SKY SCORE */
+/* ============================================ */
+
+.tonight-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out 0.1s forwards;
+}
+
+.tonight-hero__score-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  margin-bottom: var(--space-lg);
+}
+
+/* Loading state */
+.tonight-hero__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.tonight-hero__loading-ring {
+  width: 200px;
+  height: 200px;
+  border: 10px solid var(--glass-border);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Score ring */
+.tonight-hero__ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tonight-hero__ring-track {
+  stroke: var(--glass-border);
+}
+
+.tonight-hero__ring-progress {
+  transition: stroke-dashoffset 1s ease-out;
+}
+
+/* Quality color variants */
+.tonight-hero__ring-progress--excellent {
+  stroke: #22c55e;
+  filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
+}
+
+.tonight-hero__ring-progress--good {
+  stroke: #3b82f6;
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
+}
+
+.tonight-hero__ring-progress--fair {
+  stroke: #f59e0b;
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+}
+
+.tonight-hero__ring-progress--poor {
+  stroke: #ef4444;
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.6));
+}
+
+/* Score content */
+.tonight-hero__score-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tonight-hero__score-value {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.tonight-hero__score-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: var(--space-xs);
+}
+
+.tonight-hero__score-label--excellent { color: #22c55e; }
+.tonight-hero__score-label--good { color: #3b82f6; }
+.tonight-hero__score-label--fair { color: #f59e0b; }
+.tonight-hero__score-label--poor { color: #ef4444; }
+
+/* No data state */
+.tonight-hero__no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.tonight-hero__no-data-icon {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.tonight-hero__no-data-text {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Location display */
+.tonight-hero__location {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-family);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  text-align: center;
+  margin: var(--space-lg) 0;
+}
+
+.tonight-hero__location i {
+  color: var(--accent);
+  font-size: var(--text-sm);
+}
+
+/* Location prompt */
+.tonight-hero__location-prompt {
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  max-width: 360px;
+  text-align: center;
+}
+
+.tonight-hero__location-prompt p {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tonight-hero__location-prompt a {
+  color: var(--accent-light);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.tonight-hero__location-prompt a:hover {
+  color: var(--text-primary);
+}
+
+.tonight-hero__enable-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--accent-light);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.tonight-hero__enable-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* CONDITION CARDS */
+/* ============================================ */
+
+.tonight-cards {
+  margin-bottom: var(--space-xl);
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out 0.2s forwards;
+}
+
+.tonight-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+/* Individual card */
+.tonight-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.tonight-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+}
+
+/* Card header */
+.tonight-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.tonight-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.tonight-card__icon--weather {
+  /* No border/background - colorful SVG icons are self-contained */
+}
+
+.tonight-card__icon--darkness {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.tonight-card__title {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+/* Card body */
+.tonight-card__body {
+  flex: 1;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tonight-card__primary {
+  text-align: center;
+}
+
+.tonight-card__value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.tonight-card__value--bortle {
+  font-size: 40px;
+}
+
+.tonight-card__label {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* Moon rise/set times */
+.tonight-card__times {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+}
+
+.tonight-card__time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tonight-card__time-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.tonight-card__time-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tonight-card__time-day {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Weather/Bortle condition */
+.tonight-card__condition {
+  text-align: center;
+}
+
+.tonight-card__condition-label {
+  display: block;
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.tonight-card__condition-desc {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Meta section (source/confidence info) */
+.tonight-card__meta {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xl);
+}
+
+.tonight-card__meta--cta {
+  justify-content: center;
+}
+
+.tonight-card__meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tonight-card__meta-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.tonight-card__meta-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Notice (e.g., historical data) */
+.tonight-card__notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  color: var(--warning);
+}
+
+.tonight-card__notice i {
+  font-size: 10px;
+}
+
+/* CTA link in card */
+.tonight-card__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.tonight-card__cta:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-base);
+}
+
+.tonight-card__cta i {
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.tonight-card__cta:hover i {
+  transform: translateX(2px);
+}
+
+/* Card footer - score indicator */
+.tonight-card__footer {
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tonight-card__score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.tonight-card__score-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.tonight-card__score-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ============================================ */
+/* TIP SECTION */
+/* ============================================ */
+
+.tonight-tip {
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out 0.3s forwards;
+}
+
+.tonight-tip__card {
+  display: flex;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, var(--accent-bg) 0%, var(--glass-bg) 100%);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: var(--radius);
+}
+
+.tonight-tip__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  font-size: var(--text-lg);
+  color: var(--accent);
+}
+
+.tonight-tip__content {
+  flex: 1;
+}
+
+.tonight-tip__title {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+}
+
+.tonight-tip__text {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.tonight-tip__text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+@keyframes tonightFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .tonight-page {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .tonight-hero__score-container {
+    width: 180px;
+    height: 180px;
+  }
+
+  .tonight-hero__loading-ring {
+    width: 180px;
+    height: 180px;
+  }
+
+  .tonight-hero__score-value {
+    font-size: 56px;
+  }
+
+  .tonight-hero__location {
+    font-size: var(--text-base);
+  }
+
+  /* -------------------------------------------- */
+  /* MOBILE CARDS: Grid-aligned horizontal layout */
+  /* -------------------------------------------- */
+
+  .tonight-cards__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .tonight-card {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    grid-template-rows: auto;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tonight-card:hover {
+    transform: none;
+  }
+
+  /* Left column: Icon + Title */
+  .tonight-card__header {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-md);
+    border-bottom: none;
+    border-right: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  .tonight-card__icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: var(--space-xs);
+  }
+
+  .tonight-card__icon--darkness {
+    font-size: 16px;
+  }
+
+  .tonight-card__title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  /* Right column: Body content */
+  .tonight-card__body {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: var(--space-xs) var(--space-md);
+    padding: var(--space-md);
+  }
+
+  /* Primary value: top-left of body grid */
+  .tonight-card__primary {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: left;
+  }
+
+  .tonight-card__value {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .tonight-card__value--bortle {
+    font-size: 28px;
+  }
+
+  .tonight-card__label {
+    font-size: 9px;
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Secondary info: top-right of body grid, right-aligned */
+  .tonight-card__condition {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    align-self: center;
+  }
+
+  .tonight-card__condition-label {
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .tonight-card__condition-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Times: bottom row spanning both columns */
+  .tonight-card__times {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-lg);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--glass-border);
+    margin-top: var(--space-sm);
+  }
+
+  .tonight-card__time {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .tonight-card__time-label {
+    font-size: 9px;
+    opacity: 0.6;
+  }
+
+  .tonight-card__time-value {
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .tonight-card__time-day {
+    font-size: 9px;
+    opacity: 0.6;
+    text-transform: lowercase;
+  }
+
+  /* Meta section (below separator) */
+  .tonight-card__meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--space-lg);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--glass-border);
+    margin-top: var(--space-sm);
+  }
+
+  .tonight-card__meta-item {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .tonight-card__meta-label {
+    font-size: 9px;
+    opacity: 0.6;
+  }
+
+  .tonight-card__meta-value {
+    font-size: var(--text-sm);
+  }
+
+  /* CTA in meta section */
+  .tonight-card__meta--cta {
+    justify-content: flex-start;
+  }
+
+  .tonight-card__meta--cta .tonight-card__cta {
+    margin-top: 0;
+  }
+
+  /* Standalone CTA button placement */
+  .tonight-card__cta {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 11px;
+  }
+
+  /* Notice (historical data) */
+  .tonight-card__notice {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
+    margin-top: var(--space-xs);
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  /* Hide footer score on mobile */
+  .tonight-card__footer {
+    display: none;
+  }
+
+  /* Tip section */
+  .tonight-tip__card {
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .tonight-header__title {
+    font-size: 28px;
+  }
+
+  .tonight-hero__score-container {
+    width: 160px;
+    height: 160px;
+  }
+
+  .tonight-hero__loading-ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  .tonight-hero__score-value {
+    font-size: 48px;
+  }
+
+  /* Tighter card layout on small screens */
+  .tonight-card {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .tonight-card__header {
+    padding: var(--space-sm);
+  }
+
+  .tonight-card__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tonight-card__icon--darkness {
+    font-size: 14px;
+  }
+
+  .tonight-card__body {
+    padding: var(--space-sm);
+    gap: var(--space-xs) var(--space-sm);
+  }
+
+  .tonight-card__value {
+    font-size: 24px;
+  }
+
+  .tonight-card__value--bortle {
+    font-size: 24px;
+  }
+
+  .tonight-card__times {
+    gap: var(--space-md);
+  }
+
+  .tonight-card__time-value {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .tonight-header,
+  .tonight-hero,
+  .tonight-cards,
+  .tonight-tip {
+    animation: none;
+    opacity: 1;
+  }
+
+  .tonight-hero__ring-progress {
+    transition: none;
+  }
+
+  .tonight-hero__loading-ring,
+  .tonight-header__skeleton {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .tonight-card:hover {
+    transform: none;
+  }
+}
+
+/* ============================================ */
+/* WEBVIEW FALLBACK */
+/* ============================================ */
+
+html.webview-browser .tonight-page {
+  min-height: auto;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}

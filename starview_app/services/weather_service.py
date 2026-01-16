@@ -288,8 +288,8 @@ class WeatherService:
         Transform Open-Meteo API response to normalized format.
 
         Open-Meteo returns hourly arrays for each requested variable.
-        We extract cloud layers, visibility, humidity, wind, temperature,
-        and precipitation probability.
+        When available, uses real-time 'current' data for current conditions.
+        Falls back to closest hourly entry if current data unavailable.
         """
         if not data or 'hourly' not in data:
             return None
@@ -301,18 +301,44 @@ class WeatherService:
             if not times:
                 return None
 
-            # Get current conditions from first entry
+            # Check for real-time current data (preferred)
+            current_data = data.get('current', {})
+            has_current = bool(current_data)
+
+            # Find the hourly entry closest to current time (fallback)
+            now = datetime.now()
+            current_idx = 0
+            for i, time_str in enumerate(times):
+                try:
+                    entry_time = datetime.fromisoformat(time_str)
+                    if entry_time <= now:
+                        current_idx = i
+                    else:
+                        break
+                except ValueError:
+                    continue
+
+            # Helper to get value from current (real-time) or hourly (fallback)
+            def get_current_value(current_key, hourly_key):
+                if has_current and current_key in current_data:
+                    return current_data[current_key]
+                hourly_list = hourly.get(hourly_key, [])
+                if current_idx < len(hourly_list):
+                    return hourly_list[current_idx]
+                return None
+
+            # Get current conditions - prefer real-time data
             normalized = {
                 'current': {
-                    'cloud_cover': hourly.get('cloud_cover', [None])[0],
-                    'cloud_cover_low': hourly.get('cloud_cover_low', [None])[0],
-                    'cloud_cover_mid': hourly.get('cloud_cover_mid', [None])[0],
-                    'cloud_cover_high': hourly.get('cloud_cover_high', [None])[0],
-                    'visibility': hourly.get('visibility', [None])[0],
-                    'humidity': hourly.get('relative_humidity_2m', [None])[0],
-                    'wind_speed': hourly.get('wind_speed_10m', [None])[0],
-                    'temperature': hourly.get('temperature_2m', [None])[0],
-                    'precipitation_probability': hourly.get('precipitation_probability', [None])[0],
+                    'cloud_cover': get_current_value('cloud_cover', 'cloud_cover'),
+                    'cloud_cover_low': hourly.get('cloud_cover_low', [None])[current_idx] if current_idx < len(hourly.get('cloud_cover_low', [])) else None,
+                    'cloud_cover_mid': hourly.get('cloud_cover_mid', [None])[current_idx] if current_idx < len(hourly.get('cloud_cover_mid', [])) else None,
+                    'cloud_cover_high': hourly.get('cloud_cover_high', [None])[current_idx] if current_idx < len(hourly.get('cloud_cover_high', [])) else None,
+                    'visibility': hourly.get('visibility', [None])[current_idx] if current_idx < len(hourly.get('visibility', [])) else None,
+                    'humidity': get_current_value('relative_humidity_2m', 'relative_humidity_2m'),
+                    'wind_speed': get_current_value('wind_speed_10m', 'wind_speed_10m'),
+                    'temperature': get_current_value('temperature_2m', 'temperature_2m'),
+                    'precipitation_probability': hourly.get('precipitation_probability', [None])[current_idx] if current_idx < len(hourly.get('precipitation_probability', [])) else None,
                 },
                 'hourly': []
             }
@@ -345,6 +371,7 @@ class WeatherService:
 
         Returns up to 16-day hourly forecast with cloud layers,
         visibility, humidity, wind, temperature, and precipitation.
+        Also requests real-time current conditions for accuracy.
         """
         rounded_lat, rounded_lng = WeatherService._round_coordinates(lat, lng)
 
@@ -361,10 +388,19 @@ class WeatherService:
             "precipitation_probability"
         ])
 
+        # Build current variables list (real-time data)
+        current_vars = ",".join([
+            "cloud_cover",
+            "relative_humidity_2m",
+            "wind_speed_10m",
+            "temperature_2m"
+        ])
+
         url = (
             f"{WeatherService.OPEN_METEO_URL}"
             f"?latitude={rounded_lat}&longitude={rounded_lng}"
             f"&hourly={hourly_vars}"
+            f"&current={current_vars}"
             f"&forecast_days={days}"
         )
 

@@ -62,8 +62,12 @@ export function useMoonPhases({
   suspense = false,
   refetchInterval,
 } = {}) {
+  // Round coordinates for consistent cache keys
+  const roundedLat = lat !== undefined ? Math.round(lat * 100) / 100 : undefined;
+  const roundedLng = lng !== undefined ? Math.round(lng * 100) / 100 : undefined;
+
   const queryConfig = {
-    queryKey: ['moonPhases', startDate, endDate, lat, lng, keyDatesOnly],
+    queryKey: ['moonPhases', startDate, endDate, roundedLat, roundedLng, keyDatesOnly],
     queryFn: createMoonQueryFn({ startDate, endDate, lat, lng, keyDatesOnly }),
     staleTime: 0, // No caching - moon data should always be fresh for accuracy
     gcTime: 0, // Don't keep old data in memory

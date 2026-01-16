@@ -1,0 +1,16 @@
+/**
+ * WeatherGraphic Component Styles
+ * Colorful Noto emoji-style weather icons
+ */
+
+.weather-graphic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-graphic__svg {
+  display: block;
+  filter: drop-shadow(0 0 12px rgba(255, 200, 100, 0.25))
+          drop-shadow(0 0 24px rgba(255, 200, 100, 0.15));
+}

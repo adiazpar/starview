@@ -1,0 +1,283 @@
+/* DateNavigator Component Styles
+ * Calendar-based date picker with observatory aesthetic
+ */
+
+.date-navigator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+}
+
+/* Today badge (shown when viewing today) */
+.date-navigator__today-badge {
+  padding: 4px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+/* Today reset button (shown when NOT viewing today) */
+.date-navigator__reset {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--accent-light);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-navigator__reset:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ============================================ */
+/* DATE TRIGGER BUTTON */
+/* ============================================ */
+
+.date-navigator__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-navigator__trigger:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.date-navigator__date {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.date-navigator__chevron {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.date-navigator__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ============================================ */
+/* CALENDAR POPUP */
+/* ============================================ */
+
+.date-navigator__calendar {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background: rgb(18, 26, 35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  animation: calendarFadeIn 0.15s ease;
+}
+
+@keyframes calendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Calendar header with month navigation */
+.date-navigator__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.date-navigator__month-year {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.date-navigator__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-navigator__nav:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+}
+
+/* Weekday labels */
+.date-navigator__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--space-xs);
+}
+
+.date-navigator__weekday {
+  padding: var(--space-xs);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+/* Calendar grid */
+.date-navigator__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.date-navigator__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.date-navigator__day:hover:not(.date-navigator__day--empty) {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+}
+
+.date-navigator__day--empty {
+  cursor: default;
+}
+
+.date-navigator__day--today {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.date-navigator__day--today::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.date-navigator__day--selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.date-navigator__day--selected:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-light);
+  color: var(--bg-primary);
+}
+
+.date-navigator__day--selected.date-navigator__day--today::after {
+  background: var(--bg-primary);
+}
+
+/* Today shortcut button */
+.date-navigator__today-btn {
+  width: 100%;
+  margin-top: var(--space-md);
+  padding: var(--space-sm);
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-navigator__today-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 480px) {
+  .date-navigator__calendar {
+    width: calc(100vw - 32px);
+    max-width: 300px;
+  }
+
+  .date-navigator__day {
+    width: 100%;
+    height: 36px;
+  }
+
+  .date-navigator__trigger {
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .date-navigator__date {
+    font-size: var(--text-xs);
+  }
+}

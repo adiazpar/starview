@@ -120,32 +120,22 @@ def get_weather_forecast(request):
             'status_code': 400
         }, status=400)
 
-    # For simple single-day "now" requests, use legacy caching
-    if start_date == end_date == today:
-        cache_key = weather_cache_key(lat, lng)
-        cached_data = cache.get(cache_key)
+    # Check cache first - uses ~11km grid (1 decimal precision)
+    cache_key = weather_forecast_cache_key(lat, lng, start_date.isoformat())
+    cached_data = cache.get(cache_key)
 
-        if cached_data:
-            return JsonResponse(cached_data)
+    if cached_data:
+        response = JsonResponse(cached_data)
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
 
-        # Fetch using new unified method
-        weather_data = WeatherService.get_weather_for_range(lat, lng, start_date, end_date)
-
-        # Check if we got any data
-        sources = weather_data.get('sources', {})
-        if not sources.get('seven_timer') and not sources.get('open_meteo'):
-            return JsonResponse({
-                'error': 'service_unavailable',
-                'message': 'Weather services are temporarily unavailable. Please try again later.',
-                'status_code': 503
-            }, status=503)
-
-        cache.set(cache_key, weather_data, WEATHER_CACHE_TIMEOUT)
-        return JsonResponse(weather_data)
-
-    # For date range requests, fetch without caching the full response
-    # (individual data fetches are cached at the service layer)
+    # Fetch fresh data from weather APIs
     weather_data = WeatherService.get_weather_for_range(lat, lng, start_date, end_date)
+
+    # Cache the result (30 min for forecast data)
+    cache.set(cache_key, weather_data, WEATHER_FORECAST_CACHE_TIMEOUT)
 
     # Check if we got any data
     sources = weather_data.get('sources', {})
@@ -162,7 +152,12 @@ def get_weather_forecast(request):
                 'status_code': 503
             }, status=503)
 
-    return JsonResponse(weather_data)
+    # Return with no-cache headers to prevent browser caching
+    response = JsonResponse(weather_data)
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 
 def _parse_date_range(request, today: date):

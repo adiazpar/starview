@@ -43,7 +43,8 @@ VALID_REACT_ROUTES = [
     r'^profile/?$',                                 # Profile: /profile
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
     r'^explore/?$',                                 # Explore: /explore
-    r'^moon/?$',                                    # Moon phases: /moon
+    r'^tonight/?$',                                 # Tonight's conditions: /tonight
+    r'^moon/?$',                                    # Legacy redirect to /tonight
     r'^privacy/?$',                                 # Privacy policy: /privacy
     r'^terms/?$',                                   # Terms of service: /terms
 ]

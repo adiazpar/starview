@@ -246,6 +246,136 @@ def _determine_phase(calc_time: datetime, illumination: float) -> tuple[str, boo
     return phase_key, is_waning
 
 
+def _get_moon_transit_time(
+    target_date: datetime,
+    lat: float,
+    lng: float
+) -> Optional[datetime]:
+    """
+    Get the moon's transit time (when it's highest in the sky) for a specific date.
+
+    Transit time is the optimal moment for calculating rotation angle because
+    it's when the moon is most visible and at its highest altitude. This gives
+    a more meaningful rotation angle for stargazing planning.
+
+    Returns:
+        UTC datetime of moon transit, or None if transit doesn't occur on this date
+    """
+    tf = _get_timezone_finder()
+    tz_name = tf.timezone_at(lat=lat, lng=lng)
+    if not tz_name:
+        return None
+
+    local_tz = ZoneInfo(tz_name)
+
+    # Get the target date
+    if isinstance(target_date, datetime):
+        target_local = target_date.date()
+    else:
+        target_local = target_date
+
+    # Start from beginning of the day in local timezone
+    day_start_local = datetime(target_local.year, target_local.month, target_local.day, 0, 0, 0, tzinfo=local_tz)
+    day_start_utc = day_start_local.astimezone(ZoneInfo('UTC')).replace(tzinfo=None)
+
+    # Set up observer
+    observer = ephem.Observer()
+    observer.lat = str(lat)
+    observer.lon = str(lng)
+    observer.date = ephem.Date(day_start_utc)
+
+    moon = ephem.Moon()
+
+    try:
+        transit_time_ephem = observer.next_transit(moon)
+        transit_time_utc = ephem.Date(transit_time_ephem).datetime()
+        transit_time_local = transit_time_utc.replace(tzinfo=ZoneInfo('UTC')).astimezone(local_tz)
+
+        # Check if transit occurs on the target date
+        if transit_time_local.date() == target_local:
+            return transit_time_utc
+    except (ephem.AlwaysUpError, ephem.NeverUpError, ephem.CircumpolarError):
+        pass
+
+    return None
+
+
+def _get_moonrise_moonset_for_date(
+    target_date: datetime,
+    lat: float,
+    lng: float
+) -> Dict[str, Optional[str]]:
+    """
+    Get moonrise and moonset times for a specific calendar day.
+
+    Calculates the moonrise and moonset events that occur on the given date
+    in the observer's local timezone. Used for planning trips on future dates.
+
+    Note: On some days, there may be no moonrise or no moonset (the moon can
+    be up for more than 24 hours at certain times/locations).
+
+    Returns dict with:
+        moonrise: "HH:MM" or None if no moonrise on this day
+        moonset: "HH:MM" or None if no moonset on this day
+    """
+    # Get timezone for this location
+    tf = _get_timezone_finder()
+    tz_name = tf.timezone_at(lat=lat, lng=lng)
+    if not tz_name:
+        return {'moonrise': None, 'moonset': None}
+
+    local_tz = ZoneInfo(tz_name)
+
+    # Get the target date in local timezone
+    if isinstance(target_date, datetime):
+        target_local = target_date.date()
+    else:
+        target_local = target_date
+
+    # Create start and end of day in local timezone, then convert to UTC
+    day_start_local = datetime(target_local.year, target_local.month, target_local.day, 0, 0, 0, tzinfo=local_tz)
+    day_end_local = datetime(target_local.year, target_local.month, target_local.day, 23, 59, 59, tzinfo=local_tz)
+
+    day_start_utc = day_start_local.astimezone(ZoneInfo('UTC')).replace(tzinfo=None)
+    day_end_utc = day_end_local.astimezone(ZoneInfo('UTC')).replace(tzinfo=None)
+
+    # Set up observer
+    observer = ephem.Observer()
+    observer.lat = str(lat)
+    observer.lon = str(lng)
+
+    moon = ephem.Moon()
+    result = {'moonrise': None, 'moonset': None}
+
+    # Find moonrise on this day
+    observer.date = ephem.Date(day_start_utc)
+    try:
+        rise_time_ephem = observer.next_rising(moon)
+        rise_time_utc = ephem.Date(rise_time_ephem).datetime().replace(tzinfo=ZoneInfo('UTC'))
+        rise_time_local = rise_time_utc.astimezone(local_tz)
+
+        # Check if this rise occurs on the target date
+        if rise_time_local.date() == target_local:
+            result['moonrise'] = rise_time_local.strftime('%H:%M')
+    except (ephem.AlwaysUpError, ephem.NeverUpError):
+        pass
+
+    # Find moonset on this day
+    observer.date = ephem.Date(day_start_utc)
+    try:
+        set_time_ephem = observer.next_setting(moon)
+        set_time_utc = ephem.Date(set_time_ephem).datetime().replace(tzinfo=ZoneInfo('UTC'))
+        set_time_local = set_time_utc.astimezone(local_tz)
+
+        # Check if this set occurs on the target date
+        if set_time_local.date() == target_local:
+            result['moonset'] = set_time_local.strftime('%H:%M')
+    except (ephem.AlwaysUpError, ephem.NeverUpError):
+        pass
+
+    return result
+
+
 def _get_next_moonrise_moonset(
     lat: float,
     lng: float
@@ -480,9 +610,24 @@ def get_moon_data_unified(
             'is_good_for_stargazing': phase.get('is_good_for_stargazing'),
         }
 
-        # Include rotation angle if location provided
-        if lat is not None and lng is not None and 'rotation_angle' in phase:
-            daily_entry['rotation_angle'] = phase.get('rotation_angle')
+        # Include location-based data if coordinates provided
+        if lat is not None and lng is not None:
+            phase_date = datetime.strptime(phase.get('date'), '%Y-%m-%d')
+
+            # Get moonrise/moonset for this specific day
+            rise_set = _get_moonrise_moonset_for_date(phase_date, lat, lng)
+            daily_entry['moonrise'] = rise_set.get('moonrise')
+            daily_entry['moonset'] = rise_set.get('moonset')
+
+            # Calculate rotation angle at moon's transit time (highest point in sky)
+            # This is more accurate than noon for showing how the moon will appear
+            transit_time = _get_moon_transit_time(phase_date, lat, lng)
+            if transit_time:
+                # Use transit time for rotation calculation
+                daily_entry['rotation_angle'] = _get_moon_rotation_angle(transit_time, lat, lng)
+            elif 'rotation_angle' in phase:
+                # Fallback to noon-based rotation if no transit on this day
+                daily_entry['rotation_angle'] = phase.get('rotation_angle')
 
         response['daily'].append(daily_entry)
 
