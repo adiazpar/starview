@@ -1,16 +1,71 @@
 /* Sky Hub Page
  * Landing page for all stargazing conditions content.
- * Clean layout with visual elements for each topic area.
+ * Observatory control panel aesthetic with live data integration.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSEO } from '../../hooks/useSEO';
+import { useUserLocation } from '../../hooks/useUserLocation';
+import { useTodayMoonPhase } from '../../hooks/useMoonPhases';
+import { useBortle } from '../../hooks/useBortle';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import './styles.css';
 
+/**
+ * Format coordinates for display (e.g., "37.77°N 122.42°W")
+ */
+const formatCoordinates = (lat, lng) => {
+  if (lat === undefined || lng === undefined) return null;
+  const latDir = lat >= 0 ? 'N' : 'S';
+  const lngDir = lng >= 0 ? 'E' : 'W';
+  return `${Math.abs(lat).toFixed(2)}°${latDir} ${Math.abs(lng).toFixed(2)}°${lngDir}`;
+};
+
+/**
+ * Format current date for display
+ */
+const formatDate = () => {
+  const now = new Date();
+  return now.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).toUpperCase();
+};
+
 function SkyPage() {
   const featuresRef = useRef([]);
+  const bottomCtaRef = useRef(null);
+
+  // Live data hooks
+  const { location, source: locationSource } = useUserLocation();
+  const lat = location?.latitude;
+  const lng = location?.longitude;
+  const hasLocation = lat !== undefined && lng !== undefined;
+
+  const { todayPhase } = useTodayMoonPhase({
+    lat,
+    lng,
+    enabled: hasLocation,
+  });
+
+  const { bortle } = useBortle({
+    lat,
+    lng,
+    enabled: hasLocation,
+  });
+
+  // Memoized display values
+  const displayData = useMemo(() => ({
+    coordinates: hasLocation ? formatCoordinates(lat, lng) : null,
+    moonPhase: todayPhase?.phase_name || null,
+    moonIllum: todayPhase?.illumination != null ? Math.round(todayPhase.illumination) : null,
+    isWaning: todayPhase?.is_waning || false,
+    bortle: bortle,
+    date: formatDate(),
+    locationLabel: locationSource === 'profile' ? 'PROFILE' : locationSource === 'browser' ? 'GPS' : null,
+  }), [hasLocation, lat, lng, todayPhase, bortle, locationSource]);
 
   // Scroll-triggered animations using Intersection Observer
   useEffect(() => {
@@ -18,7 +73,12 @@ function SkyPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('sky-feature--visible');
+            // Add appropriate visible class based on element
+            if (entry.target.classList.contains('sky-bottom')) {
+              entry.target.classList.add('sky-bottom--visible');
+            } else {
+              entry.target.classList.add('sky-feature--visible');
+            }
             observer.unobserve(entry.target);
           }
         });
@@ -29,6 +89,11 @@ function SkyPage() {
     featuresRef.current.forEach((el) => {
       if (el) observer.observe(el);
     });
+
+    // Also observe the bottom CTA
+    if (bottomCtaRef.current) {
+      observer.observe(bottomCtaRef.current);
+    }
 
     return () => observer.disconnect();
   }, []);
@@ -41,16 +106,96 @@ function SkyPage() {
 
   return (
     <div className="sky-page">
-      {/* Hero Section */}
+      {/* Observatory-Style Hero Section */}
       <header className="sky-hero">
-        <span className="sky-hero__label">Sky Conditions</span>
-        <h1 className="sky-hero__title">
-          Know before you go
-        </h1>
-        <p className="sky-hero__text">
-          Real-time conditions, forecasts, and tools to help you
-          find the perfect night for stargazing.
-        </p>
+        {/* Grid overlay */}
+        <div className="sky-hero__grid" aria-hidden="true" />
+
+        {/* Scan line effect */}
+        <div className="sky-hero__scanline" aria-hidden="true" />
+
+        {/* Corner brackets */}
+        <svg className="sky-hero__bracket sky-hero__bracket--tl" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M0 40 L0 0 L40 0" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-hero__bracket sky-hero__bracket--tr" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M0 0 L40 0 L40 40" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-hero__bracket sky-hero__bracket--bl" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M0 0 L0 40 L40 40" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-hero__bracket sky-hero__bracket--br" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M40 0 L40 40 L0 40" fill="none" strokeWidth="2" />
+        </svg>
+
+        {/* Status bar (top) */}
+        <div className="sky-hero__status-bar">
+          <div className="sky-hero__status">
+            <span className="sky-hero__status-dot" />
+            <span className="sky-hero__status-text">OPERATIONAL</span>
+          </div>
+          <span className="sky-hero__status-label">SKY CONDITIONS</span>
+          <span className="sky-hero__status-date">{displayData.date}</span>
+        </div>
+
+        {/* Main content */}
+        <div className="sky-hero__content">
+          <h1 className="sky-hero__title">
+            Know before you go
+          </h1>
+          <p className="sky-hero__text">
+            Real-time conditions, forecasts, and tools to help you
+            find the perfect night for stargazing.
+          </p>
+        </div>
+
+        {/* Data strip (bottom) */}
+        <div className="sky-hero__data-strip">
+          {displayData.coordinates ? (
+            <div className="sky-hero__data-item">
+              <span className="sky-hero__data-label">LOC</span>
+              <span className="sky-hero__data-value">{displayData.coordinates}</span>
+              {displayData.locationLabel && (
+                <span className="sky-hero__data-source">{displayData.locationLabel}</span>
+              )}
+            </div>
+          ) : (
+            <div className="sky-hero__data-item sky-hero__data-item--empty">
+              <span className="sky-hero__data-label">LOC</span>
+              <span className="sky-hero__data-value">--</span>
+            </div>
+          )}
+
+          <div className="sky-hero__data-divider" />
+
+          {displayData.moonPhase ? (
+            <div className="sky-hero__data-item">
+              <span className="sky-hero__data-label">MOON</span>
+              <span className="sky-hero__data-value">
+                {displayData.moonIllum}% {displayData.isWaning ? 'WANING' : 'WAXING'}
+              </span>
+            </div>
+          ) : (
+            <div className="sky-hero__data-item sky-hero__data-item--empty">
+              <span className="sky-hero__data-label">MOON</span>
+              <span className="sky-hero__data-value">--</span>
+            </div>
+          )}
+
+          <div className="sky-hero__data-divider" />
+
+          {displayData.bortle ? (
+            <div className="sky-hero__data-item">
+              <span className="sky-hero__data-label">BORTLE</span>
+              <span className="sky-hero__data-value">CLASS {displayData.bortle}</span>
+            </div>
+          ) : (
+            <div className="sky-hero__data-item sky-hero__data-item--empty">
+              <span className="sky-hero__data-label">BORTLE</span>
+              <span className="sky-hero__data-value">--</span>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Tonight Feature */}
@@ -225,13 +370,32 @@ function SkyPage() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="sky-bottom">
+      {/* Bottom CTA - Observatory Command Panel */}
+      <section className="sky-bottom" ref={bottomCtaRef}>
+        {/* Corner brackets */}
+        <svg className="sky-bottom__bracket sky-bottom__bracket--tl" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M0 24 L0 0 L24 0" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-bottom__bracket sky-bottom__bracket--tr" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M0 0 L24 0 L24 24" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-bottom__bracket sky-bottom__bracket--bl" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M0 0 L0 24 L24 24" fill="none" strokeWidth="2" />
+        </svg>
+        <svg className="sky-bottom__bracket sky-bottom__bracket--br" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M24 0 L24 24 L0 24" fill="none" strokeWidth="2" />
+        </svg>
+
+        <span className="sky-bottom__status">
+          <span className="sky-bottom__status-dot" />
+          Target Acquired
+        </span>
         <h2 className="sky-bottom__title">Ready to explore?</h2>
         <p className="sky-bottom__text">
           Check tonight's conditions and discover the best time to head out.
         </p>
-        <Link to="/tonight" className="btn-primary">
+        <Link to="/tonight" className="sky-bottom__cta">
+          <span className="sky-bottom__cta-label">Initiate</span>
           See Tonight's Forecast
           <i className="fa-solid fa-arrow-right" />
         </Link>

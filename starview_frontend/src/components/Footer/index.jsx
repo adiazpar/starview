@@ -117,7 +117,7 @@ export default function Footer() {
 
             <div className="footer__nav-column">
               <h3 className="footer__nav-title">
-                <i className="fa-solid fa-cloud-moon" />
+                <i className="fa-regular fa-moon" />
                 Sky
               </h3>
               <ul className="footer__nav-list">

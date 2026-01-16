@@ -51,6 +51,73 @@
   }
 }
 
+/* Observatory hero animations */
+@keyframes drawBracket {
+  from {
+    stroke-dashoffset: 80;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scanlineSweep {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(0, 255, 136, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.9), 0 0 16px rgba(0, 255, 136, 0.4);
+  }
+}
+
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* ============================================ */
 /* PAGE LAYOUT */
 /* ============================================ */
@@ -65,70 +132,227 @@
 }
 
 /* ============================================ */
-/* HERO SECTION */
+/* OBSERVATORY HERO SECTION */
 /* ============================================ */
 
 .sky-hero {
-  text-align: center;
-  padding: var(--space-xl);
-  max-width: 700px;
-  margin: 0 auto;
-  border-bottom: 1px solid var(--glass-border);
   position: relative;
-  /* Radial glow effect - contained within hero to prevent overflow */
+  min-height: 420px;
+  max-width: 960px;
+  margin: var(--space-xl) auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  /* Subtle atmospheric glow */
   background: radial-gradient(
     ellipse at center,
     rgba(0, 212, 170, 0.03) 0%,
-    transparent 60%
+    transparent 70%
   );
 }
 
-.sky-hero__label {
-  display: inline-block;
+/* Grid overlay - coordinate lines */
+.sky-hero__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation: gridFadeIn 1s ease-out 0.8s both;
+  /* Subtle grid pattern */
+  background-image:
+    linear-gradient(to right, rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanline sweep effect */
+.sky-hero__scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 212, 170, 0.4) 20%,
+    rgba(0, 212, 170, 0.6) 50%,
+    rgba(0, 212, 170, 0.4) 80%,
+    transparent
+  );
+  animation: scanlineSweep 4s ease-in-out 1.5s infinite;
+  opacity: 0;
+}
+
+/* Corner brackets */
+.sky-hero__bracket {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.sky-hero__bracket path {
+  stroke: var(--accent);
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: drawBracket 0.6s ease-out both;
+}
+
+.sky-hero__bracket--tl {
+  top: 0;
+  left: 0;
+}
+.sky-hero__bracket--tl path { animation-delay: 0.1s; }
+
+.sky-hero__bracket--tr {
+  top: 0;
+  right: 0;
+}
+.sky-hero__bracket--tr path { animation-delay: 0.2s; }
+
+.sky-hero__bracket--bl {
+  bottom: 0;
+  left: 0;
+}
+.sky-hero__bracket--bl path { animation-delay: 0.3s; }
+
+.sky-hero__bracket--br {
+  bottom: 0;
+  right: 0;
+}
+.sky-hero__bracket--br path { animation-delay: 0.4s; }
+
+/* Status bar (top) */
+.sky-hero__status-bar {
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-xl);
+  right: var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-family: var(--font-technical);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-  margin-bottom: var(--space-md);
-  animation: fadeInUp 0.5s ease-out 0.1s both;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out 0.5s both;
+}
+
+.sky-hero__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.sky-hero__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00ff88;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.sky-hero__status-text {
+  color: #00ff88;
+}
+
+.sky-hero__status-label {
+  color: var(--text-secondary);
+  letter-spacing: 0.2em;
+}
+
+.sky-hero__status-date {
+  color: var(--text-muted);
+}
+
+/* Main content */
+.sky-hero__content {
+  text-align: center;
+  padding: var(--space-xl) 0;
+  z-index: 1;
 }
 
 .sky-hero__title {
   font-family: var(--font-display);
-  font-size: clamp(36px, 7vw, 56px);
+  font-size: clamp(32px, 6vw, 48px);
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin: 0 0 var(--space-md);
-  animation: fadeInUp 0.5s ease-out 0.2s both;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
 }
 
 .sky-hero__text {
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
   color: var(--text-secondary);
   line-height: 1.6;
-  margin: 0;
-  animation: fadeInUp 0.5s ease-out 0.3s both;
-}
-
-.sky-hero__cta {
-  display: inline-flex;
-  gap: var(--space-sm);
+  max-width: 500px;
+  margin: 0 auto;
+  opacity: 0;
   animation: fadeInUp 0.5s ease-out 0.4s both;
-  box-shadow:
-    0 4px 12px rgba(0, 212, 170, 0.25),
-    0 0 30px rgba(0, 212, 170, 0.1);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.sky-hero__cta:hover {
-  box-shadow:
-    0 6px 16px rgba(0, 212, 170, 0.35),
-    0 0 40px rgba(0, 212, 170, 0.15);
-  transform: translateY(-2px);
+/* Data strip (bottom) */
+.sky-hero__data-strip {
+  position: absolute;
+  bottom: var(--space-md);
+  left: var(--space-xl);
+  right: var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  font-family: var(--font-technical);
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out 0.6s both;
+}
+
+.sky-hero__data-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.sky-hero__data-item--empty .sky-hero__data-value {
+  color: var(--text-muted);
+}
+
+.sky-hero__data-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.sky-hero__data-value {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.sky-hero__data-source {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  padding: 2px 6px;
+  background: rgba(0, 212, 170, 0.1);
+  border-radius: 3px;
+}
+
+.sky-hero__data-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--glass-border);
 }
 
 /* ============================================ */
@@ -569,14 +793,55 @@
 }
 
 /* ============================================ */
-/* BOTTOM CTA */
+/* BOTTOM CTA - OBSERVATORY COMMAND PANEL */
 /* ============================================ */
 
 .sky-bottom {
+  position: relative;
   text-align: center;
-  padding: 80px var(--space-lg);
-  max-width: 600px;
-  margin: 0 auto;
+  padding: 64px var(--space-xl);
+  max-width: 960px;
+  margin: var(--space-xl) auto;
+}
+
+/* Corner brackets */
+.sky-bottom__bracket {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.sky-bottom__bracket path {
+  stroke: var(--accent);
+  opacity: 0.6;
+}
+
+.sky-bottom__bracket--tl { top: 0; left: 0; }
+.sky-bottom__bracket--tr { top: 0; right: 0; }
+.sky-bottom__bracket--bl { bottom: 0; left: 0; }
+.sky-bottom__bracket--br { bottom: 0; right: 0; }
+
+/* Status label */
+.sky-bottom__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: var(--space-md);
+}
+
+.sky-bottom__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: statusPulse 2s ease-in-out infinite;
 }
 
 .sky-bottom__title {
@@ -590,12 +855,120 @@
 .sky-bottom__text {
   font-size: var(--text-base);
   color: var(--text-secondary);
-  margin: 0 0 var(--space-xl);
+  margin: 0 0 var(--space-lg);
 }
 
-.sky-bottom .btn-primary {
+/* Command button */
+.sky-bottom__cta {
   display: inline-flex;
+  align-items: center;
   gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sky-bottom__cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.4s ease;
+}
+
+.sky-bottom__cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 16px rgba(0, 212, 170, 0.3),
+    0 0 32px rgba(0, 212, 170, 0.15);
+}
+
+.sky-bottom__cta:hover::before {
+  left: 100%;
+}
+
+.sky-bottom__cta-label {
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.sky-bottom__cta i {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.sky-bottom__cta:hover i {
+  transform: translateX(4px);
+}
+
+/* Bottom CTA scroll-triggered animations */
+.sky-bottom {
+  /* Start hidden */
+  opacity: 0;
+}
+
+.sky-bottom__bracket path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+}
+
+.sky-bottom__status,
+.sky-bottom__title,
+.sky-bottom__text,
+.sky-bottom__cta {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Visible state - triggered by Intersection Observer */
+.sky-bottom--visible {
+  opacity: 1;
+}
+
+.sky-bottom--visible .sky-bottom__bracket path {
+  animation: drawBracket 0.5s ease-out both;
+}
+
+.sky-bottom--visible .sky-bottom__bracket--tl path { animation-delay: 0.1s; }
+.sky-bottom--visible .sky-bottom__bracket--tr path { animation-delay: 0.15s; }
+.sky-bottom--visible .sky-bottom__bracket--bl path { animation-delay: 0.2s; }
+.sky-bottom--visible .sky-bottom__bracket--br path { animation-delay: 0.25s; }
+
+.sky-bottom--visible .sky-bottom__status {
+  animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+
+.sky-bottom--visible .sky-bottom__title {
+  animation: fadeInUp 0.5s ease-out 0.4s both;
+}
+
+.sky-bottom--visible .sky-bottom__text {
+  animation: fadeInUp 0.5s ease-out 0.5s both;
+}
+
+.sky-bottom--visible .sky-bottom__cta {
+  animation: fadeInUp 0.5s ease-out 0.6s both;
 }
 
 /* ============================================ */
@@ -619,16 +992,66 @@
 }
 
 @media (max-width: 768px) {
+  /* Observatory hero - simplified frame on mobile */
   .sky-hero {
-    padding: 48px var(--space-md);
+    min-height: 360px;
+    margin: var(--space-lg) var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .sky-hero__bracket {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sky-hero__status-bar {
+    left: var(--space-md);
+    right: var(--space-md);
+    font-size: 9px;
+  }
+
+  .sky-hero__status-label {
+    display: none;
+  }
+
+  .sky-hero__content {
+    padding: var(--space-lg) 0;
   }
 
   .sky-hero__title {
-    font-size: clamp(28px, 8vw, 40px);
+    font-size: clamp(24px, 7vw, 32px);
   }
 
   .sky-hero__text {
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
+  }
+
+  .sky-hero__data-strip {
+    left: var(--space-sm);
+    right: var(--space-sm);
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sky-hero__data-item {
+    gap: var(--space-xs);
+  }
+
+  .sky-hero__data-label {
+    font-size: 9px;
+  }
+
+  .sky-hero__data-value {
+    font-size: 11px;
+  }
+
+  .sky-hero__data-divider {
+    height: 12px;
+  }
+
+  .sky-hero__grid {
+    background-size: 30px 30px;
   }
 
   .sky-feature {
@@ -699,17 +1122,85 @@
   }
 
   .sky-bottom {
-    padding: 64px var(--space-md);
+    padding: 48px var(--space-md);
+    margin: var(--space-lg) var(--space-md);
+  }
+
+  .sky-bottom__bracket {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sky-bottom__cta {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--text-xs);
+  }
+
+  .sky-bottom__cta-label {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .sky-hero__label {
-    font-size: 10px;
+  /* Observatory hero - minimal frame on very small screens */
+  .sky-hero {
+    min-height: 320px;
+    margin: var(--space-md);
+    padding: var(--space-sm);
+  }
+
+  .sky-hero__bracket {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sky-hero__status-bar {
+    left: var(--space-sm);
+    right: var(--space-sm);
+    font-size: 8px;
+  }
+
+  .sky-hero__status-date {
+    display: none;
   }
 
   .sky-hero__title {
-    font-size: 26px;
+    font-size: 22px;
+  }
+
+  .sky-hero__text {
+    font-size: var(--text-xs);
+  }
+
+  .sky-hero__data-strip {
+    gap: var(--space-sm);
+    bottom: var(--space-sm);
+  }
+
+  .sky-hero__data-label {
+    font-size: 8px;
+  }
+
+  .sky-hero__data-value {
+    font-size: 10px;
+  }
+
+  .sky-hero__data-source {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .sky-hero__data-divider {
+    height: 10px;
+  }
+
+  .sky-hero__grid {
+    background-size: 24px 24px;
+  }
+
+  /* Hide scanline on very small screens */
+  .sky-hero__scanline {
+    display: none;
   }
 
   .sky-feature__ring-container {
@@ -750,10 +1241,15 @@
 /* ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .sky-hero__label,
+  /* Observatory hero - disable all animations */
+  .sky-hero__grid,
+  .sky-hero__scanline,
+  .sky-hero__bracket path,
+  .sky-hero__status-bar,
   .sky-hero__title,
   .sky-hero__text,
-  .sky-hero__cta,
+  .sky-hero__data-strip,
+  .sky-hero__status-dot,
   .sky-feature__card,
   .sky-feature__lunar-cycle,
   .sky-feature__lunar-phase,
@@ -764,6 +1260,14 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .sky-hero__bracket path {
+    stroke-dashoffset: 0;
+  }
+
+  .sky-hero__scanline {
+    display: none;
   }
 
   /* Disable scroll animations - show immediately */
@@ -785,5 +1289,22 @@
   .sky-feature__bortle-bar:hover,
   .sky-feature__forecast-day:hover .sky-feature__forecast-bar {
     transform: none;
+  }
+
+  /* Bottom CTA - disable animations */
+  .sky-bottom,
+  .sky-bottom__bracket path,
+  .sky-bottom__status,
+  .sky-bottom__title,
+  .sky-bottom__text,
+  .sky-bottom__cta,
+  .sky-bottom__status-dot {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .sky-bottom__bracket path {
+    stroke-dashoffset: 0;
   }
 }
