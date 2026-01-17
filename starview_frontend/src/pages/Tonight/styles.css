@@ -9,9 +9,6 @@
 
 .tonight-page {
   min-height: calc(100vh - var(--navbar-total-height));
-  padding: var(--space-xl) var(--space-lg);
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 /* ============================================ */
@@ -20,7 +17,9 @@
 
 .tonight-header {
   text-align: center;
-  margin-bottom: var(--space-xl);
+  max-width: 800px;
+  margin: 0 auto var(--space-xl);
+  padding: var(--space-xl) var(--space-lg) 0;
   opacity: 0;
   animation: tonightFadeIn 0.5s ease-out forwards;
 }
@@ -50,7 +49,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: var(--space-xl);
+  max-width: 800px;
+  margin: 0 auto var(--space-xl);
+  padding: 0 var(--space-lg);
   opacity: 0;
   animation: tonightFadeIn 0.5s ease-out 0.1s forwards;
 }
@@ -245,7 +246,9 @@
 /* ============================================ */
 
 .tonight-cards {
-  margin-bottom: var(--space-xl);
+  max-width: 800px;
+  margin: 0 auto var(--space-xl);
+  padding: 0 var(--space-lg);
   opacity: 0;
   animation: tonightFadeIn 0.5s ease-out 0.2s forwards;
 }
@@ -289,10 +292,6 @@
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-}
-
-.tonight-card__icon--weather {
-  /* No border/background - colorful SVG icons are self-contained */
 }
 
 .tonight-card__icon--darkness {
@@ -549,6 +548,9 @@
 /* ============================================ */
 
 .tonight-tip {
+  max-width: 800px;
+  margin: var(--space-xl) auto;
+  padding: 0 var(--space-lg);
   opacity: 0;
   animation: tonightFadeIn 0.5s ease-out 0.3s forwards;
 }
@@ -661,8 +663,24 @@
 /* ============================================ */
 
 @media (max-width: 768px) {
-  .tonight-page {
-    padding: var(--space-lg) var(--space-md);
+  .tonight-header {
+    padding: var(--space-lg) var(--space-md) 0;
+  }
+
+  .tonight-hero {
+    padding: 0 var(--space-md);
+  }
+
+  .tonight-cards {
+    padding: 0 var(--space-md);
+  }
+
+  .tonight-tip {
+    padding: 0 var(--space-md);
+  }
+
+  .tonight-back {
+    padding: var(--space-xl) var(--space-md);
   }
 
   .tonight-hero__score-container {
@@ -996,6 +1014,12 @@
 
 html.webview-browser .tonight-page {
   min-height: auto;
+}
+
+html.webview-browser .tonight-header {
   padding-top: 40px;
+}
+
+html.webview-browser .tonight-back {
   padding-bottom: 60px;
 }

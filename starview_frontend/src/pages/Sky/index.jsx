@@ -370,26 +370,8 @@ function SkyPage() {
         </div>
       </section>
 
-      {/* Bottom CTA - Observatory Command Panel */}
+      {/* Bottom CTA */}
       <section className="sky-bottom" ref={bottomCtaRef}>
-        {/* Corner brackets */}
-        <svg className="sky-bottom__bracket sky-bottom__bracket--tl" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 24 L0 0 L24 0" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="sky-bottom__bracket sky-bottom__bracket--tr" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 0 L24 0 L24 24" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="sky-bottom__bracket sky-bottom__bracket--bl" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 0 L0 24 L24 24" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="sky-bottom__bracket sky-bottom__bracket--br" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M24 0 L24 24 L0 24" fill="none" strokeWidth="2" />
-        </svg>
-
-        <span className="sky-bottom__status">
-          <span className="sky-bottom__status-dot" />
-          Target Acquired
-        </span>
         <h2 className="sky-bottom__title">Ready to explore?</h2>
         <p className="sky-bottom__text">
           Check tonight's conditions and discover the best time to head out.

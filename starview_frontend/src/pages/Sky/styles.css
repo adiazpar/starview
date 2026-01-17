@@ -1009,6 +1009,12 @@
     padding: var(--space-md);
   }
 
+  /* Hide moon and bortle data on mobile - keep only location */
+  .sky-hero__data-item:not(:first-child),
+  .sky-hero__data-divider {
+    display: none;
+  }
+
   .sky-hero__bracket {
     width: 28px;
     height: 28px;

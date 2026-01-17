@@ -476,26 +476,8 @@ function BortlePage() {
         </section>
       )}
 
-      {/* Bottom CTA - Observatory Command Panel */}
+      {/* Bottom CTA */}
       <section className="bortle-bottom" ref={bottomCtaRef}>
-        {/* Corner brackets */}
-        <svg className="bortle-bottom__bracket bortle-bottom__bracket--tl" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 24 L0 0 L24 0" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="bortle-bottom__bracket bortle-bottom__bracket--tr" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 0 L24 0 L24 24" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="bortle-bottom__bracket bortle-bottom__bracket--bl" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M0 0 L0 24 L24 24" fill="none" strokeWidth="2" />
-        </svg>
-        <svg className="bortle-bottom__bracket bortle-bottom__bracket--br" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M24 0 L24 24 L0 24" fill="none" strokeWidth="2" />
-        </svg>
-
-        <span className="bortle-bottom__status">
-          <span className="bortle-bottom__status-dot" />
-          Dark Sites Available
-        </span>
         <h2 className="bortle-bottom__title">Find Darker Skies</h2>
         <p className="bortle-bottom__text">
           Explore our light pollution map to discover better observing locations near you.
