@@ -1,6 +1,6 @@
 /* Terms of Service Page
- * Legal terms with observatory-themed design.
- * Sections use glass cards with smooth scroll navigation.
+ * Legal terms with traditional, professional styling.
+ * Clean document layout with inline table of contents.
  */
 
 import { useEffect } from 'react';
@@ -30,71 +30,34 @@ function TermsPage() {
   }, [location.hash]);
 
   const sections = [
-    { id: 'eligibility', label: 'Eligibility', icon: 'fa-user-check' },
-    { id: 'account', label: 'Your Account', icon: 'fa-user-gear' },
-    { id: 'content', label: 'Your Content', icon: 'fa-pen-fancy' },
-    { id: 'acceptable-use', label: 'Acceptable Use', icon: 'fa-check-double' },
-    { id: 'licensing', label: 'Content Licensing', icon: 'fa-scale-balanced' },
-    { id: 'moderation', label: 'Moderation', icon: 'fa-shield-halved' },
-    { id: 'dmca', label: 'Copyright', icon: 'fa-copyright' },
-    { id: 'disclaimers', label: 'Disclaimers', icon: 'fa-triangle-exclamation' },
-    { id: 'liability', label: 'Liability', icon: 'fa-gavel' },
-    { id: 'disputes', label: 'Disputes', icon: 'fa-handshake' },
-    { id: 'contact', label: 'Contact', icon: 'fa-envelope' },
+    { id: 'eligibility', label: 'Eligibility' },
+    { id: 'account', label: 'Your Account' },
+    { id: 'content', label: 'Your Content' },
+    { id: 'acceptable-use', label: 'Acceptable Use' },
+    { id: 'licensing', label: 'Content Licensing' },
+    { id: 'moderation', label: 'Moderation' },
+    { id: 'dmca', label: 'Copyright' },
+    { id: 'third-party', label: 'Third-Party Services' },
+    { id: 'disclaimers', label: 'Disclaimers' },
+    { id: 'liability', label: 'Liability' },
+    { id: 'disputes', label: 'Disputes' },
+    { id: 'contact', label: 'Contact' },
   ];
 
   return (
     <div className="page-wrapper">
       <main className="terms-page">
-        {/* Header */}
-        <header className="terms-header">
-          <div className="terms-header__container">
-            <div className="terms-header__badge">
-              <i className="fa-solid fa-file-contract"></i>
-              <span>Terms of Service</span>
-            </div>
-            <h1 className="terms-header__title">
-              Terms of Service
-            </h1>
-            <p className="terms-header__subtitle">
-              Please read these terms carefully before using Starview.
-              By accessing or using our service, you agree to be bound by these terms.
-            </p>
-            <p className="terms-header__updated">
-              <i className="fa-regular fa-calendar"></i>
-              Last updated: January 4, 2026
-            </p>
-          </div>
-        </header>
-
-        {/* Navigation */}
-        <nav className="terms-nav" aria-label="Terms of service sections">
-          <div className="terms-nav__container">
-            <div className="terms-nav__scroll">
-              {sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="terms-nav__link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById(section.id)?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  }}
-                >
-                  <i className={`fa-solid ${section.icon}`}></i>
-                  <span>{section.label}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </nav>
-
         {/* Content */}
         <div className="terms-content">
           <div className="terms-content__container">
+
+            {/* Header */}
+            <header className="terms-header">
+              <h1 className="terms-header__title">Terms of Service</h1>
+              <p className="terms-header__updated">
+                <strong>Effective date:</strong> January 4, 2026
+              </p>
+            </header>
 
             {/* Introduction */}
             <section className="terms-section terms-section--intro">
@@ -105,11 +68,35 @@ function TermsPage() {
                 applications (collectively, the "Service").
               </p>
               <p>
-                By creating an account or using Starview, you agree to these Terms. If you do
-                not agree to these Terms, you may not use the Service. We may update these
-                Terms from time to time, and your continued use constitutes acceptance of any
-                changes.
+                By creating an account or using Starview, you agree to these Terms and
+                our <Link to="/privacy">Privacy Policy</Link>, which is incorporated by reference.
+                If you do not agree to these Terms, you may not use the Service. We may update
+                these Terms from time to time, and your continued use constitutes acceptance of
+                any changes.
               </p>
+            </section>
+
+            {/* Table of Contents */}
+            <section className="terms-section terms-section--toc">
+              <h2 className="terms-toc__title">Table of Contents</h2>
+              <ul className="terms-toc__list">
+                {sections.map((section) => (
+                  <li key={section.id}>
+                    <a
+                      href={`#${section.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(section.id)?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }}
+                    >
+                      {section.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </section>
 
             {/* Eligibility */}
@@ -412,7 +399,7 @@ function TermsPage() {
             </section>
 
             {/* Third-Party Services */}
-            <section className="terms-section glass-card">
+            <section id="third-party" className="terms-section glass-card">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-plug"></i>

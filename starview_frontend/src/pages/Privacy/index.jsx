@@ -1,6 +1,6 @@
 /* Privacy Policy Page
- * Legal privacy policy with observatory-themed design.
- * Sections use glass cards with smooth scroll navigation.
+ * Traditional, professional legal document styling.
+ * Single-column layout with inline table of contents.
  */
 
 import { useEffect } from 'react';
@@ -30,85 +30,71 @@ function PrivacyPage() {
   }, [location.hash]);
 
   const sections = [
-    { id: 'collect', label: 'Information We Collect', icon: 'fa-database' },
-    { id: 'use', label: 'How We Use It', icon: 'fa-gears' },
-    { id: 'sharing', label: 'Data Sharing', icon: 'fa-share-nodes' },
-    { id: 'third-party', label: 'Third-Party Services', icon: 'fa-plug' },
-    { id: 'retention', label: 'Data Retention', icon: 'fa-clock' },
-    { id: 'rights', label: 'Your Rights', icon: 'fa-shield-halved' },
-    { id: 'cookies', label: 'Cookies', icon: 'fa-cookie-bite' },
-    { id: 'age', label: 'Age Requirement', icon: 'fa-user-check' },
-    { id: 'contact', label: 'Contact', icon: 'fa-envelope' },
+    { id: 'collect', label: 'Information We Collect' },
+    { id: 'use', label: 'How We Use Your Information' },
+    { id: 'sharing', label: 'Data Sharing' },
+    { id: 'third-party', label: 'Third-Party Services' },
+    { id: 'retention', label: 'Data Retention' },
+    { id: 'rights', label: 'Your Rights' },
+    { id: 'cookies', label: 'Cookies' },
+    { id: 'age', label: 'Age Requirement' },
+    { id: 'contact', label: 'Contact Us' },
   ];
 
   return (
     <div className="page-wrapper">
       <main className="privacy-page">
-        {/* Header */}
-        <header className="privacy-header">
-          <div className="privacy-header__container">
-            <div className="privacy-header__badge">
-              <i className="fa-solid fa-shield-halved"></i>
-              <span>Privacy Policy</span>
-            </div>
-            <h1 className="privacy-header__title">
-              Your Privacy Matters
-            </h1>
-            <p className="privacy-header__subtitle">
-              We believe in transparency. This policy explains how Starview
-              collects, uses, and protects your information.
-            </p>
-            <p className="privacy-header__updated">
-              <i className="fa-regular fa-calendar"></i>
-              Last updated: January 4, 2026
-            </p>
-          </div>
-        </header>
-
-        {/* Navigation */}
-        <nav className="privacy-nav" aria-label="Privacy policy sections">
-          <div className="privacy-nav__container">
-            <div className="privacy-nav__scroll">
-              {sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="privacy-nav__link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById(section.id)?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  }}
-                >
-                  <i className={`fa-solid ${section.icon}`}></i>
-                  <span>{section.label}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </nav>
-
         {/* Content */}
         <div className="privacy-content">
           <div className="privacy-content__container">
 
+            {/* Header */}
+            <header className="privacy-header">
+              <h1 className="privacy-header__title">Privacy Policy</h1>
+              <p className="privacy-header__updated">
+                <strong>Effective date:</strong> January 4, 2026
+              </p>
+            </header>
+
             {/* Introduction */}
             <section className="privacy-section privacy-section--intro">
               <p>
-                Starview is a stargazing location review platform that helps astronomers
-                discover and share the best spots for observing the night sky. This Privacy
-                Policy describes how we collect, use, and share information about you when
-                you use our website and services.
+                At Starview, we take your privacy seriously. Please read this Privacy
+                Policy to learn how we treat your personal data. <strong>By using or
+                accessing our Services in any manner, you acknowledge that you accept
+                the practices and policies outlined below, and you hereby consent that
+                we will collect, use and share your information as described in this
+                Privacy Policy.</strong>
               </p>
               <p>
-                By using Starview, you agree to the collection and use of information in
-                accordance with this policy. We are committed to protecting your privacy
-                and complying with applicable data protection laws, including the
-                General Data Protection Regulation (GDPR) and the California Consumer
-                Privacy Act (CCPA).
+                Remember that your use of Starview is at all times subject to
+                our <Link to="/terms">Terms of Service</Link>, which incorporates
+                this Privacy Policy. Any terms we use in this Policy without defining
+                them have the definitions given to them in the Terms of Service.
               </p>
+            </section>
+
+            {/* Table of Contents */}
+            <section className="privacy-section privacy-section--toc">
+              <h2 className="privacy-toc__title">Table of Contents</h2>
+              <ul className="privacy-toc__list">
+                {sections.map((section) => (
+                  <li key={section.id}>
+                    <a
+                      href={`#${section.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(section.id)?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }}
+                    >
+                      {section.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </section>
 
             {/* Information We Collect */}
