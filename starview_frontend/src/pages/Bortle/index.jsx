@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { useSEO } from '../../hooks/useSEO';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useBortle } from '../../hooks/useBortle';
+import BortleSkySlider from '../../components/shared/BortleSkySlider';
 import './styles.css';
 
 /**
@@ -322,6 +323,19 @@ function BortlePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Sky Comparison Slider Section */}
+      <section className="bortle-section bortle-slider-section" ref={(el) => (featuresRef.current[4] = el)}>
+        <div className="bortle-section__header">
+          <span className="bortle-section__eyebrow">Visual Comparison</span>
+          <h2 className="bortle-section__title">See the Difference</h2>
+          <p className="bortle-section__subtitle">
+            Drag the slider to see how light pollution affects night sky visibility
+          </p>
+        </div>
+
+        <BortleSkySlider />
       </section>
 
       {/* What Can You See Section */}

@@ -1,0 +1,291 @@
+/* BortleSkySlider Styles
+ * Observatory-aesthetic slider matching the Bortle page design system.
+ * Features draggable comparison with teal accents.
+ */
+
+.bortle-sky-slider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Image container */
+.bortle-sky-slider__container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.bortle-sky-slider__container:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.bortle-sky-slider__container--dragging {
+  cursor: grabbing;
+}
+
+/* Image - flipped horizontally to match app convention (dark left, bright right) */
+.bortle-sky-slider__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+
+/* Slider line */
+.bortle-sky-slider__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Thumb handle - minimal pill shape */
+.bortle-sky-slider__thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+/* Hide the icon inside thumb */
+.bortle-sky-slider__thumb i {
+  display: none;
+}
+
+.bortle-sky-slider__container:hover .bortle-sky-slider__thumb,
+.bortle-sky-slider__container--dragging .bortle-sky-slider__thumb {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Position overlay - hidden, slider line is sufficient */
+.bortle-sky-slider__overlay {
+  display: none;
+}
+
+/* Range slider controls */
+.bortle-sky-slider__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 500px;
+  padding: 0 var(--space-sm);
+}
+
+.bortle-sky-slider__label {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Custom range slider */
+.bortle-sky-slider__range {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    #001428 0%,
+    #002040 11%,
+    #003366 22%,
+    #1a6633 33%,
+    #5a9428 44%,
+    #a8a81c 55%,
+    #e08030 66%,
+    #e04830 77%,
+    #b82038 100%
+  );
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.bortle-sky-slider__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.bortle-sky-slider__range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.bortle-sky-slider__range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.bortle-sky-slider__range::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.bortle-sky-slider__range:focus {
+  outline: none;
+}
+
+.bortle-sky-slider__range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--accent-bg), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bortle-sky-slider__range:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--accent-bg), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Class indicator */
+.bortle-sky-slider__indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+.bortle-sky-slider__indicator-class {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 4px 10px;
+  border-radius: var(--radius);
+}
+
+.bortle-sky-slider__indicator-divider {
+  color: var(--text-muted);
+}
+
+.bortle-sky-slider__indicator-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Attribution credit */
+.bortle-sky-slider__credit {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.bortle-sky-slider__credit:hover {
+  color: var(--accent);
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .bortle-sky-slider__thumb {
+    width: 5px;
+    height: 32px;
+  }
+
+  .bortle-sky-slider__controls {
+    gap: var(--space-sm);
+  }
+
+  .bortle-sky-slider__label {
+    font-size: 10px;
+  }
+
+  .bortle-sky-slider__indicator {
+    padding: var(--space-xs) var(--space-sm);
+    gap: var(--space-xs);
+  }
+
+  .bortle-sky-slider__indicator-class {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .bortle-sky-slider__indicator-name {
+    font-size: var(--text-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .bortle-sky-slider__thumb {
+    width: 4px;
+    height: 28px;
+  }
+
+  .bortle-sky-slider__indicator {
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .bortle-sky-slider__indicator-divider {
+    display: none;
+  }
+
+  .bortle-sky-slider__credit {
+    font-size: 10px;
+    text-align: center;
+  }
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .bortle-sky-slider__thumb,
+  .bortle-sky-slider__range::-webkit-slider-thumb,
+  .bortle-sky-slider__range::-moz-range-thumb {
+    transition: none;
+  }
+
+  .bortle-sky-slider__container:hover .bortle-sky-slider__thumb,
+  .bortle-sky-slider__container--dragging .bortle-sky-slider__thumb {
+    transform: translate(-50%, -50%);
+  }
+}
