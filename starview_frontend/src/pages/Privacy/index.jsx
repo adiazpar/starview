@@ -390,6 +390,17 @@ function PrivacyPage() {
                 </div>
               </div>
 
+              <div className="privacy-callout privacy-callout--info">
+                <i className="fa-solid fa-flag-usa"></i>
+                <div>
+                  <strong>California Residents</strong>
+                  <p>
+                    If you are a California resident, you have additional rights under CCPA/CPRA.
+                    Visit our <Link to="/ccpa">California Privacy Rights</Link> page for details.
+                  </p>
+                </div>
+              </div>
+
               <p className="privacy-section__note">
                 To exercise these rights, contact us using the information in the Contact section below.
               </p>

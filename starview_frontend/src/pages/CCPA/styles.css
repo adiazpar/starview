@@ -1,4 +1,4 @@
-/* Privacy Policy Page Styles
+/* California Privacy Rights (CCPA) Page Styles
  * Traditional, professional legal document styling.
  * Uses global CSS variables for consistency.
  */
@@ -7,7 +7,7 @@
 /* PAGE WRAPPER */
 /* ============================================ */
 
-.privacy-page {
+.ccpa-page {
   min-height: 100vh;
   margin-top: calc(-1 * var(--navbar-total-height, 72px));
   padding-top: var(--space-xl);
@@ -17,11 +17,11 @@
 /* CONTENT */
 /* ============================================ */
 
-.privacy-content {
+.ccpa-content {
   padding: var(--space-xl) var(--space-sm);
 }
 
-.privacy-content__container {
+.ccpa-content__container {
   max-width: 720px;
   margin: 0 auto;
 }
@@ -30,11 +30,11 @@
 /* HEADER */
 /* ============================================ */
 
-.privacy-header {
+.ccpa-header {
   margin-bottom: var(--space-lg);
 }
 
-.privacy-header__title {
+.ccpa-header__title {
   font-family: var(--font-display);
   font-size: var(--text-4xl);
   font-weight: 700;
@@ -43,14 +43,14 @@
   margin: 0 0 var(--space-sm) 0;
 }
 
-.privacy-header__updated {
+.ccpa-header__updated {
   font-family: var(--font-family);
   font-size: var(--text-sm);
   color: var(--text-secondary);
   margin: 0;
 }
 
-.privacy-header__updated strong {
+.ccpa-header__updated strong {
   color: var(--text-primary);
   font-weight: var(--font-semibold);
 }
@@ -59,11 +59,11 @@
 /* TABLE OF CONTENTS */
 /* ============================================ */
 
-.privacy-section--toc {
+.ccpa-section--toc {
   margin-bottom: var(--space-xl);
 }
 
-.privacy-toc__title {
+.ccpa-toc__title {
   font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -71,17 +71,17 @@
   margin: 0 0 var(--space-md) 0;
 }
 
-.privacy-toc__list {
+.ccpa-toc__list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.privacy-toc__list li {
+.ccpa-toc__list li {
   margin-bottom: var(--space-sm);
 }
 
-.privacy-toc__list a {
+.ccpa-toc__list a {
   color: var(--accent);
   text-decoration: none;
   font-size: var(--text-sm);
@@ -89,7 +89,7 @@
   transition: color var(--transition) ease;
 }
 
-.privacy-toc__list a:hover {
+.ccpa-toc__list a:hover {
   color: var(--accent-hover);
   text-decoration: underline;
 }
@@ -98,19 +98,19 @@
 /* SECTIONS */
 /* ============================================ */
 
-.privacy-section {
+.ccpa-section {
   margin-bottom: var(--space-xl);
   scroll-margin-top: calc(var(--navbar-height) + var(--space-xl));
 }
 
 @media (max-width: 767px) {
-  .privacy-section {
+  .ccpa-section {
     scroll-margin-top: calc(var(--navbar-height-mobile) + var(--space-xl));
   }
 }
 
 /* Remove glass card styling */
-.privacy-section.glass-card {
+.ccpa-section.glass-card {
   padding: 0;
   background: transparent;
   border: none;
@@ -119,45 +119,45 @@
   box-shadow: none;
 }
 
-.privacy-section.glass-card::before {
+.ccpa-section.glass-card::before {
   display: none;
 }
 
-.privacy-section--intro {
+.ccpa-section--intro {
   padding: 0 0 var(--space-lg) 0;
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--space-xl);
 }
 
-.privacy-section--intro p {
+.ccpa-section--intro p {
   color: var(--text-secondary);
   font-size: var(--text-base);
   line-height: 1.7;
   margin: 0 0 var(--space-md) 0;
 }
 
-.privacy-section--intro p:last-child {
+.ccpa-section--intro p:last-child {
   margin-bottom: 0;
 }
 
-.privacy-section--intro a {
+.ccpa-section--intro a {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.privacy-section--intro a:hover {
+.ccpa-section--intro a:hover {
   color: var(--accent-hover);
 }
 
-.privacy-section--updates {
+.ccpa-section--updates {
   padding: var(--space-lg);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-.privacy-section--updates h3 {
+.ccpa-section--updates h3 {
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
@@ -165,15 +165,25 @@
   margin: 0 0 var(--space-sm) 0;
 }
 
-.privacy-section--updates p {
+.ccpa-section--updates p {
   color: var(--text-secondary);
   font-size: var(--text-sm);
   line-height: 1.7;
   margin: 0 0 var(--space-sm) 0;
 }
 
+.ccpa-section--updates a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ccpa-section--updates a:hover {
+  color: var(--accent-hover);
+}
+
 /* Section Header */
-.privacy-section__header {
+.ccpa-section__header {
   display: block;
   margin-bottom: var(--space-md);
   padding-bottom: var(--space-md);
@@ -181,11 +191,11 @@
 }
 
 /* Hide section icons */
-.privacy-section__icon {
+.ccpa-section__icon {
   display: none;
 }
 
-.privacy-section__title {
+.ccpa-section__title {
   font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -194,21 +204,35 @@
 }
 
 /* Section Content */
-.privacy-section p {
+.ccpa-section p {
   color: var(--text-secondary);
   font-size: var(--text-sm);
   line-height: 1.7;
   margin: 0 0 var(--space-md) 0;
 }
 
-.privacy-section__note {
+.ccpa-section p a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ccpa-section p a:hover {
+  color: var(--accent-hover);
+}
+
+.ccpa-section__note {
   font-size: var(--text-xs) !important;
   color: var(--text-muted) !important;
   font-style: italic;
   margin-top: var(--space-lg) !important;
 }
 
-.privacy-subsection__title {
+.ccpa-section__note a {
+  color: var(--accent) !important;
+}
+
+.ccpa-subsection__title {
   font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
@@ -216,7 +240,7 @@
   margin: var(--space-lg) 0 var(--space-sm) 0;
 }
 
-.privacy-subsection__title:first-of-type {
+.ccpa-subsection__title:first-of-type {
   margin-top: 0;
 }
 
@@ -224,13 +248,13 @@
 /* LISTS */
 /* ============================================ */
 
-.privacy-list {
+.ccpa-list {
   list-style: none;
   padding: 0;
   margin: 0 0 var(--space-md) 0;
 }
 
-.privacy-list li {
+.ccpa-list li {
   position: relative;
   padding-left: var(--space-md);
   margin-bottom: var(--space-sm);
@@ -239,7 +263,7 @@
   line-height: 1.6;
 }
 
-.privacy-list li::before {
+.ccpa-list li::before {
   content: '';
   position: absolute;
   left: 0;
@@ -250,24 +274,34 @@
   border-radius: 50%;
 }
 
-.privacy-list li strong {
+.ccpa-list li strong {
   color: var(--text-primary);
   font-weight: var(--font-semibold);
 }
 
+.ccpa-list li a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ccpa-list li a:hover {
+  color: var(--accent-hover);
+}
+
 /* List with icons */
-.privacy-list--icons li {
+.ccpa-list--icons li {
   display: flex;
   align-items: flex-start;
   gap: var(--space-sm);
   padding-left: 0;
 }
 
-.privacy-list--icons li::before {
+.ccpa-list--icons li::before {
   display: none;
 }
 
-.privacy-list--icons li i {
+.ccpa-list--icons li i {
   color: var(--accent);
   font-size: var(--text-xs);
   margin-top: var(--space-xs);
@@ -278,7 +312,7 @@
 /* CALLOUTS */
 /* ============================================ */
 
-.privacy-callout {
+.ccpa-callout {
   display: flex;
   gap: var(--space-md);
   padding: var(--space-md);
@@ -288,30 +322,30 @@
   border: 1px solid var(--border);
 }
 
-.privacy-callout > i {
+.ccpa-callout > i {
   font-size: var(--text-base);
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--text-muted);
 }
 
-.privacy-callout p {
+.ccpa-callout p {
   margin: 0 !important;
   font-size: var(--text-sm) !important;
   color: var(--text-secondary) !important;
 }
 
-.privacy-callout p a {
+.ccpa-callout p a {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.privacy-callout p a:hover {
+.ccpa-callout p a:hover {
   color: var(--accent-hover);
 }
 
-.privacy-callout strong {
+.ccpa-callout strong {
   display: block;
   color: var(--text-primary);
   font-size: var(--text-sm);
@@ -319,43 +353,43 @@
 }
 
 /* Add spacing between strong title and paragraph */
-.privacy-callout strong + p {
+.ccpa-callout strong + p {
   margin-top: var(--space-xs) !important;
 }
 
 /* All callout types use same neutral styling */
-.privacy-callout--info,
-.privacy-callout--success,
-.privacy-callout--warning {
+.ccpa-callout--info,
+.ccpa-callout--success,
+.ccpa-callout--warning {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
 }
 
-.privacy-callout--info > i,
-.privacy-callout--success > i,
-.privacy-callout--warning > i {
+.ccpa-callout--info > i,
+.ccpa-callout--success > i,
+.ccpa-callout--warning > i {
   color: var(--text-muted);
 }
 
 /* ============================================ */
-/* THIRD-PARTY SERVICES */
+/* RIGHTS */
 /* ============================================ */
 
-.privacy-services {
+.ccpa-rights {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
   margin-top: var(--space-md);
 }
 
-.privacy-service {
+.ccpa-right {
   padding: var(--space-md);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-.privacy-service__header {
+.ccpa-right__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -364,80 +398,14 @@
   flex-wrap: wrap;
 }
 
-.privacy-service__name {
+.ccpa-right__name {
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
-.privacy-service__purpose {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: var(--text-muted);
-}
-
-.privacy-service__desc {
-  font-size: var(--text-sm) !important;
-  color: var(--text-secondary) !important;
-  margin: 0 0 var(--space-sm) 0 !important;
-  line-height: 1.5 !important;
-}
-
-.privacy-service__link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: var(--text-xs);
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color var(--transition) ease;
-}
-
-.privacy-service__link:hover {
-  color: var(--accent-hover);
-}
-
-.privacy-service__link i {
-  font-size: var(--text-2xs);
-}
-
-/* ============================================ */
-/* YOUR RIGHTS */
-/* ============================================ */
-
-.privacy-rights {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  margin: var(--space-md) 0;
-}
-
-.privacy-right {
-  display: flex;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-/* Hide right icons */
-.privacy-right__icon {
-  display: none;
-}
-
-.privacy-right__content h4 {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-xs) 0;
-}
-
-.privacy-right__content p {
+.ccpa-right__desc {
   font-size: var(--text-sm) !important;
   color: var(--text-secondary) !important;
   margin: 0 !important;
@@ -445,17 +413,17 @@
 }
 
 /* ============================================ */
-/* COOKIES */
+/* CATEGORIES */
 /* ============================================ */
 
-.privacy-cookies {
+.ccpa-categories {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
   margin: var(--space-md) 0;
 }
 
-.privacy-cookie {
+.ccpa-category {
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
@@ -465,13 +433,15 @@
   border-radius: var(--radius);
 }
 
-.privacy-cookie__badge {
+.ccpa-category__badge {
   font-family: var(--font-family);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-semibold);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius);
   flex-shrink: 0;
   background: var(--bg-elevated);
@@ -479,15 +449,7 @@
   color: var(--text-muted);
 }
 
-.privacy-cookie__badge--essential,
-.privacy-cookie__badge--analytics,
-.privacy-cookie__badge--functional {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.privacy-cookie__info h4 {
+.ccpa-category__info h4 {
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
@@ -495,7 +457,7 @@
   margin: 0 0 var(--space-xs) 0;
 }
 
-.privacy-cookie__info p {
+.ccpa-category__info p {
   font-size: var(--text-sm) !important;
   color: var(--text-secondary) !important;
   margin: 0 !important;
@@ -503,14 +465,48 @@
 }
 
 /* ============================================ */
+/* CONTACT BOX */
+/* ============================================ */
+
+.ccpa-contact-box {
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: inline-block;
+}
+
+.ccpa-contact-box__email {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--accent);
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition) ease;
+}
+
+.ccpa-contact-box__email:hover {
+  color: var(--accent-hover);
+}
+
+.ccpa-contact-box__email i {
+  font-size: var(--text-sm);
+}
+
+/* ============================================ */
 /* CONTACT */
 /* ============================================ */
 
-.privacy-contact {
+.ccpa-contact {
   margin: var(--space-md) 0;
 }
 
-.privacy-contact__email {
+.ccpa-contact__email {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
@@ -526,11 +522,11 @@
   transition: color var(--transition) ease;
 }
 
-.privacy-contact__email:hover {
+.ccpa-contact__email:hover {
   color: var(--accent-hover);
 }
 
-.privacy-contact__email i {
+.ccpa-contact__email i {
   font-size: var(--text-sm);
 }
 
@@ -538,7 +534,7 @@
 /* FOOTER */
 /* ============================================ */
 
-.privacy-footer {
+.ccpa-footer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -549,8 +545,8 @@
   flex-wrap: wrap;
 }
 
-.privacy-footer__top,
-.privacy-footer__home {
+.ccpa-footer__top,
+.ccpa-footer__home {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
@@ -563,13 +559,13 @@
   cursor: pointer;
 }
 
-.privacy-footer__top:hover,
-.privacy-footer__home:hover {
+.ccpa-footer__top:hover,
+.ccpa-footer__home:hover {
   color: var(--text-primary);
 }
 
-.privacy-footer__top i,
-.privacy-footer__home i {
+.ccpa-footer__top i,
+.ccpa-footer__home i {
   font-size: var(--text-xs);
 }
 
@@ -578,25 +574,20 @@
 /* ============================================ */
 
 @media (max-width: 640px) {
-  .privacy-content__container {
+  .ccpa-content__container {
     padding: 0 var(--space-md);
   }
 
-  .privacy-header__title {
+  .ccpa-header__title {
     font-size: var(--text-3xl);
   }
 
-  .privacy-right {
+  .ccpa-category {
     flex-direction: column;
     gap: var(--space-sm);
   }
 
-  .privacy-callout {
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .privacy-cookie {
+  .ccpa-callout {
     flex-direction: column;
     gap: var(--space-sm);
   }
@@ -607,11 +598,11 @@
 /* ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .privacy-toc__list a,
-  .privacy-service__link,
-  .privacy-contact__email,
-  .privacy-footer__top,
-  .privacy-footer__home {
+  .ccpa-toc__list a,
+  .ccpa-contact-box__email,
+  .ccpa-contact__email,
+  .ccpa-footer__top,
+  .ccpa-footer__home {
     transition: none;
   }
 }

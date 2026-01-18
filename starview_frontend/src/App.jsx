@@ -25,6 +25,8 @@ const SkyPage = lazy(() => import('./pages/Sky'));
 const BortlePage = lazy(() => import('./pages/Bortle'));
 const PrivacyPage = lazy(() => import('./pages/Privacy'));
 const TermsPage = lazy(() => import('./pages/Terms'));
+const AccessibilityPage = lazy(() => import('./pages/Accessibility'));
+const CCPAPage = lazy(() => import('./pages/CCPA'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
@@ -98,6 +100,8 @@ function App() {
           <Route path="/moon" element={<Navigate to="/tonight" replace />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/accessibility" element={<AccessibilityPage />} />
+          <Route path="/ccpa" element={<CCPAPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

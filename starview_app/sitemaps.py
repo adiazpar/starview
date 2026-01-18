@@ -52,14 +52,14 @@ class StaticViewSitemap(CanonicalSitemap):
         return item
 
 
-# Sitemap for legal pages (Terms, Privacy)
+# Sitemap for legal pages (Terms, Privacy, Accessibility)
 # Lower priority since they're informational, not primary content:
 class LegalPageSitemap(CanonicalSitemap):
     priority = 0.3
     changefreq = 'monthly'
 
     def items(self):
-        return ['/terms', '/privacy']
+        return ['/terms', '/privacy', '/accessibility', '/ccpa']
 
     def location(self, item):
         return item

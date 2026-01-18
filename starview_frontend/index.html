@@ -117,14 +117,8 @@
     <!-- Font Awesome Kit -->
     <script src="https://kit.fontawesome.com/487246ab59.js" crossorigin="anonymous"></script>
 
-    <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-69FRLLFMDK"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-69FRLLFMDK');
-    </script>
+    <!-- Google Analytics (GA4) - Loaded dynamically after cookie consent -->
+    <!-- See: src/hooks/useCookieConsent.js -->
   </head>
   <body>
     <div id="root"></div>

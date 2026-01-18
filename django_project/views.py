@@ -72,6 +72,14 @@ SEO_META_TAGS = {
         'title': 'Terms of Service | Starview',
         'description': "Read Starview's Terms of Service covering eligibility, content licensing, acceptable use policies, and DMCA procedures for our stargazing community.",
     },
+    '/accessibility': {
+        'title': 'Accessibility Statement | Starview',
+        'description': "Learn about Starview's commitment to digital accessibility, our WCAG 2.1 conformance goals, and how to report accessibility issues.",
+    },
+    '/ccpa': {
+        'title': 'California Privacy Rights | Starview',
+        'description': 'Learn about your California privacy rights under CCPA/CPRA, including the right to know, delete, and opt-out. Starview does not sell your personal information.',
+    },
 }
 
 
@@ -115,6 +123,8 @@ VALID_REACT_ROUTES = [
     r'^moon/?$',                                    # Legacy redirect to /tonight
     r'^privacy/?$',                                 # Privacy policy: /privacy
     r'^terms/?$',                                   # Terms of service: /terms
+    r'^accessibility/?$',                           # Accessibility statement: /accessibility
+    r'^ccpa/?$',                                    # California privacy rights: /ccpa
 ]
 
 

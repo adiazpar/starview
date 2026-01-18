@@ -8,7 +8,7 @@ import { useLocation } from 'react-router-dom';
 import './styles.css';
 
 // Pages where the starfield should be hidden (solid background pages)
-const HIDDEN_ON_PATHS = ['/privacy', '/terms'];
+const HIDDEN_ON_PATHS = ['/privacy', '/terms', '/accessibility', '/ccpa'];
 
 // Configuration
 const STAR_CONFIG = {

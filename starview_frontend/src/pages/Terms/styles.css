@@ -301,6 +301,16 @@
   color: var(--text-secondary) !important;
 }
 
+.terms-callout p a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.terms-callout p a:hover {
+  color: var(--accent-hover);
+}
+
 .terms-callout strong {
   display: block;
   color: var(--text-primary);

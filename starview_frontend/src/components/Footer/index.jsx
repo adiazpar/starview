@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import { usePlatformStats } from '../../hooks/useStats';
+import CookiePreferencesButton from '../CookieConsent/CookiePreferencesButton';
 import './styles.css';
 
 const navigationLinks = {
@@ -212,6 +213,10 @@ export default function Footer() {
             <Link to="/privacy" className="footer__legal-link">Privacy Policy</Link>
             <span className="footer__legal-divider" />
             <Link to="/terms" className="footer__legal-link">Terms of Service</Link>
+            <span className="footer__legal-divider" />
+            <Link to="/accessibility" className="footer__legal-link">Accessibility</Link>
+            <span className="footer__legal-divider" />
+            <CookiePreferencesButton className="footer__legal-link footer__legal-button" />
           </div>
 
           <p className="footer__copyright">
