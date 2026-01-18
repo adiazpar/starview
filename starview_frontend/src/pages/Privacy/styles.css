@@ -11,7 +11,7 @@
   background: var(--bg-base);
   min-height: 100vh;
   margin-top: calc(-1 * var(--navbar-total-height, 72px));
-  padding-top: var(--navbar-total-height, 72px);
+  padding-top: var(--space-xl);
 }
 
 /* ============================================ */
@@ -19,13 +19,12 @@
 /* ============================================ */
 
 .privacy-content {
-  padding: var(--space-xl) 0 calc(var(--space-xl) * 2);
+  padding: var(--space-xl) var(--space-sm);
 }
 
 .privacy-content__container {
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 var(--space-lg);
 }
 
 /* ============================================ */
