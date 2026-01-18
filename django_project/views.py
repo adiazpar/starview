@@ -64,6 +64,10 @@ SEO_META_TAGS = {
         'title': 'Understanding the Bortle Scale | Starview',
         'description': 'Learn about the Bortle Dark-Sky Scale, a nine-level numeric scale that measures night sky brightness. Understand what you can see at each level and find darker skies.',
     },
+    '/moon': {
+        'title': 'Understanding Moon Phases | Starview',
+        'description': "Learn how the Moon's 8 phases affect stargazing conditions. Plan your observing sessions around the lunar cycle for the best views of the night sky.",
+    },
     '/privacy': {
         'title': 'Privacy Policy | Starview',
         'description': 'Learn how Starview collects, uses, and protects your data. Our privacy policy covers account information, location data, cookies, and your rights.',
@@ -120,7 +124,7 @@ VALID_REACT_ROUTES = [
     r'^sky/?$',                                     # Sky hub: /sky
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
     r'^bortle/?$',                                  # Bortle scale guide: /bortle
-    r'^moon/?$',                                    # Legacy redirect to /tonight
+    r'^moon/?$',                                    # Moon phases guide: /moon
     r'^privacy/?$',                                 # Privacy policy: /privacy
     r'^terms/?$',                                   # Terms of service: /terms
     r'^accessibility/?$',                           # Accessibility statement: /accessibility

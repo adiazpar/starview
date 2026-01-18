@@ -298,11 +298,15 @@ function SkyPage() {
             Plan around the moon
           </h2>
           <p className="sky-feature__text">
-            Track lunar phases month by month. New moons offer the darkest skies
+            The <Link to="/moon" className="sky-feature__inline-link">8 lunar phases</Link> affect
+            what you can see in the night sky. New moons offer the darkest skies
             for deep-sky observation, while full moons are perfect for lunar
             photography and nighttime hikes.
           </p>
-          <span className="sky-feature__badge">Coming Soon</span>
+          <Link to="/moon" className="sky-feature__link">
+            Learn about moon phases
+            <i className="fa-solid fa-arrow-right" />
+          </Link>
         </div>
       </section>
 

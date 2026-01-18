@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import LoadingSpinner from './components/shared/LoadingSpinner';
@@ -23,6 +23,7 @@ const ExplorePage = lazy(() => import('./pages/Explore'));
 const TonightPage = lazy(() => import('./pages/Tonight'));
 const SkyPage = lazy(() => import('./pages/Sky'));
 const BortlePage = lazy(() => import('./pages/Bortle'));
+const MoonPage = lazy(() => import('./pages/Moon'));
 const PrivacyPage = lazy(() => import('./pages/Privacy'));
 const TermsPage = lazy(() => import('./pages/Terms'));
 const AccessibilityPage = lazy(() => import('./pages/Accessibility'));
@@ -97,7 +98,7 @@ function App() {
           <Route path="/sky" element={<SkyPage />} />
           <Route path="/tonight" element={<TonightPage />} />
           <Route path="/bortle" element={<BortlePage />} />
-          <Route path="/moon" element={<Navigate to="/tonight" replace />} />
+          <Route path="/moon" element={<MoonPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/accessibility" element={<AccessibilityPage />} />

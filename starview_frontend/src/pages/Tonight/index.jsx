@@ -362,6 +362,9 @@ function TonightContent({
                   />
                 </div>
                 <div className="tonight-card__title">Moon</div>
+                <Link to="/moon" className="tonight-card__info-btn" aria-label="Learn about moon phases">
+                  <i className="fa-solid fa-circle-question"></i>
+                </Link>
               </div>
 
               <div className="tonight-card__body">

@@ -427,15 +427,15 @@ function BortlePage() {
             </div>
           </div>
 
-          <div className="bortle-tips__card">
+          <Link to="/moon" className="bortle-tips__card bortle-tips__card--link">
             <div className="bortle-tips__icon">
               <i className="fa-regular fa-moon" />
             </div>
             <h3 className="bortle-tips__title">Time Your Sessions</h3>
             <p className="bortle-tips__text">
-              Plan around the moon phase. New moon week provides the darkest skies.
+              Plan around the <span className="bortle-tips__highlight">moon phase</span>. New moon week provides the darkest skies.
             </p>
-          </div>
+          </Link>
 
           <div className="bortle-tips__card">
             <div className="bortle-tips__icon">
