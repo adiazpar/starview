@@ -124,11 +124,11 @@
 
 .sky-page {
   min-height: calc(100vh - var(--navbar-total-height));
-}
-
-/* Add spacing after hero before first feature section */
-.sky-page .sky-feature:first-of-type {
-  margin-top: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl) var(--space-lg);
 }
 
 /* ============================================ */
@@ -138,8 +138,8 @@
 .sky-hero {
   position: relative;
   min-height: 420px;
+  width: 100%;
   max-width: 960px;
-  margin: var(--space-xl) auto;
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
@@ -365,19 +365,17 @@
   grid-template-areas: "visual content";
   gap: 64px;
   align-items: center;
-  padding: 100px var(--space-xl);
+  padding: var(--space-xl);
+  width: 100%;
   max-width: 1100px;
-  margin: 0 auto;
   /* Scroll-triggered animation - starts hidden */
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition: opacity 0.6s ease-out;
 }
 
 /* Visible state triggered by Intersection Observer */
 .sky-feature--visible {
   opacity: 1;
-  transform: translateY(0);
 }
 
 /* Reverse layout using grid areas instead of rtl hack */
@@ -811,9 +809,9 @@
 .sky-bottom {
   position: relative;
   text-align: center;
-  padding: 64px var(--space-xl);
+  padding: var(--space-xl);
+  width: 100%;
   max-width: 960px;
-  margin: var(--space-xl) auto;
 }
 
 /* Corner brackets */
@@ -1002,10 +1000,14 @@
 }
 
 @media (max-width: 768px) {
+  .sky-page {
+    gap: var(--space-xl);
+    padding: var(--space-lg) var(--space-md);
+  }
+
   /* Observatory hero - simplified frame on mobile */
   .sky-hero {
     min-height: 360px;
-    margin: var(--space-lg) var(--space-md);
     padding: var(--space-md);
   }
 
@@ -1076,7 +1078,7 @@
       "visual"
       "content";
     gap: var(--space-xl);
-    padding: 64px var(--space-md);
+    padding: var(--space-lg) var(--space-md);
   }
 
   /* On mobile, all sections have visual on top */
@@ -1088,11 +1090,11 @@
 
   .sky-feature__content {
     max-width: none;
-    text-align: center;
+    text-align: left;
   }
 
   .sky-feature__link {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .sky-feature__card {
@@ -1139,7 +1141,6 @@
 
   .sky-bottom {
     padding: 48px var(--space-md);
-    margin: var(--space-lg) var(--space-md);
   }
 
   .sky-bottom__bracket {
@@ -1161,7 +1162,6 @@
   /* Observatory hero - minimal frame on very small screens */
   .sky-hero {
     min-height: 320px;
-    margin: var(--space-md);
     padding: var(--space-sm);
   }
 
