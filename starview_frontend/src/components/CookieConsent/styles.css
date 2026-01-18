@@ -133,7 +133,7 @@
   }
 
   .cookie-consent__message {
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     line-height: 1.6;
   }
 
@@ -147,8 +147,11 @@
     width: 100%;
   }
 
-  .cookie-consent__btn {
+  .cookie-consent .cookie-consent__btn.btn-primary,
+  .cookie-consent .cookie-consent__btn.btn-secondary {
     flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-xs);
   }
 }
 
