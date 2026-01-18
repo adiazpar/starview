@@ -316,6 +316,19 @@
   color: var(--text-secondary);
 }
 
+.tonight-card__badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-family: var(--font-technical);
+  color: var(--text-muted);
+  background: var(--glass-border);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .tonight-card__info-btn {
   margin-left: auto;
   display: flex;
@@ -761,6 +774,14 @@
     letter-spacing: 0.12em;
   }
 
+  /* Badge: position below title in column layout */
+  .tonight-card__badge {
+    margin-left: 0;
+    margin-top: var(--space-xs);
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
   /* Info button: position absolutely in corner */
   .tonight-card__info-btn {
     position: absolute;
@@ -961,6 +982,11 @@
 
   .tonight-card__icon--darkness {
     font-size: 14px;
+  }
+
+  .tonight-card__badge {
+    font-size: 7px;
+    padding: 1px 4px;
   }
 
   .tonight-card__body {

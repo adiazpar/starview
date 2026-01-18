@@ -37,9 +37,9 @@ function getWeatherCondition(cloudCover, precipitationType, precipitationProbabi
 }
 
 /**
- * Clear/Sunny - Sun icon
+ * Clear/Sunny - Sun icon (daytime)
  */
-function ClearIcon({ size }) {
+function ClearDayIcon({ size }) {
   return (
     <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
       <path d="M37.41 41.95c-9.71 12.48-9.54 34.65 2.87 45.64c14.09 12.47 33.92 12.34 46.39.87c14.95-13.76 14.09-36.66.87-49.63c-13.29-13.04-37.04-13.72-50.13 3.12z" fill="#fcc11a"/>
@@ -57,9 +57,21 @@ function ClearIcon({ size }) {
 }
 
 /**
- * Partly cloudy - Sun behind small cloud
+ * Clear - Crescent moon icon (nighttime)
  */
-function PartlyCloudyIcon({ size }) {
+function ClearNightIcon({ size }) {
+  return (
+    <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
+      <path d="M99.32 28.84L93.51 9.5l-1.98-2.66s-.15-.18-.17-.24c-.06-.25-.13-.66.11-.97c.18-.23.49-.29.85-.26c.14.01.48.14 1.02.44c5.31 3 28.21 21.75 30.14 52.02c1.09 17.1-5.15 35.4-18.27 48.16c-12.46 12.11-31.28 19.65-51.98 16.7c-30.94-4.41-44.22-23.21-47.69-29.42c-.61-1.1-.91-1.8-.97-1.97c-.82-2.15-.6-3.24.17-3.49c.2-.06.65.02.9.3c1 1.12 2.82 1.85 2.82 1.85l12.88 10.43l63.89 4.84l22.65-49.38l-8.56-27.01z" fill="#ffb803"/>
+      <path d="M73.65 87.67c15.97-9.9 23.77-26.72 24.39-42.28c.9-22.79-6.68-38.8-6.68-38.8s14.01 11.5 21.68 28.08s9 43.87-7.78 63.4c-18.45 21.45-43.18 22.72-58.73 18.7c-32.27-8.35-41.09-28.83-41.09-28.83s17.78 9.95 37.77 8.9c14.88-.78 22.54-4.27 30.44-9.17z" fill="#ffca29"/>
+    </svg>
+  );
+}
+
+/**
+ * Partly cloudy - Sun behind small cloud (daytime)
+ */
+function PartlyCloudyDayIcon({ size }) {
   return (
     <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
       <path d="M33.58 45.38c-8.27 10.63-8.13 29.53 2.44 38.89c12.01 10.63 28.9 10.52 39.53.74c12.75-11.72 12.01-31.24.75-42.29c-11.32-11.11-31.56-11.69-42.72 2.66z" fill="#fcc11a"/>
@@ -78,9 +90,27 @@ function PartlyCloudyIcon({ size }) {
 }
 
 /**
- * Mostly cloudy - Sun behind large cloud
+ * Partly cloudy - Moon behind small cloud (nighttime)
  */
-function MostlyCloudyIcon({ size }) {
+function PartlyCloudyNightIcon({ size }) {
+  return (
+    <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
+      {/* Crescent moon - scaled and positioned to peek behind cloud */}
+      <g transform="translate(-5, 8) scale(0.7)">
+        <path d="M99.32 28.84L93.51 9.5l-1.98-2.66s-.15-.18-.17-.24c-.06-.25-.13-.66.11-.97c.18-.23.49-.29.85-.26c.14.01.48.14 1.02.44c5.31 3 28.21 21.75 30.14 52.02c1.09 17.1-5.15 35.4-18.27 48.16c-12.46 12.11-31.28 19.65-51.98 16.7c-30.94-4.41-44.22-23.21-47.69-29.42c-.61-1.1-.91-1.8-.97-1.97c-.82-2.15-.6-3.24.17-3.49c.2-.06.65.02.9.3c1 1.12 2.82 1.85 2.82 1.85l12.88 10.43l63.89 4.84l22.65-49.38l-8.56-27.01z" fill="#ffb803"/>
+        <path d="M73.65 87.67c15.97-9.9 23.77-26.72 24.39-42.28c.9-22.79-6.68-38.8-6.68-38.8s14.01 11.5 21.68 28.08s9 43.87-7.78 63.4c-18.45 21.45-43.18 22.72-58.73 18.7c-32.27-8.35-41.09-28.83-41.09-28.83s17.78 9.95 37.77 8.9c14.88-.78 22.54-4.27 30.44-9.17z" fill="#ffca29"/>
+      </g>
+      {/* Cloud in front */}
+      <path d="M112.86 68.59c.01-.65 2.21-23.08-17.49-27.23c-19.04-4.02-24.03 13.82-24.03 13.82s-6.75-.83-11.7 2.93c-4.95 3.77-5.23 9.98-5.23 9.98s-7.96-.3-11.71 4.13c-3.39 4-2.26 7.61-2.26 7.61l21.97 5.57l55.53-1.49l6.37-3.86s.36-5.05-2.93-8.25c-4.54-4.4-8.52-3.21-8.52-3.21z" fill="#e2ebee"/>
+      <path d="M61.29 77.3s-6.09 2.68-13.63 2.02c-4.48-.39-7.34-1.72-7.34-1.72s-.77 5.18 3.3 7.73c3.05 1.91 5.96 2.2 11.38 2.18s54.74-.12 58.29-.16c3.56-.04 6.94-.67 8.67-2.28c2.18-2.03 2.34-5.02 2.34-5.02s-3.42 1.02-8.18.4c-4.74-.62-7.5-2.74-7.5-2.74s-3.41 2.91-21.04 3.23c-19.02.35-26.29-3.64-26.29-3.64z" fill="#bacdd2"/>
+    </svg>
+  );
+}
+
+/**
+ * Mostly cloudy - Sun behind large cloud (daytime)
+ */
+function MostlyCloudyDayIcon({ size }) {
   return (
     <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
       <path d="M29.12 39.22c-4.79 6.16-4.71 17.1 1.41 22.52c6.95 6.15 16.73 6.09 22.88.43c7.38-6.79 6.95-18.09.43-24.48c-6.55-6.44-18.26-6.78-24.72 1.53z" fill="#fcc11a"/>
@@ -90,6 +120,24 @@ function MostlyCloudyIcon({ size }) {
       <path d="M22.62 57.5c.61-1 1.39-.74 1.95.22c.39.65 3.64 5.03 3.95 5.51c.3.48.43 1.39-.52 1.6c-.95.22-8.72 2.26-9.93 2.47c-1.21.22-1.91-.74-1.13-1.78c.45-.61 5.33-7.46 5.68-8.02z" fill="#ffa722"/>
       <path d="M20.97 49.95c1.11.49 1.63.32 1.86-.48c.3-1.04 1.21-5.81 1.26-6.9c.03-.71-.26-1.39-1.34-1.21c-1.08.17-8.89 1.26-9.89 1.6c-1.16.4-1.08 1.68-.3 2.08c.91.49 7.63 4.56 8.41 4.91z" fill="#ffa722"/>
       <path d="M34.46 31.74c.62-.5.43-1.21-.13-1.6c-.56-.39-7.53-5.43-8.41-6.12c-.78-.61-1.73-.39-1.47 1c.19 1 2.41 9.72 2.56 10.32c.17.69.69 1.04 1.3.61c.6-.44 5.5-3.69 6.15-4.21z" fill="#ffa722"/>
+      <path d="M107.33 76.86c-.14-.46 4.52-33.89-25.85-38.83c-27.2-4.42-33.1 20-33.1 20s-10.33-1.73-17.76 5.61c-6.13 6.05-6.93 12.86-6.93 12.86S16.1 75 9.46 80.07C2.78 85.17 4.41 90.5 4.41 90.5l15.36 10.62l90.55-2.72l12.86-3.44s2.21-7.81-5.25-13.8c-6.02-4.83-10.6-4.3-10.6-4.3z" fill="#e2ebee"/>
+      <path d="M30.29 90.24s-5.41 3.54-14.13 2.6c-9.99-1.08-11.82-4.86-11.82-4.86s-1.09 7.4 4.93 12.39c5.44 4.51 12.29 3.35 21.83 3.41s73.63-.03 79.69.03c4.96.05 8.97-1.5 11.09-5.63c2.01-3.9 1.55-6.02 1.55-6.02s-3.61 2.24-11.47 1.32c-6.79-.79-10.11-3.53-10.11-3.53s-8.63 4.42-23.04 4.24c-15.1-.19-20.23-5.73-20.23-5.73s-4.9 4.64-15.67 4.37s-12.62-2.59-12.62-2.59z" fill="#b9ced3"/>
+    </svg>
+  );
+}
+
+/**
+ * Mostly cloudy - Moon behind large cloud (nighttime)
+ */
+function MostlyCloudyNightIcon({ size }) {
+  return (
+    <svg viewBox="0 0 128 128" width={size} height={size} className="weather-graphic__svg" aria-hidden="true">
+      {/* Crescent moon - smaller scale, positioned in top-left to peek behind large cloud */}
+      <g transform="translate(-12, 5) scale(0.5)">
+        <path d="M99.32 28.84L93.51 9.5l-1.98-2.66s-.15-.18-.17-.24c-.06-.25-.13-.66.11-.97c.18-.23.49-.29.85-.26c.14.01.48.14 1.02.44c5.31 3 28.21 21.75 30.14 52.02c1.09 17.1-5.15 35.4-18.27 48.16c-12.46 12.11-31.28 19.65-51.98 16.7c-30.94-4.41-44.22-23.21-47.69-29.42c-.61-1.1-.91-1.8-.97-1.97c-.82-2.15-.6-3.24.17-3.49c.2-.06.65.02.9.3c1 1.12 2.82 1.85 2.82 1.85l12.88 10.43l63.89 4.84l22.65-49.38l-8.56-27.01z" fill="#ffb803"/>
+        <path d="M73.65 87.67c15.97-9.9 23.77-26.72 24.39-42.28c.9-22.79-6.68-38.8-6.68-38.8s14.01 11.5 21.68 28.08s9 43.87-7.78 63.4c-18.45 21.45-43.18 22.72-58.73 18.7c-32.27-8.35-41.09-28.83-41.09-28.83s17.78 9.95 37.77 8.9c14.88-.78 22.54-4.27 30.44-9.17z" fill="#ffca29"/>
+      </g>
+      {/* Large cloud in front */}
       <path d="M107.33 76.86c-.14-.46 4.52-33.89-25.85-38.83c-27.2-4.42-33.1 20-33.1 20s-10.33-1.73-17.76 5.61c-6.13 6.05-6.93 12.86-6.93 12.86S16.1 75 9.46 80.07C2.78 85.17 4.41 90.5 4.41 90.5l15.36 10.62l90.55-2.72l12.86-3.44s2.21-7.81-5.25-13.8c-6.02-4.83-10.6-4.3-10.6-4.3z" fill="#e2ebee"/>
       <path d="M30.29 90.24s-5.41 3.54-14.13 2.6c-9.99-1.08-11.82-4.86-11.82-4.86s-1.09 7.4 4.93 12.39c5.44 4.51 12.29 3.35 21.83 3.41s73.63-.03 79.69.03c4.96.05 8.97-1.5 11.09-5.63c2.01-3.9 1.55-6.02 1.55-6.02s-3.61 2.24-11.47 1.32c-6.79-.79-10.11-3.53-10.11-3.53s-8.63 4.42-23.04 4.24c-15.1-.19-20.23-5.73-20.23-5.73s-4.9 4.64-15.67 4.37s-12.62-2.59-12.62-2.59z" fill="#b9ced3"/>
     </svg>
@@ -184,6 +232,7 @@ export default function WeatherGraphic({
   precipitationProbability = null,
   size = 64,
   className = '',
+  isNight = false,
 }) {
   const condition = getWeatherCondition(cloudCover, precipitationType, precipitationProbability);
 
@@ -191,9 +240,9 @@ export default function WeatherGraphic({
 
   return (
     <div className={`weather-graphic weather-graphic--${condition} ${className}`}>
-      {condition === 'clear' && <ClearIcon {...iconProps} />}
-      {condition === 'partly-cloudy' && <PartlyCloudyIcon {...iconProps} />}
-      {condition === 'mostly-cloudy' && <MostlyCloudyIcon {...iconProps} />}
+      {condition === 'clear' && (isNight ? <ClearNightIcon {...iconProps} /> : <ClearDayIcon {...iconProps} />)}
+      {condition === 'partly-cloudy' && (isNight ? <PartlyCloudyNightIcon {...iconProps} /> : <PartlyCloudyDayIcon {...iconProps} />)}
+      {condition === 'mostly-cloudy' && (isNight ? <MostlyCloudyNightIcon {...iconProps} /> : <MostlyCloudyDayIcon {...iconProps} />)}
       {condition === 'cloudy' && <CloudyIcon {...iconProps} />}
       {condition === 'rain' && <RainIcon {...iconProps} />}
       {condition === 'storm' && <StormIcon {...iconProps} />}

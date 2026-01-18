@@ -13,6 +13,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useSEO } from '../../hooks/useSEO';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
+import HourlyTimeline from './HourlyTimeline';
+import { getNighttimeHours, getNighttimeAverage, getNighttimeWeatherAverages } from './utils';
 import './styles.css';
 
 /**
@@ -163,8 +165,10 @@ function TonightContent({
   isAuthenticated,
   onEnableLocation,
 }) {
-  // Today's date
+  // Today's and tomorrow's dates for nighttime range (6PM-6AM spans two days)
   const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   // Fetch moon data
@@ -174,7 +178,7 @@ function TonightContent({
     lat,
     lng,
     suspense: false,
-    refetchInterval: 60000,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes - moon data changes slowly
   });
 
   // Fetch Bortle and weather
@@ -191,6 +195,7 @@ function TonightContent({
     humidity,
     windSpeed,
     temperature,
+    hourly: todayHourly,
     isLoading: weatherLoading,
   } = useWeather({
     lat,
@@ -199,13 +204,43 @@ function TonightContent({
     enabled: lat !== undefined && lng !== undefined,
   });
 
+  // Fetch tomorrow's hourly data for complete nighttime range (6PM-6AM)
+  const { hourly: tomorrowHourly } = useWeather({
+    lat,
+    lng,
+    date: tomorrow,
+    enabled: lat !== undefined && lng !== undefined,
+  });
+
+  // Combine today and tomorrow hourly data for nighttime filtering
+  const combinedHourly = useMemo(() => {
+    return [...(todayHourly || []), ...(tomorrowHourly || [])];
+  }, [todayHourly, tomorrowHourly]);
+
+  // Process hourly data for nighttime timeline
+  const nighttimeHours = getNighttimeHours(combinedHourly);
+  const nighttimeCloudAverage = getNighttimeAverage(nighttimeHours);
+  const nighttimeWeather = getNighttimeWeatherAverages(nighttimeHours);
+  const currentHour = new Date().getHours();
+  const isNight = currentHour >= 18 || currentHour < 6;
+  const [selectedHour, setSelectedHour] = useState(null);
+
+  // Use nighttime averages for score and display, fallback to current conditions
+  const scoreCloudCover = nighttimeCloudAverage ?? cloudCover;
+  const displayWeather = {
+    cloudCover: nighttimeWeather.cloudCover ?? cloudCover,
+    humidity: nighttimeWeather.humidity ?? humidity,
+    windSpeed: nighttimeWeather.windSpeed ?? windSpeed,
+    temperature: nighttimeWeather.temperature ?? temperature,
+  };
+
   // Calculate scores
   const scores = useMemo(() => {
-    return calculateScores(moonData?.illumination, bortle, cloudCover);
-  }, [moonData?.illumination, bortle, cloudCover]);
+    return calculateScores(moonData?.illumination, bortle, scoreCloudCover);
+  }, [moonData?.illumination, bortle, scoreCloudCover]);
 
   const quality = scores.total !== null ? getQuality(scores.total) : null;
-  const weatherInfo = getWeatherDescription(cloudCover);
+  const weatherInfo = getWeatherDescription(displayWeather.cloudCover);
   const isLoading = moonLoading || bortleLoading || weatherLoading;
 
   // SVG ring parameters
@@ -346,6 +381,16 @@ function TonightContent({
         )}
       </section>
 
+      {/* Hourly Timeline */}
+      {lat !== undefined && nighttimeHours.length > 0 && (
+        <HourlyTimeline
+          hours={nighttimeHours}
+          selectedHour={selectedHour}
+          onHourSelect={setSelectedHour}
+          currentHour={currentHour}
+        />
+      )}
+
       {/* Condition Cards */}
       {lat !== undefined && (
         <section className="tonight-cards">
@@ -408,19 +453,21 @@ function TonightContent({
               <div className="tonight-card__header">
                 <div className="tonight-card__icon tonight-card__icon--weather">
                   <WeatherGraphic
-                    cloudCover={cloudCover}
+                    cloudCover={displayWeather.cloudCover}
                     precipitationType={precipitationType}
                     precipitationProbability={precipitationProbability}
                     size={32}
+                    isNight
                   />
                 </div>
                 <div className="tonight-card__title">Weather</div>
+                <span className="tonight-card__badge">6PM–6AM Avg</span>
               </div>
 
               <div className="tonight-card__body">
                 <div className="tonight-card__primary">
                   <span className="tonight-card__value">
-                    {cloudCover !== null && cloudCover !== undefined ? `${Math.round(cloudCover)}%` : '--'}
+                    {displayWeather.cloudCover !== null ? `${displayWeather.cloudCover}%` : '--'}
                   </span>
                   <span className="tonight-card__label">Cloud Cover</span>
                 </div>
@@ -434,19 +481,19 @@ function TonightContent({
                   <div className="tonight-card__meta-item">
                     <span className="tonight-card__meta-label">Humidity</span>
                     <span className="tonight-card__meta-value">
-                      {humidity !== null ? `${Math.round(humidity)}%` : '--'}
+                      {displayWeather.humidity !== null ? `${displayWeather.humidity}%` : '--'}
                     </span>
                   </div>
                   <div className="tonight-card__meta-item">
                     <span className="tonight-card__meta-label">Wind</span>
                     <span className="tonight-card__meta-value">
-                      {windSpeed !== null ? `${Math.round(windSpeed)} km/h` : '--'}
+                      {displayWeather.windSpeed !== null ? `${displayWeather.windSpeed} km/h` : '--'}
                     </span>
                   </div>
                   <div className="tonight-card__meta-item">
                     <span className="tonight-card__meta-label">Temp</span>
                     <span className="tonight-card__meta-value">
-                      {temperature !== null ? `${Math.round(temperature)}°C` : '--'}
+                      {displayWeather.temperature !== null ? `${displayWeather.temperature}°C` : '--'}
                     </span>
                   </div>
                 </div>

@@ -1,0 +1,316 @@
+/* Hourly Weather Timeline
+ * Observatory/Mission Control aesthetic matching Tonight page.
+ * Horizontal scrolling bar chart for nighttime conditions.
+ */
+
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
+
+/* Section wrapper - matches tonight-cards layout */
+.hourly-timeline-section {
+  width: 100%;
+  max-width: 1000px;
+  padding: 0 var(--space-lg);
+  opacity: 0;
+  animation: tonightFadeIn 0.5s ease-out 0.15s forwards;
+}
+
+.hourly-timeline {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+}
+
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
+
+.hourly-timeline__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-md);
+}
+
+.hourly-timeline__title {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hourly-timeline__subtitle {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ============================================ */
+/* CHART - Horizontal scroll on mobile */
+/* ============================================ */
+
+.hourly-timeline__chart {
+  display: flex;
+  gap: var(--space-xs);
+  height: 120px;
+  align-items: flex-end;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-top: 14px; /* Room for selected glow effect */
+  padding-bottom: var(--space-sm);
+}
+
+.hourly-timeline__chart::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================ */
+/* INDIVIDUAL HOUR BAR */
+/* ============================================ */
+
+.hourly-timeline__bar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.hourly-timeline__bar:hover {
+  transform: scale(1.05);
+}
+
+.hourly-timeline__bar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================ */
+/* CLOUD COVER FILL BAR */
+/* ============================================ */
+
+.hourly-timeline__fill {
+  width: 24px;
+  min-height: 4px;
+  background: linear-gradient(
+    to top,
+    var(--accent) 0%,
+    color-mix(in oklch, var(--accent) 60%, transparent) 100%
+  );
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.3s ease, background 0.2s ease;
+}
+
+/* Low cloud cover = good for stargazing = brighter accent */
+.hourly-timeline__fill[data-cloud="0"],
+.hourly-timeline__fill[data-cloud="1"],
+.hourly-timeline__fill[data-cloud="2"],
+.hourly-timeline__fill[data-cloud="3"],
+.hourly-timeline__fill[data-cloud="4"],
+.hourly-timeline__fill[data-cloud="5"],
+.hourly-timeline__fill[data-cloud="6"],
+.hourly-timeline__fill[data-cloud="7"],
+.hourly-timeline__fill[data-cloud="8"],
+.hourly-timeline__fill[data-cloud="9"],
+.hourly-timeline__fill[data-cloud="10"],
+.hourly-timeline__fill[data-cloud="11"],
+.hourly-timeline__fill[data-cloud="12"],
+.hourly-timeline__fill[data-cloud="13"],
+.hourly-timeline__fill[data-cloud="14"],
+.hourly-timeline__fill[data-cloud="15"],
+.hourly-timeline__fill[data-cloud="16"],
+.hourly-timeline__fill[data-cloud="17"],
+.hourly-timeline__fill[data-cloud="18"],
+.hourly-timeline__fill[data-cloud="19"],
+.hourly-timeline__fill[data-cloud="20"] {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* High cloud cover = poor conditions = dimmer */
+.hourly-timeline__fill[data-cloud="70"],
+.hourly-timeline__fill[data-cloud="71"],
+.hourly-timeline__fill[data-cloud="72"],
+.hourly-timeline__fill[data-cloud="73"],
+.hourly-timeline__fill[data-cloud="74"],
+.hourly-timeline__fill[data-cloud="75"],
+.hourly-timeline__fill[data-cloud="76"],
+.hourly-timeline__fill[data-cloud="77"],
+.hourly-timeline__fill[data-cloud="78"],
+.hourly-timeline__fill[data-cloud="79"],
+.hourly-timeline__fill[data-cloud="80"],
+.hourly-timeline__fill[data-cloud="81"],
+.hourly-timeline__fill[data-cloud="82"],
+.hourly-timeline__fill[data-cloud="83"],
+.hourly-timeline__fill[data-cloud="84"],
+.hourly-timeline__fill[data-cloud="85"],
+.hourly-timeline__fill[data-cloud="86"],
+.hourly-timeline__fill[data-cloud="87"],
+.hourly-timeline__fill[data-cloud="88"],
+.hourly-timeline__fill[data-cloud="89"],
+.hourly-timeline__fill[data-cloud="90"],
+.hourly-timeline__fill[data-cloud="91"],
+.hourly-timeline__fill[data-cloud="92"],
+.hourly-timeline__fill[data-cloud="93"],
+.hourly-timeline__fill[data-cloud="94"],
+.hourly-timeline__fill[data-cloud="95"],
+.hourly-timeline__fill[data-cloud="96"],
+.hourly-timeline__fill[data-cloud="97"],
+.hourly-timeline__fill[data-cloud="98"],
+.hourly-timeline__fill[data-cloud="99"],
+.hourly-timeline__fill[data-cloud="100"] {
+  background: var(--text-muted);
+}
+
+/* ============================================ */
+/* HOUR LABEL */
+/* ============================================ */
+
+.hourly-timeline__label {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ============================================ */
+/* SELECTED STATE */
+/* ============================================ */
+
+.hourly-timeline__bar--selected .hourly-timeline__fill {
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.hourly-timeline__bar--selected .hourly-timeline__label {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============================================ */
+/* CURRENT HOUR INDICATOR */
+/* ============================================ */
+
+.hourly-timeline__bar--current .hourly-timeline__label::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin: 2px auto 0;
+}
+
+/* Weather icon below current hour */
+.hourly-timeline__weather-icon {
+  margin-top: var(--space-xs);
+}
+
+/* ============================================ */
+/* DETAILS PANEL - CSS Grid animation for smooth expand/collapse */
+/* ============================================ */
+
+.hourly-timeline__details-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+.hourly-timeline__details-wrapper--expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.hourly-timeline__details-inner {
+  overflow: hidden;
+}
+
+.hourly-timeline__details {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.hourly-timeline__detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hourly-timeline__detail-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hourly-timeline__detail-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* RESPONSIVE - Wider bars on desktop */
+/* ============================================ */
+
+@media (min-width: 768px) {
+  .hourly-timeline__bar {
+    width: 48px;
+  }
+
+  .hourly-timeline__fill {
+    width: 32px;
+  }
+
+  .hourly-timeline__label {
+    font-size: 11px;
+  }
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .hourly-timeline-section {
+    padding: 0 var(--space-md);
+  }
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hourly-timeline-section {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hourly-timeline__bar:hover {
+    transform: none;
+  }
+
+  .hourly-timeline__fill {
+    transition: none;
+  }
+}

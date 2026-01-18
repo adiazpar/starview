@@ -14,6 +14,7 @@
 # - Open-Meteo: General weather forecasts from European weather models                                 #
 #   Provides: Cloud layers (low/mid/high), visibility, humidity, wind, temperature                     #
 #   Coverage: Global, up to 16-day forecast, hourly intervals                                          #
+#   Note: All times are returned in the observer's local timezone using timezonefinder                 #
 #                                                                                                      #
 # Error Handling:                                                                                      #
 # Both APIs are free with no API keys required. Service degrades gracefully when one API fails,        #
@@ -28,6 +29,17 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 
 import requests
+from timezonefinder import TimezoneFinder
+
+# Singleton timezone finder (expensive to initialize)
+_tf = None
+
+def _get_timezone_finder():
+    """Lazily initialize the TimezoneFinder singleton."""
+    global _tf
+    if _tf is None:
+        _tf = TimezoneFinder()
+    return _tf
 
 
 class WeatherService:
@@ -142,6 +154,18 @@ class WeatherService:
     def _round_coordinates(lat: float, lng: float) -> tuple:
         """Round coordinates to 2 decimal places (~1km) for cache efficiency."""
         return round(float(lat), 2), round(float(lng), 2)
+
+    @staticmethod
+    def _get_timezone_for_location(lat: float, lng: float) -> str:
+        """
+        Get the IANA timezone name for a location using TimezoneFinder.
+
+        Returns timezone string (e.g., 'America/Denver') or 'UTC' as fallback.
+        This ensures all weather times are in the observer's local timezone.
+        """
+        tf = _get_timezone_finder()
+        tz_name = tf.timezone_at(lat=lat, lng=lng)
+        return tz_name if tz_name else 'UTC'
 
 
     @staticmethod
@@ -283,18 +307,24 @@ class WeatherService:
     # ------------------------------------------------------------------------------------------------- #
 
     @staticmethod
-    def _normalize_open_meteo_response(data: dict) -> Optional[dict]:
+    def _normalize_open_meteo_response(data: dict, timezone_str: str = 'UTC') -> Optional[dict]:
         """
         Transform Open-Meteo API response to normalized format.
 
         Open-Meteo returns hourly arrays for each requested variable.
         When available, uses real-time 'current' data for current conditions.
         Falls back to closest hourly entry if current data unavailable.
+
+        Args:
+            data: Raw Open-Meteo API response
+            timezone_str: IANA timezone name for the location (e.g., 'America/Denver')
+                         Used to correctly identify current hour in local time
         """
         if not data or 'hourly' not in data:
             return None
 
         try:
+            import pytz
             hourly = data['hourly']
             times = hourly.get('time', [])
 
@@ -306,7 +336,14 @@ class WeatherService:
             has_current = bool(current_data)
 
             # Find the hourly entry closest to current time (fallback)
-            now = datetime.now()
+            # Use the observer's local timezone for comparison since Open-Meteo
+            # returns times in that timezone
+            try:
+                tz = pytz.timezone(timezone_str)
+                now = datetime.now(tz).replace(tzinfo=None)  # Naive local time
+            except (pytz.UnknownTimeZoneError, Exception):
+                now = datetime.now()  # Fallback to server time
+
             current_idx = 0
             for i, time_str in enumerate(times):
                 try:
@@ -372,8 +409,11 @@ class WeatherService:
         Returns up to 16-day hourly forecast with cloud layers,
         visibility, humidity, wind, temperature, and precipitation.
         Also requests real-time current conditions for accuracy.
+
+        All times are returned in the observer's local timezone.
         """
         rounded_lat, rounded_lng = WeatherService._round_coordinates(lat, lng)
+        timezone_str = WeatherService._get_timezone_for_location(lat, lng)
 
         # Build hourly variables list
         hourly_vars = ",".join([
@@ -402,13 +442,14 @@ class WeatherService:
             f"&hourly={hourly_vars}"
             f"&current={current_vars}"
             f"&forecast_days={days}"
+            f"&timezone={timezone_str}"
         )
 
         data = WeatherService._make_request(url)
         if not data:
             return None
 
-        return WeatherService._normalize_open_meteo_response(data)
+        return WeatherService._normalize_open_meteo_response(data, timezone_str)
 
 
 
@@ -649,6 +690,8 @@ class WeatherService:
         Returns past weather data (actual recorded weather).
         Archive has ~5 day delay from present.
 
+        All times are returned in the observer's local timezone.
+
         Args:
             lat: Latitude
             lng: Longitude
@@ -659,6 +702,7 @@ class WeatherService:
             Normalized weather data or None if request fails
         """
         rounded_lat, rounded_lng = WeatherService._round_coordinates(lat, lng)
+        timezone_str = WeatherService._get_timezone_for_location(lat, lng)
 
         hourly_vars = ",".join([
             "cloud_cover",
@@ -677,13 +721,14 @@ class WeatherService:
             f"&start_date={start_date.isoformat()}"
             f"&end_date={end_date.isoformat()}"
             f"&hourly={hourly_vars}"
+            f"&timezone={timezone_str}"
         )
 
         data = WeatherService._make_request(url)
         if not data:
             return None
 
-        return WeatherService._normalize_open_meteo_response(data)
+        return WeatherService._normalize_open_meteo_response(data, timezone_str)
 
 
     @staticmethod

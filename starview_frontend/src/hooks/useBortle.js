@@ -27,9 +27,9 @@ export function useBortle({ lat, lng, enabled = true, suspense = false } = {}) {
   const queryConfig = {
     queryKey: ['bortle', roundedLat, roundedLng],
     queryFn: () => bortleApi.getBortle({ lat, lng }),
-    staleTime: 0, // Never use stale data
-    gcTime: 0, // Don't cache - backend handles caching (30 day TTL)
-    refetchOnMount: 'always',
+    staleTime: 30 * 60 * 1000, // 30 minutes - Bortle is static for a location
+    gcTime: 60 * 60 * 1000, // 60 minutes cache retention
+    refetchOnMount: true, // Refetch only if stale
     retry: 2,
   };
 

@@ -44,9 +44,9 @@ export function useWeather({ lat, lng, date, enabled = true, suspense = false } 
   const queryConfig = {
     queryKey: ['weather', roundedLat, roundedLng, dateKey],
     queryFn: () => weatherApi.getForecast({ lat, lng, date }),
-    staleTime: 0, // Never use stale data
-    gcTime: 0, // Don't cache - backend handles caching per location
-    refetchOnMount: 'always',
+    staleTime: 10 * 60 * 1000, // 10 minutes - weather updates hourly
+    gcTime: 15 * 60 * 1000, // 15 minutes cache retention
+    refetchOnMount: true, // Refetch only if stale
     retry: 2,
   };
 

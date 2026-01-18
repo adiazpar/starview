@@ -69,9 +69,9 @@ export function useMoonPhases({
   const queryConfig = {
     queryKey: ['moonPhases', startDate, endDate, roundedLat, roundedLng, keyDatesOnly],
     queryFn: createMoonQueryFn({ startDate, endDate, lat, lng, keyDatesOnly }),
-    staleTime: 0, // No caching - moon data should always be fresh for accuracy
-    gcTime: 0, // Don't keep old data in memory
-    refetchOnMount: 'always', // Always refetch when component mounts
+    staleTime: 5 * 60 * 1000, // 5 minutes - moon data changes slowly
+    gcTime: 10 * 60 * 1000, // 10 minutes cache retention
+    refetchOnMount: true, // Refetch only if stale
     refetchInterval, // Auto-refetch for real-time updates (undefined = disabled)
   };
 
