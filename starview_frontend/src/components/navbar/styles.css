@@ -155,11 +155,21 @@
   color: var(--text-muted);
 }
 
-/* Desktop Navigation */
+/* Desktop Navigation - Centered */
 .navbar__nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+/* Desktop Actions (CTA button) */
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .navbar__link {
@@ -187,7 +197,7 @@
 
 /* CTA Button */
 .navbar__cta {
-  margin-left: var(--space-sm);
+  /* Styles inherited from btn-primary */
 }
 
 .navbar__cta i {
@@ -395,7 +405,8 @@
 /* ============================================ */
 
 @media (max-width: 768px) {
-  .navbar__nav {
+  .navbar__nav,
+  .navbar__actions {
     display: none;
   }
 

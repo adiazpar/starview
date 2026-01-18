@@ -131,26 +131,28 @@ function Navbar() {
           </div>
         )}
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation - Centered Links */}
         <div className="navbar__nav">
           <NavLink to="/" className="navbar__link" end>Home</NavLink>
           <NavLink to="/explore" className="navbar__link">Explore</NavLink>
           <NavLink to="/sky" className="navbar__link">Sky</NavLink>
-
           {isAuthenticated ? (
-            <>
-              <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
-              <button onClick={logout} className="navbar__cta btn-primary btn-primary--sm">
-                <span>Logout</span>
-              </button>
-            </>
+            <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
           ) : (
-            <>
-              <NavLink to="/login" className="navbar__link">Login</NavLink>
-              <NavLink to="/register" className="navbar__cta btn-primary btn-primary--sm">
-                Get Started
-              </NavLink>
-            </>
+            <NavLink to="/login" className="navbar__link">Login</NavLink>
+          )}
+        </div>
+
+        {/* Desktop CTA Button */}
+        <div className="navbar__actions">
+          {isAuthenticated ? (
+            <button onClick={logout} className="navbar__cta btn-primary btn-primary--sm">
+              <span>Logout</span>
+            </button>
+          ) : (
+            <NavLink to="/register" className="navbar__cta btn-primary btn-primary--sm">
+              Get Started
+            </NavLink>
           )}
         </div>
 

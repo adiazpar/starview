@@ -4,7 +4,11 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import './styles.css';
+
+// Pages where the starfield should be hidden (solid background pages)
+const HIDDEN_ON_PATHS = ['/privacy', '/terms'];
 
 // Configuration
 const STAR_CONFIG = {
@@ -19,12 +23,16 @@ const STAR_CONFIG = {
 };
 
 function Starfield() {
+  const location = useLocation();
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const starsRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const animationRef = useRef(null);
   const initializedRef = useRef(false); // Track if canvas has been initialized
+
+  // Don't render on pages with solid backgrounds
+  const isHidden = HIDDEN_ON_PATHS.includes(location.pathname);
 
   // Generate random stars based on screen size
   const generateStars = useCallback(() => {
@@ -164,6 +172,9 @@ function Starfield() {
 
   // Initialize canvas and start animation
   useEffect(() => {
+    // Don't initialize if hidden
+    if (isHidden) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -186,7 +197,12 @@ function Starfield() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [handleResize, render, handleMouseMove, handleMouseLeave]);
+  }, [isHidden, handleResize, render, handleMouseMove, handleMouseLeave]);
+
+  // Don't render on hidden pages
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <div className="starfield" aria-hidden="true">

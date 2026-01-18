@@ -8,7 +8,6 @@
 /* ============================================ */
 
 .terms-page {
-  background: var(--bg-base);
   min-height: 100vh;
   margin-top: calc(-1 * var(--navbar-total-height, 72px));
   padding-top: var(--space-xl);

@@ -49,7 +49,7 @@ function PrivacyPage() {
           <div className="privacy-content__container">
 
             {/* Header */}
-            <header className="privacy-header">
+            <header className="privacy-header animate-fade-in-up">
               <h1 className="privacy-header__title">Privacy Policy</h1>
               <p className="privacy-header__updated">
                 <strong>Effective date:</strong> January 4, 2026
@@ -57,7 +57,7 @@ function PrivacyPage() {
             </header>
 
             {/* Introduction */}
-            <section className="privacy-section privacy-section--intro">
+            <section className="privacy-section privacy-section--intro animate-fade-in-up animate-delay-1">
               <p>
                 At Starview, we take your privacy seriously. Please read this Privacy
                 Policy to learn how we treat your personal data. <strong>By using or
@@ -75,7 +75,7 @@ function PrivacyPage() {
             </section>
 
             {/* Table of Contents */}
-            <section className="privacy-section privacy-section--toc">
+            <section className="privacy-section privacy-section--toc animate-fade-in-up animate-delay-2">
               <h2 className="privacy-toc__title">Table of Contents</h2>
               <ul className="privacy-toc__list">
                 {sections.map((section) => (
@@ -98,7 +98,7 @@ function PrivacyPage() {
             </section>
 
             {/* Information We Collect */}
-            <section id="collect" className="privacy-section glass-card">
+            <section id="collect" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-database"></i>
@@ -142,7 +142,7 @@ function PrivacyPage() {
             </section>
 
             {/* How We Use Your Information */}
-            <section id="use" className="privacy-section glass-card">
+            <section id="use" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-gears"></i>
@@ -184,7 +184,7 @@ function PrivacyPage() {
             </section>
 
             {/* Data Sharing */}
-            <section id="sharing" className="privacy-section glass-card">
+            <section id="sharing" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon privacy-section__icon--success">
                   <i className="fa-solid fa-share-nodes"></i>
@@ -212,7 +212,7 @@ function PrivacyPage() {
             </section>
 
             {/* Third-Party Services */}
-            <section id="third-party" className="privacy-section glass-card">
+            <section id="third-party" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-plug"></i>
@@ -291,7 +291,7 @@ function PrivacyPage() {
             </section>
 
             {/* Data Retention */}
-            <section id="retention" className="privacy-section glass-card">
+            <section id="retention" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-clock"></i>
@@ -316,7 +316,7 @@ function PrivacyPage() {
             </section>
 
             {/* Your Rights */}
-            <section id="rights" className="privacy-section glass-card">
+            <section id="rights" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon privacy-section__icon--accent">
                   <i className="fa-solid fa-shield-halved"></i>
@@ -396,7 +396,7 @@ function PrivacyPage() {
             </section>
 
             {/* Cookies */}
-            <section id="cookies" className="privacy-section glass-card">
+            <section id="cookies" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-cookie-bite"></i>
@@ -439,7 +439,7 @@ function PrivacyPage() {
             </section>
 
             {/* Age Requirement */}
-            <section id="age" className="privacy-section glass-card">
+            <section id="age" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon">
                   <i className="fa-solid fa-user-check"></i>
@@ -466,7 +466,7 @@ function PrivacyPage() {
             </section>
 
             {/* Contact */}
-            <section id="contact" className="privacy-section glass-card">
+            <section id="contact" className="privacy-section glass-card animate-fade-in-up animate-delay-3">
               <div className="privacy-section__header">
                 <div className="privacy-section__icon privacy-section__icon--accent">
                   <i className="fa-solid fa-envelope"></i>
@@ -492,7 +492,7 @@ function PrivacyPage() {
             </section>
 
             {/* Updates */}
-            <section className="privacy-section privacy-section--updates">
+            <section className="privacy-section privacy-section--updates animate-fade-in-up animate-delay-3">
               <h3>Policy Updates</h3>
               <p>
                 We may update this Privacy Policy from time to time. When we make significant
@@ -506,7 +506,7 @@ function PrivacyPage() {
             </section>
 
             {/* Back to top */}
-            <div className="privacy-footer">
+            <div className="privacy-footer animate-fade-in-up animate-delay-3">
               <button
                 className="privacy-footer__top"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

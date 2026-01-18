@@ -52,7 +52,7 @@ function TermsPage() {
           <div className="terms-content__container">
 
             {/* Header */}
-            <header className="terms-header">
+            <header className="terms-header animate-fade-in-up">
               <h1 className="terms-header__title">Terms of Service</h1>
               <p className="terms-header__updated">
                 <strong>Effective date:</strong> January 4, 2026
@@ -60,7 +60,7 @@ function TermsPage() {
             </header>
 
             {/* Introduction */}
-            <section className="terms-section terms-section--intro">
+            <section className="terms-section terms-section--intro animate-fade-in-up animate-delay-1">
               <p>
                 Welcome to Starview, a stargazing location review platform that helps astronomers
                 discover and share the best spots for observing the night sky. These Terms of
@@ -77,7 +77,7 @@ function TermsPage() {
             </section>
 
             {/* Table of Contents */}
-            <section className="terms-section terms-section--toc">
+            <section className="terms-section terms-section--toc animate-fade-in-up animate-delay-2">
               <h2 className="terms-toc__title">Table of Contents</h2>
               <ul className="terms-toc__list">
                 {sections.map((section) => (
@@ -100,7 +100,7 @@ function TermsPage() {
             </section>
 
             {/* Eligibility */}
-            <section id="eligibility" className="terms-section glass-card">
+            <section id="eligibility" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-user-check"></i>
@@ -126,7 +126,7 @@ function TermsPage() {
             </section>
 
             {/* Account Responsibilities */}
-            <section id="account" className="terms-section glass-card">
+            <section id="account" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-user-gear"></i>
@@ -165,7 +165,7 @@ function TermsPage() {
             </section>
 
             {/* User-Generated Content */}
-            <section id="content" className="terms-section glass-card">
+            <section id="content" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-pen-fancy"></i>
@@ -210,7 +210,7 @@ function TermsPage() {
             </section>
 
             {/* Acceptable Use */}
-            <section id="acceptable-use" className="terms-section glass-card">
+            <section id="acceptable-use" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon terms-section__icon--error">
                   <i className="fa-solid fa-check-double"></i>
@@ -265,7 +265,7 @@ function TermsPage() {
             </section>
 
             {/* Content Licensing to Others */}
-            <section id="licensing" className="terms-section glass-card">
+            <section id="licensing" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-scale-balanced"></i>
@@ -316,7 +316,7 @@ function TermsPage() {
             </section>
 
             {/* Content Moderation */}
-            <section id="moderation" className="terms-section glass-card">
+            <section id="moderation" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-shield-halved"></i>
@@ -357,7 +357,7 @@ function TermsPage() {
             </section>
 
             {/* DMCA / Copyright */}
-            <section id="dmca" className="terms-section glass-card">
+            <section id="dmca" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-copyright"></i>
@@ -399,7 +399,7 @@ function TermsPage() {
             </section>
 
             {/* Third-Party Services */}
-            <section id="third-party" className="terms-section glass-card">
+            <section id="third-party" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-plug"></i>
@@ -425,7 +425,7 @@ function TermsPage() {
             </section>
 
             {/* Disclaimers */}
-            <section id="disclaimers" className="terms-section glass-card">
+            <section id="disclaimers" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon terms-section__icon--warning">
                   <i className="fa-solid fa-triangle-exclamation"></i>
@@ -471,7 +471,7 @@ function TermsPage() {
             </section>
 
             {/* Limitation of Liability */}
-            <section id="liability" className="terms-section glass-card">
+            <section id="liability" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon">
                   <i className="fa-solid fa-gavel"></i>
@@ -515,7 +515,7 @@ function TermsPage() {
             </section>
 
             {/* Dispute Resolution */}
-            <section id="disputes" className="terms-section glass-card">
+            <section id="disputes" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon terms-section__icon--accent">
                   <i className="fa-solid fa-handshake"></i>
@@ -549,7 +549,7 @@ function TermsPage() {
             </section>
 
             {/* Contact */}
-            <section id="contact" className="terms-section glass-card">
+            <section id="contact" className="terms-section glass-card animate-fade-in-up animate-delay-3">
               <div className="terms-section__header">
                 <div className="terms-section__icon terms-section__icon--accent">
                   <i className="fa-solid fa-envelope"></i>
@@ -570,7 +570,7 @@ function TermsPage() {
             </section>
 
             {/* Updates */}
-            <section className="terms-section terms-section--updates">
+            <section className="terms-section terms-section--updates animate-fade-in-up animate-delay-3">
               <h3>Changes to Terms</h3>
               <p>
                 We may modify these Terms at any time. When we make material changes, we will
@@ -583,7 +583,7 @@ function TermsPage() {
             </section>
 
             {/* Back to top */}
-            <div className="terms-footer">
+            <div className="terms-footer animate-fade-in-up animate-delay-3">
               <button
                 className="terms-footer__top"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
