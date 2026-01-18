@@ -81,6 +81,9 @@
 
 @media (max-width: 768px) {
   .badge-section-grid {
+    /* auto-fit collapses empty tracks; fixed max prevents cell overflow */
+    grid-template-columns: repeat(auto-fit, minmax(80px, 110px));
     gap: var(--space-sm);
+    justify-content: center;
   }
 }
