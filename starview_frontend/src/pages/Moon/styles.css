@@ -481,23 +481,23 @@
 }
 
 .moon-scale__info-quality--excellent {
-  color: #66b3ff;
-  background: rgba(0, 51, 102, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-scale__info-quality--good {
-  color: #66cc80;
-  background: rgba(26, 102, 51, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-scale__info-quality--moderate {
-  color: #ccb833;
-  background: rgba(138, 122, 28, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-scale__info-quality--poor {
-  color: #e06050;
-  background: rgba(160, 56, 48, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-scale__info-name {
@@ -590,23 +590,23 @@
 }
 
 .moon-live__quality--excellent {
-  color: #66b3ff;
-  background: rgba(0, 51, 102, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-live__quality--good {
-  color: #66cc80;
-  background: rgba(26, 102, 51, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-live__quality--moderate {
-  color: #ccb833;
-  background: rgba(138, 122, 28, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .moon-live__quality--poor {
-  color: #e06050;
-  background: rgba(160, 56, 48, 0.4);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 /* ============================================ */
