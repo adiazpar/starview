@@ -220,6 +220,11 @@
   margin-top: var(--space-xs);
 }
 
+/* Subtle glow for timeline weather icons */
+.hourly-timeline__weather-icon .weather-graphic__svg {
+  filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.15));
+}
+
 /* ============================================ */
 /* DETAILS PANEL - CSS Grid animation for smooth expand/collapse */
 /* ============================================ */

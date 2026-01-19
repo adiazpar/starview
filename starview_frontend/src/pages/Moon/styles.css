@@ -401,6 +401,11 @@
   transition: box-shadow 0.2s ease;
 }
 
+/* Subtle glow for phase scale moons - matches Sky page */
+.moon-scale__phase-graphic .moon-graphic {
+  filter: drop-shadow(0 0 8px rgba(252, 229, 172, 0.15));
+}
+
 .moon-scale__phase-number {
   font-family: var(--font-technical);
   font-size: 11px;
