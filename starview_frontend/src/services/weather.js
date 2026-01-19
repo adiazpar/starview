@@ -24,7 +24,7 @@ const weatherApi = {
    * @param {Object} params - Query parameters
    * @param {number} params.lat - Latitude
    * @param {number} params.lng - Longitude
-   * @param {Date} params.date - Optional date (defaults to today)
+   * @param {Date} params.date - Optional single date (defaults to today)
    * @returns {Promise<{current: Object, daily: Array, location: Object}>}
    *
    * The API automatically selects data source based on date:
@@ -40,6 +40,30 @@ const weatherApi = {
       params.start_date = dateStr;
       params.end_date = dateStr;
     }
+
+    const response = await api.get('/weather/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get weather data for a location and date range
+   * @param {Object} params - Query parameters
+   * @param {number} params.lat - Latitude
+   * @param {number} params.lng - Longitude
+   * @param {Date} params.startDate - Start date
+   * @param {Date} params.endDate - End date
+   * @returns {Promise<{current: Object, daily: Array, location: Object}>}
+   *
+   * Returns hourly data for all dates in the range, useful for
+   * nighttime views that span midnight (e.g., 6PM today to 6AM tomorrow).
+   */
+  getForecastRange: async ({ lat, lng, startDate, endDate }) => {
+    const params = {
+      lat,
+      lng,
+      start_date: formatLocalDate(startDate),
+      end_date: formatLocalDate(endDate),
+    };
 
     const response = await api.get('/weather/', { params });
     return response.data;

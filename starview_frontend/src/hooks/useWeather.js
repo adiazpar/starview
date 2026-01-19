@@ -36,10 +36,11 @@ export function useWeather({ lat, lng, date, enabled = true, suspense = false } 
   const hasCoords = lat !== undefined && lng !== undefined;
   const dateKey = formatDateKey(date);
 
-  // Round coordinates to 2 decimal places for cache key consistency
-  // This prevents floating point precision issues from creating duplicate cache entries
-  const roundedLat = lat !== undefined ? Math.round(lat * 100) / 100 : undefined;
-  const roundedLng = lng !== undefined ? Math.round(lng * 100) / 100 : undefined;
+  // Round coordinates to 1 decimal place (~11km) for cache key consistency
+  // This matches the backend cache precision, preventing frontend cache fragmentation
+  // within the same backend grid cell
+  const roundedLat = lat !== undefined ? Math.round(lat * 10) / 10 : undefined;
+  const roundedLng = lng !== undefined ? Math.round(lng * 10) / 10 : undefined;
 
   const queryConfig = {
     queryKey: ['weather', roundedLat, roundedLng, dateKey],

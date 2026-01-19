@@ -6,7 +6,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useMoonPhases } from '../../hooks/useMoonPhases';
-import { useWeather } from '../../hooks/useWeather';
+import { useNighttimeWeather } from '../../hooks/useNighttimeWeather';
 import { useBortle } from '../../hooks/useBortle';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useAuth } from '../../context/AuthContext';
@@ -14,7 +14,6 @@ import { useSEO } from '../../hooks/useSEO';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
 import HourlyTimeline from './HourlyTimeline';
-import { getNighttimeHours, getNighttimeAverage, getNighttimeWeatherAverages } from './utils';
 import './styles.css';
 
 /**
@@ -165,10 +164,8 @@ function TonightContent({
   isAuthenticated,
   onEnableLocation,
 }) {
-  // Today's and tomorrow's dates for nighttime range (6PM-6AM spans two days)
+  // Today's date for moon data
   const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   // Fetch moon data
@@ -181,60 +178,41 @@ function TonightContent({
     refetchInterval: 5 * 60 * 1000, // 5 minutes - moon data changes slowly
   });
 
-  // Fetch Bortle and weather
+  // Fetch Bortle
   const { bortle, isLoading: bortleLoading } = useBortle({
     lat,
     lng,
     enabled: lat !== undefined && lng !== undefined,
   });
 
+  // Fetch nighttime weather (6PM today to 6AM tomorrow) in a single API call
   const {
-    cloudCover,
+    nighttimeHours,
+    nighttimeAverages,
+    currentCloudCover,
     precipitationType,
     precipitationProbability,
+    cloudCover,
     humidity,
     windSpeed,
     temperature,
-    hourly: todayHourly,
-    isLoading: todayWeatherLoading,
-  } = useWeather({
+    isLoading: weatherLoading,
+  } = useNighttimeWeather({
     lat,
     lng,
-    date: today,
     enabled: lat !== undefined && lng !== undefined,
   });
 
-  // Fetch tomorrow's hourly data for complete nighttime range (6PM-6AM)
-  const { hourly: tomorrowHourly, isLoading: tomorrowWeatherLoading } = useWeather({
-    lat,
-    lng,
-    date: tomorrow,
-    enabled: lat !== undefined && lng !== undefined,
-  });
-
-  // Track loading state for both weather queries to prevent partial timeline rendering
-  const weatherLoading = todayWeatherLoading || tomorrowWeatherLoading;
-
-  // Combine today and tomorrow hourly data for nighttime filtering
-  const combinedHourly = useMemo(() => {
-    return [...(todayHourly || []), ...(tomorrowHourly || [])];
-  }, [todayHourly, tomorrowHourly]);
-
-  // Process hourly data for nighttime timeline
-  const nighttimeHours = getNighttimeHours(combinedHourly);
-  const nighttimeCloudAverage = getNighttimeAverage(nighttimeHours);
-  const nighttimeWeather = getNighttimeWeatherAverages(nighttimeHours);
   const currentHour = new Date().getHours();
-  const isNight = currentHour >= 18 || currentHour < 6;
   const [selectedHour, setSelectedHour] = useState(null);
 
-  // Use nighttime averages for score and display, fallback to current conditions
-  const scoreCloudCover = nighttimeCloudAverage ?? cloudCover;
+  // Use nighttime averages for score and display
+  const scoreCloudCover = cloudCover;
   const displayWeather = {
-    cloudCover: nighttimeWeather.cloudCover ?? cloudCover,
-    humidity: nighttimeWeather.humidity ?? humidity,
-    windSpeed: nighttimeWeather.windSpeed ?? windSpeed,
-    temperature: nighttimeWeather.temperature ?? temperature,
+    cloudCover: nighttimeAverages.cloudCover ?? currentCloudCover,
+    humidity: nighttimeAverages.humidity ?? humidity,
+    windSpeed: nighttimeAverages.windSpeed ?? windSpeed,
+    temperature: nighttimeAverages.temperature ?? temperature,
   };
 
   // Calculate scores
