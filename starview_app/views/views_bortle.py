@@ -38,16 +38,17 @@ NATURAL_SKY_BRIGHTNESS = 0.171
 
 # Bortle scale definitions: (min_sqm, max_sqm, description, quality)
 # SQM = Sky Quality Meter reading in magnitudes per square arcsecond
+# Standard thresholds from https://unittoolbox.com/bortle-scale-sqm-converter/
 BORTLE_SCALE = [
-    (21.99, 25.0, 'Excellent dark-sky site', 'excellent'),      # Class 1
-    (21.89, 21.99, 'Typical truly dark site', 'excellent'),     # Class 2
-    (21.69, 21.89, 'Rural sky', 'very_good'),                   # Class 3
-    (20.49, 21.69, 'Rural/suburban transition', 'good'),        # Class 4
-    (19.50, 20.49, 'Suburban sky', 'moderate'),                 # Class 5
-    (18.94, 19.50, 'Bright suburban sky', 'limited'),           # Class 6
-    (18.38, 18.94, 'Suburban/urban transition', 'poor'),        # Class 7
-    (17.80, 18.38, 'City sky', 'poor'),                         # Class 8
-    (0.0, 17.80, 'Inner-city sky', 'very_poor'),                # Class 9
+    (21.7, 25.0, 'Excellent dark-sky site', 'excellent'),       # Class 1: 21.7+
+    (21.5, 21.7, 'Typical truly dark site', 'excellent'),       # Class 2: 21.5-21.7
+    (21.3, 21.5, 'Rural sky', 'very_good'),                     # Class 3: 21.3-21.5
+    (20.4, 21.3, 'Rural/suburban transition', 'good'),          # Class 4: 20.4-21.3
+    (19.1, 20.4, 'Suburban sky', 'moderate'),                   # Class 5: 19.1-20.4
+    (18.0, 19.1, 'Bright suburban sky', 'limited'),             # Class 6: 18.0-19.1
+    (16.8, 18.0, 'Suburban/urban transition', 'poor'),          # Class 7: 16.8-18.0
+    (15.5, 16.8, 'City sky', 'poor'),                           # Class 8: 15.5-16.8
+    (0.0, 15.5, 'Inner-city sky', 'very_poor'),                 # Class 9: <15.5
 ]
 
 
