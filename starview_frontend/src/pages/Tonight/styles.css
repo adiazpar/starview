@@ -186,6 +186,13 @@
 }
 
 /* Location display */
+.tonight-hero__location-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: var(--space-lg) 0;
+}
+
 .tonight-hero__location {
   display: inline-flex;
   align-items: center;
@@ -194,12 +201,25 @@
   font-size: var(--text-base);
   color: var(--text-secondary);
   text-align: center;
-  margin: var(--space-lg) 0;
+  margin: 0;
 }
 
 .tonight-hero__location i {
   color: var(--accent);
   font-size: var(--text-sm);
+}
+
+.tonight-hero__location-change {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-top: var(--space-xs);
+  transition: color 0.15s ease;
+}
+
+.tonight-hero__location-change:hover {
+  color: var(--accent-light);
 }
 
 /* Location prompt */
@@ -317,7 +337,7 @@
 }
 
 .tonight-card__badge {
-  margin-left: auto;
+  margin-left: var(--space-sm);
   padding: 2px 8px;
   font-size: 10px;
   font-family: var(--font-technical);

@@ -346,10 +346,17 @@ function TonightContent({
         </div>
 
         {lat !== undefined && location && !isLoading && (
-          <p className="tonight-hero__location">
-            <i className="fa-solid fa-location-dot"></i>
-            <span>{source === 'profile' && user?.location ? user.location : 'Your Location'}</span>
-          </p>
+          <div className="tonight-hero__location-wrapper">
+            <p className="tonight-hero__location">
+              <i className="fa-solid fa-location-dot"></i>
+              <span>{source === 'profile' && user?.location ? user.location : 'Your Location'}</span>
+            </p>
+            {source === 'profile' && (
+              <Link to="/profile?scrollTo=location" className="tonight-hero__location-change">
+                Not your location?
+              </Link>
+            )}
+          </div>
         )}
 
         {/* Location prompt for users without location */}
@@ -461,6 +468,7 @@ function TonightContent({
                   />
                 </div>
                 <div className="tonight-card__title">Weather</div>
+                <span className="tonight-card__badge">Nightly Avg</span>
                 <Link to="/weather" className="tonight-card__info-btn" aria-label="Learn about weather for stargazing">
                   <i className="fa-solid fa-circle-question"></i>
                 </Link>
