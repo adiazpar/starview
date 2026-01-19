@@ -196,7 +196,7 @@ function TonightContent({
     windSpeed,
     temperature,
     hourly: todayHourly,
-    isLoading: weatherLoading,
+    isLoading: todayWeatherLoading,
   } = useWeather({
     lat,
     lng,
@@ -205,12 +205,15 @@ function TonightContent({
   });
 
   // Fetch tomorrow's hourly data for complete nighttime range (6PM-6AM)
-  const { hourly: tomorrowHourly } = useWeather({
+  const { hourly: tomorrowHourly, isLoading: tomorrowWeatherLoading } = useWeather({
     lat,
     lng,
     date: tomorrow,
     enabled: lat !== undefined && lng !== undefined,
   });
+
+  // Track loading state for both weather queries to prevent partial timeline rendering
+  const weatherLoading = todayWeatherLoading || tomorrowWeatherLoading;
 
   // Combine today and tomorrow hourly data for nighttime filtering
   const combinedHourly = useMemo(() => {
