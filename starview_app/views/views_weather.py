@@ -2,9 +2,8 @@
 # Weather Forecast API Endpoint                                                                        #
 #                                                                                                      #
 # Purpose:                                                                                             #
-# Provides weather data for stargazing planning. Returns cloud cover, atmospheric seeing,             #
-# transparency, and other meteorological conditions. Helps users identify optimal nights              #
-# for astronomical observation.                                                                       #
+# Provides weather data for stargazing planning. Returns cloud cover, cloud layers, visibility,       #
+# humidity, wind, and temperature. Helps users identify optimal nights for observation.               #
 #                                                                                                      #
 # Architecture:                                                                                        #
 # - Plain Django function-based view (public endpoint, no authentication)                            #
@@ -13,10 +12,8 @@
 # - Results cached with different TTLs based on data type                                            #
 # - Coordinate rounding to ~11km precision for weather (regional data)                               #
 #                                                                                                      #
-# Data Sources:                                                                                        #
-# - 7Timer: Astronomy-specific (seeing, transparency) - 3-day forecast                               #
-# - Open-Meteo Forecast: Up to 16-day weather predictions                                            #
-# - Open-Meteo Archive: Historical weather data (1940 to present)                                    #
+# Data Source:                                                                                         #
+# - Open-Meteo: Up to 16-day forecasts, historical data from 1940 to present                          #
 # ----------------------------------------------------------------------------------------------------- #
 
 from datetime import date, datetime, timedelta, timezone
@@ -68,7 +65,7 @@ def get_weather_forecast(request):
                     "hourly": [ ... ]
                 }
             ],
-            "sources": {"seven_timer": true, "open_meteo": true},
+            "sources": {"open_meteo": true},
             "warnings": []
         }
 
@@ -153,7 +150,7 @@ def get_weather_forecast(request):
 
     # Check if we got any data
     sources = weather_data.get('sources', {})
-    if not sources.get('seven_timer') and not sources.get('open_meteo'):
+    if not sources.get('open_meteo'):
         # Check if we at least have historical data
         has_data = any(
             day.get('hourly') or day.get('summary')
@@ -162,7 +159,7 @@ def get_weather_forecast(request):
         if not has_data:
             return JsonResponse({
                 'error': 'service_unavailable',
-                'message': 'Weather services are temporarily unavailable. Please try again later.',
+                'message': 'Weather service is temporarily unavailable. Please try again later.',
                 'status_code': 503
             }, status=503)
 
