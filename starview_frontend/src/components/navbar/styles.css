@@ -60,14 +60,13 @@
 }
 
 
-/* Center Section - desktop explore page */
+/* Center Section - always present, contains nav links + search/filter on explore */
 .navbar__center {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   flex: 1;
   justify-content: center;
-  margin: 0 var(--space-xl);
 }
 
 /* Search Bar */
@@ -125,21 +124,18 @@
   color: var(--text-muted);
 }
 
-/* Desktop Filters Button */
+/* Desktop Filters Button (icon only) */
 .navbar__filters-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  line-height: 22px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: var(--font-medium);
-  white-space: nowrap;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
@@ -148,18 +144,15 @@
 .navbar__filters-btn:hover {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
+  color: var(--text-primary);
 }
 
 .navbar__filters-btn i {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: 15px;
 }
 
-/* Desktop Navigation - Centered */
+/* Desktop Navigation */
 .navbar__nav {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -405,7 +398,7 @@
 /* ============================================ */
 
 @media (max-width: 768px) {
-  .navbar__nav,
+  .navbar__center,
   .navbar__actions {
     display: none;
   }

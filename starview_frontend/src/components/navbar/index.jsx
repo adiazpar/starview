@@ -99,7 +99,7 @@ function Navbar() {
           </div>
         </Link>
 
-        {/* Search bar - mobile: only on explore, desktop: only on explore */}
+        {/* Search bar - mobile explore only */}
         {isExplorePage && !isDesktop && (
           <div className="navbar__search navbar__search--mobile">
             <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
@@ -112,35 +112,36 @@ function Navbar() {
           </div>
         )}
 
-        {/* Center section - desktop explore page only */}
-        {isExplorePage && isDesktop && (
-          <div className="navbar__center">
-            <div className="navbar__search">
-              <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
-              <input
-                type="text"
-                className="navbar__search-input"
-                placeholder="Search stargazing locations..."
-                aria-label="Search locations"
-              />
-            </div>
-            <button className="navbar__filters-btn">
-              <i className="fa-solid fa-sliders"></i>
-              <span>Filters</span>
-            </button>
-          </div>
-        )}
-
-        {/* Desktop Navigation - Centered Links */}
-        <div className="navbar__nav">
-          <NavLink to="/" className="navbar__link" end>Home</NavLink>
-          <NavLink to="/explore" className="navbar__link">Explore</NavLink>
-          <NavLink to="/sky" className="navbar__link">Sky</NavLink>
-          {isAuthenticated ? (
-            <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
-          ) : (
-            <NavLink to="/login" className="navbar__link">Login</NavLink>
+        {/* Center section - contains nav links, plus search/filter on explore page */}
+        <div className="navbar__center">
+          {isExplorePage && isDesktop && (
+            <>
+              <div className="navbar__search">
+                <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
+                <input
+                  type="text"
+                  className="navbar__search-input"
+                  placeholder="Search stargazing locations..."
+                  aria-label="Search locations"
+                />
+              </div>
+              <button className="navbar__filters-btn" aria-label="Filters">
+                <i className="fa-solid fa-sliders"></i>
+              </button>
+            </>
           )}
+
+          {/* Desktop Navigation Links */}
+          <div className="navbar__nav">
+            <NavLink to="/" className="navbar__link" end>Home</NavLink>
+            <NavLink to="/explore" className="navbar__link">Explore</NavLink>
+            <NavLink to="/sky" className="navbar__link">Sky</NavLink>
+            {isAuthenticated ? (
+              <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
+            ) : (
+              <NavLink to="/login" className="navbar__link">Login</NavLink>
+            )}
+          </div>
         </div>
 
         {/* Desktop CTA Button */}
