@@ -75,3 +75,63 @@ export function getNighttimeWeatherAverages(nighttimeHours) {
     temperature: calcAverage('temperature'),
   };
 }
+
+/**
+ * Cloud layer labels with altitude information
+ */
+export const CLOUD_LAYER_LABELS = {
+  high: { name: 'High', altitude: '> 6km' },
+  mid: { name: 'Mid', altitude: '2-6km' },
+  low: { name: 'Low', altitude: '< 2km' },
+};
+
+/**
+ * Get stargazing insight message based on cloud layer composition
+ * @param {number|null} low - Low cloud cover percentage (0-100)
+ * @param {number|null} mid - Mid cloud cover percentage (0-100)
+ * @param {number|null} high - High cloud cover percentage (0-100)
+ * @returns {{ message: string, quality: 'good'|'fair'|'poor' }|null}
+ */
+export function getCloudLayerInsight(low, mid, high) {
+  // Return null if all values are missing
+  if (low == null && mid == null && high == null) return null;
+
+  // Use 0 for null values in calculations
+  const l = low ?? 0;
+  const m = mid ?? 0;
+  const h = high ?? 0;
+  const total = l + m + h;
+
+  // Clear skies - all layers under 20%
+  if (l < 20 && m < 20 && h < 20) {
+    return { message: 'Clear skies — excellent conditions', quality: 'good' };
+  }
+
+  // Heavy cloud cover - any layer > 50% or total > 120%
+  if (l > 50 || m > 50 || h > 50 || total > 120) {
+    return { message: 'Heavy cloud cover — very limited viewing', quality: 'poor' };
+  }
+
+  // Low clouds dominating
+  if (l > 40 && l > m && l > h) {
+    return { message: 'Low clouds dominating — poor visibility expected', quality: 'poor' };
+  }
+
+  // High clouds only (others minimal)
+  if (h > 30 && l < 20 && m < 20) {
+    return { message: 'High clouds only — bright stars may be visible', quality: 'fair' };
+  }
+
+  // Mid-level clouds dominating
+  if (m > 40 && m > l && m > h) {
+    return { message: 'Mid-level clouds — some clear breaks possible', quality: 'fair' };
+  }
+
+  // Partly cloudy - total under 80%
+  if (total < 80) {
+    return { message: 'Partly cloudy — best for bright objects', quality: 'fair' };
+  }
+
+  // Default mixed conditions
+  return { message: 'Mixed cloud layers — variable conditions', quality: 'fair' };
+}

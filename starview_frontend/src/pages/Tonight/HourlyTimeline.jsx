@@ -6,6 +6,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
+import CloudLayerBreakdown from './CloudLayerBreakdown';
 import './HourlyTimeline.css';
 
 /**
@@ -118,6 +119,11 @@ export default function HourlyTimeline({
                   <span className="hourly-timeline__detail-value">{Math.round(displayData.temperature)}°C</span>
                 </div>
               )}
+              <CloudLayerBreakdown
+                low={displayData.cloud_cover_low}
+                mid={displayData.cloud_cover_mid}
+                high={displayData.cloud_cover_high}
+              />
             </div>
           )}
         </div>
