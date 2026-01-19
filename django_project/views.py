@@ -68,6 +68,10 @@ SEO_META_TAGS = {
         'title': 'Understanding Moon Phases | Starview',
         'description': "Learn how the Moon's 8 phases affect stargazing conditions. Plan your observing sessions around the lunar cycle for the best views of the night sky.",
     },
+    '/weather': {
+        'title': 'Weather for Stargazing | Starview',
+        'description': 'Learn how weather conditions affect stargazing. Understand cloud cover, humidity, wind, and temperature impacts on your astronomical observations.',
+    },
     '/privacy': {
         'title': 'Privacy Policy | Starview',
         'description': 'Learn how Starview collects, uses, and protects your data. Our privacy policy covers account information, location data, cookies, and your rights.',
@@ -125,6 +129,7 @@ VALID_REACT_ROUTES = [
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
     r'^bortle/?$',                                  # Bortle scale guide: /bortle
     r'^moon/?$',                                    # Moon phases guide: /moon
+    r'^weather/?$',                                 # Weather guide: /weather
     r'^privacy/?$',                                 # Privacy policy: /privacy
     r'^terms/?$',                                   # Terms of service: /terms
     r'^accessibility/?$',                           # Accessibility statement: /accessibility

@@ -344,8 +344,70 @@ function SkyPage() {
         </div>
       </section>
 
-      {/* Forecast Feature */}
+      {/* Weather Feature */}
       <section className="sky-feature" ref={(el) => (featuresRef.current[3] = el)}>
+        <div className="sky-feature__visual">
+          <div className="sky-feature__weather">
+            {/* Atmospheric layers visualization */}
+            <div className="sky-feature__atmosphere">
+              {/* Star field at top (space) */}
+              <div className="sky-feature__atmosphere-stars">
+                <svg viewBox="0 0 200 40" className="sky-feature__stars-svg">
+                  <circle cx="20" cy="15" r="1.5" fill="white" opacity="0.9" />
+                  <circle cx="45" cy="8" r="1" fill="white" opacity="0.7" />
+                  <circle cx="70" cy="22" r="1.2" fill="white" opacity="0.8" />
+                  <circle cx="95" cy="12" r="0.8" fill="white" opacity="0.6" />
+                  <circle cx="120" cy="28" r="1.3" fill="white" opacity="0.85" />
+                  <circle cx="145" cy="10" r="1" fill="white" opacity="0.75" />
+                  <circle cx="170" cy="20" r="1.4" fill="white" opacity="0.9" />
+                  <circle cx="185" cy="32" r="0.9" fill="white" opacity="0.65" />
+                  <circle cx="55" cy="30" r="0.7" fill="white" opacity="0.5" />
+                  <circle cx="130" cy="5" r="1.1" fill="white" opacity="0.8" />
+                </svg>
+              </div>
+
+              {/* Atmospheric layers */}
+              <div className="sky-feature__atmosphere-layer sky-feature__atmosphere-layer--high">
+                <span className="sky-feature__layer-label">Cirrus</span>
+              </div>
+              <div className="sky-feature__atmosphere-layer sky-feature__atmosphere-layer--mid">
+                <span className="sky-feature__layer-label">Alto</span>
+              </div>
+              <div className="sky-feature__atmosphere-layer sky-feature__atmosphere-layer--low">
+                <span className="sky-feature__layer-label">Cumulus</span>
+              </div>
+
+            </div>
+
+            {/* Transparency meter */}
+            <div className="sky-feature__transparency">
+              <div className="sky-feature__transparency-bar">
+                <div className="sky-feature__transparency-fill" />
+                <div className="sky-feature__transparency-marker" />
+              </div>
+              <span className="sky-feature__transparency-label">Transparency</span>
+            </div>
+          </div>
+        </div>
+        <div className="sky-feature__content">
+          <span className="sky-feature__eyebrow">Atmospheric Conditions</span>
+          <h2 className="sky-feature__title">
+            Read the atmosphere
+          </h2>
+          <p className="sky-feature__text">
+            <Link to="/weather" className="sky-feature__inline-link">Cloud cover</Link>, humidity,
+            and atmospheric turbulence determine how clearly you'll see the stars. Learn which
+            weather factors matter most and how to interpret forecasts for stargazing.
+          </p>
+          <Link to="/weather" className="sky-feature__link">
+            Understand weather factors
+            <i className="fa-solid fa-arrow-right" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Forecast Feature */}
+      <section className="sky-feature" ref={(el) => (featuresRef.current[4] = el)}>
         <div className="sky-feature__visual">
           <div className="sky-feature__forecast">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (

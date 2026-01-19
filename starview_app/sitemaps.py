@@ -46,7 +46,7 @@ class StaticViewSitemap(CanonicalSitemap):
     changefreq = 'weekly'
 
     def items(self):
-        return ['/', '/explore', '/sky', '/tonight', '/bortle', '/moon']
+        return ['/', '/explore', '/sky', '/tonight', '/bortle', '/moon', '/weather']
 
     def location(self, item):
         return item

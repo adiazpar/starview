@@ -461,7 +461,9 @@ function TonightContent({
                   />
                 </div>
                 <div className="tonight-card__title">Weather</div>
-                <span className="tonight-card__badge">6PM–6AM Avg</span>
+                <Link to="/weather" className="tonight-card__info-btn" aria-label="Learn about weather for stargazing">
+                  <i className="fa-solid fa-circle-question"></i>
+                </Link>
               </div>
 
               <div className="tonight-card__body">

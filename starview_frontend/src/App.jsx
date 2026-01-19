@@ -24,6 +24,7 @@ const TonightPage = lazy(() => import('./pages/Tonight'));
 const SkyPage = lazy(() => import('./pages/Sky'));
 const BortlePage = lazy(() => import('./pages/Bortle'));
 const MoonPage = lazy(() => import('./pages/Moon'));
+const WeatherPage = lazy(() => import('./pages/Weather'));
 const PrivacyPage = lazy(() => import('./pages/Privacy'));
 const TermsPage = lazy(() => import('./pages/Terms'));
 const AccessibilityPage = lazy(() => import('./pages/Accessibility'));
@@ -99,6 +100,7 @@ function App() {
           <Route path="/tonight" element={<TonightPage />} />
           <Route path="/bortle" element={<BortlePage />} />
           <Route path="/moon" element={<MoonPage />} />
+          <Route path="/weather" element={<WeatherPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/accessibility" element={<AccessibilityPage />} />
