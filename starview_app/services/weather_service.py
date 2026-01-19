@@ -651,19 +651,21 @@ class WeatherService:
     # ------------------------------------------------------------------------------------------------- #
 
     @staticmethod
-    def classify_date(target_date: date) -> str:
+    def classify_date(target_date: date, reference_today: date = None) -> str:
         """
         Classify a date to determine which data source to use.
 
         Args:
             target_date: The date to classify
+            reference_today: The reference "today" date (defaults to date.today())
+                             Should be the local date for the queried location.
 
         Returns:
             'forecast': Today to +16 days (use forecast APIs)
             'historical': Past dates beyond archive delay (use archive API)
             'historical_average': >16 days in future (average past years)
         """
-        today = date.today()
+        today = reference_today if reference_today else date.today()
         days_away = (target_date - today).days
 
         if days_away < -WeatherService.ARCHIVE_DELAY_DAYS:
@@ -932,7 +934,8 @@ class WeatherService:
         lat: float,
         lng: float,
         start_date: date,
-        end_date: date
+        end_date: date,
+        reference_today: date = None
     ) -> Dict[str, Any]:
         """
         Get weather data for a date range with automatic source selection.
@@ -946,10 +949,13 @@ class WeatherService:
             lng: Longitude (-180 to 180)
             start_date: Start of date range
             end_date: End of date range
+            reference_today: The reference "today" date for the location's timezone.
+                             Defaults to date.today() if not provided.
 
         Returns:
             Unified weather response with 'current', 'daily', and metadata
         """
+        local_today = reference_today if reference_today else date.today()
         rounded_lat = round(float(lat), 1)
         rounded_lng = round(float(lng), 1)
 
@@ -982,7 +988,7 @@ class WeatherService:
 
         current_date = start_date
         while current_date <= end_date:
-            classification = WeatherService.classify_date(current_date)
+            classification = WeatherService.classify_date(current_date, local_today)
             if classification == 'forecast':
                 forecast_dates.append(current_date)
             elif classification == 'historical':
@@ -994,7 +1000,7 @@ class WeatherService:
         # Fetch forecast data (if any forecast dates)
         forecast_hourly = {}
         if forecast_dates:
-            days_needed = (max(forecast_dates) - date.today()).days + 1
+            days_needed = (max(forecast_dates) - local_today).days + 1
             days_needed = min(days_needed, WeatherService.FORECAST_MAX_DAYS)
 
             seven_timer_data = WeatherService.fetch_seven_timer_forecast(lat, lng)
@@ -1048,7 +1054,7 @@ class WeatherService:
         current_date = start_date
         while current_date <= end_date:
             date_str = current_date.isoformat()
-            classification = WeatherService.classify_date(current_date)
+            classification = WeatherService.classify_date(current_date, local_today)
 
             daily_entry = {
                 'date': date_str,

@@ -19,12 +19,17 @@
 # - Open-Meteo Archive: Historical weather data (1940 to present)                                    #
 # ----------------------------------------------------------------------------------------------------- #
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from django.core.cache import cache
 from django.http import JsonResponse
+from timezonefinder import TimezoneFinder
+import pytz
 
 from ..services.weather_service import WeatherService
+
+# Shared timezone finder instance (threadsafe)
+_tz_finder = TimezoneFinder()
 from ..utils.cache import (
     weather_forecast_cache_key,
     weather_cache_key,
@@ -94,8 +99,16 @@ def get_weather_forecast(request):
             'status_code': 400
         }, status=400)
 
+    # Determine "today" based on the location's timezone, not server UTC
+    # This ensures hourly data aligns with the user's local date
+    tz_name = _tz_finder.timezone_at(lat=lat, lng=lng)
+    if tz_name:
+        local_tz = pytz.timezone(tz_name)
+        today = datetime.now(local_tz).date()
+    else:
+        today = date.today()
+
     # Parse date range with backward compatibility
-    today = date.today()
     start_date, end_date, parse_error = _parse_date_range(request, today)
 
     if parse_error:
@@ -121,7 +134,8 @@ def get_weather_forecast(request):
         }, status=400)
 
     # Check cache first - uses ~11km grid (1 decimal precision)
-    cache_key = weather_forecast_cache_key(lat, lng, start_date.isoformat())
+    # Include both start and end dates in cache key to avoid returning partial results
+    cache_key = weather_forecast_cache_key(lat, lng, f"{start_date.isoformat()}_{end_date.isoformat()}")
     cached_data = cache.get(cache_key)
 
     if cached_data:
@@ -132,7 +146,7 @@ def get_weather_forecast(request):
         return response
 
     # Fetch fresh data from weather APIs
-    weather_data = WeatherService.get_weather_for_range(lat, lng, start_date, end_date)
+    weather_data = WeatherService.get_weather_for_range(lat, lng, start_date, end_date, reference_today=today)
 
     # Cache the result (30 min for forecast data)
     cache.set(cache_key, weather_data, WEATHER_FORECAST_CACHE_TIMEOUT)
