@@ -3,19 +3,25 @@
 #                                                                                                      #
 # Purpose:                                                                                             #
 # Returns the Bortle scale rating (1-9) for any coordinate, derived from World Atlas 2015             #
-# light pollution data. Integrates with moon phase and weather APIs to create a comprehensive         #
-# stargazing quality score.                                                                           #
+# light pollution data with corrections applied. Integrates with moon phase and weather APIs          #
+# to create a comprehensive stargazing quality score.                                                 #
 #                                                                                                      #
 # Architecture:                                                                                        #
 # - Plain Django function-based view (public endpoint, no authentication)                            #
 # - Reads GeoTIFF pixel value using rasterio with coordinate transformation                           #
+# - Applies temporal correction for light pollution growth since 2015                                 #
 # - Converts artificial brightness (mcd/m2) to SQM (Sky Quality Meter) magnitude                     #
-# - Maps SQM to Bortle class using standard thresholds                                                #
+# - Applies zenith-to-Bortle adjustment (zenith-only data underestimates whole-sky Bortle)           #
 # - Results cached for 30 days at ~1km precision (light pollution changes slowly)                    #
 #                                                                                                      #
 # Data Source:                                                                                         #
 # Falchi et al. 2016 "New World Atlas of Artificial Night Sky Brightness"                            #
 # GeoTIFF stored at /var/data/World_Atlas_2015.tif (persistent Render disk)                          #
+#                                                                                                      #
+# Corrections Applied:                                                                                 #
+# 1. Temporal: ~2.5% annual increase since 2015 (factor of ~1.31 for 11 years)                       #
+# 2. Zenith→Bortle: +1 class for light-polluted areas (SQM < 21) per Lorenz (2024)                   #
+#    See: https://djlorenz.github.io/astronomy/lp/bortle.html                                        #
 # ----------------------------------------------------------------------------------------------------- #
 
 import logging
@@ -35,6 +41,18 @@ GEOTIFF_PATH_LOCAL = os.path.expanduser('~/Downloads/World_Atlas_2015.tif')
 
 # Natural sky brightness (mcd/m2) - baseline without artificial light
 NATURAL_SKY_BRIGHTNESS = 0.171
+
+# Temporal correction: light pollution growth since 2015
+# Conservative estimate of 2.5% annual increase over 11 years (2015 → 2026)
+# Based on research showing 1.8-6% annual increases in urban areas
+# See: https://www.nature.com/articles/s43017-024-00555-9
+TEMPORAL_CORRECTION_FACTOR = 1.31  # (1.025 ** 11)
+
+# Zenith-to-Bortle adjustment threshold
+# Per Lorenz (2024): zenith-only measurements underestimate Bortle by ~1 class
+# in light-polluted areas because they miss horizon light domes
+# Apply +1 class adjustment when SQM < 21 (suburban and brighter)
+ZENITH_BORTLE_ADJUSTMENT_THRESHOLD = 21.0
 
 # Bortle scale definitions: (min_sqm, max_sqm, description, quality)
 # SQM = Sky Quality Meter reading in magnitudes per square arcsecond
@@ -65,37 +83,59 @@ def _brightness_to_sqm(brightness_mcd_m2):
     """
     Convert artificial sky brightness to SQM (Sky Quality Meter) value.
 
-    Formula from Falchi et al. 2016:
-    total_brightness = artificial_brightness + natural_sky
-    sqm = log10(total_brightness / 108000000) / -0.4
+    Applies temporal correction to account for light pollution growth since 2015,
+    then converts to SQM using the Falchi et al. 2016 formula.
 
     Args:
-        brightness_mcd_m2: Artificial sky brightness in mcd/m2
+        brightness_mcd_m2: Artificial sky brightness in mcd/m2 (from 2015 data)
 
     Returns:
-        SQM value in magnitudes per square arcsecond
+        SQM value in magnitudes per square arcsecond (adjusted for current conditions)
     """
-    total_brightness = brightness_mcd_m2 + NATURAL_SKY_BRIGHTNESS
+    # Apply temporal correction: light pollution has increased since 2015
+    adjusted_brightness = brightness_mcd_m2 * TEMPORAL_CORRECTION_FACTOR
+
+    # Convert to SQM using Falchi formula
+    total_brightness = adjusted_brightness + NATURAL_SKY_BRIGHTNESS
     sqm = math.log10(total_brightness / 108000000) / -0.4
     return round(sqm, 2)
 
 
 def _sqm_to_bortle(sqm):
     """
-    Convert SQM value to Bortle class (1-9).
+    Convert SQM value to Bortle class (1-9) with zenith→Bortle adjustment.
+
+    The World Atlas provides zenith-only brightness measurements, but the Bortle
+    scale considers the entire sky including horizon light domes. Per Lorenz (2024),
+    zenith readings underestimate Bortle class by ~1 in light-polluted areas.
 
     Args:
-        sqm: Sky Quality Meter value
+        sqm: Sky Quality Meter value (already temporally adjusted)
 
     Returns:
         Tuple of (bortle_class, description, quality)
     """
+    # First, get the raw Bortle class from SQM
+    raw_bortle = 9  # Default
     for i, (min_sqm, max_sqm, description, quality) in enumerate(BORTLE_SCALE):
         if min_sqm <= sqm < max_sqm:
-            return (i + 1, description, quality)
+            raw_bortle = i + 1
+            break
 
-    # Default to class 9 if SQM is very low (extremely light-polluted)
-    return (9, 'Inner-city sky', 'very_poor')
+    # Apply zenith→Bortle adjustment for light-polluted areas
+    # Zenith-only data misses horizon light domes that the Bortle scale considers
+    if sqm < ZENITH_BORTLE_ADJUSTMENT_THRESHOLD:
+        adjusted_bortle = min(raw_bortle + 1, 9)  # Cap at class 9
+    else:
+        adjusted_bortle = raw_bortle
+
+    # Get description and quality for the adjusted class
+    if adjusted_bortle <= len(BORTLE_SCALE):
+        _, _, description, quality = BORTLE_SCALE[adjusted_bortle - 1]
+    else:
+        description, quality = 'Inner-city sky', 'very_poor'
+
+    return (adjusted_bortle, description, quality)
 
 
 def _sample_geotiff(geotiff_path, lat, lng):
