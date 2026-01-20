@@ -43,23 +43,30 @@ function boundsToBbox(bounds) {
  * Fetch map GeoJSON for locations
  * @param {Object} options - Hook options
  * @param {Object} options.bounds - Viewport bounds { west, south, east, north }
+ * @param {Object} options.filters - Filter params from useExploreFilters.apiParams
  * @param {boolean} options.enabled - Whether to enable the query (default: true)
  * @returns {Object} Query result with GeoJSON and lookup map
  */
-export function useMapMarkers({ bounds = null, enabled = true } = {}) {
+export function useMapMarkers({ bounds = null, filters = {}, enabled = true } = {}) {
   const bbox = boundsToBbox(bounds);
 
+  // Check if filters are active (for cache timing)
+  const hasFilters = Object.keys(filters).length > 0;
+
   const query = useQuery({
-    // Include bbox in query key so different viewports get different cache entries
-    queryKey: bbox ? ['mapGeoJSON', 'bbox', bbox] : ['mapGeoJSON'],
+    // Include bbox and filters in query key so different queries get different cache entries
+    queryKey: bbox
+      ? ['mapGeoJSON', 'bbox', bbox, 'filters', filters]
+      : ['mapGeoJSON', 'filters', filters],
     queryFn: async () => {
-      const params = bbox ? { bbox } : {};
+      const params = { ...filters };
+      if (bbox) params.bbox = bbox;
       const response = await locationsApi.getMapGeoJSON(params);
       return response.data;
     },
-    // Full dataset cached 30 min; viewport queries cached 5 min (user pans frequently)
-    staleTime: bbox ? 5 * 60 * 1000 : 30 * 60 * 1000,
-    // Keep previous data while new bbox query loads - prevents empty markerMap during loading
+    // Full unfiltered dataset cached 30 min; filtered/viewport queries cached 5 min
+    staleTime: (bbox || hasFilters) ? 5 * 60 * 1000 : 30 * 60 * 1000,
+    // Keep previous data while new query loads - prevents empty markerMap during loading
     placeholderData: keepPreviousData,
     enabled,
   });

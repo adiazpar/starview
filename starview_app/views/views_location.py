@@ -22,7 +22,9 @@
 # Django imports:
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from django.db.models import Avg, Count, Q, Exists, OuterRef
+from django.db.models import Avg, Count, Q, Exists, OuterRef, F, FloatField
+from django.db.models.functions import ACos, Cos, Radians, Sin
+from math import cos, radians
 
 # REST Framework imports:
 from rest_framework import viewsets, status, serializers
@@ -108,8 +110,11 @@ class LocationViewSet(viewsets.ModelViewSet):
     # Optimize queryset with select_related, prefetch_related, and annotations:
     def get_queryset(self):
         # Get sort parameter (default: newest first)
-        # Future options: 'nearest', 'highest_rated', 'most_reviewed', etc.
         sort = self.request.query_params.get('sort', '-created_at')
+
+        # Check if distance sorting requested (only valid when distance filter active)
+        near = self.request.query_params.get('near')
+        has_distance_filter = near and near != 'me'
 
         # Validate sort parameter to prevent injection
         valid_sorts = {
@@ -120,6 +125,12 @@ class LocationViewSet(viewsets.ModelViewSet):
             '-review_count': ['-review_count_annotated', 'id'],
             'review_count': ['review_count_annotated', 'id'],
         }
+
+        # Add distance sorting (only available when distance filter is active)
+        if has_distance_filter:
+            valid_sorts['distance'] = ['distance_km', 'id']
+            valid_sorts['-distance'] = ['-distance_km', 'id']
+
         order_by = valid_sorts.get(sort, ['-created_at', 'id'])
 
         queryset = Location.objects.select_related(
@@ -175,6 +186,89 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
+    # Apply search/filter parameters. Used by list() and map_geojson().             #
+    # ----------------------------------------------------------------------------- #
+    def _apply_filters(self, queryset):
+        """Apply search/filter parameters from query params."""
+        params = self.request.query_params
+
+        # Text search (name, address, region, country)
+        search = params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(formatted_address__icontains=search) |
+                Q(administrative_area__icontains=search) |
+                Q(country__icontains=search)
+            )
+
+        # Location type (multi-select, comma-separated)
+        types = params.get('type')
+        if types:
+            valid_types = [t[0] for t in Location.LOCATION_TYPES]
+            types_list = [t for t in types.split(',') if t in valid_types]
+            if types_list:
+                queryset = queryset.filter(location_type__in=types_list)
+
+        # Minimum rating
+        min_rating = params.get('minRating')
+        if min_rating:
+            try:
+                queryset = queryset.filter(average_rating_annotated__gte=float(min_rating))
+            except ValueError:
+                pass
+
+        # Verified only
+        if params.get('verified') == 'true':
+            queryset = queryset.filter(is_verified=True)
+
+        # Distance filter (Haversine) - 'near' param contains "lat,lng" or "me"
+        near = params.get('near')
+        radius = params.get('radius')
+        if near and near != 'me':
+            queryset = self._filter_by_distance(queryset, near, radius)
+
+        return queryset
+
+
+    # ----------------------------------------------------------------------------- #
+    # Filter queryset by distance using Haversine formula.                          #
+    # Uses bounding box pre-filter for performance before precise calculation.      #
+    # ----------------------------------------------------------------------------- #
+    def _filter_by_distance(self, queryset, near, radius):
+        """Filter by distance using Haversine formula."""
+        try:
+            lat, lng = [float(x) for x in near.split(',')]
+            radius_km = float(radius or 50) * 1.60934  # miles to km
+        except (ValueError, TypeError):
+            return queryset
+
+        # Bounding box pre-filter for performance (uses index)
+        lat_delta = radius_km / 111.0
+        lng_delta = radius_km / (111.0 * abs(cos(radians(lat))) + 0.001)
+
+        queryset = queryset.filter(
+            latitude__gte=lat - lat_delta,
+            latitude__lte=lat + lat_delta,
+            longitude__gte=lng - lng_delta,
+            longitude__lte=lng + lng_delta,
+        )
+
+        # Precise Haversine filter
+        EARTH_RADIUS_KM = 6371.0
+        queryset = queryset.annotate(
+            distance_km=EARTH_RADIUS_KM * ACos(
+                Sin(Radians(lat)) * Sin(Radians(F('latitude'))) +
+                Cos(Radians(lat)) * Cos(Radians(F('latitude'))) *
+                Cos(Radians(F('longitude')) - Radians(lng)),
+                output_field=FloatField()
+            )
+        ).filter(distance_km__lte=radius_km)
+
+        return queryset
+
+
+    # ----------------------------------------------------------------------------- #
     # List all locations with pagination and caching.                               #
     #                                                                               #
     # Cache Strategy:                                                               #
@@ -190,21 +284,28 @@ class LocationViewSet(viewsets.ModelViewSet):
         page = request.GET.get('page', 1)
         sort = request.GET.get('sort', '-created_at')
 
-        # Different cache keys for authenticated vs anonymous users
-        # (authenticated includes is_favorited annotation)
-        # Include sort parameter in cache key to avoid serving wrong sort order
-        if request.user.is_authenticated:
-            cache_key = f'{location_list_key(page)}:sort:{sort}:user:{request.user.id}'
-        else:
-            cache_key = f'{location_list_key(page)}:sort:{sort}'
+        # Check if filters are active (skip caching for filtered results)
+        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius']
+        has_filters = any(request.GET.get(p) for p in filter_params)
 
-        # Try to get from cache
-        cached_data = cache.get(cache_key)
-        if cached_data is not None:
-            return Response(cached_data)
+        # Only cache unfiltered requests (filtered results vary too much)
+        cache_key = None
+        if not has_filters:
+            if request.user.is_authenticated:
+                cache_key = f'{location_list_key(page)}:sort:{sort}:user:{request.user.id}'
+            else:
+                cache_key = f'{location_list_key(page)}:sort:{sort}'
 
-        # Cache miss - get data from database
+            # Try to get from cache
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+
+        # Cache miss or filtered request - get data from database
         queryset = self.filter_queryset(self.get_queryset())
+
+        # Apply search/filter parameters
+        queryset = self._apply_filters(queryset)
 
         # Paginate the queryset
         page_obj = self.paginate_queryset(queryset)
@@ -215,8 +316,9 @@ class LocationViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             response_data = serializer.data
 
-        # Cache for 15 minutes
-        cache.set(cache_key, response_data, timeout=900)
+        # Cache unfiltered results for 15 minutes
+        if cache_key:
+            cache.set(cache_key, response_data, timeout=900)
 
         return Response(response_data)
 
@@ -421,9 +523,13 @@ class LocationViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 pass  # Invalid bbox format, ignore and return all locations
 
-        # Only use cache when no bbox filter (full dataset)
+        # Check if filters are active (skip caching for filtered results)
+        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius']
+        has_filters = any(request.query_params.get(p) for p in filter_params)
+
+        # Only use cache when no bbox or filters (full dataset)
         cache_key = None
-        if not bbox:
+        if not bbox and not has_filters:
             base_cache_key = map_geojson_key()
             if request.user.is_authenticated:
                 cache_key = f'{base_cache_key}:user:{request.user.id}'
@@ -435,7 +541,7 @@ class LocationViewSet(viewsets.ModelViewSet):
             if cached_data is not None:
                 return Response(cached_data)
 
-        # Cache miss or bbox query - get data from database with annotations
+        # Cache miss, bbox, or filtered query - get data from database with annotations
         # Filter out extreme latitudes that don't render on Mapbox globe projection
         queryset = Location.objects.filter(
             latitude__gte=-MAX_RENDERABLE_LATITUDE,
@@ -494,6 +600,9 @@ class LocationViewSet(viewsets.ModelViewSet):
                     )
                 )
             )
+
+        # Apply search/filter parameters (after annotations so minRating filter works)
+        queryset = self._apply_filters(queryset)
 
         # Build GeoJSON FeatureCollection
         features = []

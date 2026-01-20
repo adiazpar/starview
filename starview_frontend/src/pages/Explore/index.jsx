@@ -6,6 +6,7 @@
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useExploreData } from '../../hooks/useExploreData';
+import { useExploreFilters } from '../../hooks/useExploreFilters';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import { useSEO } from '../../hooks/useSEO';
@@ -43,13 +44,16 @@ function ExplorePage() {
     }
   }, []); // Only run once on mount
 
+  // Get filter state from URL
+  const { apiParams, filterKey } = useExploreFilters();
+
   // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
     locations, count, isLoading, isError, error,
     page, totalPages, setPage,
     hasNextPage, isFetchingNextPage, fetchNextPage,
     isDesktop,
-  } = useExploreData();
+  } = useExploreData(apiParams, filterKey);
 
   const { location: userLocation } = useUserLocation();
 
@@ -191,6 +195,7 @@ function ExplorePage() {
             initialViewport={mapViewport.current}
             onViewportChange={handleMapViewportChange}
             initialLightPollution={initialLightPollutionRef.current}
+            filters={apiParams}
           />
         </Suspense>
       </div>

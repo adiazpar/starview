@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocations, useLocationsPaginated } from './useLocations';
 import { useIsDesktop } from './useMediaQuery';
 
@@ -10,11 +10,23 @@ import { useIsDesktop } from './useMediaQuery';
  * Desktop: Uses pagination with useLocationsPaginated
  *
  * @param {Object} params - Query parameters (search, filters, etc.)
+ * @param {string} filterKey - Stable key that changes when filters change (for resetting page)
  * @returns {Object} Unified data interface for both mobile and desktop
  */
-export function useExploreData(params = {}) {
+export function useExploreData(params = {}, filterKey = '') {
   const isDesktop = useIsDesktop();
   const [page, setPage] = useState(1);
+
+  // Track previous filter key to detect changes
+  const prevFilterKey = useRef(filterKey);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    if (filterKey !== prevFilterKey.current) {
+      prevFilterKey.current = filterKey;
+      setPage(1);
+    }
+  }, [filterKey]);
 
   // Only fetch from the appropriate source based on viewport
   const infiniteQuery = useLocations(params, { enabled: !isDesktop });

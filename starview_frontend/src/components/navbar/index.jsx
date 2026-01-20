@@ -4,19 +4,38 @@
  */
 
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
+import { useExploreFilters } from '../../hooks/useExploreFilters';
 import './styles.css';
 
+// Lazy load filter modal - only needed on explore page
+const ExploreFiltersModal = lazy(() =>
+  import('../explore/ExploreFiltersModal')
+);
+
+// Filter chips configuration for mobile explore page
 const FILTERS = [
-  { id: 'all', label: 'All', icon: 'fa-solid fa-sliders' },
-  { id: 'bortle', label: 'Bortle Class' },
-  { id: 'distance', label: 'Distance Away' },
+  { id: 'all', label: 'Filters', icon: 'fa-solid fa-sliders' },
+  { id: 'type', label: 'Type' },
   { id: 'rating', label: 'Rating' },
-  { id: 'amenities', label: 'Amenities' },
+  { id: 'distance', label: 'Distance' },
+  { id: 'verified', label: 'Verified', isToggle: true },
 ];
+
+// Debounce hook for search input
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 function Navbar() {
   const { theme } = useTheme();
@@ -26,14 +45,76 @@ function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
   const [backdropClosing, setBackdropClosing] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('all');
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
   const navRef = useRef(null);
 
+  // Filter modal state
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filterModalSection, setFilterModalSection] = useState(null);
+
   // Detect if we're on the explore page
   const isExplorePage = location.pathname === '/explore';
+
+  // Get filter state from URL (only used on explore page)
+  const {
+    filters,
+    setSearch,
+    setVerified,
+    activeFilterCount,
+  } = useExploreFilters();
+
+  // Local search input state (for controlled input + debounce)
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  // Sync URL -> input when URL changes (e.g., back/forward navigation)
+  useEffect(() => {
+    if (filters.search !== searchInput && filters.search !== debouncedSearch) {
+      setSearchInput(filters.search || '');
+    }
+  }, [filters.search]);
+
+  // Sync debounced input -> URL
+  useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      setSearch(debouncedSearch);
+    }
+  }, [debouncedSearch, setSearch]);
+
+  // Handle search input change
+  const handleSearchChange = useCallback((e) => {
+    setSearchInput(e.target.value);
+  }, []);
+
+  // Handle search clear
+  const handleSearchClear = useCallback(() => {
+    setSearchInput('');
+    setSearch('');
+  }, [setSearch]);
+
+  // Handle opening filter modal
+  const handleOpenFilterModal = useCallback((section = null) => {
+    setFilterModalSection(section);
+    setFilterModalOpen(true);
+  }, []);
+
+  const handleCloseFilterModal = useCallback(() => {
+    setFilterModalOpen(false);
+    setFilterModalSection(null);
+  }, []);
+
+  // Handle filter chip click
+  const handleFilterChipClick = useCallback((filterId) => {
+    if (filterId === 'verified') {
+      // Toggle verified filter directly
+      setVerified(!filters.verified);
+    } else {
+      // Open filter modal with section
+      handleOpenFilterModal(filterId === 'all' ? null : filterId);
+    }
+  }, [filters.verified, setVerified, handleOpenFilterModal]);
 
   // Show filter chips row only on mobile/tablet explore page
   const showFilterChips = isExplorePage && !isDesktop;
@@ -108,7 +189,19 @@ function Navbar() {
               className="navbar__search-input"
               placeholder="Search locations..."
               aria-label="Search locations"
+              value={searchInput}
+              onChange={handleSearchChange}
             />
+            {searchInput && (
+              <button
+                className="navbar__search-clear"
+                onClick={handleSearchClear}
+                aria-label="Clear search"
+                type="button"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            )}
           </div>
         )}
 
@@ -124,10 +217,29 @@ function Navbar() {
                   className="navbar__search-input"
                   placeholder="Search stargazing locations..."
                   aria-label="Search locations"
+                  value={searchInput}
+                  onChange={handleSearchChange}
                 />
+                {searchInput && (
+                  <button
+                    className="navbar__search-clear"
+                    onClick={handleSearchClear}
+                    aria-label="Clear search"
+                    type="button"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                )}
               </div>
-              <button className="navbar__filters-btn" aria-label="Filters">
+              <button
+                className={`navbar__filters-btn ${activeFilterCount > 0 ? 'navbar__filters-btn--active' : ''}`}
+                onClick={() => handleOpenFilterModal()}
+                aria-label="Filters"
+              >
                 <i className="fa-solid fa-sliders"></i>
+                {activeFilterCount > 0 && (
+                  <span className="navbar__filters-badge">{activeFilterCount}</span>
+                )}
               </button>
             </div>
           )}
@@ -226,21 +338,55 @@ function Navbar() {
       {showFilterChips && (
         <div className="navbar__filters">
           <div className="navbar__filters-scroll">
-            {FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                className="navbar__filter-chip"
-                onClick={() => setActiveFilter(filter.id)}
-              >
-                {filter.icon
-                  ? <i className={`${filter.icon} navbar__filter-icon`}></i>
-                  : <i className="fa-solid fa-caret-down navbar__filter-caret"></i>
-                }
-                <span>{filter.label}</span>
-              </button>
-            ))}
+            {FILTERS.map((filter) => {
+              // Determine if this filter chip should show as active
+              const isActive = filter.id === 'all'
+                ? activeFilterCount > 0
+                : filter.id === 'type'
+                  ? filters.types.length > 0
+                  : filter.id === 'rating'
+                    ? filters.minRating !== null
+                    : filter.id === 'distance'
+                      ? !!filters.near
+                      : filter.id === 'verified'
+                        ? filters.verified
+                        : false;
+
+              return (
+                <button
+                  key={filter.id}
+                  className={`navbar__filter-chip ${isActive ? 'navbar__filter-chip--active' : ''}`}
+                  onClick={() => handleFilterChipClick(filter.id)}
+                >
+                  {filter.icon ? (
+                    <>
+                      <i className={`${filter.icon} navbar__filter-icon`}></i>
+                      {activeFilterCount > 0 && (
+                        <span className="navbar__filter-badge">{activeFilterCount}</span>
+                      )}
+                    </>
+                  ) : filter.isToggle ? (
+                    <i className={`fa-solid ${isActive ? 'fa-check' : 'fa-circle-check'} navbar__filter-icon`}></i>
+                  ) : (
+                    <i className="fa-solid fa-caret-down navbar__filter-caret"></i>
+                  )}
+                  <span>{filter.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
+      )}
+
+      {/* Filter Modal - only rendered on explore page when opened */}
+      {isExplorePage && filterModalOpen && (
+        <Suspense fallback={null}>
+          <ExploreFiltersModal
+            isOpen={filterModalOpen}
+            onClose={handleCloseFilterModal}
+            initialSection={filterModalSection}
+          />
+        </Suspense>
       )}
     </nav>
   );

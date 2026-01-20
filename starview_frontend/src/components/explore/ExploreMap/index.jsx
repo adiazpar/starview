@@ -323,7 +323,7 @@ function loadIconImage(svgString, size = 24, fillColor = 'white') {
 }
 
 
-function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false }) {
+function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false, filters = {} }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
@@ -396,8 +396,10 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
 
   // Fetch markers for current viewport (reduces initial payload for large datasets)
   // Pass bounds to enable bbox filtering; null bounds fetches all markers
+  // Filters are passed to sync map markers with list view filtering
   const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers({
     bounds: viewportBounds,
+    filters,
   });
   const { location: userLocation, source: userLocationSource } = useUserLocation();
   const { getRoute, routeData, isLoading: isRouteLoading, clearRoute } = useMapboxDirections();

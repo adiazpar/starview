@@ -142,6 +142,32 @@
   color: var(--text-muted);
 }
 
+/* Search Clear Button */
+.navbar__search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--glass-bg-hover);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.navbar__search-clear:hover {
+  background: var(--text-muted);
+  color: var(--surface);
+}
+
+.navbar__search-clear i {
+  font-size: 10px;
+}
+
 /* Desktop Filters Button (icon only) */
 .navbar__filters-btn {
   display: flex;
@@ -165,8 +191,40 @@
   color: var(--text-primary);
 }
 
+.navbar__filters-btn--active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+.navbar__filters-btn--active:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-light);
+}
+
 .navbar__filters-btn i {
   font-size: 15px;
+}
+
+.navbar__filters-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--accent);
+  border-radius: 8px;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar__filters-btn {
+  position: relative;
 }
 
 /* Desktop Navigation */
@@ -405,11 +463,45 @@
   color: var(--text-primary);
 }
 
+/* Active filter chip state */
+.navbar__filter-chip--active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+.navbar__filter-chip--active:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-light);
+  color: var(--accent-light);
+}
+
 /* Icon styles for filter chips */
 .navbar__filter-icon,
 .navbar__filter-caret {
   font-size: 10px;
   opacity: 0.7;
+}
+
+.navbar__filter-chip--active .navbar__filter-icon,
+.navbar__filter-chip--active .navbar__filter-caret {
+  opacity: 1;
+}
+
+/* Badge inside filter chips */
+.navbar__filter-badge {
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  background: var(--accent);
+  border-radius: 7px;
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -2px;
 }
 
 /* ============================================ */

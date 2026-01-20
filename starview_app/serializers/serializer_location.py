@@ -300,6 +300,9 @@ class LocationListSerializer(serializers.ModelSerializer):
     review_count = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
 
+    # Distance in miles (only present when distance filter is active)
+    distance = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Location
@@ -308,7 +311,7 @@ class LocationListSerializer(serializers.ModelSerializer):
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
-                  'average_rating', 'review_count', 'images',
+                  'average_rating', 'review_count', 'images', 'distance',
 
                   # Verification fields:
                   'is_verified', 'verification_date', 'verified_by',
@@ -418,3 +421,10 @@ class LocationListSerializer(serializers.ModelSerializer):
                     break
 
         return photos
+
+    def get_distance(self, obj):
+        """Return distance in miles if distance_km annotation is available."""
+        if hasattr(obj, 'distance_km') and obj.distance_km is not None:
+            # Convert km to miles (1 km = 0.621371 miles)
+            return round(obj.distance_km * 0.621371, 1)
+        return None
