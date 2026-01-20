@@ -1212,10 +1212,11 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   const markerHandlersRef = useRef(null);
 
   // Add/update markers when data changes - SEPARATED: data updates only
+  // Note: Don't check markers.length here - we need to update even when empty (filters return no results)
   useEffect(() => {
-    if (!map.current || !mapLoaded || isLoading || markers.length === 0) return;
+    if (!map.current || !mapLoaded || isLoading) return;
 
-    // If source exists, just update data
+    // If source exists, update data (including empty data when filters return no results)
     if (map.current.getSource('locations')) {
       map.current.getSource('locations').setData(geojson);
     }
