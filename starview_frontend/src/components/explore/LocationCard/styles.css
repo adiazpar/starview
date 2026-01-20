@@ -29,41 +29,40 @@
   will-change: transform; /* Promote to own layer for smooth transforms */
 }
 
-.location-card:hover .location-card__image {
-  transform: scale(1.05);
-}
-
-/* Save Button - above carousel controls */
+/* Save Button - matches map card button styles */
 .location-card__save {
   position: absolute;
   top: var(--space-sm);
   right: var(--space-sm);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5); /* Fallback solid background */
-  border: none;
+  padding: 0;
+  background: var(--navbar-bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  color: white;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.3s ease, color 0.15s ease, border-color 0.15s ease;
   z-index: 3; /* Above carousel arrows (z-index: 2) */
 }
 
 .location-card__save:hover {
-  backdrop-filter: blur(8px);
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(1.1);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
 .location-card__save--active {
   color: var(--favorite);
+  border-color: var(--favorite);
 }
 
 .location-card__save--active:hover {
   color: var(--favorite-hover);
+  border-color: var(--favorite-hover);
 }
 
 /* Content */

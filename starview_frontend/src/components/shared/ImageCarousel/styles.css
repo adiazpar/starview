@@ -40,12 +40,6 @@
   will-change: transform;
 }
 
-/* Hover zoom effect - only on parent card hover, not carousel itself */
-.location-card:hover .image-carousel__image,
-.explore-map__card:hover .image-carousel__image {
-  transform: scale(1.05);
-}
-
 /* Placeholder while image loads */
 .image-carousel__placeholder {
   width: 100%;
