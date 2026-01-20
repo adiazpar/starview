@@ -126,12 +126,17 @@ export function useToggleFavorite() {
       // Cancel outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: ['locations'] });
       await queryClient.cancelQueries({ queryKey: ['mapGeoJSON'] });
+      // Use string ID to match useLocation's query key (URL params are strings)
+      const locationIdStr = String(locationId);
+      await queryClient.cancelQueries({ queryKey: ['location', locationIdStr] });
 
       // Snapshot previous values for rollback (use getQueriesData for partial key matching)
       const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
       const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
       // Match all mapGeoJSON queries (base + bbox variants)
       const previousMapGeoJSON = queryClient.getQueriesData({ queryKey: ['mapGeoJSON'] });
+      // Single location detail cache (use string ID)
+      const previousLocation = queryClient.getQueryData(['location', locationIdStr]);
 
       // Helper to toggle is_favorited optimistically
       const toggleFavorite = (loc) =>
@@ -167,8 +172,16 @@ export function useToggleFavorite() {
         return { ...old, features: old.features.map(toggleFeatureFavorite) };
       });
 
+      // Optimistically update single location detail cache
+      if (previousLocation) {
+        queryClient.setQueryData(['location', locationIdStr], {
+          ...previousLocation,
+          is_favorited: !previousLocation.is_favorited,
+        });
+      }
+
       // Return context for rollback
-      return { previousInfinite, previousPaginated, previousMapGeoJSON };
+      return { previousInfinite, previousPaginated, previousMapGeoJSON, previousLocation, locationIdStr };
     },
 
     // ROLLBACK: Restore previous state on error
@@ -190,6 +203,10 @@ export function useToggleFavorite() {
         context.previousMapGeoJSON.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
+      }
+      // Restore single location detail cache
+      if (context?.previousLocation) {
+        queryClient.setQueryData(['location', context.locationIdStr], context.previousLocation);
       }
     },
 
@@ -226,6 +243,12 @@ export function useToggleFavorite() {
       queryClient.setQueriesData({ queryKey: ['mapGeoJSON'] }, (old) => {
         if (!old?.features) return old;
         return { ...old, features: old.features.map(setFeatureFavoriteState) };
+      });
+
+      // Update single location detail cache with server response (use string ID)
+      queryClient.setQueryData(['location', String(locationId)], (old) => {
+        if (!old) return old;
+        return { ...old, is_favorited };
       });
     },
   });

@@ -14,7 +14,7 @@ import CommunityStats from '../../components/location/CommunityStats';
 import LocationMap from '../../components/location/LocationMap';
 import LocationActions from '../../components/location/LocationActions';
 import ReviewSection from '../../components/location/ReviewSection';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import RatingSummary from '../../components/location/RatingSummary';
 import './styles.css';
 
 function LocationDetailPage() {
@@ -40,13 +40,11 @@ function LocationDetailPage() {
     }
   };
 
-  // Loading state
+  // Loading state - return null to let Suspense handle loading
+  // This prevents double spinner: Suspense shows spinner during code loading,
+  // then we'd show another identical spinner during data loading
   if (isLoading) {
-    return (
-      <div className="location-detail location-detail--loading">
-        <LoadingSpinner size="lg" fullPage />
-      </div>
-    );
+    return null;
   }
 
   // Error state
@@ -110,6 +108,9 @@ function LocationDetailPage() {
           <div className="location-detail__community--mobile">
             <CommunityStats location={location} />
           </div>
+
+          {/* Rating Summary */}
+          <RatingSummary location={location} />
 
           {/* Reviews Section */}
           <ReviewSection locationId={location.id} reviews={location.reviews} />

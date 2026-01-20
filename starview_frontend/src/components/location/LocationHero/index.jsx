@@ -149,7 +149,7 @@ function LocationHero({ location, onBack }) {
 
         {/* Stats Row */}
         <div className="location-hero__stats">
-          {location.average_rating > 0 && (
+          {location.average_rating > 0 ? (
             <span className="location-hero__stat">
               <i className="fa-solid fa-star"></i>
               {parseFloat(location.average_rating).toFixed(1)}
@@ -157,11 +157,16 @@ function LocationHero({ location, onBack }) {
                 ({location.review_count} {location.review_count === 1 ? 'review' : 'reviews'})
               </span>
             </span>
+          ) : (
+            <span className="location-hero__stat location-hero__stat--muted">
+              <i className="fa-regular fa-star"></i>
+              <span className="location-hero__stat-label">No reviews yet</span>
+            </span>
           )}
 
           {location.bortle_class && (
             <>
-              {location.average_rating > 0 && <span className="location-hero__stat-divider">•</span>}
+              <span className="location-hero__stat-divider">•</span>
               <span className="location-hero__stat">
                 B{location.bortle_class}
                 <span className="location-hero__stat-label">Bortle</span>
@@ -171,9 +176,7 @@ function LocationHero({ location, onBack }) {
 
           {location.elevation && (
             <>
-              {(location.average_rating > 0 || location.bortle_class) && (
-                <span className="location-hero__stat-divider">•</span>
-              )}
+              <span className="location-hero__stat-divider">•</span>
               <span className="location-hero__stat">
                 {location.elevation.toLocaleString()}m
                 <span className="location-hero__stat-label">elevation</span>
