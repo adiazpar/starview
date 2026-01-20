@@ -26,6 +26,9 @@ from django.http import HttpResponse
 from django.conf import settings
 import os
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ----------------------------------------------------------------------------- #
@@ -91,6 +94,67 @@ SEO_META_TAGS = {
 }
 
 
+def get_location_meta(location_id):
+    """
+    Fetch location from database and build SEO meta tags.
+    Returns None if location not found, allowing fallback to defaults.
+    """
+    try:
+        from starview_app.models import Location
+
+        location = Location.objects.select_related('added_by').prefetch_related(
+            'photos', 'reviews__photos'
+        ).get(pk=location_id)
+
+        # Build title
+        title = f"{location.name} | Starview"
+
+        # Build description with available data
+        desc_parts = [f"Explore {location.name}"]
+
+        if location.location_type:
+            type_display = location.get_location_type_display()
+            desc_parts[0] = f"Explore {location.name} - a {type_display.lower()}"
+
+        if location.administrative_area:
+            desc_parts.append(f"in {location.administrative_area}")
+            if location.country and location.country != location.administrative_area:
+                desc_parts[-1] += f", {location.country}"
+        elif location.country:
+            desc_parts.append(f"in {location.country}")
+
+        if location.bortle_class:
+            desc_parts.append(f"Bortle class {location.bortle_class}")
+
+        if location.average_rating and float(location.average_rating) > 0:
+            desc_parts.append(f"rated {float(location.average_rating):.1f}/5")
+
+        description = ". ".join(desc_parts) + "."
+
+        # Get hero image URL (first location photo, or first review photo)
+        image_url = None
+        location_photos = location.photos.order_by('order', 'created_at')[:1]
+        if location_photos:
+            image_url = location_photos[0].image.url
+        else:
+            # Fall back to review photos
+            for review in location.reviews.prefetch_related('photos').order_by('-created_at')[:5]:
+                review_photos = review.photos.order_by('order')[:1]
+                if review_photos:
+                    image_url = review_photos[0].image.url
+                    break
+
+        return {
+            'title': title,
+            'description': description,
+            'image': image_url,
+        }
+
+    except Exception as e:
+        logger.warning(f"Failed to fetch location {location_id} for SEO: {e}")
+        return None
+
+
 def get_seo_meta_for_path(path):
     """Get SEO meta tags for a given path, with fallback to defaults."""
     # Normalize path (remove trailing slash except for root)
@@ -98,6 +162,20 @@ def get_seo_meta_for_path(path):
     if clean_path != '/':
         clean_path = clean_path.rstrip('/')
 
+    # Check for dynamic location routes: /locations/{id}
+    location_match = re.match(r'^/locations/(\d+)$', clean_path)
+    if location_match:
+        location_id = int(location_match.group(1))
+        location_meta = get_location_meta(location_id)
+        if location_meta:
+            return {
+                'title': location_meta['title'],
+                'description': location_meta['description'],
+                'url': f"{SITE_URL}{clean_path}",
+                'image': location_meta.get('image'),
+            }
+
+    # Static route lookup
     meta = SEO_META_TAGS.get(clean_path, {
         'title': DEFAULT_TITLE,
         'description': DEFAULT_DESCRIPTION,
@@ -107,6 +185,7 @@ def get_seo_meta_for_path(path):
         'title': meta['title'],
         'description': meta['description'],
         'url': f"{SITE_URL}{clean_path}",
+        'image': None,  # Use default OG image from index.html
     }
 
 
@@ -125,6 +204,7 @@ VALID_REACT_ROUTES = [
     r'^profile/?$',                                 # Profile: /profile
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
     r'^explore/?$',                                 # Explore: /explore
+    r'^locations/\d+/?$',                           # Location detail: /locations/:id
     r'^sky/?$',                                     # Sky hub: /sky
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
     r'^bortle/?$',                                  # Bortle scale guide: /bortle
@@ -223,6 +303,25 @@ class ReactAppView(TemplateView):
             f'<meta property="og:url" content="{meta["url"]}"',
             html_content
         )
+
+        # Replace OG image if a custom image is provided (e.g., location hero image)
+        if meta.get('image'):
+            # Build absolute URL for the image
+            # Images from R2 storage already have full URLs, others need site prefix
+            image_url = meta['image']
+            if not image_url.startswith('http'):
+                image_url = f"{SITE_URL}{image_url}"
+
+            html_content = re.sub(
+                r'<meta property="og:image" content="[^"]*"',
+                f'<meta property="og:image" content="{image_url}"',
+                html_content
+            )
+            html_content = re.sub(
+                r'<meta name="twitter:image" content="[^"]*"',
+                f'<meta name="twitter:image" content="{image_url}"',
+                html_content
+            )
 
         # Replace Twitter Card tags
         html_content = re.sub(
