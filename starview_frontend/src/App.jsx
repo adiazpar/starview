@@ -30,6 +30,7 @@ const TermsPage = lazy(() => import('./pages/Terms'));
 const AccessibilityPage = lazy(() => import('./pages/Accessibility'));
 const CCPAPage = lazy(() => import('./pages/CCPA'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
+const LocationDetailPage = lazy(() => import('./pages/LocationDetail'));
 
 function App() {
   const { isAuthenticated, user, loading, refreshAuth } = useAuth();
@@ -96,6 +97,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/users/:username" element={<PublicProfilePage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/locations/:id" element={<LocationDetailPage />} />
           <Route path="/sky" element={<SkyPage />} />
           <Route path="/tonight" element={<TonightPage />} />
           <Route path="/bortle" element={<BortlePage />} />

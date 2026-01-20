@@ -1,0 +1,87 @@
+/* ReviewSection Styles
+ * Container for reviews list with observatory aesthetic header.
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.review-section {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   HEADER (Observatory Aesthetic)
+   ============================================ */
+
+.review-section__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.review-section__header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.review-section__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.review-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.review-section__empty i {
+  font-size: 40px;
+  color: var(--text-muted);
+  opacity: 0.4;
+  margin-bottom: var(--space-md);
+}
+
+.review-section__empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.review-section__empty-text {
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ============================================
+   REVIEW LIST
+   ============================================ */
+
+.review-section__list {
+  display: flex;
+  flex-direction: column;
+}

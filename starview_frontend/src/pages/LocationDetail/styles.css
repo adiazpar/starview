@@ -1,0 +1,220 @@
+/* LocationDetail Page Styles
+ * Observatory control room aesthetic with editorial asymmetry.
+ * Uses staggered animations and proper design system tokens.
+ */
+
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
+
+.location-detail {
+  min-height: 100vh;
+}
+
+/* Loading/Error States */
+.location-detail--loading,
+.location-detail--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--navbar-height-mobile));
+  padding: var(--space-lg);
+}
+
+/* Error State Card */
+.location-detail__error-content {
+  max-width: 400px;
+  padding: var(--space-xl);
+  text-align: center;
+  animation: fadeInUp 0.5s ease-out backwards;
+}
+
+.location-detail__error-content i {
+  font-size: 48px;
+  color: var(--warning);
+  margin-bottom: var(--space-md);
+}
+
+.location-detail__error-content h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.location-detail__error-content p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+/* ============================================
+   CONTENT CONTAINER
+   ============================================ */
+
+.location-detail__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+
+.location-detail__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: calc(80px + var(--space-lg)); /* Space for sticky actions */
+}
+
+/* Staggered Entry Animations */
+.location-detail__main > *:nth-child(1) { animation: fadeInUp 0.5s ease-out 0.1s backwards; }
+.location-detail__main > *:nth-child(2) { animation: fadeInUp 0.5s ease-out 0.15s backwards; }
+.location-detail__main > *:nth-child(3) { animation: fadeInUp 0.5s ease-out 0.2s backwards; }
+.location-detail__main > *:nth-child(4) { animation: fadeInUp 0.5s ease-out 0.25s backwards; }
+.location-detail__main > *:nth-child(5) { animation: fadeInUp 0.5s ease-out 0.3s backwards; }
+.location-detail__main > *:nth-child(6) { animation: fadeInUp 0.5s ease-out 0.35s backwards; }
+
+/* ============================================
+   SECTION HEADERS (Observatory Aesthetic)
+   ============================================ */
+
+.location-detail__section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.location-detail__section-header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.location-detail__section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+/* ============================================
+   DESKTOP SIDEBAR
+   ============================================ */
+
+.location-detail__sidebar {
+  display: none;
+}
+
+/* ============================================
+   MOBILE-ONLY SECTIONS
+   ============================================ */
+
+.location-detail__sky-quality--mobile,
+.location-detail__map--mobile,
+.location-detail__community--mobile {
+  display: block;
+}
+
+/* ============================================
+   STICKY BOTTOM ACTIONS (Mobile)
+   ============================================ */
+
+.location-detail__sticky-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: var(--space-md);
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+  background: linear-gradient(
+    to top,
+    var(--bg-base) 0%,
+    var(--bg-base) 60%,
+    rgba(10, 15, 26, 0.95) 80%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   DESKTOP LAYOUT (Two-Column)
+   ============================================ */
+
+@media (min-width: 1024px) {
+  .location-detail--loading,
+  .location-detail--error {
+    min-height: calc(100vh - var(--navbar-height));
+  }
+
+  .location-detail__content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--space-xl);
+    padding: var(--space-xl);
+    align-items: start;
+  }
+
+  .location-detail__main {
+    padding-bottom: var(--space-xl);
+  }
+
+  /* Sidebar - Sticky with staggered animations */
+  .location-detail__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    position: sticky;
+    top: calc(var(--navbar-height) + var(--space-lg));
+    height: fit-content;
+    max-height: calc(100vh - var(--navbar-height) - var(--space-xl) * 2);
+    overflow-y: auto;
+
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .location-detail__sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Sidebar item animations */
+  .location-detail__sidebar > *:nth-child(1) { animation: fadeInUp 0.5s ease-out 0.2s backwards; }
+  .location-detail__sidebar > *:nth-child(2) { animation: fadeInUp 0.5s ease-out 0.3s backwards; }
+  .location-detail__sidebar > *:nth-child(3) { animation: fadeInUp 0.5s ease-out 0.4s backwards; }
+  .location-detail__sidebar > *:nth-child(4) { animation: fadeInUp 0.5s ease-out 0.5s backwards; }
+
+  /* Hide mobile-only sections on desktop */
+  .location-detail__sky-quality--mobile,
+  .location-detail__map--mobile,
+  .location-detail__community--mobile,
+  .location-detail__sticky-actions {
+    display: none;
+  }
+}
+
+/* Large Desktop - Wider sidebar */
+@media (min-width: 1400px) {
+  .location-detail__content {
+    grid-template-columns: 1fr 420px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .location-detail__main > *,
+  .location-detail__sidebar > *,
+  .location-detail__error-content {
+    animation: none !important;
+  }
+}

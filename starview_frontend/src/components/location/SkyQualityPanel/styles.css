@@ -1,0 +1,286 @@
+/* SkyQualityPanel Styles
+ * The hero differentiator - observatory instrument readout aesthetic.
+ * Uses technical fonts, cyan glow effects, and data-dense presentation.
+ */
+
+/* ============================================
+   PANEL CONTAINER
+   ============================================ */
+
+.sky-quality-panel {
+  padding: var(--space-lg);
+  position: relative;
+  overflow: visible;
+}
+
+/* Subtle corner glow accent */
+.sky-quality-panel::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center,
+    var(--glow-primary) 0%,
+    transparent 70%
+  );
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.sky-quality-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.sky-quality-panel__title {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.sky-quality-panel__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ============================================
+   DATA READOUTS GRID
+   ============================================ */
+
+.sky-quality-panel__readouts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+/* Individual Readout Cell */
+.sky-quality-panel__readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-md) var(--space-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+/* Primary Readout (Bortle) - The hero */
+.sky-quality-panel__readout--primary {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 170, 0.08) 0%,
+    rgba(0, 212, 170, 0.02) 100%
+  );
+  border-color: var(--accent-border);
+  position: relative;
+}
+
+.sky-quality-panel__readout--primary::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius);
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-border), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.sky-quality-panel__readout--primary:hover {
+  background: rgba(0, 212, 170, 0.12);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
+  transform: translateY(-1px);
+}
+
+/* Data Value - Large technical display */
+.sky-quality-panel__value {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 20px var(--glow-primary);
+}
+
+/* Primary value is larger */
+.sky-quality-panel__readout--primary .sky-quality-panel__value {
+  font-size: var(--text-3xl);
+}
+
+/* Data Label */
+.sky-quality-panel__label {
+  font-family: var(--font-technical);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ============================================
+   BORTLE SCALE VISUALIZATION
+   ============================================ */
+
+.sky-quality-panel__scale {
+  margin-bottom: var(--space-md);
+}
+
+/* Scale Bar Track */
+.sky-quality-panel__scale-bar {
+  position: relative;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-full);
+  overflow: visible;
+  margin-bottom: var(--space-sm);
+}
+
+/* Scale Bar Fill */
+.sky-quality-panel__scale-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px var(--glow-primary);
+  position: relative;
+}
+
+/* Animated glow on the fill */
+.sky-quality-panel__scale-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+}
+
+/* Scale Markers */
+.sky-quality-panel__scale-marker {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 10px;
+  background: var(--border);
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+}
+
+.sky-quality-panel__scale-marker--active {
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  opacity: 1;
+  border-radius: 1px;
+}
+
+/* Scale Label (Bortle description) */
+.sky-quality-panel__scale-label {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   LEARN MORE LINK
+   ============================================ */
+
+.sky-quality-panel__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.sky-quality-panel__link:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.sky-quality-panel__link i {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.sky-quality-panel__link:hover i {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   DESKTOP ENHANCEMENTS
+   ============================================ */
+
+@media (min-width: 1024px) {
+  .sky-quality-panel {
+    padding: var(--space-xl);
+  }
+
+  .sky-quality-panel__value {
+    font-size: var(--text-3xl);
+  }
+
+  .sky-quality-panel__readout--primary .sky-quality-panel__value {
+    font-size: 42px;
+  }
+
+  .sky-quality-panel__label {
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-quality-panel__scale-fill {
+    transition: none;
+  }
+
+  .sky-quality-panel__link:hover i {
+    transform: none;
+  }
+
+  .sky-quality-panel__readout--primary:hover {
+    transform: none;
+  }
+}

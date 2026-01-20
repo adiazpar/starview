@@ -1,0 +1,135 @@
+/* CommunityStats Styles
+ * Visits, reviews, rating display with creator attribution.
+ * Observatory instrument aesthetic with technical data presentation.
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.community-stats {
+  padding: var(--space-lg);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.community-stats__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.community-stats__header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.community-stats__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ============================================
+   STATS ROW
+   ============================================ */
+
+.community-stats__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Individual Stat */
+.community-stats__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+/* Stat Value */
+.community-stats__value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-technical);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.community-stats__value i {
+  color: var(--star-filled);
+  font-size: var(--text-sm);
+}
+
+/* Stat Label */
+.community-stats__label {
+  font-family: var(--font-technical);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* Divider between stats */
+.community-stats__divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  opacity: 0.5;
+}
+
+/* ============================================
+   CREATOR ATTRIBUTION
+   ============================================ */
+
+.community-stats__creator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.community-stats__creator-label {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.community-stats__creator-link {
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.community-stats__creator-link:hover {
+  color: var(--accent-hover);
+}
+
+.community-stats__creator-date {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}

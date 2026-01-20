@@ -1,0 +1,156 @@
+/* LocationMap Styles
+ * Mini map with coordinates display and directions link.
+ * Observatory aesthetic with technical coordinate display.
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.location-map {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.location-map--compact {
+  padding: var(--space-md);
+  gap: var(--space-sm);
+}
+
+/* ============================================
+   HEADER (Observatory Aesthetic)
+   ============================================ */
+
+.location-map__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.location-map__header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.location-map__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ============================================
+   MAP IMAGE
+   ============================================ */
+
+.location-map__image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+}
+
+.location-map--compact .location-map__image-container {
+  aspect-ratio: 16 / 10;
+}
+
+.location-map__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Map Placeholder */
+.location-map__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--text-muted);
+}
+
+.location-map__placeholder i {
+  font-size: var(--text-3xl);
+  opacity: 0.4;
+}
+
+.location-map__placeholder span {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   COORDINATES DISPLAY
+   ============================================ */
+
+.location-map__coords {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-map__coords:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--accent-border);
+}
+
+.location-map__coords-value {
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.location-map__coords i {
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.location-map__coords:hover i {
+  color: var(--accent);
+}
+
+.location-map__coords:hover .location-map__coords-value {
+  color: var(--text-primary);
+}
+
+/* ============================================
+   DIRECTIONS BUTTON
+   ============================================ */
+
+.location-map__directions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.location-map--compact .location-map__directions {
+  padding: 10px var(--space-md);
+  font-size: var(--text-sm);
+}

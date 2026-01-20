@@ -73,9 +73,8 @@ function ExplorePage() {
   }, []);
 
   const handlePressLocation = useCallback((location) => {
-    console.log('Navigate to location:', location.name);
-    // TODO: Navigate to location detail page
-  }, []);
+    navigate(`/locations/${location.id}`);
+  }, [navigate]);
 
   // Handle page change (desktop pagination)
   const handlePageChange = useCallback((newPage) => {

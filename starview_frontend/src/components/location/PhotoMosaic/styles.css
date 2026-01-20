@@ -1,0 +1,322 @@
+/* PhotoMosaic Styles
+ * Asymmetric grid layout for editorial feel.
+ * Full-screen lightbox with smooth transitions.
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.photo-mosaic {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ============================================
+   SECTION HEADER (Observatory Aesthetic)
+   ============================================ */
+
+.photo-mosaic__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.photo-mosaic__header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.photo-mosaic__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ============================================
+   MOSAIC GRID
+   ============================================ */
+
+.photo-mosaic__grid {
+  display: grid;
+  gap: var(--space-sm);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Grid Layouts by Image Count */
+.photo-mosaic__grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.photo-mosaic__grid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.photo-mosaic__grid--3 {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.photo-mosaic__grid--3 .photo-mosaic__item--1 {
+  grid-row: 1 / 3;
+}
+
+.photo-mosaic__grid--4 {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.photo-mosaic__grid--4 .photo-mosaic__item--1 {
+  grid-row: 1 / 3;
+}
+
+.photo-mosaic__grid--5 {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.photo-mosaic__grid--5 .photo-mosaic__item--1 {
+  grid-row: 1 / 3;
+}
+
+/* ============================================
+   GRID ITEMS
+   ============================================ */
+
+.photo-mosaic__item {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.photo-mosaic__item--1 {
+  aspect-ratio: auto;
+}
+
+.photo-mosaic__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.photo-mosaic__item:hover img {
+  transform: scale(1.05);
+}
+
+/* Hover Overlay */
+.photo-mosaic__item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.3) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.photo-mosaic__item:hover::after {
+  opacity: 1;
+}
+
+/* More Photos Overlay */
+.photo-mosaic__more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.photo-mosaic__more span {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: #fff;
+}
+
+/* ============================================
+   LIGHTBOX
+   ============================================ */
+
+.photo-mosaic__lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.95);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.photo-mosaic__lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+  animation: lightboxZoom 0.3s ease-out;
+}
+
+@keyframes lightboxZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.photo-mosaic__lightbox-content img {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+/* Lightbox Navigation */
+.photo-mosaic__lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #fff;
+  font-size: var(--text-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.photo-mosaic__lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.photo-mosaic__lightbox-nav--prev {
+  left: -70px;
+}
+
+.photo-mosaic__lightbox-nav--next {
+  right: -70px;
+}
+
+/* Lightbox Counter */
+.photo-mosaic__lightbox-counter {
+  position: absolute;
+  bottom: -48px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+}
+
+/* Lightbox Close Button */
+.photo-mosaic__lightbox-close {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #fff;
+  font-size: var(--text-xl);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.photo-mosaic__lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================
+   MOBILE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .photo-mosaic__grid--3,
+  .photo-mosaic__grid--4,
+  .photo-mosaic__grid--5 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+
+  .photo-mosaic__grid--3 .photo-mosaic__item--1,
+  .photo-mosaic__grid--4 .photo-mosaic__item--1,
+  .photo-mosaic__grid--5 .photo-mosaic__item--1 {
+    grid-row: auto;
+    grid-column: 1 / 3;
+  }
+
+  .photo-mosaic__lightbox-nav--prev {
+    left: var(--space-md);
+  }
+
+  .photo-mosaic__lightbox-nav--next {
+    right: var(--space-md);
+  }
+
+  .photo-mosaic__lightbox-close {
+    top: var(--space-md);
+    right: var(--space-md);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-mosaic__item:hover img {
+    transform: none;
+  }
+
+  .photo-mosaic__lightbox,
+  .photo-mosaic__lightbox-content {
+    animation: none;
+  }
+}
