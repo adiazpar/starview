@@ -15,9 +15,7 @@
 .location-hero {
   position: relative;
   width: 100%;
-  height: 55vh;
-  min-height: 380px;
-  max-height: 550px;
+  height: 400px;
   overflow: hidden;
 }
 
@@ -378,9 +376,7 @@
 
 @media (min-width: 1024px) {
   .location-hero {
-    height: 45vh;
-    min-height: 320px;
-    max-height: 450px;
+    height: 420px;
   }
 
   .location-hero__back {
