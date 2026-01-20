@@ -40,11 +40,10 @@ function LocationDetailPage() {
     }
   };
 
-  // Loading state - return null to let Suspense handle loading
-  // This prevents double spinner: Suspense shows spinner during code loading,
-  // then we'd show another identical spinner during data loading
+  // Loading state - return empty container with min-height to prevent layout shift
+  // while letting Suspense handle the loading spinner
   if (isLoading) {
-    return null;
+    return <div className="location-detail location-detail--loading" />;
   }
 
   // Error state

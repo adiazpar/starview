@@ -19,6 +19,7 @@ function LocationHero({ location, onBack }) {
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Get hero image (first image or placeholder)
   const heroImage = location.images?.[0]?.full || location.images?.[0]?.thumbnail || PLACEHOLDER_IMAGE;
@@ -74,7 +75,8 @@ function LocationHero({ location, onBack }) {
         <img
           src={imageError ? PLACEHOLDER_IMAGE : heroImage}
           alt={location.name}
-          className="location-hero__image"
+          className={`location-hero__image ${imageLoaded ? 'location-hero__image--loaded' : ''}`}
+          onLoad={() => setTimeout(() => setImageLoaded(true), 50)}
           onError={() => setImageError(true)}
         />
         <div className="location-hero__gradient" />
