@@ -42,6 +42,7 @@
   height: 36px;
   /* Full logo aspect ratio is 4:1 (2000x500), so width = height * 4 */
   width: 144px;
+  transition: width 0.3s ease;
 }
 
 .navbar__logo-img {
@@ -91,9 +92,26 @@
   flex: 1;
 }
 
+/* Desktop explore controls wrapper - always rendered for smooth animations */
+.navbar__explore-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 0.3s ease, opacity 0.3s ease;
+}
+
+.navbar__explore-controls--visible {
+  max-width: 520px;
+  opacity: 1;
+}
+
 /* Desktop center search bar */
 .navbar__center .navbar__search {
   flex: 1;
+  min-width: 300px;
   max-width: 450px;
 }
 
@@ -137,7 +155,7 @@
   border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -156,6 +174,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  transition: transform 0.3s ease;
 }
 
 /* Desktop Actions (CTA button) */

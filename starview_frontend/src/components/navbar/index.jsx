@@ -114,8 +114,9 @@ function Navbar() {
 
         {/* Center section - contains nav links, plus search/filter on explore page */}
         <div className="navbar__center">
-          {isExplorePage && isDesktop && (
-            <>
+          {/* Search/filter wrapper - always rendered on desktop for smooth animations */}
+          {isDesktop && (
+            <div className={`navbar__explore-controls ${isExplorePage ? 'navbar__explore-controls--visible' : ''}`}>
               <div className="navbar__search">
                 <i className="fa-solid fa-magnifying-glass navbar__search-icon"></i>
                 <input
@@ -128,7 +129,7 @@ function Navbar() {
               <button className="navbar__filters-btn" aria-label="Filters">
                 <i className="fa-solid fa-sliders"></i>
               </button>
-            </>
+            </div>
           )}
 
           {/* Desktop Navigation Links */}
