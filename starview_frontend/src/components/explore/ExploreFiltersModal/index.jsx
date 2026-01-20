@@ -37,6 +37,19 @@ const LOCATION_TYPES = [
 // Rating options
 const RATING_OPTIONS = [1, 2, 3, 4, 5];
 
+// Bortle scale options (lower = darker sky)
+const BORTLE_OPTIONS = [
+  { value: 1, label: 'Bortle 1', desc: 'Excellent dark-sky site' },
+  { value: 2, label: 'Bortle 2 or darker', desc: 'Typical truly dark site' },
+  { value: 3, label: 'Bortle 3 or darker', desc: 'Rural sky' },
+  { value: 4, label: 'Bortle 4 or darker', desc: 'Rural/suburban transition' },
+  { value: 5, label: 'Bortle 5 or darker', desc: 'Suburban sky' },
+  { value: 6, label: 'Bortle 6 or darker', desc: 'Bright suburban' },
+  { value: 7, label: 'Bortle 7 or darker', desc: 'Suburban/urban transition' },
+  { value: 8, label: 'Bortle 8 or darker', desc: 'City sky' },
+  { value: 9, label: 'Bortle 9 or darker', desc: 'Inner-city sky' },
+];
+
 // Radius options (in miles)
 const RADIUS_OPTIONS = [10, 25, 50, 100, 250, 500];
 
@@ -46,6 +59,7 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     setTypes,
     setMinRating,
     setVerified,
+    setMaxBortle,
     setNear,
     setRadius,
     requestNearMe,
@@ -69,12 +83,13 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   const [isClosing, setIsClosing] = useState(false);
 
   // Determine if showing single section or all sections
-  const isSingleSection = initialSection && ['type', 'rating', 'distance'].includes(initialSection);
+  const isSingleSection = initialSection && ['type', 'rating', 'bortle', 'distance'].includes(initialSection);
 
   // Section titles for single-section mode
   const sectionTitles = {
     type: 'Location Type',
     rating: 'Minimum Rating',
+    bortle: 'Sky Darkness',
     distance: 'Distance',
   };
 
@@ -85,6 +100,7 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   const sectionHasFilter = isSingleSection && (
     (initialSection === 'type' && filters.types.length > 0) ||
     (initialSection === 'rating' && filters.minRating !== null) ||
+    (initialSection === 'bortle' && filters.maxBortle !== null) ||
     (initialSection === 'distance' && filters.near)
   );
 
@@ -135,6 +151,12 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     setMinRating(filters.minRating === rating ? null : rating);
   }, [filters.minRating, setMinRating]);
 
+  // Handle Bortle selection
+  const handleBortleSelect = useCallback((bortle) => {
+    // If same bortle clicked, clear it
+    setMaxBortle(filters.maxBortle === bortle ? null : bortle);
+  }, [filters.maxBortle, setMaxBortle]);
+
   // Handle "Near Me" click
   const handleNearMe = useCallback(async () => {
     setIsRequestingLocation(true);
@@ -171,11 +193,13 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
       setTypes([]);
     } else if (initialSection === 'rating') {
       setMinRating(null);
+    } else if (initialSection === 'bortle') {
+      setMaxBortle(null);
     } else if (initialSection === 'distance') {
       setNear(null, null);
       setLocationSearchValue('');
     }
-  }, [initialSection, setTypes, setMinRating, setNear]);
+  }, [initialSection, setTypes, setMinRating, setMaxBortle, setNear]);
 
   // Sync location search value with filters
   useEffect(() => {
@@ -264,6 +288,32 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
                     <span className="explore-filters-modal__rating-value">{rating}</span>
                     <i className="fa-solid fa-star"></i>
                     <span className="explore-filters-modal__rating-label">& up</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Bortle / Sky Darkness Section */}
+          {(!isSingleSection || initialSection === 'bortle') && (
+            <section className="explore-filters-modal__section">
+              {!isSingleSection && (
+                <h3 className="explore-filters-modal__section-title">Sky Darkness</h3>
+              )}
+              <p className="explore-filters-modal__section-desc">
+                Filter by Bortle scale (lower = darker skies). <Link to="/bortle" className="explore-filters-modal__link" onClick={handleClose}>Learn more</Link>
+              </p>
+              <div className="explore-filters-modal__bortle-options">
+                {BORTLE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    className={`explore-filters-modal__bortle-btn ${
+                      filters.maxBortle === option.value ? 'explore-filters-modal__bortle-btn--active' : ''
+                    }`}
+                    onClick={() => handleBortleSelect(option.value)}
+                  >
+                    <span className="explore-filters-modal__bortle-label">{option.label}</span>
+                    <span className="explore-filters-modal__bortle-desc">{option.desc}</span>
                   </button>
                 ))}
               </div>

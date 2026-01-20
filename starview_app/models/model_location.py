@@ -26,6 +26,7 @@ from starview_app.services.location_service import LocationService
 logger = logging.getLogger(__name__)
 
 # Import validators:
+from django.core.validators import MinValueValidator, MaxValueValidator
 from starview_app.utils import (
     sanitize_plain_text,
     validate_latitude,
@@ -68,6 +69,21 @@ class Location(models.Model):
     latitude = models.FloatField(validators=[validate_latitude])
     longitude = models.FloatField(validators=[validate_longitude])
     elevation = models.FloatField(default=0, validators=[validate_elevation], help_text="Elevation in meters")
+
+    # Sky quality data (auto-populated from coordinates):
+    bortle_class = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9)],
+        help_text="Bortle scale class (1-9, lower is darker)"
+    )
+    bortle_sqm = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Sky Quality Meter value (mag/arcsec²)"
+    )
 
     # Address information (auto-populated via Mapbox):
     formatted_address = models.CharField(max_length=500, blank=True, null=True, help_text="Full formatted address from geocoding")

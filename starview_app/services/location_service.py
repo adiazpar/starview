@@ -174,6 +174,30 @@ class LocationService:
         return True
 
 
+    # Updates Bortle class and SQM using local GeoTIFF data:
+    @staticmethod
+    def update_bortle_from_coordinates(location):
+        """
+        Fetch Bortle class from coordinates and save to location.
+
+        Uses the calculate_bortle_for_coordinates utility which samples
+        the World Atlas 2015 GeoTIFF file for light pollution data.
+
+        Returns:
+            True if Bortle data was successfully updated, False otherwise
+        """
+        from starview_app.views.views_bortle import calculate_bortle_for_coordinates
+        from decimal import Decimal
+
+        result = calculate_bortle_for_coordinates(location.latitude, location.longitude)
+        if result:
+            location.bortle_class = result['bortle']
+            location.bortle_sqm = Decimal(str(result['sqm']))
+            location.save(update_fields=['bortle_class', 'bortle_sqm'])
+            return True
+        return False
+
+
     # Initialize all location data after creation:
     @staticmethod
     def initialize_location_data(location):
@@ -193,4 +217,11 @@ class LocationService:
             LocationService.update_elevation_from_mapbox(location)
         except Exception as e:
             # Warning: Could not update elevation for {location.name}: {error}
+            pass
+
+        # Update Bortle class from GeoTIFF data
+        try:
+            LocationService.update_bortle_from_coordinates(location)
+        except Exception as e:
+            # Warning: Could not update Bortle for {location.name}: {error}
             pass

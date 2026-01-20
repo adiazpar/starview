@@ -272,6 +272,77 @@
   opacity: 0.7;
 }
 
+/* Section description */
+.explore-filters-modal__section-desc {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin-bottom: var(--space-md);
+  line-height: 1.4;
+}
+
+/* Link within section description */
+.explore-filters-modal__link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.explore-filters-modal__link:hover {
+  color: var(--accent-light);
+  text-decoration: underline;
+}
+
+/* Bortle options */
+.explore-filters-modal__bortle-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.explore-filters-modal__bortle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.explore-filters-modal__bortle-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.explore-filters-modal__bortle-btn--active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.explore-filters-modal__bortle-btn--active:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-light);
+}
+
+.explore-filters-modal__bortle-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.explore-filters-modal__bortle-btn--active .explore-filters-modal__bortle-label {
+  color: var(--accent-light);
+}
+
+.explore-filters-modal__bortle-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
 /* Near Me button */
 .explore-filters-modal__nearme-btn {
   display: flex;

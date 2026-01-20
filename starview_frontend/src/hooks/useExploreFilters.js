@@ -12,6 +12,7 @@
  * - near: Coordinates "lat,lng" or "me" for current location
  * - nearPlace: Human-readable place name for display
  * - radius: Distance in miles (default: 50)
+ * - maxBortle: Maximum Bortle class (1-9, lower is darker)
  * - sort: Sort order (default: -created_at)
  */
 
@@ -64,6 +65,11 @@ function parseFilters(searchParams) {
   const radiusParam = searchParams.get('radius');
   const radius = radiusParam ? parseInt(radiusParam, 10) : DEFAULTS.radius;
 
+  // Bortle filter (1-9, lower is darker sky)
+  const maxBortleParam = searchParams.get('maxBortle');
+  const maxBortle = maxBortleParam ? parseInt(maxBortleParam, 10) : null;
+  const validMaxBortle = maxBortle && maxBortle >= 1 && maxBortle <= 9 ? maxBortle : null;
+
   // Sort order
   const sortParam = searchParams.get('sort') || DEFAULTS.sort;
   const sort = VALID_SORTS.includes(sortParam) ? sortParam : DEFAULTS.sort;
@@ -76,6 +82,7 @@ function parseFilters(searchParams) {
     near,
     nearPlace,
     radius,
+    maxBortle: validMaxBortle,
     sort,
   };
 }
@@ -106,6 +113,10 @@ function buildApiParams(filters, resolvedNear) {
   if (resolvedNear) {
     params.near = resolvedNear;
     params.radius = filters.radius;
+  }
+
+  if (filters.maxBortle) {
+    params.maxBortle = filters.maxBortle;
   }
 
   if (filters.sort && filters.sort !== DEFAULTS.sort) {
@@ -169,6 +180,7 @@ export function useExploreFilters() {
     if (filters.minRating) count++;
     if (filters.verified) count++;
     if (filters.near) count++;
+    if (filters.maxBortle) count++;
     return count;
   }, [filters]);
 
@@ -214,6 +226,10 @@ export function useExploreFilters() {
 
   const setVerified = useCallback((value) => {
     updateParams({ verified: value ? 'true' : null });
+  }, [updateParams]);
+
+  const setMaxBortle = useCallback((value) => {
+    updateParams({ maxBortle: value });
   }, [updateParams]);
 
   const setNear = useCallback((coords, placeName) => {
@@ -296,6 +312,7 @@ export function useExploreFilters() {
     setTypes,
     setMinRating,
     setVerified,
+    setMaxBortle,
     setNear,
     setRadius,
     setSort,

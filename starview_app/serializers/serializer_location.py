@@ -62,6 +62,7 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ['id', 'name', 'location_type', 'location_type_display', 'type_metadata',
                   'latitude', 'longitude', 'elevation',
+                  'bortle_class', 'bortle_sqm',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
@@ -75,6 +76,7 @@ class LocationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'added_by',
                           'created_at', 'formatted_address', 'administrative_area',
                           'locality', 'country', 'type_metadata',
+                          'bortle_class', 'bortle_sqm',
 
                             # Verification fields are read-only (managed by system)
                             # Note: verification_notes excluded (staff-only internal data)
@@ -160,6 +162,7 @@ class MapLocationSerializer(serializers.ModelSerializer):
             'id', 'name', 'location_type', 'location_type_display', 'type_metadata',
             'latitude', 'longitude',
             'administrative_area', 'country', 'elevation',
+            'bortle_class', 'bortle_sqm',
             'average_rating', 'review_count', 'is_favorited', 'images'
         ]
         read_only_fields = fields
@@ -308,6 +311,7 @@ class LocationListSerializer(serializers.ModelSerializer):
         model = Location
         fields = ['id', 'name', 'location_type', 'location_type_display', 'type_metadata',
                   'latitude', 'longitude', 'elevation',
+                  'bortle_class', 'bortle_sqm',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited',
@@ -321,6 +325,7 @@ class LocationListSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'added_by',
                           'created_at', 'formatted_address', 'administrative_area',
                           'locality', 'country', 'type_metadata',
+                          'bortle_class', 'bortle_sqm',
 
                             # Verification fields are read-only (managed by system)
                             'is_verified', 'verification_date', 'verified_by',

@@ -50,9 +50,9 @@ TEMPORAL_CORRECTION_FACTOR = 1.31  # (1.025 ** 11)
 
 # Zenith-to-Bortle adjustment threshold
 # Per Lorenz (2024): zenith-only measurements underestimate Bortle by ~1 class
-# in light-polluted areas because they miss horizon light domes
-# Apply +1 class adjustment when SQM < 21 (suburban and brighter)
-ZENITH_BORTLE_ADJUSTMENT_THRESHOLD = 21.0
+# because they miss horizon light domes from nearby cities
+# Apply +1 class adjustment for all but the most pristine sites (SQM < 22)
+ZENITH_BORTLE_ADJUSTMENT_THRESHOLD = 22.0
 
 # Bortle scale definitions: (min_sqm, max_sqm, description, quality)
 # SQM = Sky Quality Meter reading in magnitudes per square arcsecond
@@ -177,6 +177,57 @@ def _sample_geotiff(geotiff_path, lat, lng):
     except Exception as e:
         logger.error(f'Error sampling GeoTIFF at ({lat}, {lng}): {e}')
         return None
+
+
+def calculate_bortle_for_coordinates(lat: float, lng: float) -> dict | None:
+    """
+    Calculate Bortle class for coordinates without HTTP request.
+
+    This utility function extracts the core Bortle calculation logic so it can
+    be reused by the LocationService when auto-populating location data.
+
+    Args:
+        lat: Latitude (-90 to 90)
+        lng: Longitude (-180 to 180)
+
+    Returns:
+        dict with keys: 'bortle', 'sqm', 'description', 'quality'
+        None if calculation fails (invalid coords, GeoTIFF unavailable, etc.)
+    """
+    # Validate coordinates
+    if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+        return None
+
+    # Check cache first
+    cache_key = bortle_cache_key(lat, lng)
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    # Check if GeoTIFF is available
+    geotiff_path = _get_geotiff_path()
+    if not geotiff_path:
+        return None
+
+    # Sample GeoTIFF
+    brightness = _sample_geotiff(geotiff_path, lat, lng)
+    if brightness is None:
+        return None
+
+    # Calculate values
+    sqm = _brightness_to_sqm(brightness)
+    bortle, description, quality = _sqm_to_bortle(sqm)
+
+    result = {
+        'bortle': bortle,
+        'sqm': round(sqm, 2),
+        'description': description,
+        'quality': quality
+    }
+
+    # Cache result
+    cache.set(cache_key, result, BORTLE_CACHE_TIMEOUT)
+    return result
 
 
 def get_bortle(request):

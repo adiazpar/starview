@@ -222,6 +222,14 @@ class LocationViewSet(viewsets.ModelViewSet):
         if params.get('verified') == 'true':
             queryset = queryset.filter(is_verified=True)
 
+        # Bortle filter (lower is better, so maxBortle means "at most this polluted")
+        max_bortle = params.get('maxBortle')
+        if max_bortle:
+            try:
+                queryset = queryset.filter(bortle_class__lte=int(max_bortle))
+            except (ValueError, TypeError):
+                pass
+
         # Distance filter (Haversine) - 'near' param contains "lat,lng" or "me"
         near = params.get('near')
         radius = params.get('radius')
@@ -285,7 +293,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         sort = request.GET.get('sort', '-created_at')
 
         # Check if filters are active (skip caching for filtered results)
-        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius']
+        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius', 'maxBortle']
         has_filters = any(request.GET.get(p) for p in filter_params)
 
         # Only cache unfiltered requests (filtered results vary too much)
@@ -524,7 +532,7 @@ class LocationViewSet(viewsets.ModelViewSet):
                 pass  # Invalid bbox format, ignore and return all locations
 
         # Check if filters are active (skip caching for filtered results)
-        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius']
+        filter_params = ['search', 'type', 'minRating', 'verified', 'near', 'radius', 'maxBortle']
         has_filters = any(request.query_params.get(p) for p in filter_params)
 
         # Only use cache when no bbox or filters (full dataset)
@@ -643,6 +651,8 @@ class LocationViewSet(viewsets.ModelViewSet):
                     'administrative_area': loc.administrative_area or '',
                     'country': loc.country or '',
                     'elevation': loc.elevation,
+                    'bortle_class': loc.bortle_class,
+                    'bortle_sqm': float(loc.bortle_sqm) if loc.bortle_sqm else None,
                     'latitude': float(loc.latitude),
                     'longitude': float(loc.longitude),
                     'average_rating': avg_rating,  # For bottom card
