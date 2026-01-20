@@ -15,7 +15,9 @@
 
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { useExploreFilters } from '../../../hooks/useExploreFilters';
+import { useAuth } from '../../../context/AuthContext';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -50,7 +52,16 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     clearFilters,
     activeFilterCount,
     permissionState,
+    locationSource,
   } = useExploreFilters();
+
+  // Get user's profile location name for display
+  const { user } = useAuth();
+  const profileLocationName = user?.location || 'Profile location';
+
+  // Determine if "Near me" should be disabled
+  // Only disable if geolocation denied AND no profile location fallback
+  const nearMeDisabled = permissionState === 'denied' && locationSource !== 'profile';
 
   // Local state for location search
   const [locationSearchValue, setLocationSearchValue] = useState(filters.nearPlace || '');
@@ -127,12 +138,9 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   // Handle "Near Me" click
   const handleNearMe = useCallback(async () => {
     setIsRequestingLocation(true);
-    const result = await requestNearMe();
+    await requestNearMe();
     setIsRequestingLocation(false);
-
-    if (result.success) {
-      setLocationSearchValue('My Location');
-    }
+    // locationSearchValue will be synced via the effect when filters.nearPlace updates
   }, [requestNearMe]);
 
   // Handle location search selection
@@ -171,9 +179,7 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
 
   // Sync location search value with filters
   useEffect(() => {
-    if (filters.near === 'me') {
-      setLocationSearchValue('My Location');
-    } else if (filters.nearPlace) {
+    if (filters.nearPlace) {
       setLocationSearchValue(filters.nearPlace);
     } else if (!filters.near) {
       setLocationSearchValue('');
@@ -277,12 +283,17 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
                   filters.near === 'me' ? 'explore-filters-modal__nearme-btn--active' : ''
                 }`}
                 onClick={handleNearMe}
-                disabled={isRequestingLocation || permissionState === 'denied'}
+                disabled={isRequestingLocation || nearMeDisabled}
               >
                 {isRequestingLocation ? (
                   <>
                     <i className="fa-solid fa-spinner fa-spin"></i>
                     <span>Finding your location...</span>
+                  </>
+                ) : locationSource === 'profile' ? (
+                  <>
+                    <i className="fa-solid fa-location-dot"></i>
+                    <span>Near {profileLocationName}</span>
                   </>
                 ) : (
                   <>
@@ -294,7 +305,15 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
 
               {permissionState === 'denied' && (
                 <p className="explore-filters-modal__permission-hint">
-                  Location access denied. Please search for a place instead.
+                  {locationSource === 'profile' ? (
+                    <>
+                      Not your location? <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Update in settings</Link> or enable browser location for more accuracy.
+                    </>
+                  ) : (
+                    <>
+                      Location access denied. <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Set a location in your profile</Link> or search below.
+                    </>
+                  )}
                 </p>
               )}
 

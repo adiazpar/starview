@@ -324,6 +324,18 @@
   font-size: var(--text-xs);
   margin-top: var(--space-sm);
   text-align: center;
+  line-height: 1.5;
+}
+
+.explore-filters-modal__hint-link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.explore-filters-modal__hint-link:hover {
+  color: var(--accent-light);
+  text-decoration: underline;
 }
 
 /* Divider */

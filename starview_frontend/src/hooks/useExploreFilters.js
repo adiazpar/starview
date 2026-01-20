@@ -18,6 +18,7 @@
 import { useCallback, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useUserLocation } from './useUserLocation';
+import { useAuth } from '../context/AuthContext';
 
 // Valid location types (must match backend LOCATION_TYPES)
 const VALID_TYPES = ['dark_sky_site', 'observatory', 'campground', 'viewpoint', 'other'];
@@ -119,7 +120,8 @@ function buildApiParams(filters, resolvedNear) {
  */
 export function useExploreFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { location: userLocation, permissionState, refresh: refreshLocation } = useUserLocation();
+  const { location: userLocation, permissionState, source: locationSource, refresh: refreshLocation } = useUserLocation();
+  const { user } = useAuth();
 
   // Parse current filters from URL
   const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
@@ -229,36 +231,33 @@ export function useExploreFilters() {
     updateParams({ sort: value !== DEFAULTS.sort ? value : null });
   }, [updateParams]);
 
-  // Request "Near Me" location
+  // Request "Near Me" location (with profile location fallback)
   const requestNearMe = useCallback(async () => {
-    if (permissionState === 'granted' && userLocation) {
-      // Already have location, just set the filter
+    // If we already have a location (from browser or profile), use it
+    if (userLocation) {
+      const placeName = locationSource === 'profile' && user?.location
+        ? user.location
+        : 'My Location';
       updateParams({
         near: 'me',
-        nearPlace: 'My Location',
+        nearPlace: placeName,
       });
-      return { success: true };
+      return { success: true, source: locationSource };
     }
 
+    // If geolocation denied and no profile location, return failure
     if (permissionState === 'denied') {
-      // Permission denied, can't get location
       return { success: false, reason: 'denied' };
     }
 
-    // Try to get location (will prompt user)
+    // Try to get location (will prompt user for browser geolocation)
     await refreshLocation();
 
-    // Check if we got location after refresh
-    if (userLocation) {
-      updateParams({
-        near: 'me',
-        nearPlace: 'My Location',
-      });
-      return { success: true };
-    }
-
-    return { success: false, reason: 'unavailable' };
-  }, [permissionState, userLocation, refreshLocation, updateParams]);
+    // Note: refreshLocation is async but userLocation won't update until next render
+    // The useUserLocation hook will handle the fallback chain internally
+    // For now, return pending - the UI should update when userLocation changes
+    return { success: false, reason: 'pending' };
+  }, [permissionState, userLocation, locationSource, user?.location, refreshLocation, updateParams]);
 
   // Clear all filters
   const clearFilters = useCallback(() => {
@@ -309,6 +308,7 @@ export function useExploreFilters() {
 
     // Location status
     permissionState,
+    locationSource, // 'browser' | 'profile' | null
     isLocationPending,
 
     // Valid options (for UI)
