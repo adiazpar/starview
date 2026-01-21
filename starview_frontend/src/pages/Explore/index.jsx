@@ -14,6 +14,7 @@ import LocationCard from '../../components/explore/LocationCard';
 import VirtualizedLocationList from '../../components/explore/VirtualizedLocationList';
 import ViewToggle from '../../components/explore/ViewToggle';
 import Pagination from '../../components/explore/Pagination';
+import SortDropdown from '../../components/explore/SortDropdown';
 import './styles.css';
 
 // Lazy load ExploreMap - defers loading Mapbox GL JS (~500KB) until needed
@@ -45,7 +46,7 @@ function ExplorePage() {
   }, []); // Only run once on mount
 
   // Get filter state from URL
-  const { apiParams, filterKey } = useExploreFilters();
+  const { apiParams, filterKey, filters, setSort } = useExploreFilters();
 
   // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
@@ -116,10 +117,10 @@ function ExplorePage() {
               <h2 className="explore-page__count">
                 {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
               </h2>
-              <button className="explore-page__sort-btn">
-                <i className="fa-solid fa-sort"></i>
-                Sort
-              </button>
+              <SortDropdown
+                currentSort={filters.sort}
+                onSortChange={setSort}
+              />
             </div>
             {locations.length === 0 ? (
               <div className="explore-page__list">
@@ -152,10 +153,10 @@ function ExplorePage() {
             <h2 className="explore-page__count">
               {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
             </h2>
-            <button className="explore-page__sort-btn">
-              <i className="fa-solid fa-sort"></i>
-              Sort
-            </button>
+            <SortDropdown
+              currentSort={filters.sort}
+              onSortChange={setSort}
+            />
           </div>
         )}
 
