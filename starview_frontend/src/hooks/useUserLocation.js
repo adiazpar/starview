@@ -88,9 +88,8 @@ export function useUserLocation() {
         setSource('ip');
         return true;
       }
-    } catch (err) {
+    } catch {
       // IP geolocation failed - this is ok, just means no location available
-      console.debug('IP geolocation unavailable:', err.message);
     }
     return false;
   }, []);

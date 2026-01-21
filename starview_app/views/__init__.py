@@ -89,7 +89,6 @@ from .views_bortle import (
 # GeoIP views:
 from .views_geoip import (
     geolocate_ip,
-    debug_headers,
 )
 
 # Expose all views for easier imports:
@@ -144,5 +143,4 @@ __all__ = [
 
     # GeoIP views
     'geolocate_ip',
-    'debug_headers',
 ]

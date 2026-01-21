@@ -52,7 +52,7 @@ function PrivacyPage() {
             <header className="privacy-header animate-fade-in-up">
               <h1 className="privacy-header__title">Privacy Policy</h1>
               <p className="privacy-header__updated">
-                <strong>Effective date:</strong> January 4, 2026
+                <strong>Effective date:</strong> January 21, 2026
               </p>
             </header>
 
@@ -136,6 +136,7 @@ function PrivacyPage() {
               <p>We automatically collect certain technical data:</p>
               <ul className="privacy-list">
                 <li><strong>IP address</strong> — for security and fraud prevention</li>
+                <li><strong>Approximate location</strong> — city-level location derived from your IP address via Cloudflare, used only for features like finding nearby stargazing locations. <em>This data is not stored</em> — it is processed in-memory only and never saved to our database.</li>
                 <li><strong>Device information</strong> — browser type, operating system</li>
                 <li><strong>Usage data</strong> — pages visited, features used, collected via Google Analytics</li>
               </ul>
@@ -243,6 +244,19 @@ function PrivacyPage() {
                   </div>
                   <p className="privacy-service__desc">
                     Stores uploaded images (profile pictures, location and review photos).
+                  </p>
+                  <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" className="privacy-service__link">
+                    View Privacy Policy <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                  </a>
+                </div>
+
+                <div className="privacy-service">
+                  <div className="privacy-service__header">
+                    <span className="privacy-service__name">Cloudflare</span>
+                    <span className="privacy-service__purpose">IP Geolocation</span>
+                  </div>
+                  <p className="privacy-service__desc">
+                    Provides approximate city-level location from your IP address for features like finding nearby locations. This data is processed in-memory only and never stored.
                   </p>
                   <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" className="privacy-service__link">
                     View Privacy Policy <i className="fa-solid fa-arrow-up-right-from-square"></i>
