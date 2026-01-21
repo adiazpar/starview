@@ -49,6 +49,13 @@ def geolocate_ip(request):
     region = request.META.get('HTTP_CF_REGION')
     country = request.META.get('HTTP_CF_IPCOUNTRY')
 
+    # Debug: Log all CF headers received (remove after debugging)
+    cf_headers = {k: v for k, v in request.META.items() if 'CF' in k.upper()}
+    if cf_headers:
+        logger.info(f'Cloudflare headers received: {cf_headers}')
+    else:
+        logger.warning('No Cloudflare headers found in request')
+
     # If Cloudflare headers present, return geolocation data
     if lat and lng:
         try:
