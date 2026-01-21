@@ -55,6 +55,21 @@ def is_private_ip(ip):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def debug_headers(request):
+    """Temporary endpoint to debug what headers Render receives from Cloudflare."""
+    # Only show CF-related and forwarded headers for security
+    relevant_headers = {
+        k: v for k, v in request.META.items()
+        if any(x in k.upper() for x in ['CF_', 'FORWARD', 'REAL_IP', 'CONNECT'])
+    }
+    return Response({
+        'cloudflare_headers': relevant_headers,
+        'remote_addr': request.META.get('REMOTE_ADDR'),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 @throttle_classes([GeoIPThrottle])
 def geolocate_ip(request):
     """

@@ -62,6 +62,7 @@ from .views import (
     get_bortle,
     # GeoIP views
     geolocate_ip,
+    debug_headers,
 )
 
 router = DefaultRouter()
@@ -96,6 +97,8 @@ urlpatterns = [
 
     # IP geolocation (fallback for users without browser/profile location):
     path('api/geolocate/', geolocate_ip, name='geolocate_ip'),
+    # Debug endpoint to see what Cloudflare headers Render receives (temporary):
+    path('api/debug-headers/', debug_headers, name='debug_headers'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),
