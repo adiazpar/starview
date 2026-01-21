@@ -359,12 +359,11 @@ function Navbar() {
                   onClick={() => handleFilterChipClick(filter.id)}
                 >
                   {filter.icon ? (
-                    <>
+                    activeFilterCount > 0 ? (
+                      <span className="navbar__filter-badge">{activeFilterCount}</span>
+                    ) : (
                       <i className={`${filter.icon} navbar__filter-icon`}></i>
-                      {activeFilterCount > 0 && (
-                        <span className="navbar__filter-badge">{activeFilterCount}</span>
-                      )}
-                    </>
+                    )
                   ) : filter.isToggle ? (
                     <i className={`fa-solid ${isActive ? 'fa-check' : 'fa-circle-check'} navbar__filter-icon`}></i>
                   ) : (

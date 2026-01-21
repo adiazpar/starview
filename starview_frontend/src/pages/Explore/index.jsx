@@ -110,35 +110,52 @@ function ExplorePage() {
               </span>
             </div>
           </div>
-        ) : locations.length === 0 ? (
-          <div className="explore-page__list">
-            <div className="empty-state animate-fade-in-up">
-              <i className="fa-solid fa-map-location-dot empty-state__icon"></i>
-              <p className="empty-state__title">No locations found</p>
-              <p className="empty-state__description">Be the first to add a stargazing spot!</p>
-            </div>
-          </div>
         ) : (
-          <VirtualizedLocationList
-            locations={locations}
-            userLocation={userLocation}
-            onPressLocation={handlePressLocation}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            fetchNextPage={fetchNextPage}
-            loadMoreRef={loadMoreRef}
-          />
+          <>
+            <div className="explore-page__mobile-header">
+              <h2 className="explore-page__count">
+                {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
+              </h2>
+              <button className="explore-page__sort-btn">
+                <i className="fa-solid fa-sort"></i>
+                Sort
+              </button>
+            </div>
+            {locations.length === 0 ? (
+              <div className="explore-page__list">
+                <div className="empty-state animate-fade-in-up">
+                  <i className="fa-solid fa-map-location-dot empty-state__icon"></i>
+                  <p className="empty-state__title">No locations found</p>
+                  <p className="empty-state__description">Be the first to add a stargazing spot!</p>
+                </div>
+              </div>
+            ) : (
+              <VirtualizedLocationList
+                locations={locations}
+                userLocation={userLocation}
+                onPressLocation={handlePressLocation}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
+                loadMoreRef={loadMoreRef}
+              />
+            )}
+          </>
         )
       )}
 
       {/* Desktop: Standard grid with pagination (only 10 items, no virtualization needed) */}
       <div className={`explore-page__list ${!isDesktop ? 'explore-page__list--hidden' : ''}`}>
         {/* Location count header - desktop only */}
-        {isDesktop && !isLoading && locations.length > 0 && (
+        {isDesktop && !isLoading && !isError && (
           <div className="explore-page__header">
             <h2 className="explore-page__count">
               {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
             </h2>
+            <button className="explore-page__sort-btn">
+              <i className="fa-solid fa-sort"></i>
+              Sort
+            </button>
           </div>
         )}
 
