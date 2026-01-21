@@ -35,7 +35,8 @@ const VALID_SORTS = [
 // Default values
 const DEFAULTS = {
   radius: 50,
-  sort: '-created_at',
+  sort: '-created_at',  // Fallback when no location
+  sortWithLocation: 'distance',  // Default when user has location
 };
 
 /**
@@ -89,8 +90,11 @@ function parseFilters(searchParams) {
 
 /**
  * Build API params object from filter state
+ * @param {Object} filters - Parsed filter values
+ * @param {string|null} resolvedNear - Resolved coordinates from distance filter
+ * @param {Object|null} userLocation - User's location (for distance sorting without filter)
  */
-function buildApiParams(filters, resolvedNear) {
+function buildApiParams(filters, resolvedNear, userLocation) {
   const params = {};
 
   if (filters.search) {
@@ -119,8 +123,15 @@ function buildApiParams(filters, resolvedNear) {
     params.maxBortle = filters.maxBortle;
   }
 
-  if (filters.sort && filters.sort !== DEFAULTS.sort) {
+  // Always send sort param (backend needs it for distance sorting)
+  if (filters.sort) {
     params.sort = filters.sort;
+  }
+
+  // For distance sorting without explicit distance filter, use user's location
+  if (filters.sort === 'distance' && !resolvedNear && userLocation) {
+    params.near = `${userLocation.latitude},${userLocation.longitude}`;
+    params.radius = 12500; // ~20,000km covers entire Earth
   }
 
   return params;
@@ -135,7 +146,23 @@ export function useExploreFilters() {
   const { user } = useAuth();
 
   // Parse current filters from URL
-  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  const parsedFilters = useMemo(() => parseFilters(searchParams), [searchParams]);
+
+  // Determine effective sort: use "distance" as default when user has location
+  const hasExplicitSort = searchParams.has('sort');
+  const effectiveSort = useMemo(() => {
+    if (hasExplicitSort) {
+      return parsedFilters.sort;
+    }
+    // Default to "Nearby" when user has location, otherwise "Newest"
+    return userLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
+  }, [hasExplicitSort, parsedFilters.sort, userLocation]);
+
+  // Combine parsed filters with effective sort
+  const filters = useMemo(() => ({
+    ...parsedFilters,
+    sort: effectiveSort,
+  }), [parsedFilters, effectiveSort]);
 
   // Track if this is the initial render (to prevent unnecessary URL updates)
   const isInitialRender = useRef(true);
@@ -162,8 +189,8 @@ export function useExploreFilters() {
 
   // Build API params
   const apiParams = useMemo(
-    () => buildApiParams(filters, resolvedNear),
-    [filters, resolvedNear]
+    () => buildApiParams(filters, resolvedNear, userLocation),
+    [filters, resolvedNear, userLocation]
   );
 
   // Stable key for query invalidation (changes when filters change)
@@ -244,8 +271,11 @@ export function useExploreFilters() {
   }, [updateParams]);
 
   const setSort = useCallback((value) => {
-    updateParams({ sort: value !== DEFAULTS.sort ? value : null });
-  }, [updateParams]);
+    // Always store explicit sort choice in URL
+    // Only clear if it matches the current effective default
+    const currentDefault = userLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
+    updateParams({ sort: value !== currentDefault ? value : null });
+  }, [updateParams, userLocation]);
 
   // Request "Near Me" location (with profile location fallback)
   const requestNearMe = useCallback(async () => {
@@ -325,7 +355,7 @@ export function useExploreFilters() {
 
     // Location status
     permissionState,
-    locationSource, // 'browser' | 'profile' | null
+    locationSource, // 'browser' | 'profile' | 'ip' | null
     isLocationPending,
 
     // Valid options (for UI)

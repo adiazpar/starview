@@ -259,12 +259,30 @@
 .location-modal__selected i {
   color: var(--success);
   font-size: var(--text-sm);
+  flex-shrink: 0;
 }
 
-.location-modal__selected span {
+.location-modal__selected-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.location-modal__selected-text > span:first-child {
   color: var(--text-secondary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
+}
+
+/* Approximate location state (IP-based) */
+.location-modal__selected--approximate i {
+  color: var(--accent);
+}
+
+.location-modal__selected-hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
 }
 
 /* Action buttons */

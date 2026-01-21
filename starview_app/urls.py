@@ -60,6 +60,8 @@ from .views import (
     get_weather_forecast,
     # Bortle views
     get_bortle,
+    # GeoIP views
+    geolocate_ip,
 )
 
 router = DefaultRouter()
@@ -91,6 +93,9 @@ urlpatterns = [
 
     # Bortle scale / light pollution (for stargazing planning):
     path('api/bortle/', get_bortle, name='bortle'),
+
+    # IP geolocation (fallback for users without browser/profile location):
+    path('api/geolocate/', geolocate_ip, name='geolocate_ip'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),

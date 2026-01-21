@@ -201,37 +201,35 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
           </Link>
         </div>
       ) : (
-        // Other user's profile: Show follow button (if logged in)
-        currentUser && (
-          <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
-            <button
-              className="btn-primary"
-              onClick={handleFollowToggle}
-              disabled={isLoadingFollow}
-            >
-              {isLoadingFollow ? (
-                <>
-                  <i className="fa-solid fa-spinner fa-spin"></i>
-                  {isFollowing ? 'Unfollowing...' : 'Following...'}
-                </>
-              ) : (
-                <>
-                  <i className={`fa-solid ${isFollowing ? 'fa-minus' : 'fa-plus'}`}></i>
-                  {isFollowing ? 'Unfollow' : 'Follow'}
-                </>
-              )}
-            </button>
-            {onShowBadgesClick && (
-              <button onClick={onShowBadgesClick} className="btn-secondary">
-                <i className="fa-solid fa-ranking-star"></i>
-                {badgesVisible ? 'Hide' : 'Show'} Badges
-              </button>
+        // Other user's profile: Show follow button (redirects to login if not authenticated)
+        <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
+          <button
+            className="btn-primary"
+            onClick={handleFollowToggle}
+            disabled={isLoadingFollow}
+          >
+            {isLoadingFollow ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                {isFollowing ? 'Unfollowing...' : 'Following...'}
+              </>
+            ) : (
+              <>
+                <i className={`fa-solid ${isFollowing ? 'fa-minus' : 'fa-plus'}`}></i>
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </>
             )}
-            <button className="btn-secondary btn-secondary--icon">
-              <i className="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+          {onShowBadgesClick && (
+            <button onClick={onShowBadgesClick} className="btn-secondary">
+              <i className="fa-solid fa-ranking-star"></i>
+              {badgesVisible ? 'Hide' : 'Show'} Badges
             </button>
-          </div>
-        )
+          )}
+          <button className="btn-secondary btn-secondary--icon">
+            <i className="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
       )}
 
       {/* Badge Detail Modal */}

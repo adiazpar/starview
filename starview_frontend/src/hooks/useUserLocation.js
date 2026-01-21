@@ -4,16 +4,20 @@
  * Gets the user's location with a fallback chain:
  * 1. Browser Geolocation API (requires explicit permission)
  * 2. User's profile location (if authenticated and set in profile)
- * 3. null (no location - distance features hidden, map defaults to day mode)
+ * 3. IP geolocation (approximate city-level location, always available)
  *
  * Caches browser geolocation in localStorage to avoid repeated prompts.
+ * IP geolocation is cached server-side for 1 hour.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const CACHE_KEY = 'starview_user_location';
+const IP_CACHE_KEY = 'starview_ip_location';
 const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes - short cache for responsive location updates
+const IP_CACHE_DURATION = 1000 * 60 * 60; // 1 hour - IP location changes rarely
 
 /**
  * Get user's location with fallback chain
@@ -48,6 +52,48 @@ export function useUserLocation() {
     }
     return false;
   }, [user]);
+
+  // Fetch IP-based location as final fallback
+  const fetchIPLocation = useCallback(async () => {
+    // Check localStorage cache first
+    const cached = localStorage.getItem(IP_CACHE_KEY);
+    if (cached) {
+      try {
+        const { coords, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < IP_CACHE_DURATION) {
+          setLocation(coords);
+          setSource('ip');
+          return true;
+        }
+      } catch {
+        localStorage.removeItem(IP_CACHE_KEY);
+      }
+    }
+
+    try {
+      const response = await api.get('/geolocate/');
+      if (response.data.latitude && response.data.longitude) {
+        const coords = {
+          latitude: response.data.latitude,
+          longitude: response.data.longitude,
+          city: response.data.city,
+          region: response.data.region,
+        };
+        // Cache IP location locally
+        localStorage.setItem(
+          IP_CACHE_KEY,
+          JSON.stringify({ coords, timestamp: Date.now() })
+        );
+        setLocation(coords);
+        setSource('ip');
+        return true;
+      }
+    } catch (err) {
+      // IP geolocation failed - this is ok, just means no location available
+      console.debug('IP geolocation unavailable:', err.message);
+    }
+    return false;
+  }, []);
 
   const requestBrowserLocation = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -98,7 +144,10 @@ export function useUserLocation() {
         // User just granted permission - fetch their location
         const gotLocation = await requestBrowserLocation();
         if (!gotLocation && isSubscribed) {
-          checkProfileLocation();
+          const hasProfile = checkProfileLocation();
+          if (!hasProfile) {
+            await fetchIPLocation();
+          }
         }
       } else if (permissionStatus?.state === 'denied') {
         // User revoked permission - clear cached location and fall back
@@ -106,7 +155,10 @@ export function useUserLocation() {
         if (isSubscribed) {
           setLocation(null);
           setSource(null);
-          checkProfileLocation();
+          const hasProfile = checkProfileLocation();
+          if (!hasProfile) {
+            await fetchIPLocation();
+          }
         }
       }
     };
@@ -159,8 +211,11 @@ export function useUserLocation() {
         }
       }
 
-      // Fallback to profile location (used when geolocation not granted)
-      checkProfileLocation();
+      // Fallback chain: profile location, then IP geolocation
+      const hasProfileLocation = checkProfileLocation();
+      if (!hasProfileLocation) {
+        await fetchIPLocation();
+      }
       setIsLoading(false);
     };
 
@@ -172,26 +227,29 @@ export function useUserLocation() {
         permissionStatus.removeEventListener('change', handlePermissionChange);
       }
     };
-  }, [authLoading, requestBrowserLocation, checkProfileLocation]);
+  }, [authLoading, requestBrowserLocation, checkProfileLocation, fetchIPLocation]);
 
-  // Refresh function - tries browser first, then profile
+  // Refresh function - tries browser first, then profile, then IP
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     const gotBrowserLocation = await requestBrowserLocation();
     if (!gotBrowserLocation) {
-      checkProfileLocation();
+      const hasProfile = checkProfileLocation();
+      if (!hasProfile) {
+        await fetchIPLocation();
+      }
     }
 
     setIsLoading(false);
-  }, [requestBrowserLocation, checkProfileLocation]);
+  }, [requestBrowserLocation, checkProfileLocation, fetchIPLocation]);
 
   return {
     location,
     isLoading,
     error,
-    source, // 'browser' | 'profile' | null - indicates where location came from
+    source, // 'browser' | 'profile' | 'ip' | null - indicates where location came from
     permissionState, // 'granted' | 'denied' | 'prompt' | null
     refresh,
   };

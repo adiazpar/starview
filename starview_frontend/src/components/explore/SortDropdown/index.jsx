@@ -14,17 +14,24 @@ const SORT_LABELS = {
   'average_rating': 'Lowest Rated',
   '-review_count': 'Most Reviews',
   'review_count': 'Fewest Reviews',
+  'distance': 'Nearby',
 };
 
-const SORT_OPTIONS = [
+// Base sort options (always available)
+const BASE_SORT_OPTIONS = [
   '-created_at',
   '-average_rating',
   '-review_count',
 ];
 
-function SortDropdown({ currentSort, onSortChange }) {
+function SortDropdown({ currentSort, onSortChange, hasUserLocation = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Show "Nearby" option when user has a location (browser or profile)
+  const sortOptions = hasUserLocation
+    ? ['distance', ...BASE_SORT_OPTIONS]
+    : BASE_SORT_OPTIONS;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -76,7 +83,7 @@ function SortDropdown({ currentSort, onSortChange }) {
 
       {isOpen && (
         <ul className="sort-dropdown__menu" role="listbox">
-          {SORT_OPTIONS.map((sortValue) => (
+          {sortOptions.map((sortValue) => (
             <li key={sortValue}>
               <button
                 className={`sort-dropdown__option ${currentSort === sortValue ? 'sort-dropdown__option--active' : ''}`}

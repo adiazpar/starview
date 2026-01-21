@@ -160,7 +160,6 @@ function TonightContent({
   location,
   source,
   user,
-  permissionState,
   isAuthenticated,
   onEnableLocation,
 }) {
@@ -340,31 +339,20 @@ function TonightContent({
           </div>
         )}
 
-        {/* Location prompt for users without location */}
+        {/* Location prompt for users without location (rare - IP geolocation usually works) */}
         {lat === undefined && !isLoading && (
           <div className="tonight-hero__location-prompt">
-            {permissionState === 'denied' ? (
-              <p>
-                Location access was blocked. Enable it in your browser settings
-                {isAuthenticated ? (
-                  <> or <Link to="/profile?scrollTo=location">set your location</Link> in settings.</>
-                ) : (
-                  <> or <Link to="/login?next=/tonight">sign in</Link> to set your preferred location.</>
-                )}
-              </p>
-            ) : (
-              <p>
-                <button className="tonight-hero__enable-btn" onClick={onEnableLocation}>
-                  Enable location
-                </button>
-                {' '}to see tonight&apos;s conditions
-                {isAuthenticated ? (
-                  <>, or <Link to="/profile?scrollTo=location">set it in settings</Link>.</>
-                ) : (
-                  <>, or <Link to="/login?next=/tonight">sign in</Link> to save your preferred location.</>
-                )}
-              </p>
-            )}
+            <p>
+              <button className="tonight-hero__enable-btn" onClick={onEnableLocation}>
+                Enable location
+              </button>
+              {' '}to see tonight&apos;s conditions
+              {isAuthenticated ? (
+                <>, or <Link to="/profile?scrollTo=location">set it in settings</Link>.</>
+              ) : (
+                <>, or <Link to="/login?next=/tonight">sign in</Link> to save your preferred location.</>
+              )}
+            </p>
           </div>
         )}
       </section>
@@ -586,7 +574,6 @@ function TonightPage() {
   const {
     location,
     isLoading: locationLoading,
-    permissionState,
     source,
     refresh: refreshLocation,
   } = useUserLocation();
@@ -624,7 +611,6 @@ function TonightPage() {
       location={location}
       source={source}
       user={user}
-      permissionState={permissionState}
       isAuthenticated={isAuthenticated}
       onEnableLocation={refreshLocation}
     />

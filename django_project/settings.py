@@ -19,6 +19,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 # =============================================================================
+# GDAL/GEOS LIBRARY PATHS (PostGIS dependencies - macOS only)
+# =============================================================================
+# Only needed for local development on macOS with Homebrew.
+# Production (Render) has GDAL/GEOS in standard system paths.
+import sys
+if sys.platform == 'darwin' and os.path.exists('/opt/homebrew/opt/gdal/lib/libgdal.dylib'):
+    GDAL_LIBRARY_PATH = '/opt/homebrew/opt/gdal/lib/libgdal.dylib'
+    GEOS_LIBRARY_PATH = '/opt/homebrew/opt/geos/lib/libgeos_c.dylib'
+
+# =============================================================================
 # CORE SETTINGS
 # =============================================================================
 
@@ -180,6 +190,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
+    'django.contrib.gis',  # PostGIS spatial queries
 
     # Project apps (MUST be before allauth to override templates)
     'starview_app',
@@ -268,9 +279,10 @@ DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite3')
 
 if DB_ENGINE == 'postgresql':
     # PostgreSQL configuration (production)
+    # Using PostGIS for spatial queries (distance filtering, geographic calculations)
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': os.getenv('DB_NAME', 'event_horizon'),
             'USER': os.getenv('DB_USER', 'postgres'),
             'PASSWORD': os.getenv('DB_PASSWORD', ''),

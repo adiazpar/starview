@@ -73,9 +73,8 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   const { user } = useAuth();
   const profileLocationName = user?.location || 'Profile location';
 
-  // Determine if "Near me" should be disabled
-  // Only disable if geolocation denied AND no profile location fallback
-  const nearMeDisabled = permissionState === 'denied' && locationSource !== 'profile';
+  // "Near me" is always enabled now - we have IP geolocation as ultimate fallback
+  const nearMeDisabled = false;
 
   // Local state for location search
   const [locationSearchValue, setLocationSearchValue] = useState(filters.nearPlace || '');
@@ -353,17 +352,15 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
                 )}
               </button>
 
-              {permissionState === 'denied' && (
+              {/* Show hint for improving location accuracy */}
+              {locationSource === 'ip' && (
                 <p className="explore-filters-modal__permission-hint">
-                  {locationSource === 'profile' ? (
-                    <>
-                      Not your location? <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Update in settings</Link> or enable browser location for more accuracy.
-                    </>
-                  ) : (
-                    <>
-                      Location access denied. <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Set a location in your profile</Link> or search below.
-                    </>
-                  )}
+                  Using approximate location. <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Set your location</Link> for better accuracy.
+                </p>
+              )}
+              {locationSource === 'profile' && permissionState === 'denied' && (
+                <p className="explore-filters-modal__permission-hint">
+                  Not your location? <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Update in settings</Link> or enable browser location.
                 </p>
               )}
 

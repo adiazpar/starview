@@ -349,7 +349,7 @@ class LocationListSerializer(serializers.ModelSerializer):
     review_count = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
 
-    # Distance in miles (only present when distance filter is active)
+    # Distance in kilometers (only present when distance filter is active)
     distance = serializers.SerializerMethodField()
 
 
@@ -474,8 +474,12 @@ class LocationListSerializer(serializers.ModelSerializer):
         return photos
 
     def get_distance(self, obj):
-        """Return distance in miles if distance_km annotation is available."""
+        """Return distance in kilometers. Frontend handles unit preference."""
         if hasattr(obj, 'distance_km') and obj.distance_km is not None:
-            # Convert km to miles (1 km = 0.621371 miles)
-            return round(obj.distance_km * 0.621371, 1)
+            # Handle both float (old) and Distance object (PostGIS)
+            if hasattr(obj.distance_km, 'm'):
+                # PostGIS Distance object - convert meters to km
+                return round(obj.distance_km.m / 1000, 1)
+            # Already a float in km
+            return round(obj.distance_km, 1)
         return None

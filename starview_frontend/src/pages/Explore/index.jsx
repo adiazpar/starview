@@ -46,7 +46,10 @@ function ExplorePage() {
   }, []); // Only run once on mount
 
   // Get filter state from URL
-  const { apiParams, filterKey, filters, setSort } = useExploreFilters();
+  const { apiParams, filterKey, filters, setSort, resolvedNear } = useExploreFilters();
+
+  // Get user's location (for "Nearby" sorting even without distance filter)
+  const { location: userLocation } = useUserLocation();
 
   // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
@@ -55,8 +58,6 @@ function ExplorePage() {
     hasNextPage, isFetchingNextPage, fetchNextPage,
     isDesktop,
   } = useExploreData(apiParams, filterKey);
-
-  const { location: userLocation } = useUserLocation();
 
   // Trigger loading more when sentinel element comes into view
   const handleLoadMore = useCallback(() => {
@@ -120,6 +121,7 @@ function ExplorePage() {
               <SortDropdown
                 currentSort={filters.sort}
                 onSortChange={setSort}
+                hasUserLocation={!!userLocation}
               />
             </div>
             {locations.length === 0 ? (
@@ -156,6 +158,7 @@ function ExplorePage() {
             <SortDropdown
               currentSort={filters.sort}
               onSortChange={setSort}
+              hasUserLocation={!!userLocation}
             />
           </div>
         )}

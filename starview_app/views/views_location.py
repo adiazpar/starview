@@ -23,8 +23,9 @@
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db.models import Avg, Count, Q, Exists, OuterRef, F, FloatField
-from django.db.models.functions import ACos, Cos, Radians, Sin
-from math import cos, radians
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D
 
 # REST Framework imports:
 from rest_framework import viewsets, status, serializers
@@ -117,6 +118,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         has_distance_filter = near and near != 'me'
 
         # Validate sort parameter to prevent injection
+        # Note: distance sorting is handled in list() after _apply_filters adds the annotation
         valid_sorts = {
             '-created_at': ['-created_at', 'id'],
             'created_at': ['created_at', 'id'],
@@ -126,12 +128,12 @@ class LocationViewSet(viewsets.ModelViewSet):
             'review_count': ['review_count_annotated', 'id'],
         }
 
-        # Add distance sorting (only available when distance filter is active)
-        if has_distance_filter:
-            valid_sorts['distance'] = ['distance_km', 'id']
-            valid_sorts['-distance'] = ['-distance_km', 'id']
-
-        order_by = valid_sorts.get(sort, ['-created_at', 'id'])
+        # Distance sorting needs distance_km annotation from _apply_filters
+        # Use default order here; list() will re-order after annotation is added
+        if sort in ('distance', '-distance') and has_distance_filter:
+            order_by = ['-created_at', 'id']  # Temporary default, will be re-ordered
+        else:
+            order_by = valid_sorts.get(sort, ['-created_at', 'id'])
 
         queryset = Location.objects.select_related(
             'added_by',
@@ -240,38 +242,32 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Filter queryset by distance using Haversine formula.                          #
-    # Uses bounding box pre-filter for performance before precise calculation.      #
+    # Filter queryset by distance using PostGIS ST_DWithin.                         #
+    # Uses GiST spatial index for efficient filtering.                              #
     # ----------------------------------------------------------------------------- #
     def _filter_by_distance(self, queryset, near, radius):
-        """Filter by distance using Haversine formula."""
+        """Filter by distance using PostGIS ST_DWithin."""
         try:
             lat, lng = [float(x) for x in near.split(',')]
-            radius_km = float(radius or 50) * 1.60934  # miles to km
+            radius_miles = float(radius or 50)
+            # Validate radius is positive and reasonable (max 12500 miles ~ Earth circumference / 2)
+            if radius_miles <= 0 or radius_miles > 12500:
+                radius_miles = 50  # Default to 50 miles if invalid
+            radius_km = radius_miles * 1.60934  # miles to km
         except (ValueError, TypeError):
             return queryset
 
-        # Bounding box pre-filter for performance (uses index)
-        lat_delta = radius_km / 111.0
-        lng_delta = radius_km / (111.0 * abs(cos(radians(lat))) + 0.001)
+        # Create Point for user's location (PostGIS uses lng, lat order)
+        user_location = Point(lng, lat, srid=4326)
 
+        # Filter using PostGIS ST_DWithin (uses GiST spatial index)
+        # D(km=...) specifies distance in kilometers for geography fields
         queryset = queryset.filter(
-            latitude__gte=lat - lat_delta,
-            latitude__lte=lat + lat_delta,
-            longitude__gte=lng - lng_delta,
-            longitude__lte=lng + lng_delta,
+            coordinates__dwithin=(user_location, D(km=radius_km))
+        ).annotate(
+            # Distance returns a Distance object, we convert to km in serializer
+            distance_km=Distance('coordinates', user_location)
         )
-
-        # Precise Haversine filter
-        EARTH_RADIUS_KM = 6371.0
-        queryset = queryset.annotate(
-            distance_km=EARTH_RADIUS_KM * ACos(
-                Sin(Radians(lat)) * Sin(Radians(F('latitude'))) +
-                Cos(Radians(lat)) * Cos(Radians(F('latitude'))) *
-                Cos(Radians(F('longitude')) - Radians(lng)),
-                output_field=FloatField()
-            )
-        ).filter(distance_km__lte=radius_km)
 
         return queryset
 
@@ -314,6 +310,11 @@ class LocationViewSet(viewsets.ModelViewSet):
 
         # Apply search/filter parameters
         queryset = self._apply_filters(queryset)
+
+        # Re-apply distance sort after _apply_filters adds distance_km annotation
+        if sort in ('distance', '-distance') and has_filters:
+            order_by = ['distance_km', 'id'] if sort == 'distance' else ['-distance_km', 'id']
+            queryset = queryset.order_by(*order_by)
 
         # Paginate the queryset
         page_obj = self.paginate_queryset(queryset)

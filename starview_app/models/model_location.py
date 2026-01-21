@@ -18,6 +18,8 @@
 
 # Import tools:
 from django.db import models
+from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.geos import Point
 from django.contrib.auth.models import User
 import logging
 from starview_app.services.location_service import LocationService
@@ -69,6 +71,14 @@ class Location(models.Model):
     latitude = models.FloatField(validators=[validate_latitude])
     longitude = models.FloatField(validators=[validate_longitude])
     elevation = models.FloatField(default=0, validators=[validate_elevation], help_text="Elevation in meters")
+
+    # PostGIS PointField for spatial queries (synced from lat/lng in save())
+    coordinates = gis_models.PointField(
+        geography=True,  # Use great-circle distance (accurate for stargazing distances)
+        srid=4326,       # WGS84 (GPS standard)
+        null=True,       # Allow null during migration
+        blank=True,
+    )
 
     # Sky quality data (auto-populated from coordinates):
     bortle_class = models.PositiveSmallIntegerField(
@@ -126,6 +136,10 @@ class Location(models.Model):
             validate_latitude(self.latitude)
             validate_longitude(self.longitude)
             validate_elevation(self.elevation)
+
+            # Sync PostGIS coordinates from lat/lng (Point uses lng, lat order)
+            if self.latitude is not None and self.longitude is not None:
+                self.coordinates = Point(self.longitude, self.latitude, srid=4326)
 
             is_new = not self.pk
 

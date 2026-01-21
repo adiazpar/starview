@@ -3,6 +3,7 @@
  *
  * Post-authentication modal prompting new users to set their location.
  * Features browser geolocation with reverse geocoding and Mapbox search.
+ * Pre-fills with IP-based location when available for smoother onboarding.
  * Uses React Portal for proper layering above all content.
  *
  * Props:
@@ -14,6 +15,7 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
+import { useUserLocation } from '../../../hooks/useUserLocation';
 import { reverseGeocode } from '../../../utils/navigation';
 import './styles.css';
 
@@ -23,17 +25,48 @@ const LocationAutocomplete = lazy(() =>
 );
 
 function LocationOnboardingModal({ isOpen, onClose, onSave, onSkip }) {
+  // Get IP-based location for pre-fill
+  const { location: ipLocation, source: locationSource } = useUserLocation();
+
   // Location state
   const [locationData, setLocationData] = useState({
     location: '',
     latitude: null,
     longitude: null
   });
+  const [hasPreFilled, setHasPreFilled] = useState(false);
+  const [isApproximate, setIsApproximate] = useState(false); // Track if current location is from IP
 
   // UI states
   const [isGeolocating, setIsGeolocating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [geoError, setGeoError] = useState(null);
+
+  // Pre-fill with IP location when available (only once)
+  useEffect(() => {
+    if (isOpen && ipLocation && locationSource === 'ip' && !hasPreFilled && !locationData.location) {
+      // Build location name from IP geolocation data
+      const locationName = ipLocation.city && ipLocation.region
+        ? `${ipLocation.city}, ${ipLocation.region}`
+        : ipLocation.city || 'Your approximate location';
+
+      setLocationData({
+        location: locationName,
+        latitude: ipLocation.latitude,
+        longitude: ipLocation.longitude
+      });
+      setHasPreFilled(true);
+      setIsApproximate(true); // IP location is approximate
+    }
+  }, [isOpen, ipLocation, locationSource, hasPreFilled, locationData.location]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHasPreFilled(false);
+      setIsApproximate(false);
+    }
+  }, [isOpen]);
 
   // Close modal on ESC key
   useEffect(() => {
@@ -94,16 +127,17 @@ function LocationOnboardingModal({ isOpen, onClose, onSave, onSkip }) {
         latitude: result.latitude,
         longitude: result.longitude
       });
+      setIsApproximate(false); // Browser geolocation is precise
     } catch (error) {
-      // Handle geolocation errors
+      // Handle geolocation errors - softer messaging since IP fallback exists
       if (error.code === 1) {
-        setGeoError('Location access was denied. Please enable location permissions or search manually.');
+        setGeoError('Location access not available. You can search for your city below or continue with approximate location.');
       } else if (error.code === 2) {
-        setGeoError('Unable to determine your location. Please try searching manually.');
+        setGeoError('Unable to determine precise location. Try searching for your city below.');
       } else if (error.code === 3) {
-        setGeoError('Location request timed out. Please try again or search manually.');
+        setGeoError('Location request timed out. Try searching for your city below.');
       } else {
-        setGeoError('Unable to get your location. Please search manually.');
+        setGeoError('Unable to get precise location. Try searching below.');
       }
     } finally {
       setIsGeolocating(false);
@@ -114,6 +148,7 @@ function LocationOnboardingModal({ isOpen, onClose, onSave, onSkip }) {
   const handleLocationSelect = (data) => {
     setLocationData(data);
     setGeoError(null);
+    setIsApproximate(false); // Search selection is precise
   };
 
   // Handle save
@@ -153,9 +188,13 @@ function LocationOnboardingModal({ isOpen, onClose, onSave, onSkip }) {
         </div>
 
         {/* Header */}
-        <h2 className="location-modal__title">Set Your Location</h2>
+        <h2 className="location-modal__title">
+          {hasPreFilled ? 'Confirm Your Location' : 'Set Your Location'}
+        </h2>
         <p className="location-modal__subtitle">
-          Get accurate moonrise times, see nearby stargazing spots, and unlock location-based features
+          {hasPreFilled
+            ? 'We detected your approximate location. Confirm or update it for more accurate results.'
+            : 'Get accurate moonrise times, see nearby stargazing spots, and unlock location-based features'}
         </p>
 
         {/* Geolocation button */}
@@ -213,9 +252,14 @@ function LocationOnboardingModal({ isOpen, onClose, onSave, onSkip }) {
 
         {/* Selected location display */}
         {locationData.location && (
-          <div className="location-modal__selected">
-            <i className="fa-solid fa-check-circle"></i>
-            <span>{locationData.location}</span>
+          <div className={`location-modal__selected${isApproximate ? ' location-modal__selected--approximate' : ''}`}>
+            <i className={`fa-solid ${isApproximate ? 'fa-location-dot' : 'fa-check-circle'}`}></i>
+            <div className="location-modal__selected-text">
+              <span>{locationData.location}</span>
+              {isApproximate && (
+                <span className="location-modal__selected-hint">Approximate • Use button above for precise location</span>
+              )}
+            </div>
           </div>
         )}
 
