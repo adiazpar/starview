@@ -20,6 +20,8 @@ import './styles.css';
 // Lazy load ExploreMap - defers loading Mapbox GL JS (~500KB) until needed
 const ExploreMap = lazy(() => import('../../components/explore/ExploreMap'));
 
+const MAP_VIEWPORT_KEY = 'starview_explore_viewport';
+
 function ExplorePage() {
   useSEO({
     title: 'Explore Stargazing Locations | Starview',
@@ -33,7 +35,16 @@ function ExplorePage() {
   // Use ref to preserve initial value across re-renders (survives URL cleanup during lazy load)
   const initialLightPollutionRef = useRef(searchParams.get('lightPollution') === 'true');
   const [view, setView] = useState(initialView);
-  const mapViewport = useRef(null); // Persist map position across view toggles
+
+  // Persist map position across navigation (survives unmount via sessionStorage)
+  const mapViewport = useRef((() => {
+    try {
+      const saved = sessionStorage.getItem(MAP_VIEWPORT_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  })());
 
   // Clean up URL after consuming query params (keeps view=map, removes one-time params)
   useEffect(() => {
@@ -98,9 +109,14 @@ function ExplorePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [setPage]);
 
-  // Save map viewport when it changes
+  // Save map viewport when it changes (to ref and sessionStorage)
   const handleMapViewportChange = useCallback((viewport) => {
     mapViewport.current = viewport;
+    try {
+      sessionStorage.setItem(MAP_VIEWPORT_KEY, JSON.stringify(viewport));
+    } catch {
+      // sessionStorage unavailable or full - ignore
+    }
   }, []);
 
   return (
