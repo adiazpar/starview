@@ -203,22 +203,26 @@ function ExplorePage() {
         )}
       </div>
 
-      {/* Map Panel - lazy loaded to defer Mapbox bundle, hidden only on mobile/tablet list view */}
-      <div className={`explore-page__map ${!isDesktop && view !== 'map' ? 'explore-page__map--hidden' : ''}`}>
-        <Suspense fallback={
-          <div className="explore-page__loading">
-            <i className="fa-solid fa-spinner fa-spin"></i>
-            <p>Loading map...</p>
-          </div>
-        }>
-          <ExploreMap
-            initialViewport={mapViewport.current}
-            onViewportChange={handleMapViewportChange}
-            initialLightPollution={initialLightPollutionRef.current}
-            filters={apiParams}
-          />
-        </Suspense>
-      </div>
+      {/* Map Panel - lazy loaded to defer Mapbox bundle
+          Mobile: conditionally rendered to avoid compute when in list view
+          Desktop: always rendered for side-by-side layout */}
+      {(isDesktop || view === 'map') && (
+        <div className="explore-page__map">
+          <Suspense fallback={
+            <div className="explore-page__loading">
+              <i className="fa-solid fa-spinner fa-spin"></i>
+              <p>Loading map...</p>
+            </div>
+          }>
+            <ExploreMap
+              initialViewport={mapViewport.current}
+              onViewportChange={handleMapViewportChange}
+              initialLightPollution={initialLightPollutionRef.current}
+              filters={apiParams}
+            />
+          </Suspense>
+        </div>
+      )}
 
       {/* Toggle button - mobile/tablet only */}
       {!isDesktop && <ViewToggle view={view} onToggle={handleToggleView} />}
