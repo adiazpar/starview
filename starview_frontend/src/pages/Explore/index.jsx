@@ -69,10 +69,23 @@ function ExplorePage() {
   const loadMoreRef = useIntersectionObserver(handleLoadMore);
 
   const handleToggleView = useCallback(() => {
-    setView(prev => prev === 'list' ? 'map' : 'list');
+    const newView = view === 'list' ? 'map' : 'list';
+    setView(newView);
+
+    // Update URL to persist view state in browser history
+    // This allows back button to restore the correct view
+    const params = new URLSearchParams(searchParams);
+    if (newView === 'map') {
+      params.set('view', 'map');
+    } else {
+      params.delete('view');
+    }
+    const newUrl = params.toString() ? `/explore?${params.toString()}` : '/explore';
+    navigate(newUrl);
+
     // Reset scroll position when switching views
     window.scrollTo(0, 0);
-  }, []);
+  }, [view, searchParams, navigate]);
 
   const handlePressLocation = useCallback((location) => {
     navigate(`/locations/${location.id}`);
