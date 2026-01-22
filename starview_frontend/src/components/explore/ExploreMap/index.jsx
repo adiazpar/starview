@@ -401,7 +401,12 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     bounds: viewportBounds,
     filters,
   });
-  const { location: userLocation, source: userLocationSource } = useUserLocation();
+  const {
+    location: userLocation,
+    source: userLocationSource,
+    permissionState,
+    refresh: refreshUserLocation,
+  } = useUserLocation();
   const { getRoute, routeData, isLoading: isRouteLoading, clearRoute } = useMapboxDirections();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
@@ -645,8 +650,12 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
         longitude: selectedLocation.longitude,
       };
       await getRoute(from, to);
+    } else if (permissionState === 'prompt' || permissionState === null) {
+      // User hasn't been prompted for location yet - request it
+      // The auto-fetch effect will get the route once permission is granted
+      refreshUserLocation();
     }
-  }, [selectedLocation, userLocation, userLocationSource, getRoute]);
+  }, [selectedLocation, userLocation, userLocationSource, permissionState, refreshUserLocation, getRoute]);
 
   // Clear route data when exiting navigation mode
   useEffect(() => {
