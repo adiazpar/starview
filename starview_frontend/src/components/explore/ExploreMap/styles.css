@@ -182,6 +182,22 @@
   border-color: var(--favorite-hover);
 }
 
+.map-card__btn--favorite.active i {
+  animation: heartPop 0.3s ease-out;
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-card__btn--favorite.active i {
+    animation: none;
+  }
+}
+
 /* Observatory action buttons container - top left */
 .map-card__actions {
   position: absolute;

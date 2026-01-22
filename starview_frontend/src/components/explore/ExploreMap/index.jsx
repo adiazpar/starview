@@ -172,7 +172,7 @@ function getMarkerPopupHTML(properties) {
 }
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { PmTilesSource } from 'mapbox-pmtiles';
@@ -406,6 +406,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const { formatArea } = useUnits();
 
   // Ref for formatArea to use in event handlers (avoids stale closures)
@@ -597,9 +598,9 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
 
   const handleViewLocation = useCallback(() => {
     if (selectedLocation) {
-      // TODO: Navigate to location detail page
+      navigate(`/locations/${selectedLocation.id}`);
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, navigate]);
 
   // Handle favorite toggle - redirects to login if not authenticated
   const handleToggleFavorite = useCallback((e) => {
