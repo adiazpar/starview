@@ -260,6 +260,77 @@
   animation: fadeInUp 0.6s ease-out 0.4s forwards;
 }
 
+/* Location Search - Always visible */
+.hero__search {
+  max-width: 420px;
+  width: 100%;
+  margin: var(--space-xl) auto 0;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.5s forwards;
+}
+
+.hero__search--always-visible {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.hero__search-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.hero__search-label i {
+  font-size: var(--text-xs);
+}
+
+.hero__search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.hero__search-input .location-autocomplete {
+  flex: 1;
+}
+
+.hero__search-current {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.hero__search-current i {
+  color: var(--success);
+  font-size: var(--text-xs);
+}
+
+.hero__search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px var(--space-lg);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
 /* Decorative glow - Targeting reticle */
 .hero__glow {
   position: absolute;

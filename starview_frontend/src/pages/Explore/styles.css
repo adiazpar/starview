@@ -219,24 +219,50 @@
 .explore-page__header {
   grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-md);
   margin-bottom: var(--space-sm);
 }
 
+/* Header controls row - LocationChip and SortDropdown */
+.explore-page__header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+/* Count row with horizontal lines */
+.explore-page__count-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.explore-page__count-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .explore-page__count {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--text-primary);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  white-space: nowrap;
   margin: 0;
 }
 
 /* Mobile header - outside the virtualized list */
 .explore-page__mobile-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-md);
   padding: var(--space-lg) var(--space-lg) 0;
 }
 

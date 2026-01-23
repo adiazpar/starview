@@ -1,11 +1,8 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import LoadingSpinner from './components/shared/LoadingSpinner';
-import LocationOnboardingModal from './components/onboarding/LocationOnboardingModal';
-import { useAuth } from './context/AuthContext';
-import { profileApi } from './services/profile';
 
 // Lazy load all page components for code splitting
 const HomePage = lazy(() => import('./pages/Home'));
@@ -33,56 +30,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFound'));
 const LocationDetailPage = lazy(() => import('./pages/LocationDetail'));
 
 function App() {
-  const { isAuthenticated, user, loading, refreshAuth } = useAuth();
-  const [showLocationModal, setShowLocationModal] = useState(false);
-
-  // Show location onboarding modal for authenticated users without location
-  // Delay appearance to let the home page render first for a smoother experience
-  useEffect(() => {
-    if (!loading && isAuthenticated && user) {
-      const shouldShowModal = !user.location && !user.location_prompt_dismissed;
-      if (shouldShowModal) {
-        const timer = setTimeout(() => {
-          setShowLocationModal(true);
-        }, 600);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [loading, isAuthenticated, user]);
-
-  // Handle save location from modal
-  const handleSaveLocation = async (locationData) => {
-    try {
-      await profileApi.updateLocation(locationData);
-      await refreshAuth();
-      setShowLocationModal(false);
-    } catch (error) {
-      console.error('Failed to save location:', error);
-      throw error;
-    }
-  };
-
-  // Handle skip location prompt
-  const handleSkipLocation = async () => {
-    try {
-      await profileApi.dismissLocationPrompt();
-      await refreshAuth();
-      setShowLocationModal(false);
-    } catch (error) {
-      console.error('Failed to dismiss location prompt:', error);
-    }
-  };
-
   return (
     <main className="main-content">
-      {/* Location onboarding modal */}
-      <LocationOnboardingModal
-        isOpen={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        onSave={handleSaveLocation}
-        onSkip={handleSkipLocation}
-      />
-
       <Suspense fallback={<LoadingSpinner size="lg" fullPage />}>
         <Routes>
           <Route path="/" element={<HomePage />} />

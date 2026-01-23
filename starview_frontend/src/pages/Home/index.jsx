@@ -3,15 +3,23 @@
  * Features animated hero, real platform stats, and feature highlights.
  */
 
+import { lazy, Suspense, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePlatformStats } from '../../hooks/useStats';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation } from '../../contexts/LocationContext';
 import ProfileSetupCard from '../../components/home/ProfileSetupCard';
 import './styles.css';
+
+// Lazy load the heavy Mapbox Geocoder component
+const LocationAutocomplete = lazy(() =>
+  import('../../components/shared/LocationAutocomplete')
+);
 
 function HomePage() {
   const { stats, showStats } = usePlatformStats();
   const { isAuthenticated, user } = useAuth();
+  const { location, setLocation, isLoading: isLocationLoading } = useLocation();
   const navigate = useNavigate();
 
   // Navigate to profile settings, optionally scrolling to a specific section
@@ -22,6 +30,14 @@ function HomePage() {
       navigate('/profile');
     }
   };
+
+  // Handle location selection from search - updates context but stays on home
+  const handleLocationSelect = useCallback((data) => {
+    if (data.location && data.latitude && data.longitude) {
+      setLocation(data.latitude, data.longitude, data.location, 'search');
+      // Stay on home - the CTAs will take user to pages with the updated location
+    }
+  }, [setLocation]);
 
   return (
     <main className="home">
@@ -75,6 +91,35 @@ function HomePage() {
               Your stargazing adventure begins here
             </p>
           )}
+
+          {/* Location Search - Always visible, pre-filled with current location */}
+          <div className="hero__search hero__search--always-visible">
+            <div className="hero__search-label">
+              <i className="fa-solid fa-location-dot"></i>
+              <span>Showing conditions for</span>
+            </div>
+            <div className="hero__search-input">
+              <Suspense
+                fallback={
+                  <div className="hero__search-loading">
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading search...</span>
+                  </div>
+                }
+              >
+                <LocationAutocomplete
+                  onSelect={handleLocationSelect}
+                  placeholder={isLocationLoading ? 'Finding your location...' : (location?.name || 'Search for a city...')}
+                />
+              </Suspense>
+            </div>
+            {location && !isLocationLoading && (
+              <div className="hero__search-current">
+                <i className="fa-solid fa-check-circle"></i>
+                <span>{location.name}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Decorative glow */}

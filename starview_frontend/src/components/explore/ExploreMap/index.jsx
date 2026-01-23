@@ -178,7 +178,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { PmTilesSource } from 'mapbox-pmtiles';
 import SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
-import { useUserLocation } from '../../../hooks/useUserLocation';
+import { useLocation } from '../../../contexts/LocationContext';
 import { useMapboxDirections } from '../../../hooks/useMapboxDirections';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
@@ -405,8 +405,8 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     location: userLocation,
     source: userLocationSource,
     permissionState,
-    refresh: refreshUserLocation,
-  } = useUserLocation();
+    requestCurrentLocation: refreshUserLocation,
+  } = useLocation();
   const { getRoute, routeData, isLoading: isRouteLoading, clearRoute } = useMapboxDirections();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
@@ -639,7 +639,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
       setIsNavigationMode(true);
     }
 
-    // Only fetch route if we have precise browser geolocation (not profile fallback)
+    // Only fetch route if we have precise browser geolocation (not IP fallback)
     if (userLocation && userLocationSource === 'browser') {
       const from = {
         latitude: userLocation.latitude,
@@ -1652,7 +1652,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   // This runs when: 1) initial load with browser permission, 2) user grants permission mid-session
   // Uses hasTriggeredGeolocateRef to prevent re-triggering on style changes (which toggle mapLoaded)
   useEffect(() => {
-    // Only trigger for browser geolocation (not profile fallback)
+    // Only trigger for browser geolocation (not IP fallback)
     if (userLocationSource !== 'browser') return;
     if (!geolocateControlRef.current || !userLocation || !mapLoaded) return;
     // Only trigger once - prevents map jumping back to user location on style changes

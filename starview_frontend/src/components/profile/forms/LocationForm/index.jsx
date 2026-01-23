@@ -1,16 +1,14 @@
 /**
  * LocationForm Component
  *
- * Form component for updating user location with Mapbox autocomplete.
- * Stores location text (public) and coordinates (private).
+ * Form component for updating user location for public profile display.
+ * Uses Mapbox autocomplete for city/region search.
  * Uses view/edit mode pattern for cleaner UX.
- * Shows which location source is being used for map features.
  */
 
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import profileApi from '../../../../services/profile';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
-import { useUserLocation } from '../../../../hooks/useUserLocation';
 import { useToast } from '../../../../contexts/ToastContext';
 
 // Lazy load Mapbox autocomplete (185 kB) - only loads when user clicks Edit
@@ -19,21 +17,13 @@ const LocationAutocomplete = lazy(() => import('../../../shared/LocationAutocomp
 function LocationForm({ user, refreshAuth, scrollTo = false }) {
   const [isEditing, setIsEditing] = useState(false);
   const sectionRef = useRef(null);
-  const [locationData, setLocationData] = useState({
-    location: user?.location || '',
-    latitude: null,
-    longitude: null
-  });
-  const { source: locationSource, isLoading: locationLoading } = useUserLocation();
+  const [locationText, setLocationText] = useState(user?.location || '');
   const { showToast } = useToast();
 
   // Update location when user data changes
   useEffect(() => {
     if (user?.location !== undefined) {
-      setLocationData(prev => ({
-        ...prev,
-        location: user.location || ''
-      }));
+      setLocationText(user.location || '');
     }
   }, [user?.location]);
 
@@ -48,7 +38,7 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
   }, [scrollTo]);
 
   const { loading, handleSubmit } = useFormSubmit({
-    onSubmit: async () => await profileApi.updateLocation(locationData),
+    onSubmit: async () => await profileApi.updateLocation({ location: locationText }),
     onSuccess: () => {
       showToast('Location updated successfully!', 'success');
       refreshAuth();
@@ -62,19 +52,11 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
 
   // Handle location selection from autocomplete
   const handleLocationSelect = useCallback((data) => {
-    setLocationData({
-      location: data.location,
-      latitude: data.latitude,
-      longitude: data.longitude
-    });
+    setLocationText(data.location);
   }, []);
 
   const handleCancel = () => {
-    setLocationData({
-      location: user?.location || '',
-      latitude: null,
-      longitude: null
-    });
+    setLocationText(user?.location || '');
     setIsEditing(false);
   };
 
@@ -85,7 +67,7 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
         <div className="profile-form-header-content">
           <h3 className="profile-form-title">Location</h3>
           <p className="profile-form-description">
-            Where are you based? This will be visible on your public profile.
+            Where are you based? This is displayed on your public profile.
           </p>
         </div>
         <button
@@ -110,24 +92,6 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
           <span className={`profile-view-value ${!user?.location ? 'profile-view-value--empty' : ''}`}>
             {user?.location || 'Not set'}
           </span>
-
-          {/* Location Source Indicator */}
-          {!locationLoading && (
-            <div className="location-source-hint">
-              {locationSource === 'browser' && (
-                <span>Using your browser's location to show distances, day/night map lighting, and nearby locations.</span>
-              )}
-              {locationSource === 'profile' && (
-                <span>Using this location to show distances, day/night map lighting, and nearby locations.</span>
-              )}
-              {!locationSource && !user?.location && (
-                <span>Set a location to see distances to stargazing spots, day/night map lighting, and nearby locations.</span>
-              )}
-              {!locationSource && user?.location && (
-                <span>Location coordinates missing — edit and re-save to enable distances and map features.</span>
-              )}
-            </div>
-          )}
         </div>
       )}
 
@@ -142,7 +106,7 @@ function LocationForm({ user, refreshAuth, scrollTo = false }) {
                 </div>
               }>
                 <LocationAutocomplete
-                  value={locationData.location}
+                  value={locationText}
                   onSelect={handleLocationSelect}
                   placeholder="Search for a city or region..."
                   disabled={loading}

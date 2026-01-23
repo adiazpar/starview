@@ -1,0 +1,346 @@
+/* ========================================================================
+   LocationModal Component Styles
+   Full-screen modal on mobile, centered dialog on desktop
+   ======================================================================== */
+
+/* Overlay */
+.location-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: var(--z-modal);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  animation: locationOverlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes locationOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.location-modal-overlay--closing {
+  animation: locationOverlayFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes locationOverlayFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Modal container */
+.location-modal {
+  position: relative;
+  width: 100%;
+  max-height: 80vh;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: locationModalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateY(100%);
+}
+
+@keyframes locationModalSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.location-modal--closing {
+  animation: locationModalSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes locationModalSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+/* Header */
+.location-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.location-modal__close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  border-radius: var(--radius);
+  transition: color 0.3s ease;
+}
+
+.location-modal__close:hover {
+  color: var(--text-primary);
+}
+
+.location-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.location-modal__header-spacer {
+  width: 36px;
+}
+
+/* Content */
+.location-modal__content {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-lg);
+  padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+.location-modal__content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.location-modal__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.location-modal__content::-webkit-scrollbar-thumb {
+  background: var(--glass-border-hover);
+  border-radius: 4px;
+}
+
+/* Current location indicator */
+.location-modal__current {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-lg);
+}
+
+.location-modal__current-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.location-modal__current-value {
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.location-modal__approx {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* Geolocate button */
+.location-modal__geolocate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 14px var(--space-lg);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-modal__geolocate-btn:hover:not(:disabled) {
+  background: var(--glass-border-hover);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  box-shadow: 0 0 20px var(--glow-primary);
+}
+
+.location-modal__geolocate-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.location-modal__geolocate-btn i {
+  font-size: var(--text-base);
+  color: var(--accent);
+}
+
+/* Divider */
+.location-modal__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+}
+
+.location-modal__divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.location-modal__divider-text {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+/* Search */
+.location-modal__search {
+  margin-bottom: var(--space-lg);
+}
+
+.location-modal__search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px var(--space-lg);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Recent locations */
+.location-modal__recent {
+  margin-top: var(--space-md);
+}
+
+.location-modal__recent-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-sm);
+}
+
+.location-modal__recent-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.location-modal__recent-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-modal__recent-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.location-modal__recent-icon {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.location-modal__recent-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+  .location-modal-overlay {
+    align-items: center;
+  }
+
+  .location-modal {
+    max-width: 420px;
+    max-height: 70vh;
+    border-radius: calc(var(--radius) * 2);
+    border-bottom: 1px solid var(--border);
+    animation: locationModalSlideUpDesktop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  @keyframes locationModalSlideUpDesktop {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .location-modal--closing {
+    animation: locationModalSlideDownDesktop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes locationModalSlideDownDesktop {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .location-modal-overlay,
+  .location-modal-overlay--closing,
+  .location-modal,
+  .location-modal--closing {
+    animation: none;
+  }
+
+  .location-modal {
+    transform: none;
+    opacity: 1;
+  }
+}

@@ -82,6 +82,23 @@
   font-size: var(--text-base);
 }
 
+/* Check Conditions Button (Mobile) */
+.location-actions__btn--conditions {
+  background: linear-gradient(135deg, var(--accent-bg) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.location-actions__btn--conditions:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--glow-primary);
+}
+
+.location-actions__btn--conditions i {
+  color: var(--accent);
+}
+
 /* ============================================
    SIDEBAR LAYOUT (Desktop)
    ============================================ */
@@ -182,6 +199,23 @@
 
 .location-actions__sidebar-btn--visited i {
   color: var(--success);
+}
+
+/* Check Conditions Button (Sidebar) */
+.location-actions__sidebar-btn--conditions {
+  background: linear-gradient(135deg, var(--accent-bg) 0%, rgba(99, 102, 241, 0.1) 100%);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.location-actions__sidebar-btn--conditions:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--glow-primary);
+}
+
+.location-actions__sidebar-btn--conditions i {
+  color: var(--accent);
 }
 
 /* ============================================

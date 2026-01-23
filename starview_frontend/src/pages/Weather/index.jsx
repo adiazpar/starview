@@ -7,9 +7,11 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import SunCalc from 'suncalc';
 import { useSEO } from '../../hooks/useSEO';
-import { useUserLocation } from '../../hooks/useUserLocation';
+import { useLocation } from '../../contexts/LocationContext';
 import { useWeather } from '../../hooks/useWeather';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
+import LocationChip from '../../components/shared/LocationChip';
+import LocationModal from '../../components/shared/LocationModal';
 import './styles.css';
 
 /**
@@ -207,9 +209,10 @@ function WeatherPage() {
   const sectionsRef = useRef([]);
   const bottomCtaRef = useRef(null);
   const [selectedFactor, setSelectedFactor] = useState(0);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   // Live data hooks
-  const { location, source: locationSource } = useUserLocation();
+  const { location, source: locationSource } = useLocation();
   const lat = location?.latitude;
   const lng = location?.longitude;
   const hasLocation = lat !== undefined && lng !== undefined;
@@ -236,7 +239,7 @@ function WeatherPage() {
     temperature,
     quality: getCloudQuality(cloudCover),
     date: formatDate(),
-    locationLabel: locationSource === 'profile' ? 'PROFILE' : locationSource === 'browser' ? 'GPS' : null,
+    locationLabel: locationSource === 'browser' ? 'GPS' : locationSource === 'ip' ? 'APPROX' : locationSource === 'search' ? 'SEARCH' : null,
     isNight: checkIsNight(lat, lng),
   }), [cloudCover, humidity, windSpeed, temperature, locationSource, lat, lng]);
 
@@ -282,6 +285,12 @@ function WeatherPage() {
 
   return (
     <div className="weather-page">
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
+
       {/* Observatory-Style Hero Section */}
       <header className="weather-hero">
         {/* Grid overlay */}
@@ -323,6 +332,9 @@ function WeatherPage() {
             Understanding atmospheric conditions is essential for successful observation.
             Learn which factors matter most and how to plan around them.
           </p>
+          <div className="weather-hero__location">
+            <LocationChip onClick={() => setIsLocationModalOpen(true)} />
+          </div>
         </div>
 
         {/* Current conditions (bottom) */}

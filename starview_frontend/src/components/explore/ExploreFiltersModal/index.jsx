@@ -17,7 +17,6 @@ import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useExploreFilters } from '../../../hooks/useExploreFilters';
-import { useAuth } from '../../../context/AuthContext';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -65,13 +64,8 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     requestNearMe,
     clearFilters,
     activeFilterCount,
-    permissionState,
     locationSource,
   } = useExploreFilters();
-
-  // Get user's profile location name for display
-  const { user } = useAuth();
-  const profileLocationName = user?.location || 'Profile location';
 
   // "Near me" is always enabled now - we have IP geolocation as ultimate fallback
   const nearMeDisabled = false;
@@ -339,11 +333,6 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
                     <i className="fa-solid fa-spinner fa-spin"></i>
                     <span>Finding your location...</span>
                   </>
-                ) : locationSource === 'profile' ? (
-                  <>
-                    <i className="fa-solid fa-location-dot"></i>
-                    <span>Near {profileLocationName}</span>
-                  </>
                 ) : (
                   <>
                     <i className="fa-solid fa-location-arrow"></i>
@@ -355,12 +344,7 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
               {/* Show hint for improving location accuracy */}
               {locationSource === 'ip' && (
                 <p className="explore-filters-modal__permission-hint">
-                  Using approximate location. <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Set your location</Link> for better accuracy.
-                </p>
-              )}
-              {locationSource === 'profile' && permissionState === 'denied' && (
-                <p className="explore-filters-modal__permission-hint">
-                  Not your location? <Link to="/profile" className="explore-filters-modal__hint-link" onClick={handleClose}>Update in settings</Link> or enable browser location.
+                  Using approximate location. Enable browser location for better accuracy.
                 </p>
               )}
 

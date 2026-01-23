@@ -12,6 +12,8 @@
   align-items: flex-end;
   justify-content: center;
   z-index: var(--z-modal);
+  overflow: hidden;
+  overscroll-behavior: contain;
   animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -130,6 +132,7 @@
 .explore-filters-modal__content {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-lg);
   scroll-behavior: smooth;
 

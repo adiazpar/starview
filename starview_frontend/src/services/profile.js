@@ -95,22 +95,13 @@ export const profileApi = {
   },
 
   /**
-   * Update user's location
+   * Update user's location for public profile display
    * @param {Object} data - Location data
    * @param {string} data.location - Location text (max 100 characters)
    * @returns {Promise} - { detail: string, location: string }
    */
   updateLocation: (data) => {
     return api.patch('/users/me/update-location/', data);
-  },
-
-  /**
-   * Dismiss the location onboarding prompt
-   * Called when user clicks "Skip for now" on the location modal
-   * @returns {Promise} - { detail: string }
-   */
-  dismissLocationPrompt: () => {
-    return api.post('/users/me/dismiss-location-prompt/');
   },
 
   /**

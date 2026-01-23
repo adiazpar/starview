@@ -542,77 +542,36 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Update user's location with optional coordinates.                             #
+    # Update user's location text for public profile display.                       #
     #                                                                               #
-    # Location text appears on public profile (e.g., "Seattle, Washington, US").    #
-    # Coordinates are stored privately and never exposed in API responses.          #
+    # Location is purely for display on the user's public profile (e.g., "Seattle"). #
+    # Sky condition features use session-based location resolved via browser/IP.    #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-location/                                      #
     # Authentication: Required                                                      #
-    # Body: JSON with location (max 100 chars), optional latitude/longitude         #
-    # Returns: DRF Response with success status and updated location text only      #
+    # Body: JSON with location (max 100 chars)                                      #
+    # Returns: DRF Response with success status and updated location text           #
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-location')
     def update_location(self, request):
         location = request.data.get('location', '').strip()
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
 
         # Validate location text length
         if len(location) > 100:
             raise exceptions.ValidationError('Location must be 100 characters or less.')
 
         profile = request.user.userprofile
-
-        # Handle clearing location (empty string clears everything)
-        if not location:
-            profile.location = ''
-            profile.location_latitude = None
-            profile.location_longitude = None
-        else:
-            profile.location = location
-            # Store coordinates if provided (model validators handle range validation)
-            if latitude is not None and longitude is not None:
-                profile.location_latitude = float(latitude)
-                profile.location_longitude = float(longitude)
-            else:
-                # Location text without coordinates (fallback for manual entry)
-                profile.location_latitude = None
-                profile.location_longitude = None
-
+        profile.location = location
         profile.save()
 
         # Check profile completion badge (may award/revoke Mission Ready)
         from starview_app.services.badge_service import BadgeService
         BadgeService.check_profile_complete_badge(request.user)
 
-        # Only return location text - coordinates are private
         return Response({
             'detail': 'Location updated successfully.',
             'location': profile.location
-        }, status=status.HTTP_200_OK)
-
-
-    # ----------------------------------------------------------------------------- #
-    # Dismiss the location onboarding prompt.                                       #
-    #                                                                               #
-    # Called when user clicks "Skip for now" on the location onboarding modal.      #
-    # Prevents the modal from appearing again on subsequent logins.                 #
-    #                                                                               #
-    # HTTP Method: POST                                                             #
-    # Endpoint: /api/users/me/dismiss-location-prompt/                              #
-    # Authentication: Required                                                      #
-    # Returns: DRF Response with success status                                     #
-    # ----------------------------------------------------------------------------- #
-    @action(detail=False, methods=['post'], url_path='me/dismiss-location-prompt')
-    def dismiss_location_prompt(self, request):
-        profile = request.user.userprofile
-        profile.location_prompt_dismissed = True
-        profile.save()
-
-        return Response({
-            'detail': 'Location prompt dismissed.'
         }, status=status.HTTP_200_OK)
 
 

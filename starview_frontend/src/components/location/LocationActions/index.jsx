@@ -1,20 +1,24 @@
 /* LocationActions Component
- * Action buttons for favorite, mark visited, and share.
+ * Action buttons for favorite, mark visited, share, and check conditions.
  * Supports both sidebar (desktop) and sticky bar (mobile) layouts.
  */
 
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { locationsApi } from '../../../services/locations';
+import { useLocation } from '../../../contexts/LocationContext';
 import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
 function LocationActions({ location, sticky = false }) {
+  const navigate = useNavigate();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
+  const { setLocation: setActiveLocation } = useLocation();
   const queryClient = useQueryClient();
 
   const [isVisited, setIsVisited] = useState(false); // TODO: Get from API when available
@@ -98,6 +102,14 @@ function LocationActions({ location, sticky = false }) {
     }
   }, [location.name, showToast]);
 
+  // Handle check conditions - sets location context and navigates to Tonight
+  const handleCheckConditions = useCallback(() => {
+    if (location.latitude && location.longitude) {
+      setActiveLocation(location.latitude, location.longitude, location.name, 'search');
+      navigate('/tonight');
+    }
+  }, [location, setActiveLocation, navigate]);
+
   const isFavorited = location.is_favorited || false;
   const isMarkingVisited = markVisitedMutation.isPending || unmarkVisitedMutation.isPending;
 
@@ -125,6 +137,14 @@ function LocationActions({ location, sticky = false }) {
             <i className={`fa-${isVisited ? 'solid' : 'regular'} fa-circle-check`}></i>
           )}
           <span>{isVisited ? 'Visited' : 'Mark Visited'}</span>
+        </button>
+
+        <button
+          className="location-actions__btn location-actions__btn--conditions"
+          onClick={handleCheckConditions}
+        >
+          <i className="fa-solid fa-cloud-moon"></i>
+          <span>Conditions</span>
         </button>
       </div>
     );
@@ -161,6 +181,14 @@ function LocationActions({ location, sticky = false }) {
       >
         <i className="fa-solid fa-share-nodes"></i>
         <span>Share Location</span>
+      </button>
+
+      <button
+        className="location-actions__sidebar-btn location-actions__sidebar-btn--conditions"
+        onClick={handleCheckConditions}
+      >
+        <i className="fa-solid fa-cloud-moon"></i>
+        <span>Check Conditions Here</span>
       </button>
     </div>
   );

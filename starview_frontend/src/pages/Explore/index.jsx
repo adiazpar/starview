@@ -7,7 +7,7 @@ import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useExploreData } from '../../hooks/useExploreData';
 import { useExploreFilters } from '../../hooks/useExploreFilters';
-import { useUserLocation } from '../../hooks/useUserLocation';
+import { useLocation } from '../../contexts/LocationContext';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import { useSEO } from '../../hooks/useSEO';
 import LocationCard from '../../components/explore/LocationCard';
@@ -15,6 +15,8 @@ import VirtualizedLocationList from '../../components/explore/VirtualizedLocatio
 import ViewToggle from '../../components/explore/ViewToggle';
 import Pagination from '../../components/explore/Pagination';
 import SortDropdown from '../../components/explore/SortDropdown';
+import LocationChip from '../../components/shared/LocationChip';
+import LocationModal from '../../components/shared/LocationModal';
 import './styles.css';
 
 // Lazy load ExploreMap - defers loading Mapbox GL JS (~500KB) until needed
@@ -35,6 +37,7 @@ function ExplorePage() {
   // Use ref to preserve initial value across re-renders (survives URL cleanup during lazy load)
   const initialLightPollutionRef = useRef(searchParams.get('lightPollution') === 'true');
   const [view, setView] = useState(initialView);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   // Persist map position across navigation (survives unmount via sessionStorage)
   const mapViewport = useRef((() => {
@@ -57,10 +60,10 @@ function ExplorePage() {
   }, []); // Only run once on mount
 
   // Get filter state from URL
-  const { apiParams, filterKey, filters, setSort, resolvedNear } = useExploreFilters();
+  const { apiParams, filterKey, filters, setSort } = useExploreFilters();
 
-  // Get user's location (for "Nearby" sorting even without distance filter)
-  const { location: userLocation } = useUserLocation();
+  // Get user's location (for "Distance" sorting even without distance filter)
+  const { location: userLocation } = useLocation();
 
   // Unified data hook handles mobile (infinite scroll) vs desktop (pagination)
   const {
@@ -144,14 +147,21 @@ function ExplorePage() {
         ) : (
           <>
             <div className="explore-page__mobile-header">
-              <h2 className="explore-page__count">
-                {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
-              </h2>
-              <SortDropdown
-                currentSort={filters.sort}
-                onSortChange={setSort}
-                hasUserLocation={!!userLocation}
-              />
+              <div className="explore-page__header-controls">
+                <LocationChip onClick={() => setIsLocationModalOpen(true)} />
+                <SortDropdown
+                  currentSort={filters.sort}
+                  onSortChange={setSort}
+                  hasUserLocation={!!userLocation}
+                />
+              </div>
+              <div className="explore-page__count-row">
+                <span className="explore-page__count-line"></span>
+                <span className="explore-page__count">
+                  {count.toLocaleString()} {count === 1 ? 'location' : 'locations'}
+                </span>
+                <span className="explore-page__count-line"></span>
+              </div>
             </div>
             {locations.length === 0 ? (
               <div className="explore-page__list">
@@ -181,14 +191,21 @@ function ExplorePage() {
         {/* Location count header - desktop only */}
         {isDesktop && !isLoading && !isError && (
           <div className="explore-page__header">
-            <h2 className="explore-page__count">
-              {count.toLocaleString()} {count === 1 ? 'location' : 'locations'} found
-            </h2>
-            <SortDropdown
-              currentSort={filters.sort}
-              onSortChange={setSort}
-              hasUserLocation={!!userLocation}
-            />
+            <div className="explore-page__header-controls">
+              <LocationChip onClick={() => setIsLocationModalOpen(true)} />
+              <SortDropdown
+                currentSort={filters.sort}
+                onSortChange={setSort}
+                hasUserLocation={!!userLocation}
+              />
+            </div>
+            <div className="explore-page__count-row">
+              <span className="explore-page__count-line"></span>
+              <span className="explore-page__count">
+                {count.toLocaleString()} {count === 1 ? 'location' : 'locations'}
+              </span>
+              <span className="explore-page__count-line"></span>
+            </div>
           </div>
         )}
 
@@ -255,6 +272,12 @@ function ExplorePage() {
 
       {/* Toggle button - mobile/tablet only */}
       {!isDesktop && <ViewToggle view={view} onToggle={handleToggleView} />}
+
+      {/* Location selection modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
     </div>
   );
 }

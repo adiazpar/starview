@@ -6,9 +6,11 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSEO } from '../../hooks/useSEO';
-import { useUserLocation } from '../../hooks/useUserLocation';
+import { useLocation } from '../../contexts/LocationContext';
 import { useBortle } from '../../hooks/useBortle';
 import BortleSkySlider from '../../components/shared/BortleSkySlider';
+import LocationChip from '../../components/shared/LocationChip';
+import LocationModal from '../../components/shared/LocationModal';
 import './styles.css';
 
 /**
@@ -141,9 +143,10 @@ function BortlePage() {
   const featuresRef = useRef([]);
   const bottomCtaRef = useRef(null);
   const [hoveredClass, setHoveredClass] = useState(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   // Live data hooks
-  const { location, source: locationSource } = useUserLocation();
+  const { location, source: locationSource } = useLocation();
   const lat = location?.latitude;
   const lng = location?.longitude;
   const hasLocation = lat !== undefined && lng !== undefined;
@@ -158,7 +161,7 @@ function BortlePage() {
   const displayData = useMemo(() => ({
     bortle: userBortle,
     date: formatDate(),
-    locationLabel: locationSource === 'profile' ? 'PROFILE' : locationSource === 'browser' ? 'GPS' : null,
+    locationLabel: locationSource === 'browser' ? 'GPS' : locationSource === 'ip' ? 'APPROX' : locationSource === 'search' ? 'SEARCH' : null,
   }), [userBortle, locationSource]);
 
   // Get user's bortle class data
@@ -208,6 +211,12 @@ function BortlePage() {
 
   return (
     <div className="bortle-page">
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
+
       {/* Observatory-Style Hero Section */}
       <header className="bortle-hero">
         {/* Grid overlay */}
@@ -249,6 +258,9 @@ function BortlePage() {
             A nine-level numeric scale measuring the night sky's brightness at a given location.
             Created by amateur astronomer John E. Bortle in 2001.
           </p>
+          <div className="bortle-hero__location">
+            <LocationChip onClick={() => setIsLocationModalOpen(true)} />
+          </div>
         </div>
 
         {/* User's current Bortle (bottom) */}

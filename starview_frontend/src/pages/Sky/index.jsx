@@ -6,7 +6,7 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSEO } from '../../hooks/useSEO';
-import { useUserLocation } from '../../hooks/useUserLocation';
+import { useLocation } from '../../contexts/LocationContext';
 import { useTodayMoonPhase } from '../../hooks/useMoonPhases';
 import { useBortle } from '../../hooks/useBortle';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
@@ -39,7 +39,7 @@ function SkyPage() {
   const bottomCtaRef = useRef(null);
 
   // Live data hooks
-  const { location, source: locationSource } = useUserLocation();
+  const { location, source: locationSource } = useLocation();
   const lat = location?.latitude;
   const lng = location?.longitude;
   const hasLocation = lat !== undefined && lng !== undefined;
@@ -64,7 +64,7 @@ function SkyPage() {
     isWaning: todayPhase?.is_waning || false,
     bortle: bortle,
     date: formatDate(),
-    locationLabel: locationSource === 'profile' ? 'PROFILE' : locationSource === 'browser' ? 'GPS' : null,
+    locationLabel: locationSource === 'browser' ? 'GPS' : locationSource === 'ip' ? 'APPROX' : locationSource === 'search' ? 'SEARCH' : null,
   }), [hasLocation, lat, lng, todayPhase, bortle, locationSource]);
 
   // Scroll-triggered animations using Intersection Observer

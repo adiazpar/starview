@@ -14,7 +14,7 @@ const SORT_LABELS = {
   'average_rating': 'Lowest Rated',
   '-review_count': 'Most Reviews',
   'review_count': 'Fewest Reviews',
-  'distance': 'Nearby',
+  'distance': 'Distance',
 };
 
 // Base sort options (always available)
@@ -28,7 +28,7 @@ function SortDropdown({ currentSort, onSortChange, hasUserLocation = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Show "Nearby" option when user has a location (browser or profile)
+  // Show "Distance" option when user has a location (from unified LocationContext)
   const sortOptions = hasUserLocation
     ? ['distance', ...BASE_SORT_OPTIONS]
     : BASE_SORT_OPTIONS;

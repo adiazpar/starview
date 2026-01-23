@@ -8,11 +8,12 @@ import { Link } from 'react-router-dom';
 import { useMoonPhases } from '../../hooks/useMoonPhases';
 import { useNighttimeWeather } from '../../hooks/useNighttimeWeather';
 import { useBortle } from '../../hooks/useBortle';
-import { useUserLocation } from '../../hooks/useUserLocation';
-import { useAuth } from '../../context/AuthContext';
+import { useLocation } from '../../contexts/LocationContext';
 import { useSEO } from '../../hooks/useSEO';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
+import LocationChip from '../../components/shared/LocationChip';
+import LocationModal from '../../components/shared/LocationModal';
 import HourlyTimeline from './HourlyTimeline';
 import './styles.css';
 
@@ -157,11 +158,10 @@ const getWeatherDescription = (cloudCover) => {
 function TonightContent({
   lat,
   lng,
-  location,
-  source,
-  user,
-  isAuthenticated,
-  onEnableLocation,
+  onRequestLocation,
+  isLocationModalOpen,
+  onOpenLocationModal,
+  onCloseLocationModal,
 }) {
   // Today's date for moon data
   const today = new Date();
@@ -274,7 +274,13 @@ function TonightContent({
         <p className="tonight-header__subtitle">
           {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
+        <div className="tonight-header__location">
+          <LocationChip onClick={onOpenLocationModal} />
+        </div>
       </header>
+
+      {/* Location Modal */}
+      <LocationModal isOpen={isLocationModalOpen} onClose={onCloseLocationModal} />
 
       {/* Hero: Sky Score */}
       <section className="tonight-hero">
@@ -325,33 +331,14 @@ function TonightContent({
           )}
         </div>
 
-        {lat !== undefined && location && !isLoading && (
-          <div className="tonight-hero__location-wrapper">
-            <p className="tonight-hero__location">
-              <i className="fa-solid fa-location-dot"></i>
-              <span>{source === 'profile' && user?.location ? user.location : 'Your Location'}</span>
-            </p>
-            {source === 'profile' && (
-              <Link to="/profile?scrollTo=location" className="tonight-hero__location-change">
-                Not your location?
-              </Link>
-            )}
-          </div>
-        )}
-
         {/* Location prompt for users without location (rare - IP geolocation usually works) */}
         {lat === undefined && !isLoading && (
           <div className="tonight-hero__location-prompt">
             <p>
-              <button className="tonight-hero__enable-btn" onClick={onEnableLocation}>
+              <button className="tonight-hero__enable-btn" onClick={onRequestLocation}>
                 Enable location
               </button>
-              {' '}to see tonight&apos;s conditions
-              {isAuthenticated ? (
-                <>, or <Link to="/profile?scrollTo=location">set it in settings</Link>.</>
-              ) : (
-                <>, or <Link to="/login?next=/tonight">sign in</Link> to save your preferred location.</>
-              )}
+              {' '}to see tonight&apos;s conditions.
             </p>
           </div>
         )}
@@ -574,10 +561,10 @@ function TonightPage() {
   const {
     location,
     isLoading: locationLoading,
-    source,
-    refresh: refreshLocation,
-  } = useUserLocation();
-  const { isAuthenticated, user } = useAuth();
+    requestCurrentLocation,
+  } = useLocation();
+
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const lat = location?.latitude;
   const lng = location?.longitude;
@@ -608,11 +595,10 @@ function TonightPage() {
     <TonightContent
       lat={lat}
       lng={lng}
-      location={location}
-      source={source}
-      user={user}
-      isAuthenticated={isAuthenticated}
-      onEnableLocation={refreshLocation}
+      onRequestLocation={requestCurrentLocation}
+      isLocationModalOpen={isLocationModalOpen}
+      onOpenLocationModal={() => setIsLocationModalOpen(true)}
+      onCloseLocationModal={() => setIsLocationModalOpen(false)}
     />
   );
 }
