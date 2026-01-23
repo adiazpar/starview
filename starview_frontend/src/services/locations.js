@@ -119,6 +119,14 @@ export const locationsApi = {
   toggleFavorite: (locationId) => {
     return api.post(`/locations/${locationId}/toggle_favorite/`);
   },
+
+  /**
+   * Get random hero carousel images (rotates daily)
+   * @returns {Promise} - Array of { id, name, image_url }
+   */
+  getHeroCarousel: () => {
+    return api.get('/locations/hero_carousel/');
+  },
 };
 
 export default locationsApi;

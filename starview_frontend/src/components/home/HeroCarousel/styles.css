@@ -1,0 +1,116 @@
+/* HeroCarousel Styles
+ * Full-screen background carousel with crossfade transitions.
+ */
+
+.hero-carousel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Individual slides - fade to transparent at bottom */
+.hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+.hero-carousel__slide--active {
+  opacity: 1;
+}
+
+/* Gradient overlay for text readability */
+.hero-carousel__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 15, 26, 0.6) 0%,
+    rgba(10, 15, 26, 0.35) 50%,
+    transparent 100%
+  );
+  z-index: 1;
+}
+
+/* Progress indicators container */
+.hero-carousel__indicators {
+  position: absolute;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-sm);
+  z-index: 2;
+}
+
+/* Individual indicator button */
+.hero-carousel__indicator {
+  width: 48px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: background-color var(--transition) ease;
+}
+
+.hero-carousel__indicator:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Progress bar inside indicator */
+.hero-carousel__indicator-progress {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-full);
+}
+
+/* Active indicator shows progress animation */
+.hero-carousel__indicator--active .hero-carousel__indicator-progress {
+  animation: indicatorProgress 12s linear forwards;
+}
+
+@keyframes indicatorProgress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Reduced motion: disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__slide {
+    transition: none;
+  }
+
+  .hero-carousel__indicator-progress {
+    animation: none;
+  }
+
+  .hero-carousel__indicator--active .hero-carousel__indicator-progress {
+    width: 100%;
+  }
+}
+
+/* Mobile: smaller indicators */
+@media (max-width: 768px) {
+  .hero-carousel__indicators {
+    bottom: var(--space-lg);
+  }
+
+  .hero-carousel__indicator {
+    width: 32px;
+  }
+}

@@ -1,14 +1,14 @@
 /* Home Page
- * Landing page with cosmic elegance design.
- * Features animated hero, real platform stats, and feature highlights.
+ * Landing page with search-focused hero design.
+ * Features location search bar and feature highlights.
  */
 
 import { lazy, Suspense, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { usePlatformStats } from '../../hooks/useStats';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
 import ProfileSetupCard from '../../components/home/ProfileSetupCard';
+import HeroCarousel from '../../components/home/HeroCarousel';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -17,7 +17,6 @@ const LocationAutocomplete = lazy(() =>
 );
 
 function HomePage() {
-  const { stats, showStats } = usePlatformStats();
   const { isAuthenticated, user } = useAuth();
   const { location, setLocation, isLoading: isLocationLoading } = useLocation();
   const navigate = useNavigate();
@@ -43,6 +42,7 @@ function HomePage() {
     <main className="home">
       {/* Hero Section */}
       <section className="hero">
+        <HeroCarousel />
         <div className="hero__container">
           {/* Headline */}
           <h1 className="hero__title">
@@ -50,76 +50,35 @@ function HomePage() {
             <span className="hero__title-accent"> Stargazing Spot</span>
           </h1>
 
-          {/* Subheadline */}
-          <p className="hero__subtitle">
-            Join a community of astronomers sharing the best locations
-            for observing the night sky. Rate, review, and explore.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="hero__actions">
-            <Link to="/explore?view=map" className="btn-primary">
-              <i className="fa-solid fa-map"></i>
-              Explore Map
-            </Link>
-            <Link to={isAuthenticated ? '/explore' : '/register'} className="btn-secondary">
-              {isAuthenticated ? 'Browse Locations' : 'Create Account'}
-              <i className="fa-solid fa-arrow-right"></i>
-            </Link>
+          {/* Search Bar - Primary focal point */}
+          <div className="hero__search">
+            <Suspense
+              fallback={
+                <div className="hero__search-loading">
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <span>Loading...</span>
+                </div>
+              }
+            >
+              <LocationAutocomplete
+                onSelect={handleLocationSelect}
+                placeholder={isLocationLoading ? 'Finding your location...' : (location?.name || 'Search for a location...')}
+              />
+            </Suspense>
+            <button
+              type="button"
+              className="hero__search-btn"
+              onClick={() => navigate('/explore?view=map')}
+              aria-label="Explore map"
+            >
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </button>
           </div>
 
-          {/* Stats - only shown if above threshold */}
-          {showStats && stats ? (
-            <div className="hero__stats">
-              <div className="hero__stat">
-                <span className="hero__stat-value">{stats.locations.formatted}</span>
-                <span className="hero__stat-label">Locations</span>
-              </div>
-              <div className="hero__stat-divider"></div>
-              <div className="hero__stat">
-                <span className="hero__stat-value">{stats.reviews.formatted}</span>
-                <span className="hero__stat-label">Reviews</span>
-              </div>
-              <div className="hero__stat-divider"></div>
-              <div className="hero__stat">
-                <span className="hero__stat-value">{stats.stargazers.formatted}</span>
-                <span className="hero__stat-label">Stargazers</span>
-              </div>
-            </div>
-          ) : (
-            <p className="hero__community-note">
-              Your stargazing adventure begins here
-            </p>
-          )}
-
-          {/* Location Search - Always visible, pre-filled with current location */}
-          <div className="hero__search hero__search--always-visible">
-            <div className="hero__search-label">
-              <i className="fa-solid fa-location-dot"></i>
-              <span>Showing conditions for</span>
-            </div>
-            <div className="hero__search-input">
-              <Suspense
-                fallback={
-                  <div className="hero__search-loading">
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    <span>Loading search...</span>
-                  </div>
-                }
-              >
-                <LocationAutocomplete
-                  onSelect={handleLocationSelect}
-                  placeholder={isLocationLoading ? 'Finding your location...' : (location?.name || 'Search for a city...')}
-                />
-              </Suspense>
-            </div>
-            {location && !isLocationLoading && (
-              <div className="hero__search-current">
-                <i className="fa-solid fa-check-circle"></i>
-                <span>{location.name}</span>
-              </div>
-            )}
-          </div>
+          {/* Explore link */}
+          <Link to="/explore" className="hero__explore-link">
+            Explore nearby locations
+          </Link>
         </div>
 
         {/* Decorative glow */}

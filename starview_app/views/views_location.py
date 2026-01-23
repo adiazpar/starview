@@ -783,4 +783,83 @@ class LocationViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_200_OK)
 
 
+    # ----------------------------------------------------------------------------- #
+    # Hero Carousel - Random location images for homepage.                          #
+    #                                                                               #
+    # Returns 5 random locations with images for the hero carousel.                 #
+    # Uses the current date as a seed so all users see the same images each day.   #
+    # Results are cached until midnight UTC.                                        #
+    #                                                                               #
+    # HTTP Method: GET                                                              #
+    # Endpoint: /api/locations/hero-carousel/                                       #
+    # Authentication: None required                                                 #
+    # Returns: List of 5 locations with id, name, and image URLs                    #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=False, methods=['GET'])
+    def hero_carousel(self, request):
+        import random
+        from datetime import date, datetime, timezone as dt_timezone
+
+        cache_key = f'hero_carousel_{date.today().isoformat()}'
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            return Response(cached_data)
+
+        # Get locations that have at least one photo (location or review photo)
+        locations_with_photos = Location.objects.filter(
+            Q(photos__isnull=False) | Q(reviews__photos__isnull=False)
+        ).distinct().prefetch_related(
+            Prefetch(
+                'photos',
+                queryset=LocationPhoto.objects.order_by('-created_at'),
+                to_attr='prefetched_photos'
+            ),
+            Prefetch(
+                'reviews__photos',
+                queryset=ReviewPhoto.objects.order_by('-created_at'),
+            )
+        )
+
+        # Convert to list and seed random with today's date for consistency
+        location_list = list(locations_with_photos)
+
+        if not location_list:
+            return Response([])
+
+        # Use date as seed so all users see same images each day
+        random.seed(date.today().toordinal())
+        selected = random.sample(location_list, min(5, len(location_list)))
+        random.seed()  # Reset seed
+
+        # Build response with image URLs
+        result = []
+        for loc in selected:
+            # Get first available image (prefer location photos)
+            image_url = None
+            if hasattr(loc, 'prefetched_photos') and loc.prefetched_photos:
+                image_url = loc.prefetched_photos[0].image_url
+            else:
+                # Check review photos
+                for review in loc.reviews.all():
+                    if review.photos.exists():
+                        image_url = review.photos.first().image_url
+                        break
+
+            if image_url:
+                result.append({
+                    'id': loc.id,
+                    'name': loc.name,
+                    'image_url': image_url,
+                })
+
+        # Cache until midnight UTC
+        now = datetime.now(dt_timezone.utc)
+        midnight = datetime(now.year, now.month, now.day, tzinfo=dt_timezone.utc)
+        midnight = midnight.replace(day=now.day + 1)
+        seconds_until_midnight = int((midnight - now).total_seconds())
+        cache.set(cache_key, result, timeout=seconds_until_midnight)
+
+        return Response(result)
+
 
