@@ -41,7 +41,7 @@ function LocationChip({ onClick }) {
       case 'browser':
         return 'fa-solid fa-location-crosshairs';
       case 'ip':
-        return 'fa-solid fa-globe';
+        return 'fa-solid fa-location-dot';
       case 'search':
         return 'fa-solid fa-magnifying-glass';
       default:

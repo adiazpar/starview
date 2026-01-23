@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
 import ProfileSetupCard from '../../components/home/ProfileSetupCard';
 import HeroCarousel from '../../components/home/HeroCarousel';
+import PopularNearby from '../../components/home/PopularNearby';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -18,7 +19,7 @@ const LocationAutocomplete = lazy(() =>
 
 function HomePage() {
   const { isAuthenticated, user } = useAuth();
-  const { location, setLocation, isLoading: isLocationLoading } = useLocation();
+  const { location, actualLocation, setLocation, isLoading: isLocationLoading } = useLocation();
   const navigate = useNavigate();
 
   // Navigate to profile settings, optionally scrolling to a specific section
@@ -68,7 +69,7 @@ function HomePage() {
             <button
               type="button"
               className="hero__search-btn"
-              onClick={() => navigate('/explore?view=map')}
+              onClick={() => navigate('/explore?view=map&flyTo=true')}
               aria-label="Explore map"
             >
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -84,6 +85,12 @@ function HomePage() {
         {/* Decorative glow */}
         <div className="hero__glow"></div>
       </section>
+
+      {/* Popular Nearby Section */}
+      <PopularNearby
+        userLocation={actualLocation}
+        isLoading={isLocationLoading}
+      />
 
       {/* Profile setup card for authenticated users */}
       {isAuthenticated && user && (
@@ -115,7 +122,7 @@ function HomePage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="feature-card">
+            <Link to="/explore?view=map" className="feature-card feature-card--link">
               <div className="feature-card__icon">
                 <i className="fa-solid fa-location-dot"></i>
               </div>
@@ -124,7 +131,10 @@ function HomePage() {
                 Browse locations on an interactive map with light pollution
                 overlays and detailed information.
               </p>
-            </div>
+              <span className="feature-card__cta">
+                Explore map <i className="fa-solid fa-arrow-right"></i>
+              </span>
+            </Link>
 
             {/* Feature 3 */}
             <div className="feature-card">

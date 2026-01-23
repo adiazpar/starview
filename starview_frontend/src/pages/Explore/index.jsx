@@ -39,8 +39,16 @@ function ExplorePage() {
   const [view, setView] = useState(initialView);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
+  // Check if we should fly to location (clears saved viewport)
+  const shouldFlyToLocation = searchParams.get('flyTo') === 'true';
+
   // Persist map position across navigation (survives unmount via sessionStorage)
+  // If flyTo param is present, clear saved viewport to fly to current location
   const mapViewport = useRef((() => {
+    if (shouldFlyToLocation) {
+      sessionStorage.removeItem(MAP_VIEWPORT_KEY);
+      return null;
+    }
     try {
       const saved = sessionStorage.getItem(MAP_VIEWPORT_KEY);
       return saved ? JSON.parse(saved) : null;
@@ -52,8 +60,9 @@ function ExplorePage() {
   // Clean up URL after consuming query params (keeps view=map, removes one-time params)
   useEffect(() => {
     const hasLightPollution = searchParams.get('lightPollution');
-    if (hasLightPollution) {
-      // Replace URL to remove lightPollution param, keep view param if map
+    const hasFlyTo = searchParams.get('flyTo');
+    if (hasLightPollution || hasFlyTo) {
+      // Replace URL to remove one-time params, keep view param if map
       const newUrl = view === 'map' ? '/explore?view=map' : '/explore';
       navigate(newUrl, { replace: true });
     }

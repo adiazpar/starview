@@ -127,6 +127,19 @@ export const locationsApi = {
   getHeroCarousel: () => {
     return api.get('/locations/hero_carousel/');
   },
+
+  /**
+   * Get popular locations near user coordinates
+   * Returns reviewed locations first (by rating), then unreviewed (by distance)
+   * @param {Object} params - Query parameters
+   * @param {number} params.lat - User latitude
+   * @param {number} params.lng - User longitude
+   * @param {number} params.limit - Max results (default 8)
+   * @returns {Promise} - Array of locations
+   */
+  getPopularNearby: ({ lat, lng, limit = 8 }) => {
+    return api.get('/locations/popular_nearby/', { params: { lat, lng, limit } });
+  },
 };
 
 export default locationsApi;

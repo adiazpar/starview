@@ -863,3 +863,143 @@ class LocationViewSet(viewsets.ModelViewSet):
         return Response(result)
 
 
+    # ----------------------------------------------------------------------------- #
+    # Popular Nearby - Top-rated locations near user's coordinates.                 #
+    #                                                                               #
+    # Returns locations sorted with reviewed locations first (by rating desc),      #
+    # then unreviewed locations (by distance). Used for "Popular Stargazing Spots"  #
+    # carousel on the home page.                                                    #
+    #                                                                               #
+    # HTTP Method: GET                                                              #
+    # Endpoint: /api/locations/popular_nearby/?lat=39.7&lng=-104.9                  #
+    # Parameters:                                                                   #
+    #   - lat (required): User latitude                                             #
+    #   - lng (required): User longitude                                            #
+    #   - limit (optional, default 8): Max results                                  #
+    #   - radius (optional, default 100): Search radius in miles                    #
+    # Authentication: None required                                                 #
+    # Caching: 30 minutes, key rounded to 1 decimal for efficiency                  #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=False, methods=['GET'])
+    def popular_nearby(self, request):
+        # Parse required parameters
+        lat = request.query_params.get('lat')
+        lng = request.query_params.get('lng')
+
+        if not lat or not lng:
+            return Response(
+                {'detail': 'lat and lng parameters are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            lat = float(lat)
+            lng = float(lng)
+        except ValueError:
+            return Response(
+                {'detail': 'lat and lng must be valid numbers'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Parse optional parameters
+        limit = int(request.query_params.get('limit', 8))
+        radius = int(request.query_params.get('radius', 500))  # Default 500 miles for better coverage
+
+        # Clamp values to reasonable ranges
+        limit = max(1, min(limit, 20))
+        radius = max(10, min(radius, 1000))
+
+        # Round coordinates to 1 decimal for cache efficiency (~11km precision)
+        cache_lat = round(lat, 1)
+        cache_lng = round(lng, 1)
+
+        # Build cache key (include user id for favorites)
+        if request.user.is_authenticated:
+            cache_key = f'popular_nearby:{cache_lat}:{cache_lng}:{limit}:{radius}:user:{request.user.id}'
+        else:
+            cache_key = f'popular_nearby:{cache_lat}:{cache_lng}:{limit}:{radius}'
+
+        # Check cache
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
+        # Create Point for user's location (PostGIS uses lng, lat order)
+        user_location = Point(lng, lat, srid=4326)
+
+        # Build queryset with distance filter, sorted by distance (closest first)
+        queryset = Location.objects.filter(
+            coordinates__distance_lte=(user_location, D(mi=radius))
+        ).select_related(
+            'added_by',
+            'verified_by'
+        ).annotate(
+            distance_km=Distance('coordinates', user_location),
+            review_count_annotated=Count('reviews'),
+            average_rating_annotated=Avg('reviews__rating'),
+        ).prefetch_related(
+            Prefetch(
+                'photos',
+                queryset=LocationPhoto.objects.order_by('-created_at'),
+                to_attr='prefetched_location_photos'
+            ),
+            Prefetch(
+                'reviews',
+                queryset=Review.objects.order_by('-created_at').prefetch_related(
+                    Prefetch(
+                        'photos',
+                        queryset=ReviewPhoto.objects.order_by('order'),
+                        to_attr='prefetched_photos'
+                    )
+                ),
+                to_attr='prefetched_reviews'
+            )
+        ).order_by('distance_km')[:limit]
+
+        # Add is_favorited annotation for authenticated users
+        if request.user.is_authenticated:
+            queryset = Location.objects.filter(
+                pk__in=[loc.pk for loc in queryset]
+            ).select_related(
+                'added_by',
+                'verified_by'
+            ).annotate(
+                distance_km=Distance('coordinates', user_location),
+                review_count_annotated=Count('reviews'),
+                average_rating_annotated=Avg('reviews__rating'),
+                is_favorited_annotated=Exists(
+                    FavoriteLocation.objects.filter(
+                        user=request.user,
+                        location=OuterRef('pk')
+                    )
+                )
+            ).prefetch_related(
+                Prefetch(
+                    'photos',
+                    queryset=LocationPhoto.objects.order_by('-created_at'),
+                    to_attr='prefetched_location_photos'
+                ),
+                Prefetch(
+                    'reviews',
+                    queryset=Review.objects.order_by('-created_at').prefetch_related(
+                        Prefetch(
+                            'photos',
+                            queryset=ReviewPhoto.objects.order_by('order'),
+                            to_attr='prefetched_photos'
+                        )
+                    ),
+                    to_attr='prefetched_reviews'
+                )
+            ).order_by('distance_km')[:limit]
+
+        # Serialize using LocationListSerializer
+        from ..serializers import LocationListSerializer
+        serializer = LocationListSerializer(queryset, many=True, context={'request': request})
+        response_data = serializer.data
+
+        # Cache for 30 minutes
+        cache.set(cache_key, response_data, timeout=1800)
+
+        return Response(response_data)
+
+

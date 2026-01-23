@@ -7,6 +7,21 @@
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  opacity: 0;
+}
+
+/* Fade in when first image is loaded */
+.hero-carousel--loaded {
+  animation: heroCarouselFadeIn 1s ease-out forwards;
+}
+
+@keyframes heroCarouselFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Individual slides - fade to transparent at bottom */
@@ -91,6 +106,11 @@
 
 /* Reduced motion: disable animations */
 @media (prefers-reduced-motion: reduce) {
+  .hero-carousel--loaded {
+    animation: none;
+    opacity: 1;
+  }
+
   .hero-carousel__slide {
     transition: none;
   }

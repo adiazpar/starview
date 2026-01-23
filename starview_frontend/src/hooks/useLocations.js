@@ -9,6 +9,26 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { locationsApi } from '../services/locations';
 
 /**
+ * Fetch popular locations near user coordinates
+ * @param {number} lat - User latitude
+ * @param {number} lng - User longitude
+ * @param {Object} options - Additional React Query options
+ * @returns {Object} Query result with locations data
+ */
+export function usePopularNearby(lat, lng, options = {}) {
+  return useQuery({
+    queryKey: ['locations', 'popularNearby', lat?.toFixed(1), lng?.toFixed(1)],
+    queryFn: async () => {
+      const response = await locationsApi.getPopularNearby({ lat, lng });
+      return response.data;
+    },
+    enabled: Boolean(lat && lng),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    ...options,
+  });
+}
+
+/**
  * Fetch and cache locations list with infinite scroll support
  * @param {Object} params - Query parameters (search, filters, etc.)
  * @param {Object} options - Additional options (enabled, etc.)

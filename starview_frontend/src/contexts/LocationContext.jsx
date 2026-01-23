@@ -10,8 +10,12 @@
  * 2. Browser geolocation (if permission granted)
  * 3. IP geolocation (/api/geolocate/)
  *
+ * Two location states:
+ * - location: Current active location (changes with search)
+ * - actualLocation: User's real location (stable, from IP/browser only)
+ *
  * Usage:
- *   const { location, source, isLoading, permissionState, setLocation, requestCurrentLocation, clearLocation } = useLocation();
+ *   const { location, actualLocation, source, isLoading, permissionState, setLocation, requestCurrentLocation, clearLocation } = useLocation();
  */
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -28,6 +32,7 @@ const MAX_RECENT_LOCATIONS = 5;
 
 export function LocationProvider({ children }) {
   const [location, setLocationState] = useState(null);
+  const [actualLocation, setActualLocation] = useState(null); // Stable user location (IP/browser), doesn't change on search
   const [source, setSource] = useState(null); // 'browser' | 'ip' | 'search'
   const [isLoading, setIsLoading] = useState(true);
   const [permissionState, setPermissionState] = useState(null); // 'granted' | 'denied' | 'prompt' | null
@@ -68,7 +73,7 @@ export function LocationProvider({ children }) {
   }, []);
 
   // Fetch IP-based location as fallback
-  const fetchIPLocation = useCallback(async () => {
+  const fetchIPLocation = useCallback(async (skipActualUpdate = false) => {
     // Check localStorage cache first
     const cached = localStorage.getItem(IP_CACHE_KEY);
     if (cached) {
@@ -77,6 +82,10 @@ export function LocationProvider({ children }) {
         if (Date.now() - timestamp < IP_CACHE_DURATION) {
           setLocationState(data);
           setSource('ip');
+          // Set actualLocation if not already set and not skipped
+          if (!skipActualUpdate) {
+            setActualLocation((prev) => prev || data);
+          }
           return true;
         }
       } catch {
@@ -101,6 +110,10 @@ export function LocationProvider({ children }) {
         );
         setLocationState(data);
         setSource('ip');
+        // Set actualLocation if not already set and not skipped
+        if (!skipActualUpdate) {
+          setActualLocation((prev) => prev || data);
+        }
         return true;
       }
     } catch {
@@ -110,7 +123,7 @@ export function LocationProvider({ children }) {
   }, []);
 
   // Request browser geolocation
-  const requestBrowserLocation = useCallback(async () => {
+  const requestBrowserLocation = useCallback(async (updateActualLocation = false) => {
     if (!navigator.geolocation) {
       return false;
     }
@@ -135,6 +148,11 @@ export function LocationProvider({ children }) {
 
       // Save to session
       sessionStorage.setItem(SESSION_KEY, JSON.stringify({ data, source: 'browser' }));
+
+      // Update actualLocation if requested (during initialization)
+      if (updateActualLocation) {
+        setActualLocation((prev) => prev || data);
+      }
 
       return true;
     } catch {
@@ -178,7 +196,8 @@ export function LocationProvider({ children }) {
     setLocationState(null);
     setSource(null);
     setIsLoading(true);
-    await fetchIPLocation();
+    // Skip actualLocation update - it should remain stable
+    await fetchIPLocation(true);
     setIsLoading(false);
   }, [fetchIPLocation]);
 
@@ -209,6 +228,10 @@ export function LocationProvider({ children }) {
           if (data?.latitude && data?.longitude) {
             setLocationState(data);
             setSource(storedSource);
+            // For browser/ip sources, use as actualLocation too
+            if (storedSource === 'browser' || storedSource === 'ip') {
+              setActualLocation(data);
+            }
             setIsLoading(false);
             hasStoredLocation = true;
             // Continue to check permission state even if we have a stored location
@@ -234,21 +257,37 @@ export function LocationProvider({ children }) {
         }
       }
 
-      // If we already have a stored location, we're done
+      // If stored location is from search, still get actualLocation from IP/browser
       if (hasStoredLocation) {
+        // For search-based stored locations, get actual user location in background
+        const storedData = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
+        if (storedData.source === 'search') {
+          // Get actualLocation from IP (don't update main location)
+          const cachedIP = localStorage.getItem(IP_CACHE_KEY);
+          if (cachedIP) {
+            try {
+              const { data, timestamp } = JSON.parse(cachedIP);
+              if (Date.now() - timestamp < IP_CACHE_DURATION) {
+                setActualLocation(data);
+              }
+            } catch {
+              // Ignore cache errors
+            }
+          }
+        }
         return;
       }
 
       // 3. If permission granted, try browser geolocation
       if (permissionGranted) {
-        const gotBrowser = await requestBrowserLocation();
+        const gotBrowser = await requestBrowserLocation(true); // updateActualLocation=true
         if (gotBrowser) {
           setIsLoading(false);
           return;
         }
       }
 
-      // 4. Fall back to IP geolocation
+      // 4. Fall back to IP geolocation (will also set actualLocation)
       await fetchIPLocation();
       setIsLoading(false);
     };
@@ -266,6 +305,7 @@ export function LocationProvider({ children }) {
   // Memoize context value to prevent unnecessary re-renders in consumers
   const value = useMemo(() => ({
     location,
+    actualLocation, // Stable user location (IP/browser), doesn't change on search
     source,
     isLoading,
     permissionState,
@@ -273,7 +313,7 @@ export function LocationProvider({ children }) {
     setLocation,
     requestCurrentLocation,
     clearLocation,
-  }), [location, source, isLoading, permissionState, recentLocations, setLocation, requestCurrentLocation, clearLocation]);
+  }), [location, actualLocation, source, isLoading, permissionState, recentLocations, setLocation, requestCurrentLocation, clearLocation]);
 
   return (
     <LocationContext.Provider value={value}>{children}</LocationContext.Provider>
