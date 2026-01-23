@@ -65,7 +65,8 @@ function LocationAutocomplete({
     }
   }, [onSelect]);
 
-  // Theme to match app's design system
+  // Theme to match app's dark design system
+  // Uses CSS custom properties from global.css
   const theme = {
     variables: {
       minWidth: '100%',
@@ -75,7 +76,17 @@ function LocationAutocomplete({
       fontWeightSemibold: '500',
       unit: '14px',
       lineHeight: '1.5',
-      padding: '12px 16px'
+      padding: '0.75em 1em',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+      // Dark theme colors
+      colorBackground: '#0d1320',
+      colorText: '#f0f4f8',
+      colorPrimary: '#00d4aa',
+      colorSecondary: '#94a3b8',
+      colorBackgroundHover: 'rgba(15, 23, 42, 0.8)',
+      colorBackgroundActive: 'rgba(15, 23, 42, 0.9)',
+      border: '1px solid #1e293b'
     }
   };
 

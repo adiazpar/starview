@@ -9,11 +9,17 @@
 
 .hero {
   position: relative;
+  z-index: 2;
   height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-xl) var(--space-lg);
+  overflow: visible;
+}
+
+/* Clip decorative elements but allow search dropdown to overflow */
+.hero__glow {
   overflow: hidden;
 }
 
@@ -111,6 +117,8 @@
 
 /* Search Container - groups search bar and explore link */
 .hero__search-container {
+  position: relative;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -143,6 +151,12 @@
   flex: 1;
 }
 
+/* Remove Mapbox Geocoder container border inside pill */
+.hero__search .location-autocomplete [class*="--Geocoder"] {
+  border: none !important;
+  background: transparent !important;
+}
+
 /* Override LocationAutocomplete input styles for pill shape */
 .hero__search .location-autocomplete input,
 .hero__search .location-autocomplete input[type="text"] {
@@ -153,10 +167,25 @@
   padding: 0 var(--space-lg) !important;
   font-size: var(--text-lg) !important;
   box-shadow: none !important;
+  outline: none !important;
 }
 
+.hero__search .location-autocomplete input:hover,
 .hero__search .location-autocomplete input:focus {
+  background: transparent !important;
+  border: none !important;
   box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Make dropdown match full search bar width and appear above other sections */
+/* Offset accounts for: 1px border + 8px padding = 9px */
+/* Width adds: 9px left + 52px button + 9px right = 70px */
+.hero__search .location-autocomplete [class$="--Results"] {
+  left: -9px !important;
+  width: calc(100% + 70px) !important;
+  margin-top: var(--space-xs) !important;
+  z-index: 25 !important;
 }
 
 .hero__search-btn {

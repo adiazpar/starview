@@ -1,6 +1,6 @@
 /* LocationAutocomplete Styles
- * Input styling matches .form-input from global.css
- * Dropdown uses default Mapbox styling
+ * Most styling is handled via Mapbox theme prop.
+ * CSS overrides for positioning, z-index, and input styling.
  */
 
 .location-autocomplete {
@@ -16,12 +16,6 @@
 /* Prevent parent containers from clipping the dropdown - only when dropdown is open */
 .collapsible-section-content-inner:has(.location-autocomplete [aria-expanded="true"]) {
   overflow: visible !important;
-}
-
-/* Constrain dropdown height to stay within form section */
-.location-autocomplete [class*="--Results"],
-.location-autocomplete [class*="--ResultsList"] {
-  max-height: 200px !important;
 }
 
 /* Hide Mapbox attribution */
@@ -47,7 +41,6 @@
 .location-autocomplete [class*="search-icon"],
 .location-autocomplete [class*="SearchIcon"],
 .location-autocomplete svg[class*="icon"],
-.location-autocomplete [class*="--Icon"],
 .location-autocomplete button[class*="clear"],
 .location-autocomplete button[class*="Clear"],
 .location-autocomplete [class*="--ActionButton"],
@@ -55,6 +48,27 @@
 .location-autocomplete [class*="close"],
 .location-autocomplete [class*="Close"] {
   display: none !important;
+}
+
+/* === SUGGESTION ICON - location pin in rounded square === */
+.location-autocomplete [class*="--SuggestionIcon"] {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px;
+  background: var(--glass-bg-hover) !important;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.location-autocomplete [class*="--SuggestionIcon"]::before {
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  content: "\f3c5"; /* fa-location-dot */
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 /* === INPUT FIELD - Match .form-input from global.css exactly === */
@@ -88,4 +102,60 @@
   border-color: var(--accent) !important;
   background: var(--glass-bg-hover) !important;
   box-shadow: 0 0 0 3px var(--accent-bg) !important;
+}
+
+/* === DROPDOWN RESULTS CONTAINER === */
+/* Ensure proper z-index - above page content, below navbar (30) and modals (50) */
+.location-autocomplete [class$="--Results"] {
+  z-index: 25 !important;
+}
+
+/* === FIX DROPDOWN OPTION ALIGNMENT === */
+/* Make suggestion text fill width and left-align (fixes varying indent issue) */
+.location-autocomplete [class*="--SuggestionText"] {
+  flex: 1 !important;
+  text-align: left !important;
+}
+
+.location-autocomplete [class*="--SuggestionName"],
+.location-autocomplete [class*="--SuggestionDesc"] {
+  text-align: left !important;
+}
+
+/* Secondary line styling - region/country */
+.location-autocomplete [class*="--SuggestionDesc"] {
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+}
+
+/* Dropdown option padding */
+.location-autocomplete [role="option"] {
+  padding: var(--space-md) var(--space-lg) !important;
+}
+
+/* Additional dropdown styling overrides if theme variables don't apply */
+.location-autocomplete [class$="--ResultsList"] {
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  /* Firefox scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+/* === SCROLLBAR STYLING - matches navbar filter chips === */
+.location-autocomplete [class$="--ResultsList"]::-webkit-scrollbar {
+  width: 4px;
+}
+
+.location-autocomplete [class$="--ResultsList"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.location-autocomplete [class$="--ResultsList"]::-webkit-scrollbar-thumb {
+  background: var(--glass-border-hover);
+  border-radius: 4px;
+}
+
+.location-autocomplete [class$="--ResultsList"]::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
