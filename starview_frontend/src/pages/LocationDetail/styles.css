@@ -8,7 +8,7 @@
    ============================================ */
 
 .location-detail {
-  min-height: 100vh;
+  min-height: inherit; /* Inherit from .main-content */
 }
 
 /* Loading/Error States */
@@ -17,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - var(--navbar-height-mobile));
+  min-height: inherit; /* Inherit from .main-content for vertical centering */
   padding: var(--space-lg);
 }
 
@@ -148,11 +148,6 @@
    ============================================ */
 
 @media (min-width: 1024px) {
-  .location-detail--loading,
-  .location-detail--error {
-    min-height: calc(100vh - var(--navbar-height));
-  }
-
   .location-detail__content {
     display: grid;
     grid-template-columns: 1fr 380px;

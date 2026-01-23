@@ -78,7 +78,7 @@
 /* ============================================ */
 
 .weather-page {
-  min-height: calc(100vh - var(--navbar-total-height));
+  min-height: inherit; /* Inherit from .main-content */
   display: flex;
   flex-direction: column;
   align-items: center;

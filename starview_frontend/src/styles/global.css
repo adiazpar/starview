@@ -332,6 +332,12 @@ html.webview-browser .page-wrapper {
 
 .main-content {
   flex: 1 0 auto;
+  min-height: calc(100dvh - var(--navbar-total-height));
+}
+
+/* WebView fallback for main-content */
+html.webview-browser .main-content {
+  min-height: calc(var(--actual-vh, 100vh) - var(--navbar-total-height));
 }
 
 .page-container {
