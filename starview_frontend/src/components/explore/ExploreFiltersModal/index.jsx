@@ -13,16 +13,11 @@
  * - initialSection: string | null - Section to show ('type', 'rating', 'distance') or null for all
  */
 
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useExploreFilters } from '../../../hooks/useExploreFilters';
 import './styles.css';
-
-// Lazy load the heavy Mapbox Geocoder component
-const LocationAutocomplete = lazy(() =>
-  import('../../shared/LocationAutocomplete')
-);
 
 // Location type options with labels and icons
 const LOCATION_TYPES = [
@@ -64,14 +59,8 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     requestNearMe,
     clearFilters,
     activeFilterCount,
-    locationSource,
   } = useExploreFilters();
 
-  // "Near me" is always enabled now - we have IP geolocation as ultimate fallback
-  const nearMeDisabled = false;
-
-  // Local state for location search
-  const [locationSearchValue, setLocationSearchValue] = useState(filters.nearPlace || '');
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -155,19 +144,7 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     setIsRequestingLocation(true);
     await requestNearMe();
     setIsRequestingLocation(false);
-    // locationSearchValue will be synced via the effect when filters.nearPlace updates
   }, [requestNearMe]);
-
-  // Handle location search selection
-  const handleLocationSelect = useCallback((data) => {
-    if (data.location && data.latitude && data.longitude) {
-      setLocationSearchValue(data.location);
-      setNear(`${data.latitude},${data.longitude}`, data.location);
-    } else {
-      setLocationSearchValue('');
-      setNear(null, null);
-    }
-  }, [setNear]);
 
   // Handle radius change
   const handleRadiusChange = useCallback((newRadius) => {
@@ -177,7 +154,6 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   // Handle clear all
   const handleClearAll = useCallback(() => {
     clearFilters();
-    setLocationSearchValue('');
   }, [clearFilters]);
 
   // Handle clear for single section
@@ -190,18 +166,8 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
       setMaxBortle(null);
     } else if (initialSection === 'distance') {
       setNear(null, null);
-      setLocationSearchValue('');
     }
   }, [initialSection, setTypes, setMinRating, setMaxBortle, setNear]);
-
-  // Sync location search value with filters
-  useEffect(() => {
-    if (filters.nearPlace) {
-      setLocationSearchValue(filters.nearPlace);
-    } else if (!filters.near) {
-      setLocationSearchValue('');
-    }
-  }, [filters.near, filters.nearPlace]);
 
   if (!isOpen) return null;
 
@@ -340,38 +306,6 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
                   </>
                 )}
               </button>
-
-              {/* Show hint for improving location accuracy */}
-              {locationSource === 'ip' && (
-                <p className="explore-filters-modal__permission-hint">
-                  Using approximate location. Enable browser location for better accuracy.
-                </p>
-              )}
-
-              {/* Divider */}
-              <div className="explore-filters-modal__divider">
-                <span className="explore-filters-modal__divider-line"></span>
-                <span className="explore-filters-modal__divider-text">or search</span>
-                <span className="explore-filters-modal__divider-line"></span>
-              </div>
-
-              {/* Location Search */}
-              <div className="explore-filters-modal__location-search">
-                <Suspense
-                  fallback={
-                    <div className="explore-filters-modal__search-loading">
-                      <i className="fa-solid fa-spinner fa-spin"></i>
-                      <span>Loading search...</span>
-                    </div>
-                  }
-                >
-                  <LocationAutocomplete
-                    value={locationSearchValue}
-                    onSelect={handleLocationSelect}
-                    placeholder="Search for a city or region..."
-                  />
-                </Suspense>
-              </div>
 
               {/* Radius Selector (only shown when location is set) */}
               {filters.near && (
