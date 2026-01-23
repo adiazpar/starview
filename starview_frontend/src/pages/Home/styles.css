@@ -9,9 +9,7 @@
 
 .hero {
   position: relative;
-  height: 70vh;
-  min-height: 500px;
-  max-height: 700px;
+  height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -541,9 +539,7 @@
 @media (max-width: 768px) {
   .hero {
     padding: var(--space-lg) var(--space-md);
-    height: 65vh;
-    min-height: 420px;
-    max-height: 600px;
+    height: 480px;
   }
 
   /* Hide coordinate markers on mobile */
