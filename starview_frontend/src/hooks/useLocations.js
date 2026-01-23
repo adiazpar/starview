@@ -153,6 +153,7 @@ export function useToggleFavorite() {
       // Snapshot previous values for rollback (use getQueriesData for partial key matching)
       const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
       const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
+      const previousPopularNearby = queryClient.getQueriesData({ queryKey: ['locations', 'popularNearby'] });
       // Match all mapGeoJSON queries (base + bbox variants)
       const previousMapGeoJSON = queryClient.getQueriesData({ queryKey: ['mapGeoJSON'] });
       // Single location detail cache (use string ID)
@@ -186,6 +187,12 @@ export function useToggleFavorite() {
         return { ...old, results: old.results.map(toggleFavorite) };
       });
 
+      // Optimistically update popular nearby cache (home page carousel)
+      queryClient.setQueriesData({ queryKey: ['locations', 'popularNearby'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map(toggleFavorite);
+      });
+
       // Optimistically update all map GeoJSON caches (base + bbox variants)
       queryClient.setQueriesData({ queryKey: ['mapGeoJSON'] }, (old) => {
         if (!old?.features) return old;
@@ -201,7 +208,7 @@ export function useToggleFavorite() {
       }
 
       // Return context for rollback
-      return { previousInfinite, previousPaginated, previousMapGeoJSON, previousLocation, locationIdStr };
+      return { previousInfinite, previousPaginated, previousPopularNearby, previousMapGeoJSON, previousLocation, locationIdStr };
     },
 
     // ROLLBACK: Restore previous state on error
@@ -215,6 +222,12 @@ export function useToggleFavorite() {
       // Restore paginated cache
       if (context?.previousPaginated) {
         context.previousPaginated.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      // Restore popular nearby cache
+      if (context?.previousPopularNearby) {
+        context.previousPopularNearby.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
@@ -257,6 +270,12 @@ export function useToggleFavorite() {
       queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (old) => {
         if (!old?.results) return old;
         return { ...old, results: old.results.map(setFavoriteState) };
+      });
+
+      // Update popular nearby cache with server response
+      queryClient.setQueriesData({ queryKey: ['locations', 'popularNearby'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map(setFavoriteState);
       });
 
       // Update all map GeoJSON caches with server response

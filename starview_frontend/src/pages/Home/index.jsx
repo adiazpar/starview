@@ -52,34 +52,36 @@ function HomePage() {
           </h1>
 
           {/* Search Bar - Primary focal point */}
-          <div className="hero__search">
-            <Suspense
-              fallback={
-                <div className="hero__search-loading">
-                  <i className="fa-solid fa-spinner fa-spin"></i>
-                  <span>Loading...</span>
-                </div>
-              }
-            >
-              <LocationAutocomplete
-                onSelect={handleLocationSelect}
-                placeholder={isLocationLoading ? 'Finding your location...' : (location?.name || 'Search for a location...')}
-              />
-            </Suspense>
-            <button
-              type="button"
-              className="hero__search-btn"
-              onClick={() => navigate('/explore?view=map&flyTo=true')}
-              aria-label="Explore map"
-            >
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </button>
-          </div>
+          <div className="hero__search-container">
+            <div className="hero__search">
+              <Suspense
+                fallback={
+                  <div className="hero__search-loading">
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading...</span>
+                  </div>
+                }
+              >
+                <LocationAutocomplete
+                  onSelect={handleLocationSelect}
+                  placeholder={isLocationLoading ? 'Finding your location' : `Search near ${location?.name?.split(',')[0] || 'you'}`}
+                />
+              </Suspense>
+              <button
+                type="button"
+                className="hero__search-btn"
+                onClick={() => navigate('/explore?view=map&flyTo=true')}
+                aria-label="Explore map"
+              >
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
 
-          {/* Explore link */}
-          <Link to="/explore" className="hero__explore-link">
-            Explore nearby locations
-          </Link>
+            {/* Explore link */}
+            <Link to="/explore" className="hero__explore-link">
+              Explore nearby locations
+            </Link>
+          </div>
         </div>
 
         {/* Decorative glow */}
