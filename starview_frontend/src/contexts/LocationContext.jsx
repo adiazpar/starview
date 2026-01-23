@@ -26,8 +26,8 @@ const LocationContext = createContext(null);
 // Storage keys
 const SESSION_KEY = 'starview_active_location';
 const RECENT_KEY = 'starview_recent_locations';
-const IP_CACHE_KEY = 'starview_ip_location'; // Unified cache for entire app
-const IP_CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+const IP_CACHE_KEY = 'starview_ip_location'; // Session-only cache (fresh lookup each browser session)
+const IP_CACHE_DURATION = 1000 * 60 * 60; // 1 hour (within session)
 const MAX_RECENT_LOCATIONS = 5;
 
 export function LocationProvider({ children }) {
@@ -74,8 +74,8 @@ export function LocationProvider({ children }) {
 
   // Fetch IP-based location as fallback
   const fetchIPLocation = useCallback(async (skipActualUpdate = false) => {
-    // Check localStorage cache first
-    const cached = localStorage.getItem(IP_CACHE_KEY);
+    // Check sessionStorage cache first (fresh lookup each browser session)
+    const cached = sessionStorage.getItem(IP_CACHE_KEY);
     if (cached) {
       try {
         const { data, timestamp } = JSON.parse(cached);
@@ -89,7 +89,7 @@ export function LocationProvider({ children }) {
           return true;
         }
       } catch {
-        localStorage.removeItem(IP_CACHE_KEY);
+        sessionStorage.removeItem(IP_CACHE_KEY);
       }
     }
 
@@ -103,8 +103,8 @@ export function LocationProvider({ children }) {
             ? `${response.data.city}, ${response.data.region}`
             : 'Your location',
         };
-        // Cache IP location locally
-        localStorage.setItem(
+        // Cache IP location in session (fresh lookup each browser session)
+        sessionStorage.setItem(
           IP_CACHE_KEY,
           JSON.stringify({ data, timestamp: Date.now() })
         );
@@ -263,7 +263,7 @@ export function LocationProvider({ children }) {
         const storedData = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
         if (storedData.source === 'search') {
           // Get actualLocation from IP (don't update main location)
-          const cachedIP = localStorage.getItem(IP_CACHE_KEY);
+          const cachedIP = sessionStorage.getItem(IP_CACHE_KEY);
           if (cachedIP) {
             try {
               const { data, timestamp } = JSON.parse(cachedIP);
