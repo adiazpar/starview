@@ -143,6 +143,12 @@ export function useExploreFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { location: userLocation, permissionState, source: locationSource, requestCurrentLocation } = useLocation();
 
+  // Extract primitives for stable dependencies (prevents re-renders when object reference changes)
+  const userLat = userLocation?.latitude;
+  const userLng = userLocation?.longitude;
+  const userName = userLocation?.name;
+  const hasUserLocation = userLat !== undefined && userLng !== undefined;
+
   // Parse current filters from URL
   const parsedFilters = useMemo(() => parseFilters(searchParams), [searchParams]);
 
@@ -153,8 +159,8 @@ export function useExploreFilters() {
       return parsedFilters.sort;
     }
     // Default to "Nearby" when user has location, otherwise "Newest"
-    return userLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
-  }, [hasExplicitSort, parsedFilters.sort, userLocation]);
+    return hasUserLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
+  }, [hasExplicitSort, parsedFilters.sort, hasUserLocation]);
 
   // Combine parsed filters with effective sort
   const filters = useMemo(() => ({
@@ -174,8 +180,8 @@ export function useExploreFilters() {
 
     if (filters.near === 'me') {
       // If we have user location, use it
-      if (userLocation) {
-        return `${userLocation.latitude},${userLocation.longitude}`;
+      if (hasUserLocation) {
+        return `${userLat},${userLng}`;
       }
       // If permission denied or location unavailable, can't resolve
       return null;
@@ -183,13 +189,51 @@ export function useExploreFilters() {
 
     // Already coordinates
     return filters.near;
-  }, [filters.near, userLocation]);
+  }, [filters.near, hasUserLocation, userLat, userLng]);
 
-  // Build API params
-  const apiParams = useMemo(
-    () => buildApiParams(filters, resolvedNear, userLocation),
-    [filters, resolvedNear, userLocation]
-  );
+  // Build API params using primitives for stable dependencies
+  const apiParams = useMemo(() => {
+    const params = {};
+
+    if (filters.search) {
+      params.search = filters.search;
+    }
+
+    if (filters.types.length > 0) {
+      params.type = filters.types.join(',');
+    }
+
+    if (filters.minRating) {
+      params.minRating = filters.minRating;
+    }
+
+    if (filters.verified) {
+      params.verified = 'true';
+    }
+
+    // Use resolved coordinates (handles "me" -> actual coords)
+    if (resolvedNear) {
+      params.near = resolvedNear;
+      params.radius = filters.radius;
+    }
+
+    if (filters.maxBortle) {
+      params.maxBortle = filters.maxBortle;
+    }
+
+    // Always send sort param (backend needs it for distance sorting)
+    if (filters.sort) {
+      params.sort = filters.sort;
+    }
+
+    // For distance sorting without explicit distance filter, use user's location
+    if (filters.sort === 'distance' && !resolvedNear && hasUserLocation) {
+      params.near = `${userLat},${userLng}`;
+      params.radius = 12500; // ~20,000km covers entire Earth
+    }
+
+    return params;
+  }, [filters, resolvedNear, hasUserLocation, userLat, userLng]);
 
   // Stable key for query invalidation (changes when filters change)
   const filterKey = useMemo(
@@ -264,23 +308,32 @@ export function useExploreFilters() {
     });
   }, [updateParams]);
 
-  const setRadius = useCallback((value) => {
-    updateParams({ radius: value !== DEFAULTS.radius ? value : null });
-  }, [updateParams]);
+  // Set radius - optionally also enables "near me" in same update
+  const setRadius = useCallback((value, enableNearMe = false) => {
+    const updates = { radius: value !== DEFAULTS.radius ? value : null };
+
+    // When enabling near filter, include it in same update to avoid race condition
+    if (enableNearMe && hasUserLocation) {
+      updates.near = 'me';
+      updates.nearPlace = userName || 'My Location';
+    }
+
+    updateParams(updates);
+  }, [updateParams, hasUserLocation, userName]);
 
   const setSort = useCallback((value) => {
     // Always store explicit sort choice in URL
     // Only clear if it matches the current effective default
-    const currentDefault = userLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
+    const currentDefault = hasUserLocation ? DEFAULTS.sortWithLocation : DEFAULTS.sort;
     updateParams({ sort: value !== currentDefault ? value : null });
-  }, [updateParams, userLocation]);
+  }, [updateParams, hasUserLocation]);
 
   // Request "Near Me" location
   const requestNearMe = useCallback(async () => {
     // If we already have a location (from browser or IP), use it
-    if (userLocation) {
+    if (hasUserLocation) {
       // Use location name from context (already formatted)
-      const placeName = userLocation.name || 'My Location';
+      const placeName = userName || 'My Location';
       updateParams({
         near: 'me',
         nearPlace: placeName,
@@ -296,11 +349,11 @@ export function useExploreFilters() {
     // Try to get location (will prompt user for browser geolocation)
     await requestCurrentLocation();
 
-    // Note: requestCurrentLocation is async but userLocation won't update until next render
+    // Note: requestCurrentLocation is async but location won't update until next render
     // The LocationContext will handle the fallback chain internally
-    // For now, return pending - the UI should update when userLocation changes
+    // For now, return pending - the UI should update when location changes
     return { success: false, reason: 'pending' };
-  }, [permissionState, userLocation, locationSource, requestCurrentLocation, updateParams]);
+  }, [permissionState, hasUserLocation, userName, locationSource, requestCurrentLocation, updateParams]);
 
   // Clear all filters
   const clearFilters = useCallback(() => {
@@ -316,7 +369,7 @@ export function useExploreFilters() {
   }, [setSearchParams]);
 
   // Check if distance filter is waiting for location
-  const isLocationPending = filters.near === 'me' && !userLocation;
+  const isLocationPending = filters.near === 'me' && !hasUserLocation;
 
   return {
     // Current filter values

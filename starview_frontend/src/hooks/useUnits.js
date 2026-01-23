@@ -6,6 +6,11 @@ import {
   formatElevation as formatElevationUtil,
   formatArea as formatAreaUtil,
   formatRouteDistance as formatRouteDistanceUtil,
+  formatRadius as formatRadiusUtil,
+  formatWindSpeed as formatWindSpeedUtil,
+  formatVisibility as formatVisibilityUtil,
+  getWindSpeedUnit as getWindSpeedUnitUtil,
+  formatTemperature as formatTemperatureUtil,
 } from '../utils/units';
 
 const STORAGE_KEY = 'starview_unit_preference';
@@ -131,6 +136,31 @@ export function useUnits() {
     [units]
   );
 
+  const formatRadius = useCallback(
+    (miles) => formatRadiusUtil(miles, units),
+    [units]
+  );
+
+  const formatWindSpeed = useCallback(
+    (kmh) => formatWindSpeedUtil(kmh, units),
+    [units]
+  );
+
+  const formatVisibility = useCallback(
+    (km) => formatVisibilityUtil(km, units),
+    [units]
+  );
+
+  const windSpeedUnit = useMemo(
+    () => getWindSpeedUnitUtil(units),
+    [units]
+  );
+
+  const formatTemperature = useCallback(
+    (celsius) => formatTemperatureUtil(celsius, units),
+    [units]
+  );
+
   return useMemo(() => ({
     units,
     setUnits,
@@ -139,7 +169,12 @@ export function useUnits() {
     formatElevation,
     formatArea,
     formatRouteDistance,
-  }), [units, setUnits, isUpdating, formatDistance, formatElevation, formatArea, formatRouteDistance]);
+    formatRadius,
+    formatWindSpeed,
+    formatVisibility,
+    formatTemperature,
+    windSpeedUnit,
+  }), [units, setUnits, isUpdating, formatDistance, formatElevation, formatArea, formatRouteDistance, formatRadius, formatWindSpeed, formatVisibility, formatTemperature, windSpeedUnit]);
 }
 
 export default useUnits;

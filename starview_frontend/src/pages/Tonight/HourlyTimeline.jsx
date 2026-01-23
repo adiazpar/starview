@@ -7,6 +7,7 @@
 import React, { useRef, useEffect } from 'react';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
 import CloudLayerBreakdown from './CloudLayerBreakdown';
+import { useUnits } from '../../hooks/useUnits';
 import './HourlyTimeline.css';
 
 /**
@@ -30,6 +31,8 @@ export default function HourlyTimeline({
   onHourSelect,
   currentHour,
 }) {
+  const { formatVisibility, formatTemperature } = useUnits();
+
   // Store last selected data for smooth collapse animation
   const lastDataRef = useRef(null);
 
@@ -104,7 +107,7 @@ export default function HourlyTimeline({
               {displayData.visibility !== undefined && displayData.visibility !== null && (
                 <div className="hourly-timeline__detail-row">
                   <span className="hourly-timeline__detail-label">Visibility</span>
-                  <span className="hourly-timeline__detail-value">{displayData.visibility} km</span>
+                  <span className="hourly-timeline__detail-value">{formatVisibility(displayData.visibility)}</span>
                 </div>
               )}
               {displayData.humidity !== undefined && displayData.humidity !== null && (
@@ -116,7 +119,7 @@ export default function HourlyTimeline({
               {displayData.temperature !== undefined && displayData.temperature !== null && (
                 <div className="hourly-timeline__detail-row">
                   <span className="hourly-timeline__detail-label">Temperature</span>
-                  <span className="hourly-timeline__detail-value">{Math.round(displayData.temperature)}°C</span>
+                  <span className="hourly-timeline__detail-value">{formatTemperature(displayData.temperature)}</span>
                 </div>
               )}
               <CloudLayerBreakdown

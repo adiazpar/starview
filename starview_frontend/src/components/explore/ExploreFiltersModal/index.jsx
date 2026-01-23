@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useExploreFilters } from '../../../hooks/useExploreFilters';
+import { useUnits } from '../../../hooks/useUnits';
 import './styles.css';
 
 // Location type options with labels and icons
@@ -56,12 +57,12 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     setMaxBortle,
     setNear,
     setRadius,
-    requestNearMe,
     clearFilters,
     activeFilterCount,
   } = useExploreFilters();
 
-  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+  const { formatRadius } = useUnits();
+
   const [isClosing, setIsClosing] = useState(false);
 
   // Determine if showing single section or all sections
@@ -139,17 +140,11 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
     setMaxBortle(filters.maxBortle === bortle ? null : bortle);
   }, [filters.maxBortle, setMaxBortle]);
 
-  // Handle "Near Me" click
-  const handleNearMe = useCallback(async () => {
-    setIsRequestingLocation(true);
-    await requestNearMe();
-    setIsRequestingLocation(false);
-  }, [requestNearMe]);
-
-  // Handle radius change
-  const handleRadiusChange = useCallback((newRadius) => {
-    setRadius(newRadius);
-  }, [setRadius]);
+  // Handle radius selection - enables distance filter if not already enabled
+  const handleRadiusSelect = useCallback((newRadius) => {
+    // Pass true as second arg to enable "near me" in same update if not already active
+    setRadius(newRadius, !filters.near);
+  }, [filters.near, setRadius]);
 
   // Handle clear all
   const handleClearAll = useCallback(() => {
@@ -285,47 +280,24 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
               {!isSingleSection && (
                 <h3 className="explore-filters-modal__section-title">Distance</h3>
               )}
-
-              {/* Near Me Button */}
-              <button
-                className={`explore-filters-modal__nearme-btn ${
-                  filters.near === 'me' ? 'explore-filters-modal__nearme-btn--active' : ''
-                }`}
-                onClick={handleNearMe}
-                disabled={isRequestingLocation || nearMeDisabled}
-              >
-                {isRequestingLocation ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    <span>Finding your location...</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-location-arrow"></i>
-                    <span>Near me</span>
-                  </>
-                )}
-              </button>
-
-              {/* Radius Selector (only shown when location is set) */}
-              {filters.near && (
-                <div className="explore-filters-modal__radius">
-                  <label className="explore-filters-modal__radius-label">Within</label>
-                  <div className="explore-filters-modal__radius-options">
-                    {RADIUS_OPTIONS.map((r) => (
-                      <button
-                        key={r}
-                        className={`explore-filters-modal__radius-btn ${
-                          filters.radius === r ? 'explore-filters-modal__radius-btn--active' : ''
-                        }`}
-                        onClick={() => handleRadiusChange(r)}
-                      >
-                        {r} mi
-                      </button>
-                    ))}
-                  </div>
+              <p className="explore-filters-modal__section-desc">
+                Show locations within distance of your current location
+              </p>
+              <div className="explore-filters-modal__radius">
+                <div className="explore-filters-modal__radius-options explore-filters-modal__radius-options--prominent">
+                  {RADIUS_OPTIONS.map((r) => (
+                    <button
+                      key={r}
+                      className={`explore-filters-modal__radius-btn ${
+                        filters.radius === r && filters.near ? 'explore-filters-modal__radius-btn--active' : ''
+                      }`}
+                      onClick={() => handleRadiusSelect(r)}
+                    >
+                      {formatRadius(r)}
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
             </section>
           )}
 

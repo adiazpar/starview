@@ -14,7 +14,7 @@
  *   const { location, source, isLoading, permissionState, setLocation, requestCurrentLocation, clearLocation } = useLocation();
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import api from '../services/api';
 
 const LocationContext = createContext(null);
@@ -263,7 +263,8 @@ export function LocationProvider({ children }) {
     };
   }, [requestBrowserLocation, fetchIPLocation]);
 
-  const value = {
+  // Memoize context value to prevent unnecessary re-renders in consumers
+  const value = useMemo(() => ({
     location,
     source,
     isLoading,
@@ -272,7 +273,7 @@ export function LocationProvider({ children }) {
     setLocation,
     requestCurrentLocation,
     clearLocation,
-  };
+  }), [location, source, isLoading, permissionState, recentLocations, setLocation, requestCurrentLocation, clearLocation]);
 
   return (
     <LocationContext.Provider value={value}>{children}</LocationContext.Provider>

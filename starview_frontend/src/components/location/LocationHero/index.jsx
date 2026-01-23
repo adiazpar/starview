@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
 import { useToast } from '../../../contexts/ToastContext';
+import { useUnits } from '../../../hooks/useUnits';
 import './styles.css';
 
 // Placeholder for locations without photos
@@ -18,6 +19,7 @@ function LocationHero({ location, onBack }) {
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
+  const { formatElevation } = useUnits();
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -109,7 +111,7 @@ function LocationHero({ location, onBack }) {
             onClick={handleShare}
             aria-label="Share location"
           >
-            <i className="fa-solid fa-share-nodes"></i>
+            <i className="fa-solid fa-share"></i>
             <span className="location-hero__action-text">Share</span>
           </button>
         </div>
@@ -180,7 +182,7 @@ function LocationHero({ location, onBack }) {
             <>
               <span className="location-hero__stat-divider">•</span>
               <span className="location-hero__stat">
-                {location.elevation.toLocaleString()}m
+                {formatElevation(location.elevation)}
                 <span className="location-hero__stat-label">elevation</span>
               </span>
             </>

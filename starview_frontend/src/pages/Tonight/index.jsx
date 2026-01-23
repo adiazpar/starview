@@ -10,6 +10,7 @@ import { useNighttimeWeather } from '../../hooks/useNighttimeWeather';
 import { useBortle } from '../../hooks/useBortle';
 import { useLocation } from '../../contexts/LocationContext';
 import { useSEO } from '../../hooks/useSEO';
+import { useUnits } from '../../hooks/useUnits';
 import MoonPhaseGraphic from '../../components/shared/MoonPhaseGraphic';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
 import LocationChip from '../../components/shared/LocationChip';
@@ -167,14 +168,14 @@ function TonightContent({
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  // Fetch moon data
+  // Fetch moon data (no polling - moon phases change over hours, not minutes)
+  // Backend caches moon data for 24 hours; frontend cache matches via staleTime
   const { current: moonData, isLoading: moonLoading } = useMoonPhases({
     startDate: dateStr,
     endDate: dateStr,
     lat,
     lng,
     suspense: false,
-    refetchInterval: 5 * 60 * 1000, // 5 minutes - moon data changes slowly
   });
 
   // Fetch Bortle
@@ -201,6 +202,8 @@ function TonightContent({
     lng,
     enabled: lat !== undefined && lng !== undefined,
   });
+
+  const { formatWindSpeed, formatTemperature } = useUnits();
 
   const currentHour = new Date().getHours();
   const [selectedHour, setSelectedHour] = useState(null);
@@ -453,13 +456,13 @@ function TonightContent({
                   <div className="tonight-card__meta-item">
                     <span className="tonight-card__meta-label">Wind</span>
                     <span className="tonight-card__meta-value">
-                      {displayWeather.windSpeed !== null ? `${displayWeather.windSpeed} km/h` : '--'}
+                      {formatWindSpeed(displayWeather.windSpeed)}
                     </span>
                   </div>
                   <div className="tonight-card__meta-item">
                     <span className="tonight-card__meta-label">Temp</span>
                     <span className="tonight-card__meta-value">
-                      {displayWeather.temperature !== null ? `${displayWeather.temperature}°C` : '--'}
+                      {formatTemperature(displayWeather.temperature)}
                     </span>
                   </div>
                 </div>

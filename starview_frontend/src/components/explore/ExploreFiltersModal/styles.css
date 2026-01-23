@@ -475,6 +475,20 @@
   gap: var(--space-xs);
 }
 
+/* Prominent radius options - used when always visible */
+.explore-filters-modal__radius-options--prominent {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+.explore-filters-modal__radius-options--prominent .explore-filters-modal__radius-btn {
+  padding: var(--space-md);
+  font-size: var(--text-sm);
+  text-align: center;
+  white-space: nowrap;
+}
+
 .explore-filters-modal__radius-btn {
   padding: var(--space-xs) var(--space-sm);
   background: var(--glass-bg);

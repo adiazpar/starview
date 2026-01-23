@@ -367,10 +367,6 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   // Viewport detection for popup mode (desktop/tablet ≥768px uses marker popup instead of bottom card)
   const isPopupMode = useMediaQuery('(min-width: 768px)');
 
-  // Viewport bounds for bbox-based marker loading (reduces payload for large datasets)
-  const [viewportBounds, setViewportBounds] = useState(null);
-  const boundsDebounceRef = useRef(null);
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -394,11 +390,9 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     isPopupModeRef.current = isPopupMode;
   }, [isPopupMode]);
 
-  // Fetch markers for current viewport (reduces initial payload for large datasets)
-  // Pass bounds to enable bbox filtering; null bounds fetches all markers
-  // Filters are passed to sync map markers with list view filtering
+  // Fetch all markers - Mapbox handles viewport culling natively
+  // Full dataset is cached 30 min on backend; avoids cache fragmentation from bbox queries
   const { geojson, markers, markerMap, isLoading, isError } = useMapMarkers({
-    bounds: viewportBounds,
     filters,
   });
   const {
@@ -866,7 +860,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
       // Otherwise, flyTo effect or fallback effect will enable heavy layers
     });
 
-    // Save viewport when map moves + update bounds for viewport-based marker loading
+    // Save viewport when map moves (for sessionStorage persistence)
     map.current.on('moveend', () => {
       if (onViewportChange) {
         onViewportChange({
@@ -874,25 +868,6 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
           zoom: map.current.getZoom(),
         });
       }
-
-      // Debounced bounds update for bbox-based marker loading
-      // Clears previous timeout to avoid rapid-fire API calls during pan/zoom
-      if (boundsDebounceRef.current) {
-        clearTimeout(boundsDebounceRef.current);
-      }
-      boundsDebounceRef.current = setTimeout(() => {
-        const bounds = map.current.getBounds();
-        // Add 20% padding to preload markers just outside viewport
-        const padding = 0.2;
-        const lngSpan = bounds.getEast() - bounds.getWest();
-        const latSpan = bounds.getNorth() - bounds.getSouth();
-        setViewportBounds({
-          west: bounds.getWest() - lngSpan * padding,
-          south: bounds.getSouth() - latSpan * padding,
-          east: bounds.getEast() + lngSpan * padding,
-          north: bounds.getNorth() + latSpan * padding,
-        });
-      }, 300); // 300ms debounce
     });
 
     // Close card/popup when clicking on map (not on markers)
@@ -939,10 +914,6 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     });
 
     return () => {
-      // Clear debounce timeout
-      if (boundsDebounceRef.current) {
-        clearTimeout(boundsDebounceRef.current);
-      }
       if (map.current) {
         map.current.remove();
         map.current = null;

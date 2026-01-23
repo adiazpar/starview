@@ -9,15 +9,56 @@ import SunCalc from 'suncalc';
 import { useSEO } from '../../hooks/useSEO';
 import { useLocation } from '../../contexts/LocationContext';
 import { useWeather } from '../../hooks/useWeather';
+import { useUnits } from '../../hooks/useUnits';
 import WeatherGraphic from '../../components/shared/WeatherGraphic';
 import LocationChip from '../../components/shared/LocationChip';
 import LocationModal from '../../components/shared/LocationModal';
 import './styles.css';
 
 /**
- * Weather factors that affect stargazing
+ * Generate wind speed thresholds based on unit preference
  */
-const WEATHER_FACTORS = [
+const getWindThresholds = (units) => {
+  if (units === 'imperial') {
+    return [
+      { range: '0-6 mph', label: 'Excellent', description: 'Calm conditions - steady viewing at any magnification' },
+      { range: '6-12 mph', label: 'Good', description: 'Light breeze - stable for most observations' },
+      { range: '12-22 mph', label: 'Fair', description: 'Moderate wind - use lower magnifications' },
+      { range: '22+ mph', label: 'Poor', description: 'Strong wind - binoculars only, or stay home' },
+    ];
+  }
+  return [
+    { range: '0-10 km/h', label: 'Excellent', description: 'Calm conditions - steady viewing at any magnification' },
+    { range: '10-20 km/h', label: 'Good', description: 'Light breeze - stable for most observations' },
+    { range: '20-35 km/h', label: 'Fair', description: 'Moderate wind - use lower magnifications' },
+    { range: '35+ km/h', label: 'Poor', description: 'Strong wind - binoculars only, or stay home' },
+  ];
+};
+
+/**
+ * Generate temperature thresholds based on unit preference
+ */
+const getTempThresholds = (units) => {
+  if (units === 'imperial') {
+    return [
+      { range: '50-68°F', label: 'Ideal', description: 'Comfortable observing conditions' },
+      { range: '32-50°F', label: 'Cool', description: 'Dress warmly, allow scope to acclimate' },
+      { range: '14-32°F', label: 'Cold', description: 'Multiple layers essential, battery issues' },
+      { range: 'Below 14°F', label: 'Extreme', description: 'Challenging - protect equipment and yourself' },
+    ];
+  }
+  return [
+    { range: '10-20°C', label: 'Ideal', description: 'Comfortable observing conditions' },
+    { range: '0-10°C', label: 'Cool', description: 'Dress warmly, allow scope to acclimate' },
+    { range: '-10-0°C', label: 'Cold', description: 'Multiple layers essential, battery issues' },
+    { range: 'Below -10°C', label: 'Extreme', description: 'Challenging - protect equipment and yourself' },
+  ];
+};
+
+/**
+ * Weather factors that affect stargazing (base data, wind/temp thresholds added dynamically)
+ */
+const BASE_WEATHER_FACTORS = [
   {
     id: 'cloud-cover',
     name: 'Cloud Cover',
@@ -60,12 +101,7 @@ const WEATHER_FACTORS = [
     icon: 'fa-wind',
     description: 'Strong winds cause telescope shake, making high-magnification viewing difficult. However, some wind can help prevent dew formation.',
     impact: 'Affects telescope stability',
-    thresholds: [
-      { range: '0-10 km/h', label: 'Excellent', description: 'Calm conditions - steady viewing at any magnification' },
-      { range: '10-20 km/h', label: 'Good', description: 'Light breeze - stable for most observations' },
-      { range: '20-35 km/h', label: 'Fair', description: 'Moderate wind - use lower magnifications' },
-      { range: '35+ km/h', label: 'Poor', description: 'Strong wind - binoculars only, or stay home' },
-    ],
+    thresholds: null, // Set dynamically based on units
     tips: [
       'Shield your setup from wind with your car or a windbreak',
       'Shorter, wider telescopes handle wind better',
@@ -78,12 +114,7 @@ const WEATHER_FACTORS = [
     icon: 'fa-temperature-half',
     description: 'Temperature affects both observer comfort and equipment performance. Rapid temperature changes cause telescope mirrors to "cool down" and produce distorted images.',
     impact: 'Comfort and optical performance',
-    thresholds: [
-      { range: '10-20°C', label: 'Ideal', description: 'Comfortable observing conditions' },
-      { range: '0-10°C', label: 'Cool', description: 'Dress warmly, allow scope to acclimate' },
-      { range: '-10-0°C', label: 'Cold', description: 'Multiple layers essential, battery issues' },
-      { range: 'Below -10°C', label: 'Extreme', description: 'Challenging - protect equipment and yourself' },
-    ],
+    thresholds: null, // Set dynamically based on units
     tips: [
       'Let your telescope cool to ambient temperature (30-60 min)',
       'Dress warmer than you think you\'ll need',
@@ -231,6 +262,21 @@ function WeatherPage() {
     enabled: hasLocation,
   });
 
+  const { formatWindSpeed, formatTemperature, windSpeedUnit, units } = useUnits();
+
+  // Generate weather factors with unit-aware thresholds
+  const weatherFactors = useMemo(() => {
+    return BASE_WEATHER_FACTORS.map((factor) => {
+      if (factor.id === 'wind') {
+        return { ...factor, thresholds: getWindThresholds(units) };
+      }
+      if (factor.id === 'temperature') {
+        return { ...factor, thresholds: getTempThresholds(units) };
+      }
+      return factor;
+    });
+  }, [units]);
+
   // Memoized display values
   const displayData = useMemo(() => ({
     cloudCover,
@@ -244,7 +290,7 @@ function WeatherPage() {
   }), [cloudCover, humidity, windSpeed, temperature, locationSource, lat, lng]);
 
   // Current factor being displayed
-  const currentFactor = WEATHER_FACTORS[selectedFactor];
+  const currentFactor = weatherFactors[selectedFactor];
 
   // Scroll-triggered animations using Intersection Observer
   useEffect(() => {
@@ -377,7 +423,7 @@ function WeatherPage() {
 
         <div className="weather-factors">
           <div className="weather-factors__tabs">
-            {WEATHER_FACTORS.map((factor, index) => (
+            {weatherFactors.map((factor, index) => (
               <button
                 key={factor.id}
                 className={`weather-factors__tab ${selectedFactor === index ? 'weather-factors__tab--selected' : ''}`}
@@ -394,10 +440,10 @@ function WeatherPage() {
                   <span className="weather-factors__tab-value">{displayData.humidity}%</span>
                 )}
                 {hasLocation && index === 2 && displayData.windSpeed !== null && (
-                  <span className="weather-factors__tab-value">{displayData.windSpeed} km/h</span>
+                  <span className="weather-factors__tab-value">{formatWindSpeed(displayData.windSpeed)}</span>
                 )}
                 {hasLocation && index === 3 && displayData.temperature !== null && (
-                  <span className="weather-factors__tab-value">{displayData.temperature}°C</span>
+                  <span className="weather-factors__tab-value">{formatTemperature(displayData.temperature)}</span>
                 )}
               </button>
             ))}
@@ -482,14 +528,14 @@ function WeatherPage() {
               <div className="weather-live__metric">
                 <i className="fa-solid fa-wind" />
                 <span className="weather-live__metric-value">
-                  {displayData.windSpeed !== null ? `${displayData.windSpeed}` : '--'}
+                  {formatWindSpeed(displayData.windSpeed)}
                 </span>
-                <span className="weather-live__metric-label">Wind (km/h)</span>
+                <span className="weather-live__metric-label">Wind</span>
               </div>
               <div className="weather-live__metric">
                 <i className="fa-solid fa-temperature-half" />
                 <span className="weather-live__metric-value">
-                  {displayData.temperature !== null ? `${displayData.temperature}°` : '--'}
+                  {formatTemperature(displayData.temperature)}
                 </span>
                 <span className="weather-live__metric-label">Temperature</span>
               </div>
