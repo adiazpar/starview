@@ -61,7 +61,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'location_type', 'location_type_display', 'type_metadata',
+        fields = ['id', 'name', 'description', 'location_type', 'location_type_display', 'type_metadata',
                   'latitude', 'longitude', 'elevation',
                   'bortle_class', 'bortle_sqm',
                   'formatted_address', 'administrative_area', 'locality', 'country',
@@ -74,7 +74,7 @@ class LocationSerializer(serializers.ModelSerializer):
                   'times_reported', 'last_visited', 'visitor_count'
                   ]
 
-        read_only_fields = ['id', 'added_by',
+        read_only_fields = ['id', 'description', 'added_by',
                           'created_at', 'formatted_address', 'administrative_area',
                           'locality', 'country', 'type_metadata',
                           'bortle_class', 'bortle_sqm',
