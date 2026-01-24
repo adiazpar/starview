@@ -63,7 +63,7 @@
   /* Decorative - Cyan glow effects */
   --glow-primary: rgba(0, 212, 170, 0.2);
   --glow-secondary: rgba(6, 182, 212, 0.1);
-  --gradient-accent: linear-gradient(135deg, #00d4aa 0%, #06b6d4 100%);
+  --gradient-accent: linear-gradient(135deg, #00d4aa 0%, #06d4bf 100%);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --shadow-accent: 0 0 20px rgba(0, 212, 170, 0.3), 0 0 40px rgba(0, 212, 170, 0.1);
   --shadow-accent-hover: 0 0 30px rgba(0, 212, 170, 0.4), 0 0 60px rgba(0, 212, 170, 0.15);
@@ -187,9 +187,9 @@
   --glass-border-hover: rgba(15, 23, 42, 0.12);
 
   /* Decorative - Twilight glow effects */
-  --glow-primary: rgba(79, 70, 229, 0.12);
-  --glow-secondary: rgba(99, 102, 241, 0.06);
-  --gradient-accent: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+  --glow-primary: rgba(70, 131, 229, 0.2);
+  --glow-secondary: rgba(99, 102, 241, 0.1);
+  --gradient-accent: linear-gradient(135deg, #818cf8 0%, #46b5e5 100%);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-accent: 0 4px 20px rgba(79, 70, 229, 0.2);
   --shadow-accent-hover: 0 6px 28px rgba(79, 70, 229, 0.28);
@@ -311,7 +311,64 @@ h3 {
   color: var(--text-muted);
 }
 
+/* ============================================ */
+/* SECTION ACCENT - Left-aligned subtitle accent */
+/* ============================================ */
 
+/* Subtle accent subtitle for section headers.
+   Uses technical font with gradient line accent.
+   Observatory "coordinate readout" aesthetic. */
+
+.section-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--accent-light);
+  margin-bottom: var(--space-sm);
+}
+
+/* Gradient line before text */
+.section-accent::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+  border-radius: 1px;
+  box-shadow: 0 0 8px var(--glow-primary);
+}
+
+/* Light variant for use on accent backgrounds (e.g., CTA section) */
+.section-accent--light {
+  color: var(--text-primary);
+}
+
+.section-accent--light::before {
+  background: linear-gradient(90deg, var(--text-primary) 0%, var(--accent-light) 100%);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Centered variant */
+.section-accent--centered {
+  justify-content: center;
+}
+
+.section-accent--centered::before {
+  display: none;
+}
+
+.section-accent--centered::after {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-light) 0%, var(--accent) 100%);
+  border-radius: 1px;
+  box-shadow: 0 0 8px var(--glow-primary);
+}
 
 /* ============================================ */
 /* LAYOUT */

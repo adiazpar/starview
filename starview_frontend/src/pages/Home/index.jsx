@@ -106,7 +106,7 @@ function HomePage() {
       <section className="features">
         <div className="features__container">
           <div className="features__header">
-            <span className="features__label">Features</span>
+            <span className="section-accent">Features</span>
             <h2 className="features__title">Everything you need to find dark skies</h2>
           </div>
 
@@ -172,6 +172,7 @@ function HomePage() {
       <section className="cta">
         <div className="cta__container">
           <div className="cta__content">
+            <span className="section-accent section-accent--light section-accent--centered">Get Started</span>
             <h2 className="cta__title">Ready to explore the cosmos?</h2>
             <p className="cta__text">
               {isAuthenticated

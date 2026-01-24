@@ -51,6 +51,7 @@ function PopularNearby({ userLocation, isLoading: isLocationLoading }) {
       <section className="popular-nearby">
         <div className="popular-nearby__container">
           <header className="popular-nearby__header">
+            <span className="section-accent">Explore</span>
             <h2 className="popular-nearby__title">
               <span className="popular-nearby__title-text">Popular sites near </span>
               <span className="popular-nearby__title-location popular-nearby__title-location--loading">your location</span>
@@ -81,6 +82,7 @@ function PopularNearby({ userLocation, isLoading: isLocationLoading }) {
     <section className="popular-nearby">
       <div className="popular-nearby__container">
         <header className="popular-nearby__header">
+          <span className="section-accent">Explore</span>
           <h2 className="popular-nearby__title">
             <span className="popular-nearby__title-text">Popular sites near </span>
             <a
