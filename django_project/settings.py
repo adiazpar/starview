@@ -88,7 +88,9 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'  # Send origin on cro
 if not DEBUG:
     SECURE_SSL_REDIRECT = True              # Force HTTPS
     SESSION_COOKIE_SECURE = True            # HTTPS-only session cookies
+    SESSION_COOKIE_NAME = '__Secure-sessionid'  # Cookie prefix signals HTTPS-only requirement
     CSRF_COOKIE_SECURE = True               # HTTPS-only CSRF cookies
+    CSRF_COOKIE_NAME = '__Secure-csrftoken'     # Cookie prefix signals HTTPS-only requirement
     SECURE_HSTS_SECONDS = 31536000          # 1 year HSTS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True   # HSTS for subdomains
     SECURE_HSTS_PRELOAD = True              # HSTS preload list
@@ -101,7 +103,11 @@ CONTENT_SECURITY_POLICY = {
         'default-src': ("'self'",),                     # Default: only allow resources from same origin
         'script-src': (
             "'self'",
-            "'unsafe-inline'",                          # Required for inline scripts (Mapbox init, etc.)
+            # CSP hashes for inline scripts in index.html (safer than 'unsafe-inline')
+            # If any inline script changes, regenerate hash with: python3 -c "import hashlib,base64; print('sha256-'+base64.b64encode(hashlib.sha256(open('starview_frontend/index.html').read().split('<script>')[N].split('</script>')[0].encode()).digest()).decode())"
+            "'sha256-78vnOdGt4By5V5IsJeY6BoKK3LYW46NWVK1nafjWtNY='",  # Theme detection script
+            "'sha256-LcsTLi0CK4AcXGGgx73KRKCugqhdIbnQUrlWdzJn0Y8='",  # WebView detection script
+            "'sha256-8Mw3/RddA145h5bTAMN2UNzAVX701EDWfbibG25LPAk='",  # Mapbox warning suppressor
             "https://api.mapbox.com",                   # Mapbox GL JS library
             "https://cdn.jsdelivr.net",                 # CDN for libraries (if needed)
             "https://kit.fontawesome.com",              # Font Awesome kit
