@@ -5,7 +5,7 @@
 
 import { lazy, Suspense, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
 import ProfileSetupCard from '../../components/home/ProfileSetupCard';
 import HeroCarousel from '../../components/home/HeroCarousel';

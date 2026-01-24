@@ -6,7 +6,7 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useTheme } from '../../hooks/useTheme';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { useExploreFilters } from '../../hooks/useExploreFilters';
 import './styles.css';

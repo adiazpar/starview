@@ -44,6 +44,10 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+# Testing mode (enables throttle bypass for test suites)
+# Set TESTING=True in environment or use @override_settings(TESTING=True)
+TESTING = os.getenv('TESTING', 'False') == 'True'
+
 # Site configuration
 SITE_ID = 1
 SITE_NAME = "Starview"
@@ -249,6 +253,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',                         # Allauth account middleware (MUST be after AuthenticationMiddleware)
     'axes.middleware.AxesMiddleware',                                       # Account lockout (MUST be after AuthenticationMiddleware)
+    'starview_app.middleware.SessionIdleTimeoutMiddleware',                 # Session idle timeout (MUST be after AuthenticationMiddleware)
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -299,14 +304,18 @@ DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite3')
 if DB_ENGINE == 'postgresql':
     # PostgreSQL configuration (production)
     # Using PostGIS for spatial queries (distance filtering, geographic calculations)
+    db_host = os.getenv('DB_HOST', 'localhost')
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': os.getenv('DB_NAME', 'event_horizon'),
             'USER': os.getenv('DB_USER', 'postgres'),
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'HOST': db_host,
             'PORT': os.getenv('DB_PORT', '5432'),
+            # Enforce SSL for remote database connections (production security)
+            # Skip SSL for localhost (development)
+            'OPTIONS': {} if db_host in ('localhost', '127.0.0.1') else {'sslmode': 'require'},
         }
     }
 else:
@@ -353,7 +362,7 @@ AXES_HANDLER = 'axes.handlers.database.AxesDatabaseHandler'
 AXES_CACHE = 'default'                          # Use default Redis cache
 
 # Customize lockout response
-AXES_COOLOFF_MESSAGE = "Account temporarily locked due to too many failed login attempts. Please try again in 1 hour."
+AXES_COOLOFF_MESSAGE = "Account temporarily locked due to too many failed login attempts. Please try again later."
 
 # =============================================================================
 # INTERNATIONALIZATION

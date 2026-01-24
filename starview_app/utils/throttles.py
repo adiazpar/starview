@@ -29,7 +29,6 @@
 
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django.conf import settings
-import sys
 
 
 # ----------------------------------------------------------------------------- #
@@ -48,16 +47,8 @@ class LoginRateThrottle(AnonRateThrottle):
     scope = 'login'
 
     def allow_request(self, request, view):
-        # Disable throttling during tests
-        # Check multiple conditions to catch all test scenarios
-        if (
-            'test' in sys.argv or
-            hasattr(settings, 'TESTING') or
-            getattr(settings, 'TESTING', False) or
-            'unittest' in sys.modules or
-            'pytest' in sys.modules or
-            'django.test' in sys.modules
-        ):
+        # Disable throttling during tests (single, controlled flag)
+        if getattr(settings, 'TESTING', False):
             return True
         return super().allow_request(request, view)
 
@@ -84,15 +75,8 @@ class PasswordResetThrottle(AnonRateThrottle):
     scope = 'password_reset'
 
     def allow_request(self, request, view):
-        # Disable throttling during tests
-        if (
-            'test' in sys.argv or
-            hasattr(settings, 'TESTING') or
-            getattr(settings, 'TESTING', False) or
-            'unittest' in sys.modules or
-            'pytest' in sys.modules or
-            'django.test' in sys.modules
-        ):
+        # Disable throttling during tests (single, controlled flag)
+        if getattr(settings, 'TESTING', False):
             return True
         return super().allow_request(request, view)
 

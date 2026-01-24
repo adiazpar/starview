@@ -249,6 +249,11 @@ class LocationViewSet(viewsets.ModelViewSet):
         """Filter by distance using PostGIS ST_DWithin."""
         try:
             lat, lng = [float(x) for x in near.split(',')]
+
+            # Validate coordinate ranges (lat: -90 to 90, lng: -180 to 180)
+            if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+                return queryset
+
             radius_miles = float(radius or 50)
             # Validate radius is positive and reasonable (max 12500 miles ~ Earth circumference / 2)
             if radius_miles <= 0 or radius_miles > 12500:
@@ -526,8 +531,9 @@ class LocationViewSet(viewsets.ModelViewSet):
                 parts = [float(x) for x in bbox_param.split(',')]
                 if len(parts) == 4:
                     west, south, east, north = parts
-                    # Validate bounds
-                    if -180 <= west <= 180 and -180 <= east <= 180 and -90 <= south <= 90 and -90 <= north <= 90:
+                    # Validate bounds (including south < north constraint)
+                    if -180 <= west <= 180 and -180 <= east <= 180 and \
+                       -90 <= south <= 90 and -90 <= north <= 90 and south < north:
                         bbox = {'west': west, 'south': south, 'east': east, 'north': north}
             except (ValueError, TypeError):
                 pass  # Invalid bbox format, ignore and return all locations
