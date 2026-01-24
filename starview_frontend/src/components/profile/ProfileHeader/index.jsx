@@ -11,7 +11,7 @@ import './styles.css';
 /**
  * ProfileHeader Component
  *
- * Displays user profile header with avatar, name, username, bio, location, and join date.
+ * Displays user profile header with avatar, name, username, bio, and join date.
  * Used by both private ProfilePage and public PublicProfilePage.
  *
  * Props:
@@ -140,12 +140,6 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
 
             {/* Metadata Row */}
             <div className="profile-metadata">
-              {user?.location && (
-                <span className="profile-metadata-item">
-                  <i className="fa-solid fa-map-marker-alt"></i>
-                  {user.location}
-                </span>
-              )}
               <span className="profile-metadata-item">
                 <i className="fa-solid fa-calendar-days"></i>
                 Joined {joinDate}

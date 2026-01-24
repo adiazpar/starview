@@ -932,7 +932,6 @@ class BadgeService:
     # - check_function: Lambda that takes profile and returns True if complete      #
     # ----------------------------------------------------------------------------- #
     PROFILE_COMPLETION_REQUIREMENTS = [
-        ('location', lambda p: bool(p.location)),
         ('bio', lambda p: bool(p.bio)),
         ('profile_picture', lambda p: bool(p.profile_picture) and hasattr(p.profile_picture, 'url')),
         # Add new requirements here, e.g.:

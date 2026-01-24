@@ -95,16 +95,6 @@ export const profileApi = {
   },
 
   /**
-   * Update user's location for public profile display
-   * @param {Object} data - Location data
-   * @param {string} data.location - Location text (max 100 characters)
-   * @returns {Promise} - { detail: string, location: string }
-   */
-  updateLocation: (data) => {
-    return api.patch('/users/me/update-location/', data);
-  },
-
-  /**
    * Update user's unit preference (metric or imperial)
    * @param {Object} data - Unit preference data
    * @param {string} data.unit_preference - 'metric' or 'imperial'

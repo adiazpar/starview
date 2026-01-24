@@ -50,7 +50,6 @@ class UserSerializer(serializers.ModelSerializer):
 class PublicUserSerializer(serializers.ModelSerializer):
     profile_picture_url = serializers.SerializerMethodField()
     bio = serializers.CharField(source='userprofile.bio', read_only=True)
-    location = serializers.CharField(source='userprofile.location', read_only=True)
     is_verified = serializers.BooleanField(source='userprofile.is_verified', read_only=True)
     stats = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
@@ -59,7 +58,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'date_joined',
-                  'profile_picture_url', 'bio', 'location', 'is_verified', 'stats', 'is_following',
+                  'profile_picture_url', 'bio', 'is_verified', 'stats', 'is_following',
                   'pinned_badge_ids']
         read_only_fields = ['id', 'username', 'first_name', 'last_name', 'date_joined']
 
@@ -131,7 +130,6 @@ class PublicUserSerializer(serializers.ModelSerializer):
 class PrivateProfileSerializer(serializers.ModelSerializer):
     profile_picture_url = serializers.SerializerMethodField()
     bio = serializers.CharField(source='userprofile.bio', read_only=True)
-    location = serializers.CharField(source='userprofile.location', read_only=True)
     is_verified = serializers.BooleanField(source='userprofile.is_verified', read_only=True)
     has_usable_password = serializers.BooleanField(read_only=True)
     pinned_badge_ids = serializers.ListField(source='userprofile.pinned_badge_ids', read_only=True)
@@ -140,7 +138,7 @@ class PrivateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined',
-                  'profile_picture_url', 'bio', 'location', 'is_verified', 'has_usable_password',
+                  'profile_picture_url', 'bio', 'is_verified', 'has_usable_password',
                   'pinned_badge_ids', 'unit_preference']
         read_only_fields = ['id', 'username', 'date_joined', 'has_usable_password']
 

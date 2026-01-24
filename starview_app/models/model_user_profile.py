@@ -2,13 +2,13 @@
 # This model_user_profile.py file defines the UserProfile model:                                        #
 #                                                                                                       #
 # Purpose:                                                                                              #
-# Extends Django's built-in User model with profile pictures, bio, and location. Automatically created  #
-# via post_save signal in signals.py when a User is created.                                            #
+# Extends Django's built-in User model with profile pictures and bio. Automatically created via         #
+# post_save signal in signals.py when a User is created.                                                #
 #                                                                                                       #
 # Key Features:                                                                                         #
 # - One-to-One relationship with User model (extends user functionality)                                #
 # - Profile picture upload with default fallback                                                        #
-# - Public profile fields: bio and location for user profiles                                           #
+# - Public profile fields: bio for user profiles                                                        #
 # - Automatic creation: Signal handler in signals.py creates UserProfile when User is created           #
 # ----------------------------------------------------------------------------------------------------- #
 
@@ -35,12 +35,6 @@ class UserProfile(models.Model):
         blank=True,
         default='',
         help_text="Short bio visible on public profile (max 150 characters)"
-    )
-    location = models.CharField(
-        max_length=100,
-        blank=True,
-        default='',
-        help_text="User's location for public profile display (e.g., 'Seattle, WA')"
     )
     is_verified = models.BooleanField(
         default=False,

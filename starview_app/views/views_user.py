@@ -8,7 +8,7 @@
 # Key Features:                                                                                         #
 # - Public Profiles: View any user's public profile, reviews, and stats (no auth required)             #
 # - Account Management: Full profile and account settings for authenticated users                       #
-# - Profile Updates: AJAX endpoints for profile pictures, names, email, passwords, bio, location       #
+# - Profile Updates: AJAX endpoints for profile pictures, names, email, passwords, bio                 #
 # - Password Security: Integrates with PasswordService for consistent validation across the app         #
 # - Error Handling: Uses DRF exceptions caught by the global exception handler                          #
 #                                                                                                       #
@@ -538,40 +538,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response({
             'detail': 'Bio updated successfully.',
             'bio': bio
-        }, status=status.HTTP_200_OK)
-
-
-    # ----------------------------------------------------------------------------- #
-    # Update user's location text for public profile display.                       #
-    #                                                                               #
-    # Location is purely for display on the user's public profile (e.g., "Seattle"). #
-    # Sky condition features use session-based location resolved via browser/IP.    #
-    #                                                                               #
-    # HTTP Method: PATCH                                                            #
-    # Endpoint: /api/users/me/update-location/                                      #
-    # Authentication: Required                                                      #
-    # Body: JSON with location (max 100 chars)                                      #
-    # Returns: DRF Response with success status and updated location text           #
-    # ----------------------------------------------------------------------------- #
-    @action(detail=False, methods=['patch'], url_path='me/update-location')
-    def update_location(self, request):
-        location = request.data.get('location', '').strip()
-
-        # Validate location text length
-        if len(location) > 100:
-            raise exceptions.ValidationError('Location must be 100 characters or less.')
-
-        profile = request.user.userprofile
-        profile.location = location
-        profile.save()
-
-        # Check profile completion badge (may award/revoke Mission Ready)
-        from starview_app.services.badge_service import BadgeService
-        BadgeService.check_profile_complete_badge(request.user)
-
-        return Response({
-            'detail': 'Location updated successfully.',
-            'location': profile.location
         }, status=status.HTTP_200_OK)
 
 

@@ -5,7 +5,6 @@
  * This component has been refactored into smaller, focused form components.
  *
  * Supports deep-linking via ?scrollTo query param to expand and scroll to:
- * - location: Location form
  * - bio: Bio form
  * - picture: Profile picture form
  */
@@ -18,7 +17,6 @@ import UsernameForm from '../forms/UsernameForm';
 import EmailForm from '../forms/EmailForm';
 import PasswordForm from '../forms/PasswordForm';
 import BioForm from '../forms/BioForm';
-import LocationForm from '../forms/LocationForm';
 import './styles.css';
 
 function ProfileSettings({ user, refreshAuth }) {
@@ -26,12 +24,11 @@ function ProfileSettings({ user, refreshAuth }) {
   const scrollToParam = searchParams.get('scrollTo');
 
   // Check which section to scroll to
-  const scrollToLocation = scrollToParam === 'location';
   const scrollToBio = scrollToParam === 'bio';
   const scrollToPicture = scrollToParam === 'picture';
 
   // Expand section if any scrollTo param is present
-  const shouldExpand = scrollToLocation || scrollToBio || scrollToPicture;
+  const shouldExpand = scrollToBio || scrollToPicture;
 
   return (
     <CollapsibleSection
@@ -46,7 +43,6 @@ function ProfileSettings({ user, refreshAuth }) {
         <EmailForm user={user} refreshAuth={refreshAuth} />
         <PasswordForm user={user} refreshAuth={refreshAuth} />
         <BioForm user={user} refreshAuth={refreshAuth} scrollTo={scrollToBio} />
-        <LocationForm user={user} refreshAuth={refreshAuth} scrollTo={scrollToLocation} />
       </div>
     </CollapsibleSection>
   );

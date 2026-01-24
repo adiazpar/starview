@@ -6,7 +6,7 @@
  * Styled as an observatory "instrument calibration" panel.
  *
  * Props:
- * - user: { location, bio, profile_picture_url } - User data to calculate completion
+ * - user: { bio, profile_picture_url } - User data to calculate completion
  * - onNavigateToSettings: (scrollTo?: string) => void - Navigation callback
  */
 
@@ -15,14 +15,6 @@ import './styles.css';
 
 // Define setup tasks with their completion logic
 const SETUP_TASKS = [
-  {
-    id: 'location',
-    icon: 'fa-solid fa-location-crosshairs',
-    label: 'Set your location',
-    description: 'Powers your location features across the app',
-    field: 'location',
-    scrollTo: 'location'
-  },
   {
     id: 'bio',
     icon: 'fa-solid fa-pen-fancy',
