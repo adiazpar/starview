@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import authApi from '../services/auth';
+import { safeRedirect } from '../utils/security';
 
 /**
  * AuthContext - Shared authentication state across the entire application
@@ -72,8 +73,8 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(false);
       setUser(null);
 
-      // Redirect to home page or specified redirect URL
-      window.location.href = data.redirect_url || '/';
+      // Redirect to home page or specified redirect URL (validated to prevent open redirects)
+      safeRedirect(data.redirect_url, '/');
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

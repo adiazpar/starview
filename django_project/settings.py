@@ -58,6 +58,12 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'  # Use default Redis cache
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
 
+# Cookie security flags (always enabled for both dev and production)
+SESSION_COOKIE_HTTPONLY = True      # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'     # Prevent CSRF via cross-site requests (Lax allows OAuth redirects)
+CSRF_COOKIE_HTTPONLY = False        # Must be False - JS needs to read CSRF token for AJAX requests
+CSRF_COOKIE_SAMESITE = 'Lax'        # Prevent CSRF via cross-site requests
+
 # =============================================================================
 # SECURITY SETTINGS
 # =============================================================================
@@ -114,9 +120,16 @@ CONTENT_SECURITY_POLICY = {
             "https://www.googletagmanager.com",         # Google Tag Manager / Analytics
             "https://www.google-analytics.com",         # Google Analytics
         ),
+        # SECURITY NOTE: 'unsafe-inline' weakens CSP protection against style injection.
+        # Currently required because:
+        # 1. Django admin uses inline styles extensively
+        # 2. Some third-party libraries (Mapbox, FontAwesome) inject styles dynamically
+        # TODO: Long-term fix - migrate to CSP nonces with django-csp-nonce package,
+        #       audit all inline styles, and move them to external CSS files.
+        #       Track as tech debt - removal would improve XSS protection.
         'style-src': (
             "'self'",
-            "'unsafe-inline'",                          # Required for Django admin and inline styles
+            "'unsafe-inline'",                          # See SECURITY NOTE above
             "https://api.mapbox.com",                   # Mapbox styles
             "https://cdn.jsdelivr.net",                 # CDN styles
             "https://rsms.me",                          # Inter font CSS
@@ -309,11 +322,6 @@ else:
 # AUTHENTICATION & PASSWORD VALIDATION
 # =============================================================================
 
-AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',  # Account lockout backend (Phase 4 - MUST be first)
-    'django.contrib.auth.backends.ModelBackend',
-]
-
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'starview_app.utils.validators.UppercaseValidator'},
@@ -500,6 +508,10 @@ AWS_SES_AUTO_THROTTLE = 0.5         # Send at 50% of rate limit (safety factor)
 # Mapbox API (geocoding and elevation)
 MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN')
 
+# OpenRouteService API key (server-side only, never exposed to frontend)
+# Used for directions/routing proxy endpoint
+OPENROUTESERVICE_API_KEY = os.getenv('OPENROUTESERVICE_API_KEY')
+
 # Tile server configuration
 TILE_SERVER_URL = os.getenv('TILE_SERVER_URL', 'http://localhost:3001')
 
@@ -526,11 +538,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 
-    # Renderers
+    # Renderers - BrowsableAPIRenderer only in development (exposes API structure)
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
+    ] + (['rest_framework.renderers.BrowsableAPIRenderer'] if DEBUG else []),
 
     # Versioning
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
@@ -561,14 +572,12 @@ REST_FRAMEWORK = {
 # AUTHENTICATION CONFIGURATION
 # =============================================================================
 
-# Authentication backends (add allauth backend while keeping Django's default)
+# Authentication backends
+# IMPORTANT: Axes MUST be first for account lockout to work correctly
 AUTHENTICATION_BACKENDS = [
-    # Django's default authentication backend
-    'django.contrib.auth.backends.ModelBackend',
-    # Allauth-specific authentication backend for social logins
-    'allauth.account.auth_backends.AuthenticationBackend',
-    # Axes backend for account lockout (renamed in version 5.0+)
-    'axes.backends.AxesStandaloneBackend',
+    'axes.backends.AxesStandaloneBackend',              # Account lockout (MUST be first)
+    'django.contrib.auth.backends.ModelBackend',        # Django's default authentication
+    'allauth.account.auth_backends.AuthenticationBackend',  # Social logins (allauth)
 ]
 
 # django-allauth settings:

@@ -3,16 +3,16 @@
  *
  * Fetches driving directions using a cascade fallback pattern:
  * 1. Mapbox Directions API (real-time traffic data)
- * 2. OpenRouteService (fallback, free tier: 2,000 req/day)
+ * 2. Backend proxy to OpenRouteService (API key kept server-side for security)
  * 3. Geodesic straight line (last resort when APIs fail)
  *
  * Returns route geometry for map display, plus duration/distance when available.
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { getDirections as getDirectionsFromBackend } from '../services/directions';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const ORS_API_KEY = import.meta.env.VITE_OPENROUTESERVICE_API_KEY;
 
 // Route cache configuration
 const ROUTE_CACHE_PREFIX = 'starview_route_';
@@ -309,53 +309,32 @@ export function useMapboxDirections() {
         }
       }
 
-      // === Fallback to OpenRouteService (free tier) ===
-      if (ORS_API_KEY) {
-        try {
-          const orsResponse = await fetch(
-            'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': ORS_API_KEY,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                coordinates: [
-                  [from.longitude, from.latitude],
-                  [to.longitude, to.latitude],
-                ],
-              }),
-            }
-          );
+      // === Fallback to OpenRouteService via backend proxy (API key kept server-side) ===
+      try {
+        const data = await getDirectionsFromBackend(from, to);
+        if (data.features && data.features[0]) {
+          const route = data.features[0];
+          const summary = route.properties?.summary || {};
 
-          if (orsResponse.ok) {
-            const data = await orsResponse.json();
-            if (data.features && data.features[0]) {
-              const route = data.features[0];
-              const summary = route.properties?.summary || {};
-
-              const result = {
-                geometry: route.geometry,
-                duration: summary.duration || 0,
-                distance: summary.distance || 0,
-                isEstimated: false,
-                noRouteFound: false,
-              };
-              // Cache the route (memory + localStorage)
-              routeCacheRef.current = { from, to, routeData: result };
-              setCachedRoute(from, to, result);
-              setRouteData(result);
-              setIsLoading(false);
-              return result;
-            } else {
-              // API responded but no route found
-              apiRespondedNoRoute = true;
-            }
-          }
-        } catch {
-          // ORS failed, will use geodesic fallback
+          const result = {
+            geometry: route.geometry,
+            duration: summary.duration || 0,
+            distance: summary.distance || 0,
+            isEstimated: false,
+            noRouteFound: false,
+          };
+          // Cache the route (memory + localStorage)
+          routeCacheRef.current = { from, to, routeData: result };
+          setCachedRoute(from, to, result);
+          setRouteData(result);
+          setIsLoading(false);
+          return result;
+        } else {
+          // API responded but no route found
+          apiRespondedNoRoute = true;
         }
+      } catch {
+        // Backend proxy failed, will use geodesic fallback
       }
 
       // === Last resort: Geodesic straight line ===

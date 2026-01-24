@@ -62,6 +62,8 @@ from .views import (
     get_bortle,
     # GeoIP views
     geolocate_ip,
+    # Routing views
+    get_directions,
 )
 
 router = DefaultRouter()
@@ -96,6 +98,9 @@ urlpatterns = [
 
     # IP geolocation (fallback for users without browser/profile location):
     path('api/geolocate/', geolocate_ip, name='geolocate_ip'),
+
+    # Directions proxy (keeps OpenRouteService API key server-side):
+    path('api/directions/', get_directions, name='directions'),
 
     # User authentication API endpoints:
     path('api/auth/register/', register, name='register'),

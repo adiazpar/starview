@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
+import { safeRedirect } from '../../utils/security';
 import './styles.css';
 
 function LoginPage() {
@@ -53,9 +54,9 @@ function LoginPage() {
         remember_me: rememberMe
       });
 
-      // Login successful - redirect to specified URL
+      // Login successful - redirect to specified URL (validated to prevent open redirects)
       const redirectUrl = response.data.redirect_url || nextUrl;
-      window.location.href = redirectUrl;
+      safeRedirect(redirectUrl, '/');
     } catch (err) {
       // Backend always returns 'detail' field for all API errors
       // Check if error is due to unverified email

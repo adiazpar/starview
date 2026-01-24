@@ -210,9 +210,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="footer__bottom">
           <div className="footer__legal">
-            <Link to="/privacy" className="footer__legal-link">Privacy Policy</Link>
+            <Link to="/privacy" className="footer__legal-link">Privacy</Link>
             <span className="footer__legal-divider" />
-            <Link to="/terms" className="footer__legal-link">Terms of Service</Link>
+            <Link to="/terms" className="footer__legal-link">Terms</Link>
             <span className="footer__legal-divider" />
             <Link to="/accessibility" className="footer__legal-link">Accessibility</Link>
             <span className="footer__legal-divider" />
@@ -229,25 +229,6 @@ export default function Footer() {
             <span className="footer__status-text">All systems operational</span>
           </div>
         </div>
-      </div>
-
-      {/* Decorative constellation pattern */}
-      <div className="footer__constellation" aria-hidden="true">
-        <svg viewBox="0 0 200 100" className="footer__constellation-svg">
-          <circle cx="20" cy="30" r="1.5" />
-          <circle cx="45" cy="15" r="1" />
-          <circle cx="70" cy="40" r="1.5" />
-          <circle cx="100" cy="25" r="2" />
-          <circle cx="130" cy="45" r="1" />
-          <circle cx="160" cy="20" r="1.5" />
-          <circle cx="180" cy="50" r="1" />
-          <line x1="20" y1="30" x2="45" y2="15" />
-          <line x1="45" y1="15" x2="70" y2="40" />
-          <line x1="70" y1="40" x2="100" y2="25" />
-          <line x1="100" y1="25" x2="130" y2="45" />
-          <line x1="130" y1="45" x2="160" y2="20" />
-          <line x1="160" y1="20" x2="180" y2="50" />
-        </svg>
       </div>
     </footer>
   );

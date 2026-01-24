@@ -91,6 +91,11 @@ from .views_geoip import (
     geolocate_ip,
 )
 
+# Routing views:
+from .views_routing import (
+    get_directions,
+)
+
 # Expose all views for easier imports:
 __all__ = [
     # Location views
@@ -143,4 +148,7 @@ __all__ = [
 
     # GeoIP views
     'geolocate_ip',
+
+    # Routing views
+    'get_directions',
 ]
