@@ -10,7 +10,7 @@
 .hero {
   position: relative;
   z-index: 2;
-  height: 600px;
+  height: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,7 +60,7 @@
 /* Title - Large technical display */
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 10vw, 84px);
+  font-size: clamp(48px, 7vw, 56px);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
