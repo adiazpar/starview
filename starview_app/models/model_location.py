@@ -54,6 +54,11 @@ class Location(models.Model):
 
     # Basic information:
     name = models.CharField(max_length=200)
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Description of the location (typically 2-4 sentences about history and stargazing significance)"
+    )
     location_type = models.CharField(
         max_length=50,
         choices=LOCATION_TYPES,
