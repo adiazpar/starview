@@ -56,6 +56,10 @@ class LocationPhoto(models.Model):
     caption = models.CharField(max_length=255, blank=True, help_text="Optional caption for the photo")
     order = models.PositiveIntegerField(default=0, help_text="Order of display (lower numbers appear first)")
 
+    # Image dimensions (populated during processing for quality filtering)
+    width = models.PositiveIntegerField(null=True, blank=True, help_text="Image width in pixels")
+    height = models.PositiveIntegerField(null=True, blank=True, help_text="Image height in pixels")
+
     class Meta:
         ordering = ['order', 'created_at']
         indexes = [
@@ -118,6 +122,9 @@ class LocationPhoto(models.Model):
 
             # Resize if too large (max 1920x1920, maintains aspect ratio)
             img.thumbnail((1920, 1920), Image.Resampling.LANCZOS)
+
+            # Store final dimensions for quality filtering
+            self.width, self.height = img.size
 
             # Save processed image to new BytesIO
             img_io = io.BytesIO()

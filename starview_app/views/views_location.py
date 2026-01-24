@@ -784,9 +784,9 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Hero Carousel - Random location images for homepage.                          #
+    # Hero Carousel - Random high-quality location images for homepage.             #
     #                                                                               #
-    # Returns 5 random locations with images for the hero carousel.                 #
+    # Returns 5 random locations with high-quality images (min 1200px wide).        #
     # Uses the current date as a seed so all users see the same images each day.   #
     # Results are cached until midnight UTC.                                        #
     #                                                                               #
@@ -800,67 +800,50 @@ class LocationViewSet(viewsets.ModelViewSet):
         import random
         from datetime import date, datetime, timezone as dt_timezone
 
+        MIN_WIDTH = 1200  # Minimum image width for hero carousel
+
         cache_key = f'hero_carousel_{date.today().isoformat()}'
         cached_data = cache.get(cache_key)
 
         if cached_data:
             return Response(cached_data)
 
-        # Get locations that have at least one photo (location or review photo)
-        locations_with_photos = Location.objects.filter(
-            Q(photos__isnull=False) | Q(reviews__photos__isnull=False)
-        ).distinct().prefetch_related(
-            Prefetch(
-                'photos',
-                queryset=LocationPhoto.objects.order_by('-created_at'),
-                to_attr='prefetched_photos'
-            ),
-            Prefetch(
-                'reviews__photos',
-                queryset=ReviewPhoto.objects.order_by('-created_at'),
-            )
-        )
+        # Get high-quality location photos (min width for full-screen display)
+        high_quality_photos = LocationPhoto.objects.filter(
+            width__gte=MIN_WIDTH
+        ).select_related('location').order_by('?')
 
-        # Convert to list and seed random with today's date for consistency
-        location_list = list(locations_with_photos)
+        # Build list of unique locations with their best photo
+        seen_locations = set()
+        candidates = []
 
-        if not location_list:
+        for photo in high_quality_photos:
+            if photo.location_id not in seen_locations:
+                seen_locations.add(photo.location_id)
+                candidates.append({
+                    'id': photo.location.id,
+                    'name': photo.location.name,
+                    'image_url': photo.image_url,
+                })
+                if len(candidates) >= 20:  # Get enough candidates for random selection
+                    break
+
+        if not candidates:
             return Response([])
 
         # Use date as seed so all users see same images each day
         random.seed(date.today().toordinal())
-        selected = random.sample(location_list, min(5, len(location_list)))
+        selected = random.sample(candidates, min(5, len(candidates)))
         random.seed()  # Reset seed
-
-        # Build response with image URLs
-        result = []
-        for loc in selected:
-            # Get first available image (prefer location photos)
-            image_url = None
-            if hasattr(loc, 'prefetched_photos') and loc.prefetched_photos:
-                image_url = loc.prefetched_photos[0].image_url
-            else:
-                # Check review photos
-                for review in loc.reviews.all():
-                    if review.photos.exists():
-                        image_url = review.photos.first().image_url
-                        break
-
-            if image_url:
-                result.append({
-                    'id': loc.id,
-                    'name': loc.name,
-                    'image_url': image_url,
-                })
 
         # Cache until midnight UTC
         now = datetime.now(dt_timezone.utc)
         midnight = datetime(now.year, now.month, now.day, tzinfo=dt_timezone.utc)
         midnight = midnight.replace(day=now.day + 1)
         seconds_until_midnight = int((midnight - now).total_seconds())
-        cache.set(cache_key, result, timeout=seconds_until_midnight)
+        cache.set(cache_key, selected, timeout=seconds_until_midnight)
 
-        return Response(result)
+        return Response(selected)
 
 
     # ----------------------------------------------------------------------------- #
