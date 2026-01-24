@@ -32,8 +32,6 @@
   background-position: center;
   opacity: 0;
   transition: opacity 1.5s ease-in-out;
-  -webkit-mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
 }
 
 .hero-carousel__slide--active {

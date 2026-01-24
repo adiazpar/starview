@@ -60,7 +60,7 @@
 /* Title - Large technical display */
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 7vw, 56px);
+  font-size: clamp(40px, 7vw, 56px);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
