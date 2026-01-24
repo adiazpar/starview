@@ -346,3 +346,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .explore-page__loading,
+  .explore-page__error {
+    animation: none;
+  }
+}

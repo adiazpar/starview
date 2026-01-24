@@ -642,6 +642,16 @@
     opacity: 1;
   }
 
+  .explore-filters-modal__close,
+  .explore-filters-modal__clear,
+  .explore-filters-modal__type-btn,
+  .explore-filters-modal__rating-btn,
+  .explore-filters-modal__link,
+  .explore-filters-modal__bortle-btn,
+  .explore-filters-modal__nearme-btn,
+  .explore-filters-modal__hint-link,
+  .explore-filters-modal__radius-btn,
+  .explore-filters-modal__toggle,
   .explore-filters-modal__toggle-knob {
     transition: none;
   }

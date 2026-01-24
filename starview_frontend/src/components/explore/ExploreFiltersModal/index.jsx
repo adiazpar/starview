@@ -90,10 +90,12 @@ function ExploreFiltersModal({ isOpen, onClose, initialSection = null }) {
   // Handle close with animation
   const handleClose = useCallback(() => {
     setIsClosing(true);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const delay = prefersReducedMotion ? 0 : 300;
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-    }, 300);
+    }, delay);
   }, [onClose]);
 
   // Close modal on ESC key

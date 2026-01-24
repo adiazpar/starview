@@ -171,3 +171,15 @@
 .location-autocomplete [class$="--ResultsList"]::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .location-autocomplete input,
+  .location-autocomplete input[type="text"] {
+    transition: none;
+  }
+
+  .location-autocomplete [class$="--Results"] {
+    animation: none;
+  }
+}

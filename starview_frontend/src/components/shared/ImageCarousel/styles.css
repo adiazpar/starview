@@ -161,3 +161,35 @@
     height: 8px;
   }
 }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .image-carousel__track {
+    transition: none;
+  }
+
+  .image-carousel__image {
+    transition: none;
+  }
+
+  .image-carousel__placeholder {
+    animation: none;
+  }
+
+  .image-carousel__arrow {
+    transition: none;
+  }
+
+  .image-carousel__arrow:hover,
+  .image-carousel__arrow:active {
+    transform: translateY(-50%);
+  }
+
+  .image-carousel__dot {
+    transition: none;
+  }
+
+  .image-carousel__dot--active {
+    transform: none;
+  }
+}

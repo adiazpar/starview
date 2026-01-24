@@ -1160,3 +1160,95 @@
   right: calc(var(--space-sm) + 36px + var(--space-xs));
 }
 
+/* ========================================
+   Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Map container */
+  .explore-map__container {
+    transition: none;
+  }
+
+  /* Map card slide-up and switching */
+  .map-card {
+    transition: none;
+  }
+
+  .map-card--switching {
+    transition: none;
+  }
+
+  /* Image container grid collapse */
+  .map-card__image-container {
+    transition: none;
+  }
+
+  /* Card buttons */
+  .map-card__btn,
+  .map-card__actions {
+    transition: none;
+  }
+
+  /* Meta container collapse */
+  .map-card__meta-container {
+    transition: none;
+  }
+
+  .map-card__meta-container--hidden .map-card__meta {
+    transition: none;
+  }
+
+  .map-card__meta {
+    transition: none;
+  }
+
+  /* Route info and stats animations */
+  .map-card__route {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .map-card__route-stats {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* Map controls fade-in */
+  .explore-map__controls--loaded .explore-map__control,
+  .explore-map__controls--left.explore-map__controls--loaded .explore-map__control {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .explore-map__control-btn {
+    transition: none;
+  }
+
+  /* Dropdowns */
+  .explore-map__dropdown,
+  .explore-map__dropdown--closing {
+    animation: none;
+  }
+
+  .explore-map__dropdown-option {
+    transition: none;
+  }
+
+  .explore-map__dropdown-option input[type="checkbox"],
+  .explore-map__dropdown-option input[type="radio"] {
+    transition: none;
+  }
+
+  /* Popup card */
+  .map-card--popup {
+    animation: none;
+  }
+
+  .map-card--popup.map-card--closing {
+    animation: none;
+  }
+}
+

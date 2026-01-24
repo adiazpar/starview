@@ -1211,16 +1211,20 @@
   .moon-scale__phase,
   .moon-section,
   .moon-bottom,
+  .moon-bottom__bracket path,
+  .moon-bottom__status,
   .moon-bottom__title,
   .moon-bottom__text,
-  .moon-bottom__cta {
-    animation: none;
-    opacity: 1;
-    transform: none;
+  .moon-bottom__cta,
+  .moon-bottom__status-dot {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .moon-hero__bracket path {
-    stroke-dashoffset: 0;
+  .moon-hero__bracket path,
+  .moon-bottom__bracket path {
+    stroke-dashoffset: 0 !important;
   }
 
   .moon-hero__scanline {
@@ -1228,14 +1232,24 @@
   }
 
   .moon-scale__info {
-    opacity: 1;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .moon-guide__tier:hover,
   .moon-tips__card:hover,
   .moon-scale__phase:hover,
   .moon-bottom__cta:hover {
-    transform: none;
+    transform: none !important;
+  }
+
+  /* Disable CTA hover transitions */
+  .moon-bottom__cta,
+  .moon-bottom__cta i {
+    transition: none !important;
+  }
+
+  .moon-bottom__cta:hover i {
+    transform: none !important;
   }
 }

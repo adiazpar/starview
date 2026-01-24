@@ -1494,13 +1494,13 @@
   .sky-feature__bortle-bar,
   .sky-feature__forecast,
   .sky-feature__forecast-bar {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .sky-hero__bracket path {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 0 !important;
   }
 
   .sky-hero__scanline {
@@ -1509,9 +1509,9 @@
 
   /* Disable scroll animations - show immediately */
   .sky-feature {
-    opacity: 1;
-    transform: none;
-    transition: none;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   .sky-feature__card {
@@ -1519,24 +1519,24 @@
   }
 
   .sky-feature__link:hover i {
-    transform: none;
+    transform: none !important;
   }
 
   .sky-feature__card:hover,
   .sky-feature__bortle-bar:hover,
   .sky-feature__forecast-day:hover .sky-feature__forecast-bar {
-    transform: none;
+    transform: none !important;
   }
 
   /* Weather visual - disable animations */
   .sky-feature__weather {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .sky-feature__stars-svg circle {
-    animation: none;
+    animation: none !important;
   }
 
   /* Bottom CTA - disable animations */
@@ -1547,12 +1547,23 @@
   .sky-bottom__text,
   .sky-bottom__cta,
   .sky-bottom__status-dot {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .sky-bottom__bracket path {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 0 !important;
+  }
+
+  /* Disable CTA hover transitions */
+  .sky-bottom__cta,
+  .sky-bottom__cta i {
+    transition: none !important;
+  }
+
+  .sky-bottom__cta:hover,
+  .sky-bottom__cta:hover i {
+    transform: none !important;
   }
 }

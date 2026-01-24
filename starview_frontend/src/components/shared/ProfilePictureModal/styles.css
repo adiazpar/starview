@@ -86,3 +86,15 @@
     font-size: var(--text-lg);
   }
 }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .profile-picture-modal-overlay,
+  .profile-picture-modal-content {
+    animation: none;
+  }
+
+  .profile-picture-modal-close {
+    transition: none;
+  }
+}

@@ -620,9 +620,20 @@
   }
 
   .feature-card,
+  .feature-card__cta i,
   .hero__search-btn,
-  .cta__content .btn-primary {
+  .cta__content .btn-primary,
+  .cta__content .btn-primary i {
     transition: none;
+  }
+
+  .feature-card:hover {
+    transform: none;
+  }
+
+  .feature-card--link:hover .feature-card__cta i,
+  .cta__content .btn-primary:hover i {
+    transform: none;
   }
 }
 

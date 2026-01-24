@@ -33,11 +33,10 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transform: scale(1.05);
 }
 
 .location-hero__image--loaded {
-  animation: heroFadeIn 0.6s ease-out forwards, heroZoom 20s ease-out forwards;
+  animation: heroFadeIn 0.6s ease-out forwards;
 }
 
 @keyframes heroFadeIn {
@@ -46,15 +45,6 @@
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes heroZoom {
-  from {
-    transform: scale(1.05);
-  }
-  to {
-    transform: scale(1);
   }
 }
 
@@ -436,12 +426,17 @@
   .location-hero__image--loaded {
     animation: none;
     opacity: 1;
-    transform: scale(1);
   }
 
   .location-hero__nav,
   .location-hero__info {
     animation: none;
+  }
+
+  .location-hero__back,
+  .location-hero__action,
+  .location-hero__photo-count {
+    transition: none;
   }
 
   .location-hero__action--active i {

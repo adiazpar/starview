@@ -1320,16 +1320,20 @@
   .weather-factors__tab,
   .weather-section,
   .weather-bottom,
+  .weather-bottom__bracket path,
+  .weather-bottom__status,
   .weather-bottom__title,
   .weather-bottom__text,
-  .weather-bottom__cta {
-    animation: none;
-    opacity: 1;
-    transform: none;
+  .weather-bottom__cta,
+  .weather-bottom__status-dot {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .weather-hero__bracket path {
-    stroke-dashoffset: 0;
+  .weather-hero__bracket path,
+  .weather-bottom__bracket path {
+    stroke-dashoffset: 0 !important;
   }
 
   .weather-hero__scanline {
@@ -1340,6 +1344,16 @@
   .weather-tips__card:hover,
   .weather-factors__tab:hover,
   .weather-bottom__cta:hover {
-    transform: none;
+    transform: none !important;
+  }
+
+  /* Disable CTA hover transitions */
+  .weather-bottom__cta,
+  .weather-bottom__cta i {
+    transition: none !important;
+  }
+
+  .weather-bottom__cta:hover i {
+    transform: none !important;
   }
 }

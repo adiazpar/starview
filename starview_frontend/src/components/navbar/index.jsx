@@ -152,16 +152,20 @@ function Navbar() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   // Handle backdrop visibility with delay for fade-out animation
+  // Respects prefers-reduced-motion for instant transitions
   useEffect(() => {
     if (mobileMenuOpen) {
       setBackdropVisible(true);
       setBackdropClosing(false);
     } else if (backdropVisible) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const delay = prefersReducedMotion ? 0 : 300;
+
       setBackdropClosing(true);
       const timer = setTimeout(() => {
         setBackdropVisible(false);
         setBackdropClosing(false);
-      }, 300);
+      }, delay);
       return () => clearTimeout(timer);
     }
   }, [mobileMenuOpen, backdropVisible]);

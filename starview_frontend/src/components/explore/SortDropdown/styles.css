@@ -110,3 +110,16 @@
   font-size: 10px;
   color: var(--accent);
 }
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .sort-dropdown__trigger,
+  .sort-dropdown__chevron,
+  .sort-dropdown__option {
+    transition: none;
+  }
+
+  .sort-dropdown__menu {
+    animation: none;
+  }
+}

@@ -1283,14 +1283,14 @@
   .bortle-bottom__text,
   .bortle-bottom__cta,
   .bortle-bottom__status-dot {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .bortle-hero__bracket path,
   .bortle-bottom__bracket path {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 0 !important;
   }
 
   .bortle-hero__scanline {
@@ -1298,14 +1298,24 @@
   }
 
   .bortle-scale__info {
-    opacity: 1;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .bortle-visibility__tier:hover,
   .bortle-tips__card:hover,
   .bortle-scale__bar:hover,
   .bortle-bottom__cta:hover {
-    transform: none;
+    transform: none !important;
+  }
+
+  /* Disable CTA hover transitions */
+  .bortle-bottom__cta,
+  .bortle-bottom__cta i {
+    transition: none !important;
+  }
+
+  .bortle-bottom__cta:hover i {
+    transform: none !important;
   }
 }

@@ -541,3 +541,42 @@
     width: 36px;
   }
 }
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__logo-crop,
+  .navbar__search,
+  .navbar__explore-controls,
+  .navbar__search-icon,
+  .navbar__search-clear,
+  .navbar__filters-btn,
+  .navbar__nav,
+  .navbar__hamburger span,
+  .navbar__mobile,
+  .navbar__filter-chip {
+    transition: none;
+  }
+
+  .navbar__backdrop,
+  .navbar__backdrop--closing {
+    animation: none;
+    /* Instant appearance/disappearance */
+    animation-duration: 0s !important;
+  }
+
+  /* Ensure hamburger X transform still works but instantly */
+  .navbar__hamburger.open span:nth-child(1) {
+    transition: none;
+  }
+
+  .navbar__hamburger.open span:nth-child(2) {
+    transition: none;
+  }
+
+  .navbar__hamburger.open span:nth-child(3) {
+    transition: none;
+  }
+}

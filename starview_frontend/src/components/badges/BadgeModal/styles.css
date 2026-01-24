@@ -51,3 +51,11 @@
 .badge-modal-close:hover {
   color: var(--text-primary);
 }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .badge-modal-overlay,
+  .badge-modal-content {
+    animation: none;
+  }
+}

@@ -76,6 +76,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .location-card {
+    animation: none;
+  }
+
+  .location-card__image {
+    transition: none;
+  }
+
+  .location-card__save {
+    transition: none;
+  }
+
   .location-card__save--active i {
     animation: none;
   }

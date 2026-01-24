@@ -129,6 +129,7 @@
   --navbar-height: 72px;
   --navbar-height-mobile: 64px;
   --navbar-filters-height: 58px;
+  --navbar-total-height: 72px; /* Initial value, updated dynamically by navbar */
   --container-max: 1000px;
 
   /* Typography - Observatory aesthetic */
@@ -813,12 +814,72 @@ html.webview-browser .main-content {
   animation: spin 1s linear infinite;
 }
 
-/* Respect reduced motion preference */
+/* ============================================ */
+/* REDUCED MOTION - Global Accessibility */
+/* ============================================ */
+
+/* Comprehensive reduced motion handling.
+   Respects user's OS-level motion preference.
+   Disables animations/transitions that can cause discomfort. */
+
 @media (prefers-reduced-motion: reduce) {
+  /* ---- Animation Utility Classes ---- */
   .animate-fade-in-up,
   .animate-spin,
+  .animate-pulse,
   [class*="animate-delay-"] {
-    animation: none;
+    animation: none !important;
+  }
+
+  /* ---- Global Transition Disable ---- */
+  /* Disable non-essential transitions on interactive elements */
+  .glass-card--interactive,
+  .btn-primary,
+  .btn-primary::before,
+  .btn-primary i,
+  .btn-secondary,
+  .btn-secondary i,
+  .btn-danger,
+  .btn-danger i,
+  .btn-icon,
+  .btn-social,
+  .form-input,
+  .form-textarea,
+  .form-checkbox input[type="checkbox"],
+  .section-accent::before,
+  .section-accent::after,
+  .status-indicator {
+    transition: none !important;
+  }
+
+  /* ---- Transform-based Hover Effects ---- */
+  /* Disable scale/translate hover animations on interactive elements. */
+  .glass-card--interactive:hover,
+  .btn-primary:hover,
+  .btn-primary:hover i,
+  .btn-secondary:hover,
+  .btn-icon:hover {
+    transform: none !important;
+  }
+
+  /* ---- Page/Component Entry Animations ---- */
+  .auth-page__card,
+  [class*="__card"],
+  [class*="-card"] {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* ---- Glow Effects ---- */
+  /* Remove animated glow pulses but keep static glows */
+  .glow,
+  .glow-hover:hover {
+    box-shadow: none !important;
+  }
+
+  /* ---- Status Indicator Pulse ---- */
+  .status-indicator {
+    animation: none !important;
   }
 }
 
