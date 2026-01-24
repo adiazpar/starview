@@ -97,7 +97,7 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   z-index: 1000;
-  animation: calendarFadeIn 0.15s ease;
+  animation: calendarFadeIn var(--animation-duration) ease;
 }
 
 @keyframes calendarFadeIn {

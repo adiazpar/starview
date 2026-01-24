@@ -93,7 +93,7 @@
 
 .verify-email-verified {
   text-align: center;
-  animation: fadeInUp 0.4s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .verify-email-verified-icon {

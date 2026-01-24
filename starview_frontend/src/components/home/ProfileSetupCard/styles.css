@@ -18,7 +18,7 @@
   padding: var(--space-lg);
   transition: all 0.3s ease;
   overflow: hidden;
-  animation: cardFadeIn 0.5s ease-out backwards;
+  animation: cardFadeIn var(--animation-duration) ease-out backwards;
 }
 
 @keyframes cardFadeIn {
@@ -231,7 +231,7 @@
   transition: all 0.2s ease;
   text-align: left;
   width: 100%;
-  animation: taskSlideIn 0.4s ease-out backwards;
+  animation: taskSlideIn var(--animation-duration) ease-out backwards;
 }
 
 @keyframes taskSlideIn {

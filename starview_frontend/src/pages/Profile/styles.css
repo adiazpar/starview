@@ -57,7 +57,7 @@
 /* Tab Content - Glass card */
 .profile-content {
   padding: var(--space-xl);
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 .profile-section {

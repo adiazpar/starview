@@ -118,8 +118,9 @@
   --radius: 8px;
   --radius-full: 9999px;
 
-  /* Transition */
+  /* Transition & Animation */
   --transition: 0.15s;
+  --animation-duration: 0.25s;
 
   /* Z-Index */
   --z-navbar: 30;
@@ -785,7 +786,7 @@ html.webview-browser .main-content {
 
 /* Animation utility classes with staggered delays */
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .animate-delay-1 {
@@ -951,7 +952,7 @@ html.webview-browser .main-content {
   max-width: 420px;
   padding: var(--space-xl);
   text-align: center;
-  animation: fadeInUp 0.4s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 @media (max-width: 767px) {

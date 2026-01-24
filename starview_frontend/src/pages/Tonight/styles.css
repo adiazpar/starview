@@ -26,7 +26,7 @@
   max-width: 960px;
   padding: 0 var(--space-lg);
   opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out forwards;
+  animation: tonightFadeIn var(--animation-duration) ease-out forwards;
 }
 
 .tonight-header__title {
@@ -62,7 +62,7 @@
   max-width: 960px;
   padding: 0 var(--space-lg);
   opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out 0.1s forwards;
+  animation: tonightFadeIn var(--animation-duration) ease-out 0.1s forwards;
 }
 
 .tonight-hero__score-container {
@@ -279,7 +279,7 @@
   max-width: 1000px;
   padding: 0 var(--space-lg);
   opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out 0.2s forwards;
+  animation: tonightFadeIn var(--animation-duration) ease-out 0.2s forwards;
 }
 
 .tonight-cards__grid {
@@ -594,7 +594,7 @@
   max-width: 1000px;
   padding: 0 var(--space-lg);
   opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out 0.3s forwards;
+  animation: tonightFadeIn var(--animation-duration) ease-out 0.3s forwards;
 }
 
 .tonight-tip__card {

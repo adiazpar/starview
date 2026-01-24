@@ -13,7 +13,7 @@
   max-width: 1000px;
   padding: 0 var(--space-lg);
   opacity: 0;
-  animation: tonightFadeIn 0.5s ease-out 0.15s forwards;
+  animation: tonightFadeIn var(--animation-duration) ease-out 0.15s forwards;
 }
 
 .hourly-timeline {

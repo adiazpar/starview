@@ -23,7 +23,7 @@
   letter-spacing: -0.02em;
   margin-bottom: var(--space-md);
   user-select: none;
-  animation: fadeInUp 0.6s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .error-boundary-bracket {
@@ -54,7 +54,7 @@
   color: var(--text-primary);
   margin: 0 0 var(--space-lg) 0;
   line-height: 1.1;
-  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards;
 }
 
 .error-boundary-highlight {
@@ -73,7 +73,7 @@
   max-width: 440px;
   margin-left: auto;
   margin-right: auto;
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 /* Actions */
@@ -82,7 +82,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-md);
-  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s backwards;
 }
 
 @media (min-width: 480px) {
@@ -97,14 +97,14 @@
   margin-top: var(--space-xl);
   font-size: 0.875rem;
   color: var(--text-muted);
-  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s backwards;
 }
 
 /* Error Details (Dev Only) */
 .error-boundary-details {
   margin-top: 2.5rem;
   text-align: left;
-  animation: fadeInUp 0.6s ease-out 0.5s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.5s backwards;
 }
 
 .error-boundary-details summary {

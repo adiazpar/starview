@@ -12,7 +12,7 @@
 
 /* Fade in when first image is loaded */
 .hero-carousel--loaded {
-  animation: heroCarouselFadeIn 1s ease-out forwards;
+  animation: heroCarouselFadeIn var(--animation-duration) ease-out forwards;
 }
 
 @keyframes heroCarouselFadeIn {

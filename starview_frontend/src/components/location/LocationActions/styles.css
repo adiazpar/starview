@@ -68,7 +68,7 @@
 }
 
 .location-actions__btn--active i {
-  animation: heartPop 0.3s ease-out;
+  animation: heartPop var(--animation-duration) ease-out;
 }
 
 .location-actions__btn--active.location-actions__btn--primary {
@@ -161,7 +161,7 @@
 
 .location-actions__sidebar-btn--active i {
   color: var(--favorite);
-  animation: heartPop 0.3s ease-out;
+  animation: heartPop var(--animation-duration) ease-out;
 }
 
 .location-actions__sidebar-btn--active:hover:not(:disabled) i {

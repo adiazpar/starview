@@ -42,7 +42,7 @@
   letter-spacing: 0.05em;
   color: var(--accent-border);
   opacity: 0;
-  animation: heroContentFadeIn 0.3s ease-out forwards;
+  animation: heroContentFadeIn var(--animation-duration) ease-out forwards;
 }
 
 .hero__container::after {
@@ -55,7 +55,7 @@
   letter-spacing: 0.05em;
   color: var(--accent-border);
   opacity: 0;
-  animation: heroContentFadeIn 0.3s ease-out forwards;
+  animation: heroContentFadeIn var(--animation-duration) ease-out forwards;
 }
 
 /* Title - Large technical display */
@@ -68,7 +68,7 @@
   color: white;
   margin-bottom: var(--space-md);
   opacity: 0;
-  animation: heroContentFadeIn 0.3s ease-out forwards;
+  animation: heroContentFadeIn var(--animation-duration) ease-out forwards;
 }
 
 .hero__title-accent {
@@ -128,7 +128,7 @@
   width: 100%;
   margin-top: var(--space-xl);
   opacity: 0;
-  animation: heroContentFadeIn 0.3s ease-out forwards;
+  animation: heroContentFadeIn var(--animation-duration) ease-out forwards;
 }
 
 /* Search Bar - Primary focal point */

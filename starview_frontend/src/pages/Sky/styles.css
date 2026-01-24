@@ -159,7 +159,7 @@
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  animation: gridFadeIn 1s ease-out 0.8s both;
+  animation: gridFadeIn var(--animation-duration) ease-out 0.8s both;
   /* Subtle grid pattern */
   background-image:
     linear-gradient(to right, var(--glass-border) 1px, transparent 1px),
@@ -198,7 +198,7 @@
   stroke: var(--accent);
   stroke-dasharray: 80;
   stroke-dashoffset: 80;
-  animation: drawBracket 0.6s ease-out both;
+  animation: drawBracket var(--animation-duration) ease-out both;
 }
 
 .sky-hero__bracket--tl {
@@ -241,7 +241,7 @@
   letter-spacing: 0.1em;
   color: var(--text-muted);
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.5s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.5s both;
 }
 
 .sky-hero__status {
@@ -287,7 +287,7 @@
   letter-spacing: -0.02em;
   margin: 0 0 var(--space-md);
   opacity: 0;
-  animation: fadeInUp 0.6s ease-out 0.3s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s both;
 }
 
 .sky-hero__text {
@@ -297,7 +297,7 @@
   max-width: 500px;
   margin: 0 auto;
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.4s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s both;
 }
 
 /* Data strip (bottom) */
@@ -312,7 +312,7 @@
   gap: var(--space-lg);
   font-family: var(--font-technical);
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.6s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.6s both;
 }
 
 .sky-hero__data-item {
@@ -496,7 +496,7 @@
 }
 
 .sky-feature--visible .sky-feature__card {
-  animation: fadeInScale 0.6s ease-out 0.2s both;
+  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__card:hover {
@@ -596,7 +596,7 @@
 }
 
 .sky-feature--visible .sky-feature__lunar-cycle {
-  animation: fadeInScale 0.6s ease-out 0.2s both;
+  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
 }
 
 /* Horizontal strip of moon phases */
@@ -617,7 +617,7 @@
 
 /* Staggered moon phase animations - only when parent visible */
 .sky-feature--visible .sky-feature__lunar-phase {
-  animation: fadeInScale 0.4s ease-out both;
+  animation: fadeInScale var(--animation-duration) ease-out both;
 }
 .sky-feature--visible .sky-feature__lunar-phase:nth-child(1) { animation-delay: 0.25s; }
 .sky-feature--visible .sky-feature__lunar-phase:nth-child(2) { animation-delay: 0.32s; }
@@ -654,7 +654,7 @@
 }
 
 .sky-feature--visible .sky-feature__bortle {
-  animation: fadeInScale 0.6s ease-out 0.2s both;
+  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__bortle-scale {
@@ -682,7 +682,7 @@
 }
 
 /* Stagger bar animations - only when parent visible */
-.sky-feature--visible .sky-feature__bortle-bar { animation: barGrow 0.4s ease-out both; }
+.sky-feature--visible .sky-feature__bortle-bar { animation: barGrow var(--animation-duration) ease-out both; }
 .sky-feature--visible .sky-feature__bortle-bar--1 { animation-delay: 0.3s; }
 .sky-feature--visible .sky-feature__bortle-bar--2 { animation-delay: 0.35s; }
 .sky-feature--visible .sky-feature__bortle-bar--3 { animation-delay: 0.4s; }
@@ -749,7 +749,7 @@
 }
 
 .sky-feature--visible .sky-feature__weather {
-  animation: fadeInScale 0.6s ease-out 0.2s both;
+  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
 }
 
 /* Main atmospheric layers container */
@@ -932,7 +932,7 @@
 }
 
 .sky-feature--visible .sky-feature__forecast {
-  animation: fadeInScale 0.6s ease-out 0.2s both;
+  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__forecast-day {
@@ -972,7 +972,7 @@
 }
 
 /* Stagger forecast bar animations - only when parent visible */
-.sky-feature--visible .sky-feature__forecast-bar { animation: barGrow 0.4s ease-out both; }
+.sky-feature--visible .sky-feature__forecast-bar { animation: barGrow var(--animation-duration) ease-out both; }
 .sky-feature--visible .sky-feature__forecast-day:nth-child(1) .sky-feature__forecast-bar { animation-delay: 0.3s; }
 .sky-feature--visible .sky-feature__forecast-day:nth-child(2) .sky-feature__forecast-bar { animation-delay: 0.35s; }
 .sky-feature--visible .sky-feature__forecast-day:nth-child(3) .sky-feature__forecast-bar { animation-delay: 0.4s; }
@@ -1147,7 +1147,7 @@
 }
 
 .sky-bottom--visible .sky-bottom__bracket path {
-  animation: drawBracket 0.5s ease-out both;
+  animation: drawBracket var(--animation-duration) ease-out both;
 }
 
 .sky-bottom--visible .sky-bottom__bracket--tl path { animation-delay: 0.1s; }
@@ -1156,19 +1156,19 @@
 .sky-bottom--visible .sky-bottom__bracket--br path { animation-delay: 0.25s; }
 
 .sky-bottom--visible .sky-bottom__status {
-  animation: fadeInUp 0.5s ease-out 0.3s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s both;
 }
 
 .sky-bottom--visible .sky-bottom__title {
-  animation: fadeInUp 0.5s ease-out 0.4s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s both;
 }
 
 .sky-bottom--visible .sky-bottom__text {
-  animation: fadeInUp 0.5s ease-out 0.5s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.5s both;
 }
 
 .sky-bottom--visible .sky-bottom__cta {
-  animation: fadeInUp 0.5s ease-out 0.6s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.6s both;
 }
 
 /* ============================================ */

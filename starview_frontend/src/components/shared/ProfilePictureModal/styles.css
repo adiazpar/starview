@@ -11,7 +11,7 @@
   justify-content: center;
   z-index: var(--z-modal);
   padding: var(--space-lg);
-  animation: profilePictureModalFadeIn 0.2s ease;
+  animation: profilePictureModalFadeIn var(--animation-duration) ease;
 }
 
 @keyframes profilePictureModalFadeIn {
@@ -27,7 +27,7 @@
   position: relative;
   max-width: 500px;
   width: 100%;
-  animation: profilePictureModalFadeIn 0.3s ease;
+  animation: profilePictureModalFadeIn var(--animation-duration) ease;
 }
 
 /* Close button */

@@ -87,7 +87,7 @@
 
 .password-reset-confirm-success {
   text-align: center;
-  animation: fadeInUp 0.4s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .password-reset-confirm-success-icon {

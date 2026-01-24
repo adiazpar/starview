@@ -69,7 +69,7 @@
   letter-spacing: -0.03em;
   color: var(--text-primary);
   margin-bottom: var(--space-lg);
-  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards;
 }
 
 .register-hero-title-accent {
@@ -86,7 +86,7 @@
   font-weight: 400;
   line-height: var(--leading-normal);
   margin: 0;
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 @media (max-width: 767px) {
@@ -219,7 +219,7 @@
   max-width: 420px;
   max-height: calc(100lvh - var(--navbar-total-height) - var(--space-xl) * 2);
   padding: var(--space-xl);
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
   overflow-y: auto;
 }
 

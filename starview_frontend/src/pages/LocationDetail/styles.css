@@ -26,7 +26,7 @@
   max-width: 400px;
   padding: var(--space-xl);
   text-align: center;
-  animation: fadeInUp 0.5s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .location-detail__error-content i {
@@ -69,12 +69,12 @@
 }
 
 /* Staggered Entry Animations */
-.location-detail__main > *:nth-child(1) { animation: fadeInUp 0.5s ease-out 0.1s backwards; }
-.location-detail__main > *:nth-child(2) { animation: fadeInUp 0.5s ease-out 0.15s backwards; }
-.location-detail__main > *:nth-child(3) { animation: fadeInUp 0.5s ease-out 0.2s backwards; }
-.location-detail__main > *:nth-child(4) { animation: fadeInUp 0.5s ease-out 0.25s backwards; }
-.location-detail__main > *:nth-child(5) { animation: fadeInUp 0.5s ease-out 0.3s backwards; }
-.location-detail__main > *:nth-child(6) { animation: fadeInUp 0.5s ease-out 0.35s backwards; }
+.location-detail__main > *:nth-child(1) { animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards; }
+.location-detail__main > *:nth-child(2) { animation: fadeInUp var(--animation-duration) ease-out 0.15s backwards; }
+.location-detail__main > *:nth-child(3) { animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards; }
+.location-detail__main > *:nth-child(4) { animation: fadeInUp var(--animation-duration) ease-out 0.25s backwards; }
+.location-detail__main > *:nth-child(5) { animation: fadeInUp var(--animation-duration) ease-out 0.3s backwards; }
+.location-detail__main > *:nth-child(6) { animation: fadeInUp var(--animation-duration) ease-out 0.35s backwards; }
 
 /* ============================================
    SECTION HEADERS (Observatory Aesthetic)
@@ -181,10 +181,10 @@
   }
 
   /* Sidebar item animations */
-  .location-detail__sidebar > *:nth-child(1) { animation: fadeInUp 0.5s ease-out 0.2s backwards; }
-  .location-detail__sidebar > *:nth-child(2) { animation: fadeInUp 0.5s ease-out 0.3s backwards; }
-  .location-detail__sidebar > *:nth-child(3) { animation: fadeInUp 0.5s ease-out 0.4s backwards; }
-  .location-detail__sidebar > *:nth-child(4) { animation: fadeInUp 0.5s ease-out 0.5s backwards; }
+  .location-detail__sidebar > *:nth-child(1) { animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards; }
+  .location-detail__sidebar > *:nth-child(2) { animation: fadeInUp var(--animation-duration) ease-out 0.3s backwards; }
+  .location-detail__sidebar > *:nth-child(3) { animation: fadeInUp var(--animation-duration) ease-out 0.4s backwards; }
+  .location-detail__sidebar > *:nth-child(4) { animation: fadeInUp var(--animation-duration) ease-out 0.5s backwards; }
 
   /* Hide mobile-only sections on desktop */
   .location-detail__sky-quality--mobile,

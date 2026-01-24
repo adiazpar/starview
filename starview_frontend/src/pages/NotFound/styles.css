@@ -21,7 +21,7 @@
   letter-spacing: -0.02em;
   margin-bottom: var(--space-md);
   user-select: none;
-  animation: fadeInUp 0.6s ease-out backwards;
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .not-found-4 {
@@ -57,7 +57,7 @@
   color: var(--text-primary);
   margin: 0 0 var(--space-lg) 0;
   line-height: 1.1;
-  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards;
 }
 
 .not-found-highlight {
@@ -76,12 +76,12 @@
   max-width: 440px;
   margin-left: auto;
   margin-right: auto;
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 /* Button animation */
 .not-found-content .btn-primary {
-  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s backwards;
 }
 
 /* Hint */
@@ -89,7 +89,7 @@
   margin-top: var(--space-xl);
   font-size: var(--text-sm);
   color: var(--text-muted);
-  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s backwards;
 }
 
 /* Responsive */

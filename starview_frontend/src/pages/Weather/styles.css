@@ -113,7 +113,7 @@
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  animation: gridFadeIn 1s ease-out 0.8s both;
+  animation: gridFadeIn var(--animation-duration) ease-out 0.8s both;
   background-image:
     linear-gradient(to right, var(--glass-border) 1px, transparent 1px),
     linear-gradient(to bottom, var(--glass-border) 1px, transparent 1px);
@@ -151,7 +151,7 @@
   stroke: var(--accent);
   stroke-dasharray: 80;
   stroke-dashoffset: 80;
-  animation: drawBracket 0.6s ease-out both;
+  animation: drawBracket var(--animation-duration) ease-out both;
 }
 
 .weather-hero__bracket--tl { top: 0; left: 0; }
@@ -179,7 +179,7 @@
   letter-spacing: 0.1em;
   color: var(--text-muted);
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.5s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.5s both;
 }
 
 .weather-hero__status {
@@ -225,7 +225,7 @@
   letter-spacing: -0.02em;
   margin: 0 0 var(--space-md);
   opacity: 0;
-  animation: fadeInUp 0.6s ease-out 0.3s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s both;
 }
 
 .weather-hero__text {
@@ -235,13 +235,13 @@
   max-width: 540px;
   margin: 0 auto;
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.4s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s both;
 }
 
 .weather-hero__location {
   margin-top: var(--space-md);
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.5s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.5s both;
 }
 
 /* Data strip */
@@ -256,7 +256,7 @@
   gap: var(--space-xl);
   font-family: var(--font-technical);
   opacity: 0;
-  animation: fadeInUp 0.5s ease-out 0.6s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.6s both;
 }
 
 .weather-hero__data-item {
@@ -381,7 +381,7 @@
   min-width: 100px;
   /* Animation */
   opacity: 0;
-  animation: fadeInScale 0.4s ease-out both;
+  animation: fadeInScale var(--animation-duration) ease-out both;
   animation-delay: var(--factor-delay, 0s);
 }
 
@@ -1085,15 +1085,15 @@
 }
 
 .weather-bottom--visible .weather-bottom__title {
-  animation: fadeInUp 0.5s ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 .weather-bottom--visible .weather-bottom__text {
-  animation: fadeInUp 0.5s ease-out 0.3s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.3s both;
 }
 
 .weather-bottom--visible .weather-bottom__cta {
-  animation: fadeInUp 0.5s ease-out 0.4s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.4s both;
 }
 
 /* ============================================ */

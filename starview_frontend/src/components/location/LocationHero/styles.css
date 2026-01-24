@@ -36,7 +36,7 @@
 }
 
 .location-hero__image--loaded {
-  animation: heroFadeIn 0.6s ease-out forwards;
+  animation: heroFadeIn var(--animation-duration) ease-out forwards;
 }
 
 @keyframes heroFadeIn {
@@ -177,7 +177,7 @@
 }
 
 .location-hero__action--active i {
-  animation: heartPop 0.3s ease-out;
+  animation: heartPop var(--animation-duration) ease-out;
 }
 
 @keyframes heartPop {
@@ -197,7 +197,7 @@
   right: 0;
   padding: var(--space-lg);
   z-index: 5;
-  animation: fadeInUp 0.5s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 /* ============================================

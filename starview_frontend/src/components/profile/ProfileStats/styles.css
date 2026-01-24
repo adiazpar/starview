@@ -4,7 +4,7 @@
 
 .profile-stats {
   margin-bottom: var(--space-lg);
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
 
 .profile-stats-grid {

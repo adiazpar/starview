@@ -57,7 +57,7 @@
   list-style: none;
   z-index: 20;
   box-shadow: var(--shadow);
-  animation: sortDropdownFadeIn 0.15s ease-out;
+  animation: sortDropdownFadeIn var(--animation-duration) ease-out;
 }
 
 @keyframes sortDropdownFadeIn {

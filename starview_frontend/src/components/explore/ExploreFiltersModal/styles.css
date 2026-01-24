@@ -14,7 +14,7 @@
   z-index: var(--z-modal);
   overflow: hidden;
   overscroll-behavior: contain;
-  animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: overlayFadeIn var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes overlayFadeIn {
@@ -24,7 +24,7 @@
 
 /* Overlay closing animation */
 .explore-filters-overlay--closing {
-  animation: overlayFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: overlayFadeOut var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes overlayFadeOut {
@@ -43,7 +43,7 @@
   border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0;
   display: flex;
   flex-direction: column;
-  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: modalSlideUp var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform: translateY(100%);
 }
 
@@ -58,7 +58,7 @@
 
 /* Modal closing animation */
 .explore-filters-modal--closing {
-  animation: modalSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: modalSlideDown var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes modalSlideDown {
@@ -454,7 +454,7 @@
 /* Radius selector */
 .explore-filters-modal__radius {
   margin-top: var(--space-md);
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn var(--animation-duration) ease-out;
 }
 
 @keyframes fadeIn {
@@ -595,7 +595,7 @@
     max-height: 80vh;
     border-radius: calc(var(--radius) * 2);
     border-bottom: 1px solid var(--border);
-    animation: modalSlideUpDesktop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: modalSlideUpDesktop var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transform: translateY(20px);
     opacity: 0;
   }
@@ -612,7 +612,7 @@
   }
 
   .explore-filters-modal--closing {
-    animation: modalSlideDownDesktop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: modalSlideDownDesktop var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   @keyframes modalSlideDownDesktop {

@@ -394,11 +394,11 @@
   height: 100lvh;
   background-color: rgba(0, 0, 0, 0.8);
   z-index: var(--z-navbar);
-  animation: fadeIn 0.3s ease forwards;
+  animation: fadeIn var(--animation-duration) ease forwards;
 }
 
 .navbar__backdrop--closing {
-  animation: fadeOut 0.3s ease forwards;
+  animation: fadeOut var(--animation-duration) ease forwards;
 }
 
 @keyframes fadeIn {

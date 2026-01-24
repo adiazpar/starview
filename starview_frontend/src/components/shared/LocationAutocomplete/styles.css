@@ -108,7 +108,7 @@
 /* Ensure proper z-index - above page content, below navbar (30) and modals (50) */
 .location-autocomplete [class$="--Results"] {
   z-index: 25 !important;
-  animation: dropdownFadeSlide 0.2s ease-out;
+  animation: dropdownFadeSlide var(--animation-duration) ease-out;
 }
 
 @keyframes dropdownFadeSlide {

@@ -44,7 +44,7 @@
     0 4px 12px rgba(0, 0, 0, 0.3);
 
   /* Entrance animation */
-  animation: toastEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toastEnter var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   position: relative;
   overflow: hidden;

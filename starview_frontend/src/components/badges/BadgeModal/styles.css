@@ -14,7 +14,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 0 5%;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn var(--animation-duration) ease;
 }
 
 @keyframes fadeIn {
@@ -30,7 +30,7 @@
   position: relative;
   max-width: 400px;
   width: 100%;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--animation-duration) ease;
 }
 
 /* Close button */

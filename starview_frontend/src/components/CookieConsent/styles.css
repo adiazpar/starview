@@ -13,7 +13,7 @@
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-  animation: cookie-slide-up 0.3s ease-out;
+  animation: cookie-slide-up var(--animation-duration) ease-out;
 }
 
 @keyframes cookie-slide-up {
@@ -39,7 +39,7 @@
 }
 
 .cookie-consent--closing {
-  animation: cookie-slide-down 0.3s ease-in forwards;
+  animation: cookie-slide-down var(--animation-duration) ease-in forwards;
 }
 
 .cookie-consent__container {
