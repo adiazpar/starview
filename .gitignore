@@ -4,7 +4,6 @@
 .DS_Store
 .vscode
 celery_worker.log
-logs/
 tools/
 seed_data/temp
 
@@ -55,9 +54,6 @@ pip-delete-this-directory.txt
 # Django stuff:
 *.log
 local_settings.py
-
-# Audit log archives (sensitive security data)
-audit_archives/
 
 # Flask stuff:
 instance/

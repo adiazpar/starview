@@ -7,7 +7,7 @@
 #                                                                                                       #
 # Key Features:                                                                                         #
 # - Comprehensive event tracking: Records WHO did WHAT, WHEN, WHERE, and HOW                            #
-# - Dual storage: Events logged to both database (this model) and file (audit.log)                      #
+# - Database storage: Events stored in this model, archived to R2 for long-term retention               #
 # - User relationship: Nullable ForeignKey supports logging for anonymous and deleted users             #
 # - IP address tracking: Captures source IP for geographic and security analysis                        #
 # - Metadata storage: JSONField stores event-specific context (e.g., failed username, resource ID)      #

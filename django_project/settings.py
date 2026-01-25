@@ -356,12 +356,13 @@ AXES_LOCK_OUT_AT_FAILURE = True                 # Lock out immediately when limi
 AXES_ENABLE_ADMIN = True                        # Show django-axes models in admin interface
 AXES_VERBOSE = True                             # Enable detailed logging
 
-# Handler: Use database for logging (provides audit trail)
-# 'axes.handlers.database.AxesDatabaseHandler' logs all attempts to database
-AXES_HANDLER = 'axes.handlers.database.AxesDatabaseHandler'
-
-# Use cache for performance (in addition to database logging)
-AXES_CACHE = 'default'                          # Use default Redis cache
+# Handler: Use database for logging in production (provides audit trail)
+# In development, use dummy handler to avoid database bloat
+if DEBUG:
+    AXES_HANDLER = 'axes.handlers.dummy.AxesDummyHandler'  # No logging in development
+else:
+    AXES_HANDLER = 'axes.handlers.database.AxesDatabaseHandler'  # Full logging in production
+    AXES_CACHE = 'default'  # Use Redis cache for performance
 
 # Customize lockout response
 AXES_COOLOFF_MESSAGE = "Account temporarily locked due to too many failed login attempts. Please try again later."
@@ -752,9 +753,8 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Restart worker after 1000 tasks (pre
 # LOGGING CONFIGURATION
 # =============================================================================
 
-# Ensure logs directory exists
-LOGS_DIR = BASE_DIR / 'logs'
-LOGS_DIR.mkdir(exist_ok=True)
+# Audit logs are stored in the database (AuditLog model) and archived to R2.
+# No file-based audit logging - database is the authoritative source.
 
 LOGGING = {
     'version': 1,
@@ -766,9 +766,6 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
-        'json': {
-            'format': '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "module": "%(module)s", "message": "%(message)s"}',
-        },
     },
 
     # Log handlers (where logs go)
@@ -777,24 +774,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'audit_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOGS_DIR / 'audit.log',
-            'maxBytes': 10485760,  # 10MB
-            'backupCount': 10,
-            'formatter': 'json',
-        },
     },
 
     # Loggers (what to log)
     'loggers': {
-        # Audit logger for security events
-        'audit': {
-            'handlers': ['audit_file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
         # Application logger for general events
         'starview_app': {
             'handlers': ['console'],

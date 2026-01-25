@@ -2,11 +2,11 @@
 # This audit_logger.py file provides centralized audit logging utilities:                               #
 #                                                                                                       #
 # Purpose:                                                                                              #
-# Provides a single point of entry for logging security-relevant events to both database (AuditLog      #
-# model) and file (logs/audit.log). Ensures consistent logging format and automatic context capture.    #
+# Provides a single point of entry for logging security-relevant events to the database (AuditLog       #
+# model). Ensures consistent logging format and automatic context capture.                              #
 #                                                                                                       #
 # Key Features:                                                                                         #
-# - Dual storage: Writes to both database and log file simultaneously                                   #
+# - Database storage: All audit events stored in AuditLog table (queryable, persistent)                 #
 # - Automatic context capture: Extracts IP address, user agent from request                             #
 # - Proxy-aware IP extraction: Handles X-Forwarded-For header for reverse proxies                       #
 # - Thread-safe: Safe to use in multi-threaded environments                                             #
@@ -20,7 +20,7 @@
 # - get_user_agent(): Extract user agent string from request                                            #
 #                                                                                                       #
 # Usage Example:                                                                                        #
-#   from starview_app.utils.audit_logger import log_auth_event                                             #
+#   from starview_app.utils.audit_logger import log_auth_event                                          #
 #                                                                                                       #
 #   # In your view:                                                                                     #
 #   log_auth_event(                                                                                     #
@@ -32,19 +32,17 @@
 #       metadata={'method': 'password'}                                                                 #
 #   )                                                                                                   #
 #                                                                                                       #
+# Archival:                                                                                             #
+# Old audit logs are archived to R2 cloud storage via `archive_audit_logs` management command.          #
+# Archives can be restored via `restore_audit_logs` command if database needs recovery.                 #
+#                                                                                                       #
 # Security Note:                                                                                        #
-# This module handles sensitive security data. Ensure audit logs are protected with appropriate         #
-# file permissions and access controls.                                                                 #
+# This module handles sensitive security data. Database access should be restricted appropriately.      #
 # ----------------------------------------------------------------------------------------------------- #
 
 # Import tools:
-import logging
-import json
-from django.utils.timezone import now
+from django.conf import settings
 from django.apps import apps
-
-# Get the audit logger configured in settings.py:
-logger = logging.getLogger('audit')
 
 
 # Lazy-load AuditLog model to avoid circular import:
@@ -101,6 +99,10 @@ def get_user_agent(request):
 # Returns:  AuditLog: Created AuditLog instance                                 #
 # ----------------------------------------------------------------------------- #
 def log_auth_event(request, event_type, user=None, username='', success=True, message='', metadata=None):
+    # Skip audit logging in development (no need for audit trails locally)
+    if settings.DEBUG:
+        return None
+
     # Extract request context:
     ip_address = get_client_ip(request)
     user_agent = get_user_agent(request)
@@ -128,22 +130,11 @@ def log_auth_event(request, event_type, user=None, username='', success=True, me
         metadata=metadata,
     )
 
-    # Log to file (JSON format):
-    log_data = {
-        'event_type': event_type,
-        'user': username or 'anonymous',
-        'ip_address': ip_address,
-        'success': success,
-        'message': message,
-        'metadata': metadata,
-    }
-    logger.info(json.dumps(log_data))
-
     return audit_log
 
 
 # ----------------------------------------------------------------------------- #
-# Log an admin action to database and file.                                     #
+# Log an admin action to database.                                              #
 #                                                                               #
 # Records privileged administrative actions (location verification, content     #
 # moderation, user management) with full context.                               #
@@ -156,6 +147,10 @@ def log_auth_event(request, event_type, user=None, username='', success=True, me
 # Returns:  AuditLog: Created AuditLog instance                                 #
 # ----------------------------------------------------------------------------- #
 def log_admin_action(request, event_type, user, message='', metadata=None):
+    # Skip audit logging in development (no need for audit trails locally)
+    if settings.DEBUG:
+        return None
+
     # Extract request context:
     ip_address = get_client_ip(request)
     user_agent = get_user_agent(request)
@@ -179,21 +174,11 @@ def log_admin_action(request, event_type, user, message='', metadata=None):
         metadata=metadata,
     )
 
-    # Log to file (JSON format):
-    log_data = {
-        'event_type': event_type,
-        'user': user.username,
-        'ip_address': ip_address,
-        'message': message,
-        'metadata': metadata,
-    }
-    logger.info(json.dumps(log_data))
-
     return audit_log
 
 
 # ----------------------------------------------------------------------------- #
-# Log a permission denied event to database and file.                           #
+# Log a permission denied event to database.                           #
 #                                                                               #
 # Records unauthorized access attempts (403 Forbidden responses, permission     #
 # denials) with full context.                                                   #
@@ -206,6 +191,10 @@ def log_admin_action(request, event_type, user, message='', metadata=None):
 # Returns:  AuditLog: Created AuditLog instance                                 #
 # ----------------------------------------------------------------------------- #
 def log_permission_denied(request, user=None, resource='', message='', metadata=None):
+    # Skip audit logging in development (no need for audit trails locally)
+    if settings.DEBUG:
+        return None
+
     # Extract request context:
     ip_address = get_client_ip(request)
     user_agent = get_user_agent(request)
@@ -232,16 +221,5 @@ def log_permission_denied(request, user=None, resource='', message='', metadata=
         message=message,
         metadata=metadata,
     )
-
-    # Log to file (JSON format):
-    log_data = {
-        'event_type': 'permission_denied',
-        'user': username,
-        'ip_address': ip_address,
-        'resource': resource,
-        'message': message,
-        'metadata': metadata,
-    }
-    logger.info(json.dumps(log_data))
 
     return audit_log
