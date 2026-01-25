@@ -22,7 +22,7 @@
 
 # Django imports:
 from django.views.generic import TemplateView
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.conf import settings
 import os
 import re
@@ -409,11 +409,18 @@ Disallow: /accounts/
 
 # Block auth and utility pages (no search value)
 Disallow: /login
+Disallow: /register
 Disallow: /signup
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify-email
+Disallow: /email-verified
+Disallow: /email-confirm-error
+Disallow: /social-account-exists
+Disallow: /password-reset
+Disallow: /password-reset-confirm/
 Disallow: /account/
+Disallow: /profile
 
 # Sitemap (using canonical www domain)
 Sitemap: https://www.starview.app/sitemap.xml
@@ -429,3 +436,33 @@ Disallow: /
 """
 
     return HttpResponse(content, content_type="text/plain")
+
+
+# ----------------------------------------------------------------------------- #
+# llms.txt view for providing structured information to AI language models.      #
+#                                                                               #
+# The llms.txt file helps LLMs understand the site's purpose, features, and     #
+# content at inference time. It's a Markdown file that reduces token usage      #
+# compared to parsing HTML pages.                                               #
+#                                                                               #
+# Specification: https://llmstxt.org/                                           #
+#                                                                               #
+# IMPORTANT: Update llms.txt when adding new features or pages.                 #
+# Location: starview_frontend/public/llms.txt                                   #
+# ----------------------------------------------------------------------------- #
+def llms_txt(request):
+    """Serve the llms.txt file for AI language models."""
+    # Try production build first, then development public folder
+    paths_to_try = [
+        os.path.join(settings.BASE_DIR, 'starview_frontend', 'dist', 'llms.txt'),
+        os.path.join(settings.BASE_DIR, 'starview_frontend', 'public', 'llms.txt'),
+    ]
+
+    for file_path in paths_to_try:
+        if os.path.exists(file_path):
+            return FileResponse(
+                open(file_path, 'rb'),
+                content_type='text/plain; charset=utf-8'
+            )
+
+    raise Http404("llms.txt not found")

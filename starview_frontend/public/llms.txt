@@ -1,0 +1,87 @@
+# Starview
+
+> Starview is a stargazing location review platform that helps astronomers discover and share the best spots for observing the night sky. Users can find dark sky locations, check real-time sky conditions, and connect with the stargazing community.
+
+## About Starview
+
+Starview is a web application for stargazers, amateur astronomers, and night sky enthusiasts. The platform allows users to:
+
+- Discover stargazing locations with light pollution ratings (Bortle scale 1-9)
+- Read and write reviews of stargazing sites
+- Check tonight's sky conditions including moon phase, weather, and cloud cover
+- Learn about factors affecting stargazing (Bortle scale, moon phases, weather)
+- Track visited locations and earn achievement badges
+- Follow other stargazers and build a community
+
+## Key Features
+
+### Location Discovery
+- Interactive map with clustered markers showing stargazing locations worldwide
+- Filter by location type (dark sky sites, observatories, parks, etc.)
+- Filter by Bortle class (light pollution rating)
+- Search by name, region, or proximity to your location
+- Distance calculations and driving directions to locations
+
+### Sky Conditions
+- Real-time sky quality assessment based on your location
+- Moon phase calendar with illumination percentage
+- Weather forecasts optimized for stargazing (cloud cover, humidity, visibility)
+- Bortle scale lookup for any coordinates
+- "Tonight" dashboard showing if conditions are favorable for stargazing
+
+### Reviews & Community
+- User reviews with 1-5 star ratings and photos
+- Location check-ins to track your stargazing visits
+- Achievement badges for exploration milestones
+- User profiles with review history and badge collections
+- Follow system to connect with other stargazers
+
+### Educational Content
+- Bortle Dark-Sky Scale guide explaining light pollution levels
+- Moon phases guide showing how lunar cycles affect stargazing
+- Weather factors guide for planning observation sessions
+
+## Content Pages
+
+### Main Pages
+- Home: https://www.starview.app/
+- Explore Locations: https://www.starview.app/explore
+- Sky Conditions Hub: https://www.starview.app/sky
+- Tonight's Conditions: https://www.starview.app/tonight
+
+### Educational Guides
+- Bortle Scale Guide: https://www.starview.app/bortle
+- Moon Phases Guide: https://www.starview.app/moon
+- Weather Guide: https://www.starview.app/weather
+
+### Location Types Available
+- Dark Sky Sites - Designated dark sky preserves and parks
+- Observatories - Public and private observatories
+- Parks - National, state, and local parks good for stargazing
+- Scenic Overlooks - Viewpoints with good sky access
+- Remote Areas - Off-grid locations with minimal light pollution
+
+## Technical Details
+
+- **Stack**: Django REST Framework backend, React frontend
+- **Data Sources**:
+  - Light pollution: World Atlas 2015 data (Bortle scale)
+  - Weather: Open-Meteo API
+  - Moon phases: Astronomical calculations (ephem library)
+  - Geocoding: Mapbox API
+
+## API Information
+
+Starview provides a REST API for location and sky condition data. The API is primarily for internal use but powers all frontend features including:
+
+- Location search and filtering
+- GeoJSON data for map rendering
+- Moon phase calculations
+- Weather forecasts
+- Bortle scale lookups
+
+## Contact
+
+- Website: https://www.starview.app
+- Privacy Policy: https://www.starview.app/privacy
+- Terms of Service: https://www.starview.app/terms

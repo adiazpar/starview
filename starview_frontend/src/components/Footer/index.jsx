@@ -217,6 +217,8 @@ export default function Footer() {
             <Link to="/accessibility" className="footer__legal-link">Accessibility</Link>
             <span className="footer__legal-divider" />
             <CookiePreferencesButton className="footer__legal-link footer__legal-button" />
+            <span className="footer__legal-divider" />
+            <a href="/llms.txt" className="footer__legal-link">LLMs</a>
           </div>
 
           <p className="footer__copyright">

@@ -12,8 +12,11 @@
 # - User profiles use PublicUserSerializer which excludes sensitive fields      #
 #                                                                               #
 # Sitemaps included:                                                            #
-# - StaticViewSitemap: Homepage and other static pages                          #
+# - StaticViewSitemap: Homepage and content pages (explore, guides)             #
 # - UserProfileSitemap: Public user profile pages                               #
+#                                                                               #
+# Intentionally excluded (utility pages with no search value):                  #
+# - Legal pages: /terms, /privacy, /accessibility, /ccpa                        #
 #                                                                               #
 # Future additions (when pages exist):                                          #
 # - LocationSitemap: Individual stargazing location pages                       #
@@ -52,17 +55,10 @@ class StaticViewSitemap(CanonicalSitemap):
         return item
 
 
-# Sitemap for legal pages (Terms, Privacy, Accessibility)
-# Lower priority since they're informational, not primary content:
-class LegalPageSitemap(CanonicalSitemap):
-    priority = 0.3
-    changefreq = 'monthly'
-
-    def items(self):
-        return ['/terms', '/privacy', '/accessibility', '/ccpa']
-
-    def location(self, item):
-        return item
+# NOTE: Legal pages (Terms, Privacy, Accessibility, CCPA) are intentionally
+# excluded from the sitemap. These utility pages don't need search visibility
+# and excluding them prevents them from appearing as sitelinks in branded
+# searches. The pages remain accessible via direct links and footer navigation.
 
 
 # Sitemap for public user profile pages.
@@ -139,7 +135,6 @@ class UserProfileSitemap(CanonicalSitemap):
 # Dictionary of all sitemaps for use in urls.py
 sitemaps = {
     'static': StaticViewSitemap,
-    'legal': LegalPageSitemap,
     'users': UserProfileSitemap,
     # 'locations': LocationSitemap,  # Uncomment when location pages exist
 }

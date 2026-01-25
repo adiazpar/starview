@@ -26,7 +26,7 @@ from django.conf.urls.static import static
 
 import os
 
-from .views import ReactAppView, robots_txt
+from .views import ReactAppView, robots_txt, llms_txt
 from starview_app.sitemaps import sitemaps
 from starview_app.utils.adapters import (
     CustomConfirmEmailView,
@@ -171,6 +171,13 @@ urlpatterns += [
 # Environment-aware: allows crawlers on production, blocks on staging/dev
 urlpatterns += [
     path('robots.txt', robots_txt, name='robots_txt'),
+]
+
+# AI: llms.txt for providing structured site information to LLMs
+# Helps AI assistants understand the site's purpose and features
+# Spec: https://llmstxt.org/
+urlpatterns += [
+    path('llms.txt', llms_txt, name='llms_txt'),
 ]
 
 # SEO: XML sitemap for search engine discovery
