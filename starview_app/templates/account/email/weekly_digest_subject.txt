@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with users=new_users reviews=new_reviews %}Starview Weekly Digest: {{ users }} new users, {{ reviews }} new reviews{% endblocktrans %}

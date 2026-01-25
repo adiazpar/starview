@@ -3,13 +3,12 @@
 #                                                                                                       #
 # Purpose:                                                                                              #
 # Provides maintenance utilities for email bounce/complaint tracking and suppression list.              #
-# Designed to run as a weekly Render cronjob on the production server.                                  #
+# Designed to be called by send_weekly_digest command or run standalone.                                #
 #                                                                                                       #
 # Features:                                                                                             #
 # - Remove old soft bounce records after recovery period                                                #
 # - Deactivate suppressions for soft bounces that have stabilized                                       #
 # - Clean up stale bounce records (no activity for 90+ days)                                            #
-# - Generate and email comprehensive health reports                                                     #
 #                                                                                                       #
 # Usage:                                                                                                #
 #   python manage.py cleanup_email_suppressions [options]                                               #
@@ -19,12 +18,8 @@
 #   --stale-days N          Days of inactivity before marking bounce as stale (default: 90)             #
 #   --dry-run               Show what would be cleaned without making changes                           #
 #   --report                Generate email health report (stdout only)                                  #
-#   --email-report EMAIL    Email address to send weekly report to                                      #
 #                                                                                                       #
-# Render Cronjob Configuration:                                                                         #
-#   Build Command: ./builds/build-cron.sh                                                               #
-#   Start Command: python manage.py cleanup_email_suppressions --email-report user@example.com          #
-#   Schedule: 0 3 * * 0 (Every Sunday at 3 AM)                                                          #
+# Note: For email reports, use send_weekly_digest with --run-cleanup flag instead.                      #
 # ----------------------------------------------------------------------------------------------------- #
 
 from django.core.management.base import BaseCommand
@@ -61,18 +56,12 @@ class Command(BaseCommand):
             action='store_true',
             help='Generate email health report',
         )
-        parser.add_argument(
-            '--email-report',
-            type=str,
-            help='Email address to send weekly report to',
-        )
 
 
     def handle(self, *args, **options):
         self.dry_run = options['dry_run']
         self.soft_bounce_days = options['soft_bounce_days']
         self.stale_days = options['stale_days']
-        self.email_report_to = options.get('email_report')
 
         if self.dry_run:
             self.stdout.write(self.style.WARNING('DRY RUN MODE - No changes will be made'))
@@ -81,16 +70,12 @@ class Command(BaseCommand):
             self.generate_report()
             return
 
-        # Run cleanup tasks and collect results
-        soft_bounce_results = self.cleanup_soft_bounces()
-        stale_bounce_results = self.cleanup_stale_bounces()
-        transient_bounce_results = self.cleanup_transient_bounces()
+        # Run cleanup tasks
+        self.cleanup_soft_bounces()
+        self.cleanup_stale_bounces()
+        self.cleanup_transient_bounces()
 
         self.stdout.write(self.style.SUCCESS('\nCleanup completed successfully'))
-
-        # Send email report if requested
-        if self.email_report_to and not self.dry_run:
-            self.send_email_report(soft_bounce_results, stale_bounce_results, transient_bounce_results)
 
 
     # Deactivate soft bounce suppressions after recovery period.
@@ -113,15 +98,9 @@ class Command(BaseCommand):
         count = old_soft_bounces.count()
         self.stdout.write(f'\nFound {count} soft bounce suppressions older than {self.soft_bounce_days} days')
 
-        emails_recovered = []
         if count > 0:
             for bounce in old_soft_bounces:
                 self.stdout.write(f'  - {bounce.email}: Last bounce {bounce.last_bounce_date.strftime("%Y-%m-%d")} ({bounce.bounce_count}x)')
-                emails_recovered.append({
-                    'email': bounce.email,
-                    'last_bounce': bounce.last_bounce_date,
-                    'bounce_count': bounce.bounce_count
-                })
 
                 if not self.dry_run:
                     # Deactivate suppression
@@ -140,8 +119,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'\nDeactivated {count} soft bounce suppressions'))
             else:
                 self.stdout.write(self.style.WARNING(f'\n[DRY RUN] Would deactivate {count} soft bounce suppressions'))
-
-        return {'count': count, 'emails': emails_recovered}
 
 
     # Remove bounce records with no recent activity.
@@ -177,8 +154,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.WARNING(f'\n[DRY RUN] Would delete {count} stale bounce records'))
 
-        return {'count': count}
-
 
     # Remove transient bounce records older than 7 days.
     # Transient bounces are temporary connection issues, not worth keeping.
@@ -203,8 +178,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'Deleted {count} transient bounce records'))
             else:
                 self.stdout.write(self.style.WARNING(f'[DRY RUN] Would delete {count} transient bounce records'))
-
-        return {'count': count}
 
 
     # Generate email health report with statistics
@@ -274,76 +247,3 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('\nEmail deliverability is healthy'))
 
         self.stdout.write('\n' + '=' * 80)
-
-
-    # Send email report with cleanup results and health statistics
-    def send_email_report(self, soft_bounce_results, stale_bounce_results, transient_bounce_results):
-        from django.conf import settings
-        from django.core.mail import EmailMultiAlternatives
-        from django.template.loader import render_to_string
-        from django.utils import timezone
-
-        # Get email statistics
-        stats = get_email_statistics()
-
-        # Get recent activity
-        seven_days_ago = timezone.now() - timedelta(days=7)
-        recent_bounces = EmailBounce.objects.filter(last_bounce_date__gte=seven_days_ago).count()
-        recent_complaints = EmailComplaint.objects.filter(complaint_date__gte=seven_days_ago).count()
-
-        # Build health warnings
-        warnings = []
-        if stats['hard_bounces'] > 100:
-            warnings.append('High number of hard bounces - review email collection process')
-        if stats['total_complaints'] > 10:
-            warnings.append('Complaints detected - review email content and frequency')
-        if recent_bounces > 50:
-            warnings.append('High recent bounce rate - check email service health')
-        if stats['soft_bounces'] > 200:
-            warnings.append('High soft bounce count - some mailboxes may be full')
-
-        # Prepare recovered emails list (limit to 10 for display)
-        recovered_emails = soft_bounce_results.get('emails', [])[:10]
-        recovered_emails_truncated = soft_bounce_results['count'] > 10
-        recovered_emails_remaining = soft_bounce_results['count'] - 10 if recovered_emails_truncated else 0
-
-        # Build template context
-        context = {
-            'site_name': 'Starview',
-            'report_date': timezone.now().strftime('%B %d, %Y at %I:%M %p'),
-            'soft_bounces_recovered': soft_bounce_results['count'],
-            'stale_bounces_deleted': stale_bounce_results['count'],
-            'transient_bounces_deleted': transient_bounce_results['count'],
-            'recovered_emails': recovered_emails,
-            'recovered_emails_truncated': recovered_emails_truncated,
-            'recovered_emails_remaining': recovered_emails_remaining,
-            'total_bounces': stats['total_bounces'],
-            'hard_bounces': stats['hard_bounces'],
-            'soft_bounces': stats['soft_bounces'],
-            'total_complaints': stats['total_complaints'],
-            'suppressed_emails': stats['suppressed_emails'],
-            'recent_bounces': recent_bounces,
-            'recent_complaints': recent_complaints,
-            'warnings': warnings,
-            'admin_url': 'https://www.starview.app/admin/starview_app/emailbounce/',
-        }
-
-        # Render email subject and body from templates
-        subject = render_to_string('account/email/email_cleanup_report_subject.txt', context).strip()
-        text_message = render_to_string('account/email/email_cleanup_report_message.txt', context)
-        html_message = render_to_string('account/email/email_cleanup_report_message.html', context)
-
-        # Send email with HTML and plain text alternatives
-        try:
-            email_msg = EmailMultiAlternatives(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[self.email_report_to]
-            )
-            email_msg.attach_alternative(html_message, "text/html")
-            email_msg.send(fail_silently=False)
-
-            self.stdout.write(self.style.SUCCESS(f'\nEmail report sent to {self.email_report_to}'))
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f'\nFailed to send email report: {str(e)}'))

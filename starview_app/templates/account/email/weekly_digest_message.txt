@@ -1,0 +1,98 @@
+{% load i18n %}
+================================================================================
+STARVIEW WEEKLY DIGEST
+{{ period_start }} - {{ period_end }}
+================================================================================
+
+{% if has_warnings %}
+ATTENTION REQUIRED
+{% for warning in all_warnings %}
+! {{ warning }}
+{% endfor %}
+
+{% endif %}
+--------------------------------------------------------------------------------
+USER ACTIVITY
+--------------------------------------------------------------------------------
+
+New Users:          {{ new_users }}
+Total Users:        {{ total_users }}
+Active Logins:      {{ active_logins }}
+Active Reviewers:   {{ active_reviewers }}
+Active Visitors:    {{ active_visitors }}
+Failed Logins:      {{ failed_logins }}{% if locked_accounts > 0 %}
+Locked Accounts:    {{ locked_accounts }}{% endif %}
+{% if top_reviewers %}
+Top Reviewers This Week:
+{% for reviewer in top_reviewers %}  - {{ reviewer.user__username }}: {{ reviewer.count }} reviews
+{% endfor %}{% endif %}
+
+--------------------------------------------------------------------------------
+CONTENT GROWTH
+--------------------------------------------------------------------------------
+
+New Locations:      {{ new_locations }} (total: {{ total_locations }})
+New Reviews:        {{ new_reviews }} (total: {{ total_reviews }}){% if avg_rating %}
+Avg. Rating:        {{ avg_rating }} / 5{% endif %}
+New Photos:         {{ new_photos }}
+New Visits:         {{ new_visits }}
+New Favorites:      {{ new_favorites }}
+{% if top_locations %}
+Most Reviewed Locations:
+{% for location in top_locations %}  - {{ location.location__name }}: {{ location.count }} reviews
+{% endfor %}{% endif %}
+
+--------------------------------------------------------------------------------
+ENGAGEMENT
+--------------------------------------------------------------------------------
+
+Badges Earned:      {{ new_badges }}
+New Follows:        {{ new_follows }}
+Votes Cast:         {{ new_votes }} ({{ new_upvotes }} upvotes)
+{% if top_badges %}
+Popular Badges:
+{% for badge in top_badges %}  - {{ badge.badge__name }}: {{ badge.count }} earned
+{% endfor %}{% endif %}
+
+--------------------------------------------------------------------------------
+EMAIL HEALTH
+--------------------------------------------------------------------------------
+
+Total Bounces:      {{ total_bounces }}
+  - Hard Bounces:   {{ hard_bounces }}
+  - Soft Bounces:   {{ soft_bounces }}
+Total Complaints:   {{ total_complaints }}
+Suppressions:       {{ suppressed_emails }}
+
+This Week:
+  - New Bounces:    {{ recent_bounces }}
+  - New Complaints: {{ recent_complaints }}
+{% if email_warnings %}
+Warnings:
+{% for warning in email_warnings %}  ! {{ warning }}
+{% endfor %}{% endif %}
+
+--------------------------------------------------------------------------------
+SYSTEM HEALTH
+--------------------------------------------------------------------------------
+
+Pending Reports:    {{ pending_reports }}
+Resolved Reports:   {{ resolved_reports }}
+Unverified Locs:    {{ unverified_locations }}
+Verified This Week: {{ verified_this_period }}
+{% if not has_warnings %}
+All systems healthy. No issues detected this week.
+{% endif %}
+{% if cleanup_ran %}
+Note: Email suppression cleanup ran successfully before this digest.
+{% endif %}
+
+--------------------------------------------------------------------------------
+
+Admin Panel: {{ admin_url }}
+Google Analytics: {{ analytics_url }}
+
+================================================================================
+{{ site_name }} - Find Your Perfect Night Sky
+This is an automated weekly report. Please do not reply.
+================================================================================
