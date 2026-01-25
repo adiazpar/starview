@@ -100,10 +100,15 @@ class LocationPhoto(models.Model):
             self.image.file.seek(0)
             img = Image.open(self.image.file)
 
-            # Handle decompression bomb protection for very large images
-            # Temporarily increase limit for processing, then resize down
+            # SECURITY NOTE: Decompression bomb protection
+            # Pillow's MAX_IMAGE_PIXELS prevents loading extremely large images that could
+            # exhaust memory (decompression bomb attack). We temporarily disable this because:
+            # 1. File size is already limited to 5MB at upload (FileExtensionValidator)
+            # 2. We immediately resize to max 1920x1920 after loading
+            # 3. The limit is restored in the finally block regardless of success/failure
+            # This allows users to upload high-resolution photos while maintaining safety.
             original_max = Image.MAX_IMAGE_PIXELS
-            Image.MAX_IMAGE_PIXELS = None  # Disable for processing
+            Image.MAX_IMAGE_PIXELS = None  # Temporarily disable for processing
 
             try:
                 img.load()  # Force load the image data

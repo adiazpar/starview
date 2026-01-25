@@ -14,6 +14,7 @@ from pathlib import Path
 import certifi
 from dotenv import load_dotenv
 import logging
+from django.core.exceptions import ImproperlyConfigured
 
 # Configure module logger for settings
 logger = logging.getLogger(__name__)
@@ -42,7 +43,8 @@ load_dotenv()
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+# Default to False for security - must explicitly set DEBUG=True for development
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Testing mode (enables throttle bypass for test suites)
 # Set TESTING=True in environment or use @override_settings(TESTING=True)
@@ -459,6 +461,12 @@ if USE_R2_STORAGE:
         extra={'storage_backend': 'r2', 'bucket': AWS_STORAGE_BUCKET_NAME}
     )
 
+    # Separate R2 credentials for audit log archiver (principle of least privilege)
+    # These credentials only have access to the audit-logs bucket, not media files
+    AUDIT_R2_ACCESS_KEY_ID = os.getenv('AUDIT_R2_ACCESS_KEY_ID')
+    AUDIT_R2_SECRET_ACCESS_KEY = os.getenv('AUDIT_R2_SECRET_ACCESS_KEY')
+    AUDIT_R2_BUCKET_NAME = os.getenv('AUDIT_R2_BUCKET_NAME', 'starview-audit-logs')
+
 else:
     # =============================================================================
     # LOCAL FILESYSTEM STORAGE (Development)
@@ -660,6 +668,13 @@ SOCIALACCOUNT_PROVIDERS = {
 # Development: http://localhost:3000,http://localhost:8080
 # Production: https://app.eventhorizon.com
 CORS_ALLOWED_ORIGINS = [origin for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin]
+
+# Fail fast if CORS not configured in production
+if not CORS_ALLOWED_ORIGINS and not DEBUG:
+    raise ImproperlyConfigured(
+        "CORS_ALLOWED_ORIGINS must be set in production. "
+        "Set this environment variable to a comma-separated list of allowed origins."
+    )
 
 # CORS security settings
 CORS_ALLOW_CREDENTIALS = True       # Allow cookies/auth in CORS requests

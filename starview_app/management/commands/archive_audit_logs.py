@@ -72,16 +72,23 @@ class Command(BaseCommand):
         self.use_r2 = not settings.DEBUG
 
         if self.use_r2:
-            self.stdout.write(self.style.WARNING('Production mode: Archives will be stored in R2'))
-            # Initialize R2 client
+            # Initialize R2 client with dedicated audit credentials (principle of least privilege)
+            # Falls back to main R2 credentials if audit-specific ones not configured
+            audit_key_id = getattr(settings, 'AUDIT_R2_ACCESS_KEY_ID', None) or settings.AWS_ACCESS_KEY_ID
+            audit_secret = getattr(settings, 'AUDIT_R2_SECRET_ACCESS_KEY', None) or settings.AWS_SECRET_ACCESS_KEY
+            self.bucket_name = getattr(settings, 'AUDIT_R2_BUCKET_NAME', None) or settings.AWS_STORAGE_BUCKET_NAME
+
+            using_dedicated_creds = bool(getattr(settings, 'AUDIT_R2_ACCESS_KEY_ID', None))
+            creds_info = 'dedicated audit credentials' if using_dedicated_creds else 'shared media credentials (configure AUDIT_R2_* for separation)'
+            self.stdout.write(self.style.WARNING(f'Production mode: Archives will be stored in R2 bucket "{self.bucket_name}" using {creds_info}'))
+
             self.r2_client = boto3.client(
                 's3',
                 endpoint_url=f'https://{settings.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                aws_access_key_id=audit_key_id,
+                aws_secret_access_key=audit_secret,
                 region_name='auto'
             )
-            self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         else:
             self.stdout.write(self.style.WARNING('Development mode: Archives will be stored locally'))
 

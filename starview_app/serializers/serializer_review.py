@@ -31,6 +31,9 @@ class ReviewCommentSerializer(serializers.ModelSerializer):
     user_vote = serializers.SerializerMethodField()
     is_edited = serializers.ReadOnlyField()
 
+    # Explicit field validation (defense in depth - also validated at model level)
+    content = serializers.CharField(max_length=500, min_length=1)
+
     class Meta:
         model = ReviewComment
         fields = ['id', 'review', 'user', 'user_profile_picture', 'content',
@@ -98,6 +101,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     user_vote = serializers.SerializerMethodField()
     photos = ReviewPhotoSerializer(many=True, read_only=True)
     is_edited = serializers.ReadOnlyField()
+
+    # Explicit field validation (defense in depth - also validated at model level)
+    rating = serializers.IntegerField(min_value=1, max_value=5)
 
     class Meta:
         model = Review
