@@ -161,6 +161,11 @@ urlpatterns += [
         {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist/icons')},
     ),
     re_path(
+        r'^locales/(?P<path>.*)$',
+        serve_static_with_cache,
+        {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist/locales')},
+    ),
+    re_path(
         r'^favicon\.ico$',
         serve_static_with_cache,
         {'document_root': os.path.join(settings.BASE_DIR, 'starview_frontend/dist'), 'path': 'favicon.ico'},

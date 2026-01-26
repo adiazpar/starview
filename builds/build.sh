@@ -8,8 +8,9 @@
 # Steps:                                                                                                #
 # 1. Install Python dependencies                                                                        #
 # 2. Install Node.js dependencies and build React production bundle                                     #
-# 3. Collect static files for production serving                                                        #
-# 4. Run database migrations                                                                            #
+# 3. Compile Django translation messages (.po -> .mo)                                                   #
+# 4. Collect static files for production serving                                                        #
+# 5. Run database migrations                                                                            #
 # ----------------------------------------------------------------------------------------------------- #
 
 # Exit on error
@@ -35,6 +36,10 @@ npm ci
 echo "Building React production bundle..."
 npm run build
 cd ..
+
+# Compile Django translation messages (.po -> .mo)
+echo "Compiling translation messages..."
+python3 manage.py compilemessages --ignore=djvenv
 
 # Collect static files
 echo "Collecting static files..."

@@ -4,7 +4,7 @@
  * Configures i18next for internationalization with:
  * - Lazy loading of translation files from /locales/
  * - Browser language detection with localStorage fallback
- * - Support for English and Spanish (extensible)
+ * - Support for multiple languages
  */
 
 import i18n from 'i18next';
