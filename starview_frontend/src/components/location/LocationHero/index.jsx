@@ -1,12 +1,14 @@
 /* LocationHero Component
  * Full-bleed hero image with gradient overlay and location title.
- * Includes back navigation and share/save actions.
+ * Includes back navigation and share/save/visited actions.
  */
 
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useToggleFavorite } from '../../../hooks/useLocations';
+import { locationsApi } from '../../../services/locations';
 import { useToast } from '../../../contexts/ToastContext';
 import { useUnits } from '../../../hooks/useUnits';
 import './styles.css';
@@ -20,8 +22,46 @@ function LocationHero({ location, onBack }) {
   const toggleFavorite = useToggleFavorite();
   const { showToast } = useToast();
   const { formatElevation } = useUnits();
+  const queryClient = useQueryClient();
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isVisited, setIsVisited] = useState(false);
+
+  // Mark visited mutation
+  const markVisitedMutation = useMutation({
+    mutationFn: () => locationsApi.markVisited(location.id),
+    onSuccess: (response) => {
+      setIsVisited(true);
+      showToast('Location marked as visited!', 'success');
+
+      // Check for newly earned badges
+      if (response.data.newly_earned_badges?.length > 0) {
+        const badges = response.data.newly_earned_badges;
+        badges.forEach((badge) => {
+          showToast(`Badge earned: ${badge.name}!`, 'success');
+        });
+      }
+
+      // Invalidate location query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['location', location.id] });
+    },
+    onError: () => {
+      showToast('Failed to mark as visited', 'error');
+    },
+  });
+
+  // Unmark visited mutation
+  const unmarkVisitedMutation = useMutation({
+    mutationFn: () => locationsApi.unmarkVisited(location.id),
+    onSuccess: () => {
+      setIsVisited(false);
+      showToast('Visit removed', 'info');
+      queryClient.invalidateQueries({ queryKey: ['location', location.id] });
+    },
+    onError: () => {
+      showToast('Failed to remove visit', 'error');
+    },
+  });
 
   // Get hero image (first image or placeholder)
   const heroImage = location.images?.[0]?.full || location.images?.[0]?.thumbnail || PLACEHOLDER_IMAGE;
@@ -37,6 +77,19 @@ function LocationHero({ location, onBack }) {
     if (!requireAuth()) return;
     toggleFavorite.mutate(location.id);
   }, [requireAuth, location.id, toggleFavorite]);
+
+  // Handle mark visited
+  const handleMarkVisited = useCallback((e) => {
+    e.stopPropagation();
+    if (!requireAuth()) return;
+    if (isVisited) {
+      unmarkVisitedMutation.mutate();
+    } else {
+      markVisitedMutation.mutate();
+    }
+  }, [requireAuth, isVisited, markVisitedMutation, unmarkVisitedMutation]);
+
+  const isMarkingVisited = markVisitedMutation.isPending || unmarkVisitedMutation.isPending;
 
   // Handle share
   const handleShare = useCallback(async (e) => {
@@ -104,6 +157,21 @@ function LocationHero({ location, onBack }) {
             <i className={`fa-${isFavorited ? 'solid' : 'regular'} fa-heart`}></i>
             <span className="location-hero__action-text">
               {isFavorited ? 'Saved' : 'Save'}
+            </span>
+          </button>
+          <button
+            className={`location-hero__action ${isVisited ? 'location-hero__action--visited' : ''}`}
+            onClick={handleMarkVisited}
+            disabled={isMarkingVisited}
+            aria-label={isVisited ? 'Remove visit' : 'Mark as visited'}
+          >
+            {isMarkingVisited ? (
+              <i className="fa-solid fa-spinner fa-spin"></i>
+            ) : (
+              <i className="fa-solid fa-map-pin"></i>
+            )}
+            <span className="location-hero__action-text">
+              {isVisited ? 'Visited' : 'Visited'}
             </span>
           </button>
           <button

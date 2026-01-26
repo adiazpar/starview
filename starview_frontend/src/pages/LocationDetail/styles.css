@@ -65,7 +65,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  padding-bottom: calc(80px + var(--space-lg)); /* Space for sticky actions */
 }
 
 /* Staggered Entry Animations */
@@ -123,27 +122,6 @@
 }
 
 /* ============================================
-   STICKY BOTTOM ACTIONS (Mobile)
-   ============================================ */
-
-.location-detail__sticky-actions {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  padding: var(--space-md);
-  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
-  background: linear-gradient(
-    to top,
-    var(--bg-base) 0%,
-    var(--bg-base) 60%,
-    rgba(10, 15, 26, 0.95) 80%,
-    transparent 100%
-  );
-}
-
-/* ============================================
    DESKTOP LAYOUT (Two-Column)
    ============================================ */
 
@@ -189,8 +167,7 @@
   /* Hide mobile-only sections on desktop */
   .location-detail__sky-quality--mobile,
   .location-detail__map--mobile,
-  .location-detail__community--mobile,
-  .location-detail__sticky-actions {
+  .location-detail__community--mobile {
     display: none;
   }
 }

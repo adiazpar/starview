@@ -12,7 +12,6 @@ import LocationAbout from '../../components/location/LocationAbout';
 import PhotoMosaic from '../../components/location/PhotoMosaic';
 import CommunityStats from '../../components/location/CommunityStats';
 import LocationMap from '../../components/location/LocationMap';
-import LocationActions from '../../components/location/LocationActions';
 import ReviewSection from '../../components/location/ReviewSection';
 import RatingSummary from '../../components/location/RatingSummary';
 import './styles.css';
@@ -124,20 +123,12 @@ function LocationDetailPage() {
             elevation={location.elevation}
           />
 
-          {/* Action Buttons */}
-          <LocationActions location={location} />
-
           {/* Community Stats */}
           <CommunityStats location={location} />
 
           {/* Mini Map */}
           <LocationMap location={location} compact />
         </aside>
-      </div>
-
-      {/* Sticky Bottom Actions - Mobile Only */}
-      <div className="location-detail__sticky-actions">
-        <LocationActions location={location} sticky />
       </div>
     </div>
   );

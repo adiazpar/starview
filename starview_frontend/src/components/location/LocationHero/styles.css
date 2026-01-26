@@ -91,7 +91,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
   padding-top: max(var(--space-lg), calc(env(safe-area-inset-top) + var(--space-sm)));
   z-index: 10;
 }
@@ -186,6 +186,26 @@
   100% { transform: scale(1); }
 }
 
+/* Visited state */
+.location-hero__action--visited {
+  color: var(--success);
+  border-color: rgba(34, 197, 94, 0.3); /* --success with 30% opacity */
+}
+
+.location-hero__action--visited:hover {
+  color: var(--success);
+  border-color: rgba(34, 197, 94, 0.5); /* --success with 50% opacity */
+}
+
+.location-hero__action--visited i {
+  animation: heartPop var(--animation-duration) ease-out;
+}
+
+.location-hero__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ============================================
    LOCATION INFO OVERLAY
    ============================================ */
@@ -195,7 +215,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
   z-index: 5;
   animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
@@ -372,6 +392,10 @@
 @media (min-width: 1024px) {
   .location-hero {
     height: 420px;
+  }
+
+  .location-hero__nav {
+    padding: var(--space-lg) var(--space-xl);
   }
 
   .location-hero__back {
