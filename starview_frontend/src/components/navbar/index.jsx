@@ -10,6 +10,8 @@ import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { useExploreFilters } from '../../hooks/useExploreFilters';
+import { useNavbarExtension } from '../../contexts/NavbarExtensionContext';
+import LocationNavbarActions from '../location/LocationNavbarActions';
 import './styles.css';
 
 // Lazy load filter modal - only needed on explore page
@@ -122,6 +124,9 @@ function Navbar() {
   // Show filter chips row only on mobile/tablet explore page
   const showFilterChips = isExplorePage && !isDesktop;
 
+  // Get navbar extension data (used by location detail page, etc.)
+  const { locationExtension, isExtensionVisible } = useNavbarExtension();
+
   // Dynamically measure navbar height and set CSS variable globally
   useEffect(() => {
     const nav = navRef.current;
@@ -174,8 +179,9 @@ function Navbar() {
   }, [mobileMenuOpen, backdropVisible]);
 
   return (
-    <nav ref={navRef} className="navbar">
-      <div className="navbar__container">
+    <div className="navbar-wrapper">
+      <nav ref={navRef} className="navbar">
+        <div className="navbar__container">
         {/* Logo with crop animation for explore page */}
         <Link to="/" className="navbar__logo">
           <div className={`navbar__logo-crop ${isExplorePage && !isDesktop ? 'navbar__logo-crop--explore' : ''}`}>
@@ -394,7 +400,28 @@ function Navbar() {
           />
         </Suspense>
       )}
-    </nav>
+
+      </nav>
+
+      {/* Navbar Extension - outside nav to avoid ResizeObserver jitter */}
+      {locationExtension && (
+        <div className={`navbar__extension ${isExtensionVisible && !mobileMenuOpen ? 'navbar__extension--visible' : ''}`}>
+          <div className="navbar__extension-content">
+            <LocationNavbarActions
+              locationName={locationExtension.locationName}
+              locationAddress={locationExtension.locationAddress}
+              isFavorited={locationExtension.isFavorited}
+              isVisited={locationExtension.isVisited}
+              isMarkingVisited={locationExtension.isMarkingVisited}
+              onBack={locationExtension.onBack}
+              onFavorite={locationExtension.onFavorite}
+              onMarkVisited={locationExtension.onMarkVisited}
+              onShare={locationExtension.onShare}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

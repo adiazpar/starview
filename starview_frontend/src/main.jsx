@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { LocationProvider } from './contexts/LocationContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { CookieConsentProvider } from './contexts/CookieConsentContext'
+import { NavbarExtensionProvider } from './contexts/NavbarExtensionContext'
 import ErrorBoundary from './components/shared/ErrorBoundary'
 import ToastContainer from './components/shared/Toast'
 import CookieConsent from './components/CookieConsent'
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')).render(
             <LocationProvider>
               <ToastProvider>
               <CookieConsentProvider>
+              <NavbarExtensionProvider>
                 <Starfield />
                 <Navbar />
                 <div className="page-wrapper">
@@ -52,6 +54,7 @@ createRoot(document.getElementById('root')).render(
                 </div>
                 <ToastContainer />
                 <CookieConsent />
+              </NavbarExtensionProvider>
               </CookieConsentProvider>
             </ToastProvider>
             </LocationProvider>

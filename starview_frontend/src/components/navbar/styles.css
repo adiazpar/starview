@@ -3,12 +3,15 @@
  * Uses BEM naming convention.
  */
 
-.navbar {
+.navbar-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
+}
+
+.navbar {
   background: var(--navbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -508,6 +511,31 @@
 }
 
 /* ============================================ */
+/* NAVBAR EXTENSION - Page-specific content */
+/* Uses CSS Grid for smooth height animation (like BadgeSection) */
+/* Outside nav element to avoid ResizeObserver jitter */
+/* ============================================ */
+
+.navbar__extension {
+  display: grid;
+  grid-template-rows: 0fr;
+  background: var(--navbar-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: grid-template-rows 0.25s ease-out;
+}
+
+.navbar__extension--visible {
+  grid-template-rows: 1fr;
+  border-bottom-color: var(--glass-border);
+}
+
+.navbar__extension-content {
+  overflow: hidden;
+}
+
+/* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
 
@@ -556,7 +584,8 @@
   .navbar__nav,
   .navbar__hamburger span,
   .navbar__mobile,
-  .navbar__filter-chip {
+  .navbar__filter-chip,
+  .navbar__extension {
     transition: none;
   }
 
