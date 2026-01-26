@@ -186,7 +186,6 @@ function PhotoMosaic({ images, locationName, locationId }) {
                 <button
                   className={`photo-mosaic__action photo-mosaic__action--vote ${currentImage.user_has_upvoted ? 'photo-mosaic__action--active' : ''}`}
                   onClick={(e) => handleVote(e, currentImage.id)}
-                  disabled={isVoting}
                   aria-label={currentImage.user_has_upvoted ? 'Remove upvote' : 'Upvote photo'}
                 >
                   <i className={`fa-${currentImage.user_has_upvoted ? 'solid' : 'regular'} fa-thumbs-up`}></i>
