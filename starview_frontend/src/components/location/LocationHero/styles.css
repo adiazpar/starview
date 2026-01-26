@@ -27,7 +27,6 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  touch-action: pan-y pinch-zoom;
 }
 
 /* Carousel slide - stacked with crossfade animations */
@@ -79,31 +78,44 @@
 }
 
 /* ============================================
-   CAROUSEL TAP ZONES
+   CAROUSEL ARROW BUTTONS
    ============================================ */
 
-.location-hero__tap-zone {
+.location-hero__arrow {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background: transparent;
   border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--text-lg);
   cursor: pointer;
   z-index: 4;
-  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.location-hero__tap-zone:disabled {
-  cursor: default;
+.location-hero__arrow--left {
+  left: var(--space-sm);
 }
 
-.location-hero__tap-zone--left {
-  left: 0;
+.location-hero__arrow--right {
+  right: var(--space-sm);
 }
 
-.location-hero__tap-zone--right {
-  right: 0;
+/* Show arrows on hover */
+.location-hero:hover .location-hero__arrow {
+  opacity: 1;
+}
+
+.location-hero__arrow:hover {
+  color: rgba(255, 255, 255, 1);
 }
 
 /* ============================================
@@ -514,7 +526,8 @@
   }
 
   .location-hero__back,
-  .location-hero__action {
+  .location-hero__action,
+  .location-hero__arrow {
     transition: none;
   }
 

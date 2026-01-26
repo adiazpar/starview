@@ -35,10 +35,6 @@ const LocationHero = forwardRef(function LocationHero({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitingIndex, setExitingIndex] = useState(null);
 
-  // Touch handling refs
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
   // Track preloaded images
   const preloadedRef = useRef(new Set([0]));
 
@@ -94,29 +90,6 @@ const LocationHero = forwardRef(function LocationHero({
     }
   }, []);
 
-  // Handle swipe gestures
-  const handleTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchEndX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    touchEndX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 50; // Minimum swipe distance
-
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        goToNext();
-      } else {
-        goToPrevious();
-      }
-    }
-  }, [goToNext, goToPrevious]);
-
   // Handle image error for specific index
   const handleImageError = useCallback((id) => {
     setImageErrors(prev => ({ ...prev, [id]: true }));
@@ -137,12 +110,7 @@ const LocationHero = forwardRef(function LocationHero({
   return (
     <header ref={ref} className="location-hero">
       {/* Hero Image Carousel - Crossfade (lazy loaded) */}
-      <div
-        className="location-hero__image-container"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="location-hero__image-container">
         {/* Only render exiting + current images (max 2 in DOM) */}
 
         {/* Exiting image - fading out */}
@@ -176,19 +144,23 @@ const LocationHero = forwardRef(function LocationHero({
 
         <div className="location-hero__gradient" />
 
-        {/* Tap zones for navigation */}
+        {/* Arrow buttons for navigation */}
         {hasMultiple && (
           <>
             <button
-              className="location-hero__tap-zone location-hero__tap-zone--left"
+              className="location-hero__arrow location-hero__arrow--left"
               onClick={goToPrevious}
               aria-label="Previous photo"
-            />
+            >
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
             <button
-              className="location-hero__tap-zone location-hero__tap-zone--right"
+              className="location-hero__arrow location-hero__arrow--right"
               onClick={goToNext}
               aria-label="Next photo"
-            />
+            >
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
           </>
         )}
       </div>
