@@ -487,7 +487,15 @@ def request_password_reset(request):
             }
 
             # Get user's language preference for email localization
-            user_lang = getattr(user.userprofile, 'language_preference', 'en')
+            # Prefer request-provided language (for unauthenticated users with UI language set)
+            # Fall back to user's stored preference
+            valid_languages = [code for code, name in settings.LANGUAGES]
+            request_lang = request.data.get('language', '').strip().lower()
+
+            if request_lang and request_lang in valid_languages:
+                user_lang = request_lang
+            else:
+                user_lang = getattr(user.userprofile, 'language_preference', 'en')
 
             # Render email subject and body from templates in user's preferred language
             with translation.override(user_lang):

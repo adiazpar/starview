@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import authApi from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
+import { useLanguage } from '../../hooks/useLanguage';
 import './styles.css';
 
 function PasswordResetRequestPage() {
   const { showToast } = useToast();
+  const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -15,7 +17,7 @@ function PasswordResetRequestPage() {
     setLoading(true);
 
     try {
-      await authApi.requestPasswordReset({ email });
+      await authApi.requestPasswordReset({ email, language });
       setSuccess(true);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to send password reset email. Please try again.';

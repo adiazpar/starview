@@ -56,6 +56,7 @@ export const authApi = {
    * Request password reset email
    * @param {Object} data - Password reset request data
    * @param {string} data.email - User's email address
+   * @param {string} [data.language] - Optional UI language code for email localization
    * @returns {Promise} - { detail: string, email_sent: boolean }
    */
   requestPasswordReset: (data) => {
