@@ -385,7 +385,7 @@
   }
 
   .footer__bottom-left {
-    gap: var(--space-sm);
+    gap: var(--space-md);
   }
 
   .footer__legal {

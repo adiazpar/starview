@@ -83,6 +83,7 @@ export default function LocaleSelector() {
       >
         <i className="fa-solid fa-globe" />
         <span>{languageConfig.nativeName} ({languageConfig.region})</span>
+        <i className="fa-solid fa-caret-down locale-selector__caret" />
       </button>
 
       {/* Modal */}
