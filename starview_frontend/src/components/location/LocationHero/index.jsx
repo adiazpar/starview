@@ -14,7 +14,6 @@
  */
 
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
-import { useUnits } from '../../../hooks/useUnits';
 import './styles.css';
 
 // Placeholder for locations without photos
@@ -29,7 +28,6 @@ const LocationHero = forwardRef(function LocationHero({
   onMarkVisited,
   onShare,
 }, ref) {
-  const { formatElevation } = useUnits();
   const [imageErrors, setImageErrors] = useState({});
   const [imagesLoaded, setImagesLoaded] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -254,26 +252,6 @@ const LocationHero = forwardRef(function LocationHero({
               <i className="fa-regular fa-star"></i>
               <span className="location-hero__stat-label">No reviews yet</span>
             </span>
-          )}
-
-          {location.bortle_class && (
-            <>
-              <span className="location-hero__stat-divider">•</span>
-              <span className="location-hero__stat">
-                B{location.bortle_class}
-                <span className="location-hero__stat-label">Bortle</span>
-              </span>
-            </>
-          )}
-
-          {location.elevation && (
-            <>
-              <span className="location-hero__stat-divider">•</span>
-              <span className="location-hero__stat">
-                {formatElevation(location.elevation)}
-                <span className="location-hero__stat-label">elevation</span>
-              </span>
-            </>
           )}
 
           {/* Photo counter - pushed to right */}

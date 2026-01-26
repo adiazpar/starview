@@ -1,0 +1,89 @@
+/* LocationStats Styles
+ * Prominent stats row with AllTrails-inspired typography.
+ * Large values, muted labels, clean minimal design.
+ */
+
+/* ============================================
+   CONTAINER - 4-column grid
+   ============================================ */
+
+.location-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+  padding-bottom: var(--space-xl);
+}
+
+/* ============================================
+   STAT ITEM
+   ============================================ */
+
+.location-stats__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* ============================================
+   VALUE ROW - Number + Unit
+   ============================================ */
+
+.location-stats__value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.location-stats__number {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.location-stats__unit {
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   LABEL
+   ============================================ */
+
+.location-stats__label {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   MOBILE - 2x2 Grid
+   ============================================ */
+
+@media (max-width: 767px) {
+  .location-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg) var(--space-xl);
+  }
+
+  .location-stats__number {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .location-stats__item {
+    animation: none;
+  }
+}

@@ -1,6 +1,6 @@
 /* LocationAbout Styles
- * Description and type-specific metadata display.
- * Clean typography with observatory aesthetic headers.
+ * Description with optional website link.
+ * Clean typography, pairs with LocationStats.
  */
 
 /* ============================================
@@ -8,38 +8,9 @@
    ============================================ */
 
 .location-about {
-  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-}
-
-/* ============================================
-   SECTION HEADER (Observatory Aesthetic)
-   ============================================ */
-
-.location-about__header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-
-.location-about__header span {
-  font-family: var(--font-technical);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.location-about__header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
 }
 
 /* ============================================
@@ -54,7 +25,7 @@
   font-family: var(--font-family);
   font-size: var(--text-base);
   line-height: 1.75;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin: 0;
   white-space: pre-wrap;
 }
@@ -95,131 +66,25 @@
 }
 
 /* ============================================
-   TYPE-SPECIFIC METADATA CARD
+   WEBSITE LINK
    ============================================ */
 
-.location-about__metadata {
-  padding: var(--space-md);
-}
-
-/* Metadata Header */
-.location-about__metadata-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin: 0 0 var(--space-md) 0;
-}
-
-.location-about__metadata-header span {
-  font-family: var(--font-technical);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-}
-
-.location-about__metadata-header i {
-  color: var(--accent);
-  font-size: var(--text-sm);
-}
-
-.location-about__metadata-header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
-
-/* Metadata List */
-.location-about__metadata-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  margin: 0;
-}
-
-/* Metadata Item Row */
-.location-about__metadata-item {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-sm);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--border);
-}
-
-.location-about__metadata-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-/* Metadata Label */
-.location-about__metadata-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.location-about__metadata-label i {
-  width: 16px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-}
-
-/* Metadata Value */
-.location-about__metadata-value {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--text-primary);
-  margin: 0;
-  text-align: right;
-}
-
-.location-about__metadata-value a {
+.location-about__website {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-xs);
   color: var(--accent);
-  text-decoration: none;
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  text-decoration: underline;
   transition: color 0.2s ease;
 }
 
-.location-about__metadata-value a:hover {
+.location-about__website:hover {
   color: var(--accent-hover);
 }
 
-.location-about__metadata-value a i {
+.location-about__website i {
   font-size: 10px;
   opacity: 0.7;
-}
-
-/* ============================================
-   ADDRESS DISPLAY
-   ============================================ */
-
-.location-about__address {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.location-about__address i {
-  color: var(--text-muted);
-  margin-top: 2px;
-  font-size: var(--text-sm);
 }

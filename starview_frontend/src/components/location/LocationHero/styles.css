@@ -468,7 +468,19 @@
   }
 
   .location-hero__nav {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: var(--space-lg);
+  }
+
+  /* Align arrows with the 1200px content container edges */
+  .location-hero__arrow--left {
+    margin-left: max(var(--space-lg), calc((100vw - 1200px) / 2 + var(--space-lg)));
+  }
+
+  .location-hero__arrow--right {
+    margin-right: max(var(--space-lg), calc((100vw - 1200px) / 2 + var(--space-lg)));
   }
 
   .location-hero__back {
@@ -496,9 +508,10 @@
   }
 
   .location-hero__info {
-    padding: var(--space-xl) var(--space-lg);
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
   }
 
   .location-hero__title {

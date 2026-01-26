@@ -11,6 +11,7 @@ import { useNavbarExtension } from '../../contexts/NavbarExtensionContext';
 import { useToast } from '../../contexts/ToastContext';
 import useRequireAuth from '../../hooks/useRequireAuth';
 import LocationHero from '../../components/location/LocationHero';
+import LocationStats from '../../components/location/LocationStats';
 import SkyQualityPanel from '../../components/location/SkyQualityPanel';
 import LocationAbout from '../../components/location/LocationAbout';
 import PhotoMosaic from '../../components/location/PhotoMosaic';
@@ -229,6 +230,15 @@ function LocationDetailPage() {
       <div className="location-detail__content">
         {/* Desktop: Two-column layout */}
         <div className="location-detail__main">
+          {/* About Section - Stats + Description */}
+          <section className="location-detail__about">
+            <div className="location-detail__section-header">
+              <span>About this Location</span>
+            </div>
+            <LocationStats location={location} />
+            <LocationAbout location={location} />
+          </section>
+
           {/* Sky Quality Dashboard - Mobile only (desktop shows in sidebar) */}
           <div className="location-detail__sky-quality--mobile">
             <SkyQualityPanel
@@ -237,9 +247,6 @@ function LocationDetailPage() {
               elevation={location.elevation}
             />
           </div>
-
-          {/* About Section */}
-          <LocationAbout location={location} />
 
           {/* Photo Gallery */}
           {location.images?.length > 0 && (
