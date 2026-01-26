@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "sky": "Sky",
+    "profile": "Profile",
+    "login": "Login",
+    "logout": "Logout",
+    "getStarted": "Get Started"
+  },
+  "search": {
+    "placeholder": "Search stargazing locations...",
+    "placeholderShort": "Search locations...",
+    "clearSearch": "Clear search"
+  },
+  "filters": {
+    "filters": "Filters",
+    "type": "Type",
+    "rating": "Rating",
+    "distance": "Distance",
+    "verified": "Verified"
+  }
+}

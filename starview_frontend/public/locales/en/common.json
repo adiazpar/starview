@@ -1,0 +1,28 @@
+{
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "getStarted": "Get Started",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register"
+  },
+  "labels": {
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "search": "Search"
+  },
+  "status": {
+    "allSystemsOperational": "All systems operational",
+    "loading": "Loading",
+    "error": "Error",
+    "success": "Success"
+  },
+  "soon": "Soon"
+}

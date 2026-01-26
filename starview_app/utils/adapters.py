@@ -339,6 +339,7 @@ class CustomConfirmEmailView(ConfirmEmailView):
                     from django.template.loader import render_to_string
                     from django.core.mail import EmailMultiAlternatives
                     from django.contrib.sites.shortcuts import get_current_site
+                    from django.utils import translation
 
                     # Get site information
                     current_site = get_current_site(self.request)
@@ -349,10 +350,14 @@ class CustomConfirmEmailView(ConfirmEmailView):
                         'site_name': current_site.name,
                     }
 
-                    # Render email templates
-                    subject = render_to_string('account/email/welcome_subject.txt', context).strip()
-                    text_content = render_to_string('account/email/welcome_message.txt', context)
-                    html_content = render_to_string('account/email/welcome_message.html', context)
+                    # Get user's language preference for email localization
+                    user_lang = getattr(user.userprofile, 'language_preference', 'en')
+
+                    # Render email templates in user's preferred language
+                    with translation.override(user_lang):
+                        subject = render_to_string('account/email/welcome_subject.txt', context).strip()
+                        text_content = render_to_string('account/email/welcome_message.txt', context)
+                        html_content = render_to_string('account/email/welcome_message.html', context)
 
                     # Send email
                     from_email = settings.DEFAULT_FROM_EMAIL
@@ -463,6 +468,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             from django.core.mail import EmailMultiAlternatives
             from django.contrib.sites.shortcuts import get_current_site
             from django.conf import settings
+            from django.utils import translation
 
             # Get site information
             current_site = get_current_site(request)
@@ -473,10 +479,14 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 'site_name': current_site.name,
             }
 
-            # Render email templates
-            subject = render_to_string('account/email/welcome_subject.txt', context).strip()
-            text_content = render_to_string('account/email/welcome_message.txt', context)
-            html_content = render_to_string('account/email/welcome_message.html', context)
+            # Get user's language preference for email localization
+            user_lang = getattr(user.userprofile, 'language_preference', 'en')
+
+            # Render email templates in user's preferred language
+            with translation.override(user_lang):
+                subject = render_to_string('account/email/welcome_subject.txt', context).strip()
+                text_content = render_to_string('account/email/welcome_message.txt', context)
+                html_content = render_to_string('account/email/welcome_message.html', context)
 
             # Send email
             from_email = settings.DEFAULT_FROM_EMAIL

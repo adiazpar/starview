@@ -28,9 +28,10 @@ from django.conf import settings
 # 3. Language preference is stored in session for consistency                   #
 #                                                                               #
 # Language detection order:                                                     #
-# 1. Session language (if previously set)                                       #
-# 2. Browser Accept-Language header                                             #
-# 3. Default language (settings.LANGUAGE_CODE)                                  #
+# 1. Authenticated user's language_preference (from UserProfile)                #
+# 2. Session language (if previously set)                                       #
+# 3. Browser Accept-Language header                                             #
+# 4. Default language (settings.LANGUAGE_CODE)                                  #
 # ----------------------------------------------------------------------------- #
 class BrowserLanguageMiddleware:
 
@@ -38,11 +39,24 @@ class BrowserLanguageMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Check if language is already set in session
-        language = request.session.get('django_language')
+        language = None
 
+        # 1. Check authenticated user's language preference first
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            try:
+                user_language = getattr(request.user.userprofile, 'language_preference', None)
+                if user_language:
+                    language = user_language
+            except AttributeError:
+                # UserProfile may not exist in some edge cases
+                pass
+
+        # 2. Fall back to session language
         if not language:
-            # Get language from Accept-Language header
+            language = request.session.get('django_language')
+
+        # 3. Fall back to browser Accept-Language header
+        if not language:
             language = self.get_language_from_request(request)
 
             # Store in session for future requests

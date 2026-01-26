@@ -66,6 +66,14 @@ class UserProfile(models.Model):
         help_text="User's preferred unit system for distances and elevations"
     )
 
+    # Language preference for UI and email localization:
+    language_preference = models.CharField(
+        max_length=10,
+        choices=settings.LANGUAGES,
+        default='en',
+        help_text="User's preferred language for UI and emails"
+    )
+
 
     # Returns profile picture URL or default if none set:
     @property

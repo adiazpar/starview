@@ -5,6 +5,7 @@
 
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
@@ -17,12 +18,13 @@ const ExploreFiltersModal = lazy(() =>
 );
 
 // Filter chips configuration for mobile explore page
-const FILTERS = [
-  { id: 'all', label: 'Filters', icon: 'fa-solid fa-sliders' },
-  { id: 'type', label: 'Type' },
-  { id: 'rating', label: 'Rating' },
-  { id: 'distance', label: 'Distance' },
-  { id: 'verified', label: 'Verified', isToggle: true },
+// Labels are translation keys, resolved in component
+const FILTER_CONFIG = [
+  { id: 'all', labelKey: 'filters.filters', icon: 'fa-solid fa-sliders' },
+  { id: 'type', labelKey: 'filters.type' },
+  { id: 'rating', labelKey: 'filters.rating' },
+  { id: 'distance', labelKey: 'filters.distance' },
+  { id: 'verified', labelKey: 'filters.verified', isToggle: true },
 ];
 
 // Debounce hook for search input
@@ -38,6 +40,7 @@ function useDebounce(value, delay) {
 }
 
 function Navbar() {
+  const { t } = useTranslation('navbar');
   const { theme } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
@@ -191,8 +194,8 @@ function Navbar() {
             <input
               type="text"
               className="navbar__search-input"
-              placeholder="Search locations..."
-              aria-label="Search locations"
+              placeholder={t('search.placeholderShort')}
+              aria-label={t('search.placeholderShort')}
               value={searchInput}
               onChange={handleSearchChange}
             />
@@ -200,7 +203,7 @@ function Navbar() {
               <button
                 className="navbar__search-clear"
                 onClick={handleSearchClear}
-                aria-label="Clear search"
+                aria-label={t('search.clearSearch')}
                 type="button"
               >
                 <i className="fa-solid fa-xmark"></i>
@@ -219,8 +222,8 @@ function Navbar() {
                 <input
                   type="text"
                   className="navbar__search-input"
-                  placeholder="Search stargazing locations..."
-                  aria-label="Search locations"
+                  placeholder={t('search.placeholder')}
+                  aria-label={t('search.placeholder')}
                   value={searchInput}
                   onChange={handleSearchChange}
                 />
@@ -228,7 +231,7 @@ function Navbar() {
                   <button
                     className="navbar__search-clear"
                     onClick={handleSearchClear}
-                    aria-label="Clear search"
+                    aria-label={t('search.clearSearch')}
                     type="button"
                   >
                     <i className="fa-solid fa-xmark"></i>
@@ -238,7 +241,7 @@ function Navbar() {
               <button
                 className={`navbar__filters-btn ${activeFilterCount > 0 ? 'navbar__filters-btn--active' : ''}`}
                 onClick={() => handleOpenFilterModal()}
-                aria-label="Filters"
+                aria-label={t('filters.filters')}
               >
                 <i className="fa-solid fa-sliders"></i>
                 {activeFilterCount > 0 && (
@@ -250,13 +253,13 @@ function Navbar() {
 
           {/* Desktop Navigation Links */}
           <div className="navbar__nav">
-            <NavLink to="/" className="navbar__link" end>Home</NavLink>
-            <NavLink to="/explore" className="navbar__link">Explore</NavLink>
-            <NavLink to="/sky" className="navbar__link">Sky</NavLink>
+            <NavLink to="/" className="navbar__link" end>{t('nav.home')}</NavLink>
+            <NavLink to="/explore" className="navbar__link">{t('nav.explore')}</NavLink>
+            <NavLink to="/sky" className="navbar__link">{t('nav.sky')}</NavLink>
             {isAuthenticated ? (
-              <NavLink to={`/users/${user?.username}`} className="navbar__link">Profile</NavLink>
+              <NavLink to={`/users/${user?.username}`} className="navbar__link">{t('nav.profile')}</NavLink>
             ) : (
-              <NavLink to="/login" className="navbar__link">Login</NavLink>
+              <NavLink to="/login" className="navbar__link">{t('nav.login')}</NavLink>
             )}
           </div>
         </div>
@@ -265,11 +268,11 @@ function Navbar() {
         <div className="navbar__actions">
           {isAuthenticated ? (
             <button onClick={logout} className="navbar__cta btn-primary btn-primary--sm">
-              <span>Logout</span>
+              <span>{t('nav.logout')}</span>
             </button>
           ) : (
             <NavLink to="/register" className="navbar__cta btn-primary btn-primary--sm">
-              Get Started
+              {t('nav.getStarted')}
             </NavLink>
           )}
         </div>
@@ -290,40 +293,40 @@ function Navbar() {
         <div className={`navbar__mobile ${mobileMenuOpen ? 'navbar__mobile--open' : ''}`}>
           <NavLink to="/" className="navbar__mobile-link" onClick={closeMobileMenu} end>
             <i className="fa-regular fa-house"></i>
-            Home
+            {t('nav.home')}
           </NavLink>
           <NavLink to="/explore" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-solid fa-magnifying-glass"></i>
-            Explore
+            {t('nav.explore')}
           </NavLink>
           <NavLink to="/sky" className="navbar__mobile-link" onClick={closeMobileMenu}>
             <i className="fa-regular fa-moon"></i>
-            Sky
+            {t('nav.sky')}
           </NavLink>
 
           {isAuthenticated ? (
             <>
               <NavLink to={`/users/${user?.username}`} className="navbar__mobile-link" onClick={closeMobileMenu}>
                 <i className="fa-regular fa-user"></i>
-                Profile
+                {t('nav.profile')}
               </NavLink>
               <button
                 onClick={() => { closeMobileMenu(); logout(); }}
                 className="navbar__mobile-link"
               >
                 <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                Logout
+                {t('nav.logout')}
               </button>
             </>
           ) : (
             <>
               <NavLink to="/login" className="navbar__mobile-link" onClick={closeMobileMenu}>
                 <i className="fa-solid fa-arrow-right-to-bracket"></i>
-                Login
+                {t('nav.login')}
               </NavLink>
               <NavLink to="/register" className="navbar__mobile-link" onClick={closeMobileMenu}>
                 <i className="fa-solid fa-user-plus"></i>
-                Get Started
+                {t('nav.getStarted')}
               </NavLink>
             </>
           )}
@@ -342,7 +345,7 @@ function Navbar() {
       {showFilterChips && (
         <div className="navbar__filters">
           <div className="navbar__filters-scroll">
-            {FILTERS.map((filter) => {
+            {FILTER_CONFIG.map((filter) => {
               // Determine if this filter chip should show as active
               const isActive = filter.id === 'all'
                 ? activeFilterCount > 0
@@ -373,7 +376,7 @@ function Navbar() {
                   ) : (
                     <i className="fa-solid fa-caret-down navbar__filter-caret"></i>
                   )}
-                  <span>{filter.label}</span>
+                  <span>{t(filter.labelKey)}</span>
                 </button>
               );
             })}

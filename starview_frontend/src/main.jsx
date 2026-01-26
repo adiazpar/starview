@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -13,6 +13,7 @@ import Starfield from './components/starfield'
 import Navbar from './components/navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import './i18n/config'
 import './index.css'
 import App from './App.jsx'
 
@@ -33,28 +34,30 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ScrollToTop />
-        <AuthProvider>
-          <LocationProvider>
-            <ToastProvider>
-            <CookieConsentProvider>
-              <Starfield />
-              <Navbar />
-              <div className="page-wrapper">
-                <ErrorBoundary>
-                  <App />
-                </ErrorBoundary>
-                <Footer />
-              </div>
-              <ToastContainer />
-              <CookieConsent />
-            </CookieConsentProvider>
-          </ToastProvider>
-          </LocationProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <Suspense fallback={null}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ScrollToTop />
+          <AuthProvider>
+            <LocationProvider>
+              <ToastProvider>
+              <CookieConsentProvider>
+                <Starfield />
+                <Navbar />
+                <div className="page-wrapper">
+                  <ErrorBoundary>
+                    <App />
+                  </ErrorBoundary>
+                  <Footer />
+                </div>
+                <ToastContainer />
+                <CookieConsent />
+              </CookieConsentProvider>
+            </ToastProvider>
+            </LocationProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </Suspense>
   </StrictMode>,
 )

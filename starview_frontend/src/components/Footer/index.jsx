@@ -3,50 +3,21 @@
  *
  * Site-wide footer with navigation, social links, and legal info.
  * Features observatory-themed aesthetic with glass-morphic styling.
+ * Hipcamp-inspired layout with isolated logo and clean sections.
  */
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../hooks/useTheme';
-import { usePlatformStats } from '../../hooks/useStats';
 import CookiePreferencesButton from '../CookieConsent/CookiePreferencesButton';
+import LocaleSelector from '../LocaleSelector';
 import './styles.css';
-
-const navigationLinks = {
-  explore: [
-    { label: 'Discover Locations', to: '/explore' },
-    { label: 'Star Map', to: '/explore', soon: true },
-    { label: 'Light Pollution Data', to: '/bortle' },
-  ],
-  sky: [
-    { label: 'Sky Conditions', to: '/sky' },
-    { label: "Tonight's Forecast", to: '/tonight' },
-    { label: '7-Day Forecast', to: '/forecast', soon: true },
-    { label: 'Moon Calendar', to: '/calendar', soon: true },
-  ],
-  community: [
-    { label: 'Top Contributors', to: '/explore', soon: true },
-    { label: 'Recent Reviews', to: '/explore', soon: true },
-    { label: 'Submit a Location', to: '/explore', soon: true },
-  ],
-  company: [
-    { label: 'About Starview', to: '/about', soon: true },
-    { label: 'Contact', href: 'mailto:contact@starview.app' },
-    { label: 'API', to: '/api', soon: true },
-  ],
-};
-
-const socialLinks = [
-  { icon: 'fa-brands fa-github', href: 'https://github.com', label: 'GitHub' },
-  { icon: 'fa-brands fa-x-twitter', href: 'https://x.com', label: 'X (Twitter)' },
-  { icon: 'fa-brands fa-discord', href: 'https://discord.com', label: 'Discord' },
-  { icon: 'fa-brands fa-instagram', href: 'https://instagram.com', label: 'Instagram' },
-];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { t } = useTranslation('footer');
   const { theme } = useTheme();
-  const { stats } = usePlatformStats();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
@@ -69,133 +40,131 @@ export default function Footer() {
       <div className="footer__glow-line" />
 
       <div className="footer__container">
+        {/* Logo at top */}
+        <div className="footer__brand">
+          <Link to="/" className="footer__logo">
+            <img
+              src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
+              alt="Starview"
+              className="footer__logo-img"
+            />
+          </Link>
+        </div>
+
         {/* Main footer content */}
         <div className="footer__content">
-          {/* Brand section */}
-          <div className="footer__brand">
-            <Link to="/" className="footer__logo">
-              <img
-                src={effectiveTheme === 'dark' ? '/images/logo-dark.png' : '/images/logo-light.png'}
-                alt="Starview"
-                className="footer__logo-img"
-              />
-            </Link>
-            <p className="footer__tagline">
-              Discover the universe's best stargazing locations, curated by astronomers and night sky enthusiasts.
-            </p>
-
-            {/* Celestial coordinates decoration */}
-            <div className="footer__coordinates">
-              <span className="footer__coord">
-                <i className="fa-solid fa-location-crosshairs" />
-                Tracking {stats?.locations?.count ? `${new Intl.NumberFormat().format(stats.locations.count)}+` : '—'} locations
-              </span>
-            </div>
-          </div>
-
           {/* Navigation columns */}
           <nav className="footer__nav" aria-label="Footer navigation">
             <div className="footer__nav-column">
               <h3 className="footer__nav-title">
-                <i className="fa-solid fa-compass" />
-                Explore
+                {t('nav.explore.title')}
               </h3>
               <ul className="footer__nav-list">
-                {navigationLinks.explore.map((link) => (
-                  <li key={link.label}>
-                    {link.soon ? (
-                      <span className="footer__nav-link footer__nav-link--disabled">
-                        {link.label}
-                        <span className="footer__soon-badge">Soon</span>
-                      </span>
-                    ) : (
-                      <Link to={link.to} className="footer__nav-link">
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                <li>
+                  <Link to="/explore" className="footer__nav-link">
+                    {t('nav.explore.discoverLocations')}
+                  </Link>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.explore.starMap')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
+                <li>
+                  <Link to="/bortle" className="footer__nav-link">
+                    {t('nav.explore.lightPollutionData')}
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div className="footer__nav-column">
               <h3 className="footer__nav-title">
-                <i className="fa-regular fa-moon" />
-                Sky
+                {t('nav.sky.title')}
               </h3>
               <ul className="footer__nav-list">
-                {navigationLinks.sky.map((link) => (
-                  <li key={link.label}>
-                    {link.soon ? (
-                      <span className="footer__nav-link footer__nav-link--disabled">
-                        {link.label}
-                        <span className="footer__soon-badge">Soon</span>
-                      </span>
-                    ) : (
-                      <Link to={link.to} className="footer__nav-link">
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                <li>
+                  <Link to="/sky" className="footer__nav-link">
+                    {t('nav.sky.skyConditions')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tonight" className="footer__nav-link">
+                    {t('nav.sky.tonightsForecast')}
+                  </Link>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.sky.sevenDayForecast')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.sky.moonCalendar')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
               </ul>
             </div>
 
             <div className="footer__nav-column">
               <h3 className="footer__nav-title">
-                <i className="fa-solid fa-users" />
-                Community
+                {t('nav.community.title')}
               </h3>
               <ul className="footer__nav-list">
-                {navigationLinks.community.map((link) => (
-                  <li key={link.label}>
-                    {link.soon ? (
-                      <span className="footer__nav-link footer__nav-link--disabled">
-                        {link.label}
-                        <span className="footer__soon-badge">Soon</span>
-                      </span>
-                    ) : (
-                      <Link to={link.to} className="footer__nav-link">
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.community.topContributors')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.community.recentReviews')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.community.submitLocation')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
               </ul>
             </div>
 
             <div className="footer__nav-column">
               <h3 className="footer__nav-title">
-                <i className="fa-solid fa-building" />
-                Company
+                {t('nav.company.title')}
               </h3>
               <ul className="footer__nav-list">
-                {navigationLinks.company.map((link) => (
-                  <li key={link.label}>
-                    {link.soon ? (
-                      <span className="footer__nav-link footer__nav-link--disabled">
-                        {link.label}
-                        <span className="footer__soon-badge">Soon</span>
-                      </span>
-                    ) : link.href ? (
-                      <a href={link.href} className="footer__nav-link">
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link to={link.to} className="footer__nav-link">
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.company.aboutStarview')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
+                <li>
+                  <a href="mailto:contact@starview.app" className="footer__nav-link">
+                    {t('nav.company.contact')}
+                  </a>
+                </li>
+                <li>
+                  <span className="footer__nav-link footer__nav-link--disabled">
+                    {t('nav.company.api')}
+                    <span className="footer__soon-badge">{t('soon', { ns: 'common' })}</span>
+                  </span>
+                </li>
               </ul>
             </div>
           </nav>
         </div>
 
-        {/* Support link */}
-        <div className="footer__social">
-          <span className="footer__social-label">Want to support Starview?</span>
+        {/* Support section - centered */}
+        <div className="footer__support">
+          <span className="footer__support-label">{t('support.label')}</span>
           <a
             href="https://buymeacoffee.com/adiazpar"
             className="footer__support-link"
@@ -203,33 +172,27 @@ export default function Footer() {
             rel="noopener noreferrer"
           >
             <i className="fa-solid fa-mug-hot" />
-            <span>Buy me a coffee</span>
+            <span>{t('support.buyMeCoffee')}</span>
           </a>
         </div>
 
         {/* Bottom bar */}
         <div className="footer__bottom">
-          <div className="footer__legal">
-            <Link to="/privacy" className="footer__legal-link">Privacy</Link>
-            <span className="footer__legal-divider" />
-            <Link to="/terms" className="footer__legal-link">Terms</Link>
-            <span className="footer__legal-divider" />
-            <Link to="/accessibility" className="footer__legal-link">Accessibility</Link>
-            <span className="footer__legal-divider" />
-            <CookiePreferencesButton className="footer__legal-link footer__legal-button" />
-            <span className="footer__legal-divider" />
-            <a href="/llms.txt" className="footer__legal-link">LLMs</a>
+          <div className="footer__bottom-left">
+            <LocaleSelector />
+            <div className="footer__legal">
+              <Link to="/privacy" className="footer__legal-link">{t('legal.privacy')}</Link>
+              <Link to="/terms" className="footer__legal-link">{t('legal.terms')}</Link>
+              <Link to="/accessibility" className="footer__legal-link">{t('legal.accessibility')}</Link>
+              <CookiePreferencesButton className="footer__legal-link footer__legal-button" />
+              <a href="/llms.txt" className="footer__legal-link">{t('legal.llms')}</a>
+            </div>
           </div>
 
           <p className="footer__copyright">
             <i className="fa-regular fa-copyright" />
-            {currentYear} Starview. All rights reserved.
+            {t('copyright', { year: currentYear })}
           </p>
-
-          <div className="footer__status">
-            <span className="footer__status-indicator" />
-            <span className="footer__status-text">All systems operational</span>
-          </div>
         </div>
       </div>
     </footer>

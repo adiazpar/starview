@@ -105,6 +105,16 @@ export const profileApi = {
   },
 
   /**
+   * Update user's language preference
+   * @param {Object} data - Language preference data
+   * @param {string} data.language_preference - Language code (e.g., 'en', 'es')
+   * @returns {Promise} - { detail: string, language_preference: string }
+   */
+  updateLanguagePreference: (data) => {
+    return api.patch('/users/me/update-language-preference/', data);
+  },
+
+  /**
    * Get my full badge collection (earned, in-progress, locked)
    * For use on private /profile/badges page
    * @returns {Promise} - { earned: Array, in_progress: Array, locked: Array }

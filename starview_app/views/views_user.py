@@ -403,6 +403,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         old_email = request.user.email
         if old_email:
             from django.contrib.sites.shortcuts import get_current_site
+            from django.utils import translation
 
             current_site = get_current_site(request)
             context = {
@@ -412,10 +413,14 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 'site_name': current_site.name,
             }
 
-            # Render email subject and body from templates
-            subject = render_to_string('account/email/email_change_subject.txt', context).strip()
-            html_content = render_to_string('account/email/email_change_message.html', context)
-            text_content = render_to_string('account/email/email_change_message.txt', context)
+            # Get user's language preference for email localization
+            user_lang = getattr(request.user.userprofile, 'language_preference', 'en')
+
+            # Render email templates in user's preferred language
+            with translation.override(user_lang):
+                subject = render_to_string('account/email/email_change_subject.txt', context).strip()
+                html_content = render_to_string('account/email/email_change_message.html', context)
+                text_content = render_to_string('account/email/email_change_message.txt', context)
 
             email = EmailMultiAlternatives(
                 subject=subject,
@@ -571,6 +576,45 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response({
             'detail': 'Unit preference updated successfully.',
             'unit_preference': unit_preference
+        }, status=status.HTTP_200_OK)
+
+
+    # ----------------------------------------------------------------------------- #
+    # Update user's language preference for UI and emails.                          #
+    #                                                                               #
+    # Controls the language for UI text and email notifications.                    #
+    # Also updates the session language for immediate effect.                       #
+    #                                                                               #
+    # HTTP Method: PATCH                                                            #
+    # Endpoint: /api/users/me/update-language-preference/                           #
+    # Authentication: Required                                                      #
+    # Body: JSON with language_preference (language code, e.g., 'en', 'es')         #
+    # Returns: DRF Response with success status and updated language_preference     #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=False, methods=['patch'], url_path='me/update-language-preference')
+    def update_language_preference(self, request):
+        language_preference = request.data.get('language_preference', '').strip().lower()
+
+        # Get valid language codes from settings
+        valid_languages = [lang_code for lang_code, lang_name in settings.LANGUAGES]
+
+        # Validate choice
+        if language_preference not in valid_languages:
+            raise exceptions.ValidationError(
+                f'Invalid language preference. Must be one of: {", ".join(valid_languages)}'
+            )
+
+        # Update preference
+        profile = request.user.userprofile
+        profile.language_preference = language_preference
+        profile.save()
+
+        # Update session language for immediate effect
+        request.session['django_language'] = language_preference
+
+        return Response({
+            'detail': 'Language preference updated successfully.',
+            'language_preference': language_preference
         }, status=status.HTTP_200_OK)
 
 

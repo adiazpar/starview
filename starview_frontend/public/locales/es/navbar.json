@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "explore": "Explorar",
+    "sky": "Cielo",
+    "profile": "Perfil",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "getStarted": "Comenzar"
+  },
+  "search": {
+    "placeholder": "Buscar lugares para observar estrellas...",
+    "placeholderShort": "Buscar ubicaciones...",
+    "clearSearch": "Limpiar búsqueda"
+  },
+  "filters": {
+    "filters": "Filtros",
+    "type": "Tipo",
+    "rating": "Calificación",
+    "distance": "Distancia",
+    "verified": "Verificado"
+  }
+}

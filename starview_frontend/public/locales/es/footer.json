@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "explore": {
+      "title": "Explorar",
+      "discoverLocations": "Descubrir Ubicaciones",
+      "starMap": "Mapa Estelar",
+      "lightPollutionData": "Datos de Contaminación Lumínica"
+    },
+    "sky": {
+      "title": "Cielo",
+      "skyConditions": "Condiciones del Cielo",
+      "tonightsForecast": "Pronóstico de Esta Noche",
+      "sevenDayForecast": "Pronóstico de 7 Días",
+      "moonCalendar": "Calendario Lunar"
+    },
+    "community": {
+      "title": "Comunidad",
+      "topContributors": "Principales Colaboradores",
+      "recentReviews": "Reseñas Recientes",
+      "submitLocation": "Enviar una Ubicación"
+    },
+    "company": {
+      "title": "Empresa",
+      "aboutStarview": "Sobre Starview",
+      "contact": "Contacto",
+      "api": "API"
+    }
+  },
+  "support": {
+    "label": "¿Quieres apoyar a Starview?",
+    "buyMeCoffee": "Invítame un café"
+  },
+  "legal": {
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "accessibility": "Accesibilidad",
+    "llms": "LLMs"
+  },
+  "copyright": "{{year}} Starview. Todos los derechos reservados."
+}
