@@ -17,6 +17,7 @@
 
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import ValidationError
 import os
@@ -71,6 +72,9 @@ class LocationPhoto(models.Model):
     # Image dimensions (populated during processing for quality filtering)
     width = models.PositiveIntegerField(null=True, blank=True, help_text="Image width in pixels")
     height = models.PositiveIntegerField(null=True, blank=True, help_text="Image height in pixels")
+
+    # Votes (generic relation to Vote model)
+    votes = GenericRelation('Vote', related_query_name='locationphoto')
 
     class Meta:
         ordering = ['order', 'created_at']
@@ -211,3 +215,8 @@ class LocationPhoto(models.Model):
         if self.thumbnail:
             return self.thumbnail.url
         return self.image_url
+
+    @property
+    def upvote_count(self):
+        """Returns the number of upvotes for this photo."""
+        return self.votes.filter(is_upvote=True).count()

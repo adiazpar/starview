@@ -16,6 +16,7 @@
 
 # Import tools:
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import ValidationError
 import os
@@ -61,7 +62,9 @@ class ReviewPhoto(models.Model):
     # Photo metadata:
     caption = models.CharField(max_length=255, blank=True, help_text="Optional caption for the photo")
     order = models.PositiveIntegerField(default=0, help_text="Order of display (lower numbers appear first)")
-    
+
+    # Votes (generic relation to Vote model)
+    votes = GenericRelation('Vote', related_query_name='reviewphoto')
 
     class Meta:
         ordering = ['order', 'created_at']
@@ -182,6 +185,11 @@ class ReviewPhoto(models.Model):
         if self.thumbnail:
             return self.thumbnail.url
         return self.image_url
+
+    @property
+    def upvote_count(self):
+        """Returns the number of upvotes for this photo."""
+        return self.votes.filter(is_upvote=True).count()
 
 
 

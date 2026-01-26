@@ -21,10 +21,14 @@
 # Import tools:
 from django.conf import settings
 from django.db.models import Avg
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from ..models import Location
 from ..models import FavoriteLocation
 from ..models import LocationVisit
+from ..models import LocationPhoto
+from ..models import ReviewPhoto
+from ..models import Vote
 from . import ReviewSerializer
 
 
@@ -53,6 +57,133 @@ def get_user_attribution(user):
         'profile_picture': profile_picture,
         'is_system_account': is_system_account,
     }
+
+
+def get_images_with_votes(obj, request):
+    """
+    Return up to 5 images from hybrid pool (location + review photos),
+    sorted by upvote_count DESC, created_at DESC, with user attribution and vote data.
+
+    Args:
+        obj: Location instance
+        request: HTTP request (for user vote status)
+
+    Returns:
+        List of photo dicts with id, thumbnail, full, uploaded_by, uploaded_at,
+        upvote_count, and user_has_upvoted fields.
+    """
+    photos = []
+    user = request.user if request and request.user.is_authenticated else None
+
+    # 1. Collect all location photos
+    if hasattr(obj, 'prefetched_location_photos'):
+        location_photos = list(obj.prefetched_location_photos)
+    else:
+        location_photos = list(obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:10])
+
+    # 2. Collect all review photos
+    review_photos_with_user = []
+    if hasattr(obj, 'prefetched_reviews'):
+        reviews = obj.prefetched_reviews
+    else:
+        reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
+
+    for review in reviews:
+        if hasattr(review, 'prefetched_photos'):
+            for photo in review.prefetched_photos:
+                review_photos_with_user.append((photo, review.user))
+        else:
+            for photo in review.photos.all().order_by('order'):
+                review_photos_with_user.append((photo, review.user))
+
+    # 3. Get vote counts for all photos in batch
+    loc_photo_ids = [p.id for p in location_photos]
+    rev_photo_ids = [rp[0].id for rp in review_photos_with_user]
+
+    loc_ct = ContentType.objects.get_for_model(LocationPhoto) if loc_photo_ids else None
+    rev_ct = ContentType.objects.get_for_model(ReviewPhoto) if rev_photo_ids else None
+
+    # Get vote counts per photo
+    loc_vote_counts = {}
+    rev_vote_counts = {}
+
+    if loc_ct and loc_photo_ids:
+        from django.db.models import Count
+        votes_qs = Vote.objects.filter(
+            content_type=loc_ct,
+            object_id__in=loc_photo_ids,
+            is_upvote=True
+        ).values('object_id').annotate(count=Count('id'))
+        loc_vote_counts = {v['object_id']: v['count'] for v in votes_qs}
+
+    if rev_ct and rev_photo_ids:
+        from django.db.models import Count
+        votes_qs = Vote.objects.filter(
+            content_type=rev_ct,
+            object_id__in=rev_photo_ids,
+            is_upvote=True
+        ).values('object_id').annotate(count=Count('id'))
+        rev_vote_counts = {v['object_id']: v['count'] for v in votes_qs}
+
+    # Get user's votes if authenticated
+    user_loc_votes = set()
+    user_rev_votes = set()
+
+    if user:
+        if loc_ct and loc_photo_ids:
+            user_loc_votes = set(Vote.objects.filter(
+                user=user,
+                content_type=loc_ct,
+                object_id__in=loc_photo_ids,
+                is_upvote=True
+            ).values_list('object_id', flat=True))
+
+        if rev_ct and rev_photo_ids:
+            user_rev_votes = set(Vote.objects.filter(
+                user=user,
+                content_type=rev_ct,
+                object_id__in=rev_photo_ids,
+                is_upvote=True
+            ).values_list('object_id', flat=True))
+
+    # 4. Build photo list with vote data
+    all_photos = []
+
+    for photo in location_photos:
+        uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
+        upvote_count = loc_vote_counts.get(photo.id, 0)
+        all_photos.append({
+            'id': f'loc_{photo.id}',
+            'thumbnail': photo.thumbnail_url,
+            'full': photo.image_url,
+            'uploaded_by': get_user_attribution(uploader),
+            'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
+            'upvote_count': upvote_count,
+            'user_has_upvoted': photo.id in user_loc_votes,
+            '_sort_date': photo.created_at,
+        })
+
+    for photo, review_user in review_photos_with_user:
+        upvote_count = rev_vote_counts.get(photo.id, 0)
+        all_photos.append({
+            'id': f'rev_{photo.id}',
+            'thumbnail': photo.thumbnail_url,
+            'full': photo.image_url,
+            'uploaded_by': get_user_attribution(review_user),
+            'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
+            'upvote_count': upvote_count,
+            'user_has_upvoted': photo.id in user_rev_votes,
+            '_sort_date': photo.created_at,
+        })
+
+    # 5. Sort by upvote_count DESC, then created_at DESC (most recent first)
+    all_photos.sort(key=lambda p: (-p['upvote_count'], -(p['_sort_date'].timestamp() if p['_sort_date'] else 0)))
+
+    # 6. Remove internal sort field and limit to 5
+    for p in all_photos:
+        del p['_sort_date']
+
+    return all_photos[:5]
 
 
 
@@ -181,55 +312,9 @@ class LocationSerializer(serializers.ModelSerializer):
         return None
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
-        photos = []
-
-        # 1. Get location photos (creator uploads) - most recent first
-        if hasattr(obj, 'prefetched_location_photos'):
-            location_photos = obj.prefetched_location_photos
-        else:
-            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
-
-        for photo in location_photos:
-            if len(photos) >= 5:
-                break
-            # Use uploaded_by if set, otherwise fall back to location.added_by
-            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
-            photos.append({
-                'id': f'loc_{photo.id}',
-                'thumbnail': photo.thumbnail_url,
-                'full': photo.image_url,
-                'uploaded_by': get_user_attribution(uploader),
-                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-            })
-
-        # 2. Add review photos to fill up to 5
-        if len(photos) < 5:
-            if hasattr(obj, 'prefetched_reviews'):
-                reviews = obj.prefetched_reviews
-            else:
-                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
-
-            for review in reviews:
-                if hasattr(review, 'prefetched_photos'):
-                    review_photos = review.prefetched_photos
-                else:
-                    review_photos = review.photos.all().order_by('order')
-
-                for photo in review_photos:
-                    if len(photos) >= 5:
-                        break
-                    photos.append({
-                        'id': f'rev_{photo.id}',
-                        'thumbnail': photo.thumbnail_url,
-                        'full': photo.image_url,
-                        'uploaded_by': get_user_attribution(review.user),
-                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-                    })
-                if len(photos) >= 5:
-                    break
-
-        return photos
+        """Return up to 5 images sorted by upvotes, with user attribution and vote data."""
+        request = self.context.get('request')
+        return get_images_with_votes(obj, request)
 
 
 
@@ -306,55 +391,9 @@ class MapLocationSerializer(serializers.ModelSerializer):
         return obj.reviews.count()
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
-        photos = []
-
-        # 1. Get location photos (creator uploads) - most recent first
-        if hasattr(obj, 'prefetched_location_photos'):
-            location_photos = obj.prefetched_location_photos
-        else:
-            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
-
-        for photo in location_photos:
-            if len(photos) >= 5:
-                break
-            # Use uploaded_by if set, otherwise fall back to location.added_by
-            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
-            photos.append({
-                'id': f'loc_{photo.id}',
-                'thumbnail': photo.thumbnail_url,
-                'full': photo.image_url,
-                'uploaded_by': get_user_attribution(uploader),
-                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-            })
-
-        # 2. Add review photos to fill up to 5
-        if len(photos) < 5:
-            if hasattr(obj, 'prefetched_reviews'):
-                reviews = obj.prefetched_reviews
-            else:
-                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
-
-            for review in reviews:
-                if hasattr(review, 'prefetched_photos'):
-                    review_photos = review.prefetched_photos
-                else:
-                    review_photos = review.photos.all().order_by('order')
-
-                for photo in review_photos:
-                    if len(photos) >= 5:
-                        break
-                    photos.append({
-                        'id': f'rev_{photo.id}',
-                        'thumbnail': photo.thumbnail_url,
-                        'full': photo.image_url,
-                        'uploaded_by': get_user_attribution(review.user),
-                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-                    })
-                if len(photos) >= 5:
-                    break
-
-        return photos
+        """Return up to 5 images sorted by upvotes, with user attribution and vote data."""
+        request = self.context.get('request')
+        return get_images_with_votes(obj, request)
 
 
 
@@ -515,55 +554,9 @@ class LocationListSerializer(serializers.ModelSerializer):
         return obj.get_location_type_display()
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
-        photos = []
-
-        # 1. Get location photos (creator uploads) - most recent first
-        if hasattr(obj, 'prefetched_location_photos'):
-            location_photos = obj.prefetched_location_photos
-        else:
-            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
-
-        for photo in location_photos:
-            if len(photos) >= 5:
-                break
-            # Use uploaded_by if set, otherwise fall back to location.added_by
-            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
-            photos.append({
-                'id': f'loc_{photo.id}',
-                'thumbnail': photo.thumbnail_url,
-                'full': photo.image_url,
-                'uploaded_by': get_user_attribution(uploader),
-                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-            })
-
-        # 2. Add review photos to fill up to 5
-        if len(photos) < 5:
-            if hasattr(obj, 'prefetched_reviews'):
-                reviews = obj.prefetched_reviews
-            else:
-                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
-
-            for review in reviews:
-                if hasattr(review, 'prefetched_photos'):
-                    review_photos = review.prefetched_photos
-                else:
-                    review_photos = review.photos.all().order_by('order')
-
-                for photo in review_photos:
-                    if len(photos) >= 5:
-                        break
-                    photos.append({
-                        'id': f'rev_{photo.id}',
-                        'thumbnail': photo.thumbnail_url,
-                        'full': photo.image_url,
-                        'uploaded_by': get_user_attribution(review.user),
-                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
-                    })
-                if len(photos) >= 5:
-                    break
-
-        return photos
+        """Return up to 5 images sorted by upvotes, with user attribution and vote data."""
+        request = self.context.get('request')
+        return get_images_with_votes(obj, request)
 
     def get_distance(self, obj):
         """Return distance in kilometers. Frontend handles unit preference."""

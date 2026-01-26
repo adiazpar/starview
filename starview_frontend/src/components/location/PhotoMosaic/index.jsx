@@ -1,15 +1,27 @@
 /* PhotoMosaic Component
  * Asymmetric photo grid that feels editorial, not generic carousel.
  * Click to open lightbox. Hover shows photographer attribution.
+ * Photos sorted by upvotes - users can vote in lightbox.
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import useRequireAuth from '../../../hooks/useRequireAuth';
+import { usePhotoVote } from '../../../hooks/usePhotoVote';
 import './styles.css';
 
-function PhotoMosaic({ images, locationName }) {
+// Format upload date as "Jan 2024" or similar
+function formatUploadDate(dateString) {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function PhotoMosaic({ images, locationName, locationId }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const lightboxRef = useRef(null);
+  const { requireAuth } = useRequireAuth();
+  const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(locationId);
 
   const openLightbox = useCallback((index) => {
     setLightboxIndex(index);
@@ -22,6 +34,13 @@ function PhotoMosaic({ images, locationName }) {
       document.activeElement.blur();
     }
   }, []);
+
+  const handleVote = useCallback((e, photoId) => {
+    e.stopPropagation();
+    if (!requireAuth()) return;
+    if (isVoting) return;
+    toggleVote(photoId);
+  }, [requireAuth, isVoting, toggleVote]);
 
   // Handle keyboard escape to close lightbox
   useEffect(() => {
@@ -62,7 +81,7 @@ function PhotoMosaic({ images, locationName }) {
             aria-label={`View photo ${index + 1} of ${images.length}${image.uploaded_by ? ` by ${image.uploaded_by.display_name}` : ''}`}
           >
             <img
-              src={image.thumbnail || image.full}
+              src={image.full || image.thumbnail}
               alt={`${locationName} photo ${index + 1}`}
               loading="lazy"
             />
@@ -111,10 +130,18 @@ function PhotoMosaic({ images, locationName }) {
               alt={`${locationName} photo ${lightboxIndex + 1}`}
             />
 
-            {/* Hover Overlay with User Attribution - matches mosaic overlay */}
-            {currentImage.uploaded_by && (
-              <div className="photo-mosaic__overlay">
-                {currentImage.uploaded_by.is_system_account ? (
+            {/* Hover Overlay with User Attribution and Vote Button */}
+            <div className="photo-mosaic__overlay photo-mosaic__overlay--lightbox">
+              {/* Upload Date (top left) */}
+              {currentImage.uploaded_at && (
+                <div className="photo-mosaic__date">
+                  <span className="photo-mosaic__date-label">Uploaded</span>
+                  <span className="photo-mosaic__date-value">{formatUploadDate(currentImage.uploaded_at)}</span>
+                </div>
+              )}
+              {/* Attribution (left side) */}
+              {currentImage.uploaded_by && (
+                currentImage.uploaded_by.is_system_account ? (
                   <div className="photo-mosaic__attribution">
                     <img
                       src={currentImage.uploaded_by.profile_picture}
@@ -142,18 +169,33 @@ function PhotoMosaic({ images, locationName }) {
                       <span className="photo-mosaic__display-name">{currentImage.uploaded_by.display_name}</span>
                     </div>
                   </Link>
-                )}
-              </div>
-            )}
+                )
+              )}
 
-            {/* Close button */}
-            <button
-              className="photo-mosaic__lightbox-close"
-              onClick={closeLightbox}
-              aria-label="Close lightbox"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
+              {/* Close button (top right) */}
+              <button
+                className="photo-mosaic__action photo-mosaic__action--close"
+                onClick={closeLightbox}
+                aria-label="Close lightbox"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+
+              {/* Vote Button (bottom right) */}
+              {locationId && (
+                <button
+                  className={`photo-mosaic__action photo-mosaic__action--vote ${currentImage.user_has_upvoted ? 'photo-mosaic__action--active' : ''}`}
+                  onClick={(e) => handleVote(e, currentImage.id)}
+                  disabled={isVoting}
+                  aria-label={currentImage.user_has_upvoted ? 'Remove upvote' : 'Upvote photo'}
+                >
+                  <i className={`fa-${currentImage.user_has_upvoted ? 'solid' : 'regular'} fa-thumbs-up`}></i>
+                  {currentImage.upvote_count > 0 && (
+                    <span className="photo-mosaic__vote-count">{currentImage.upvote_count}</span>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

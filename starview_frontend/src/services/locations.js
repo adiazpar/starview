@@ -149,6 +149,16 @@ export const locationsApi = {
   getPopularNearby: ({ lat, lng, limit = 8 }) => {
     return api.get('/locations/popular_nearby/', { params: { lat, lng, limit } });
   },
+
+  /**
+   * Toggle upvote on a photo (location photo or review photo)
+   * @param {number} locationId - Location ID
+   * @param {string} photoId - Photo ID in format "loc_123" or "rev_456"
+   * @returns {Promise} - { upvote_count, user_has_upvoted, photo_id }
+   */
+  voteOnPhoto: (locationId, photoId) => {
+    return api.post(`/locations/${locationId}/photos/${photoId}/vote/`);
+  },
 };
 
 export default locationsApi;

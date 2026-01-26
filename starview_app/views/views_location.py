@@ -50,7 +50,7 @@ from ..services import ReportService
 from ..services import VoteService
 
 # Throttle imports:
-from starview_app.utils import ContentCreationThrottle, ReportThrottle
+from starview_app.utils import ContentCreationThrottle, ReportThrottle, VoteThrottle
 
 # Cache imports:
 from starview_app.utils import (
@@ -1046,5 +1046,64 @@ class LocationViewSet(viewsets.ModelViewSet):
         cache.set(cache_key, response_data, timeout=1800)
 
         return Response(response_data)
+
+
+    # ----------------------------------------------------------------------------- #
+    # Vote on a photo (LocationPhoto or ReviewPhoto).                               #
+    #                                                                               #
+    # Toggles upvote on a photo. Users can only upvote (no downvotes).              #
+    # Same vote removes it (toggle behavior).                                       #
+    # Users cannot vote on their own photos.                                        #
+    #                                                                               #
+    # HTTP Method: POST                                                             #
+    # Endpoint: /api/locations/{id}/photos/{photo_id}/vote/                         #
+    # Photo ID format: loc_123 (LocationPhoto) or rev_456 (ReviewPhoto)             #
+    # Authentication: Required                                                      #
+    # Returns: { upvote_count, user_has_upvoted, photo_id }                         #
+    # ----------------------------------------------------------------------------- #
+    @action(
+        detail=True,
+        methods=['POST'],
+        permission_classes=[IsAuthenticated],
+        url_path='photos/(?P<photo_id>[a-z]+_[0-9]+)/vote',
+        throttle_classes=[VoteThrottle]
+    )
+    def vote_photo(self, request, pk=None, photo_id=None):
+        from starview_app.services.photo_vote_service import PhotoVoteService
+
+        # Parse photo_id (format: loc_123 or rev_456)
+        if not photo_id or '_' not in photo_id:
+            return Response(
+                {'detail': 'Invalid photo_id format. Expected loc_123 or rev_456'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        prefix, id_str = photo_id.split('_', 1)
+
+        try:
+            photo_pk = int(id_str)
+        except ValueError:
+            return Response(
+                {'detail': 'Invalid photo_id format. ID must be numeric'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the photo object
+        location = self.get_object()  # Ensures location exists
+
+        if prefix == 'loc':
+            photo = get_object_or_404(LocationPhoto, pk=photo_pk, location=location)
+        elif prefix == 'rev':
+            photo = get_object_or_404(ReviewPhoto, pk=photo_pk, review__location=location)
+        else:
+            return Response(
+                {'detail': 'Invalid photo type. Expected loc_ or rev_'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Toggle the vote
+        result = PhotoVoteService.toggle_upvote(request.user, photo)
+
+        return Response(result, status=status.HTTP_200_OK)
 
 

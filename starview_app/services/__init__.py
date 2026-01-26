@@ -24,6 +24,8 @@ from .password_service import PasswordService
 from .report_service import ReportService
 from .vote_service import VoteService
 
-# Badge service not imported here to avoid circular dependency
-# (models import services, badge_service imports models)
-# Import directly when needed: from starview_app.services.badge_service import BadgeService
+# Badge service and PhotoVoteService not imported here to avoid circular dependency
+# (models import services, these services import models)
+# Import directly when needed:
+#   from starview_app.services.badge_service import BadgeService
+#   from starview_app.services.photo_vote_service import PhotoVoteService
