@@ -9,14 +9,15 @@
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-}
-
-.navbar {
   background: var(--navbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.navbar {
   border-bottom: 1px solid var(--glass-border);
 }
+
 
 .navbar__container {
   display: flex;
@@ -519,9 +520,6 @@
 .navbar__extension {
   display: grid;
   grid-template-rows: 0fr;
-  background: var(--navbar-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
   transition: grid-template-rows 0.25s ease-out;
 }

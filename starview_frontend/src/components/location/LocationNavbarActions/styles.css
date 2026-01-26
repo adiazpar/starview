@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   height: var(--navbar-height);
-  padding: 0 var(--space-md);
+  padding: 0 var(--space-lg);
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -172,10 +172,6 @@
    ============================================ */
 
 @media (min-width: 1024px) {
-  .location-navbar-actions {
-    padding: 0 var(--space-lg);
-  }
-
   .location-navbar-actions__back {
     width: auto;
     height: 40px;
