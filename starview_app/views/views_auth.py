@@ -30,6 +30,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.utils import translation
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -485,10 +486,14 @@ def request_password_reset(request):
                 'expiration_hours': 1,
             }
 
-            # Render email subject and body from templates
-            subject = render_to_string('account/email/password_reset_subject.txt', context).strip()
-            html_message = render_to_string('account/email/password_reset_message.html', context)
-            text_message = render_to_string('account/email/password_reset_message.txt', context)
+            # Get user's language preference for email localization
+            user_lang = getattr(user.userprofile, 'language_preference', 'en')
+
+            # Render email subject and body from templates in user's preferred language
+            with translation.override(user_lang):
+                subject = render_to_string('account/email/password_reset_subject.txt', context).strip()
+                html_message = render_to_string('account/email/password_reset_message.html', context)
+                text_message = render_to_string('account/email/password_reset_message.txt', context)
 
             # Create email message
             email_msg = EmailMultiAlternatives(
@@ -644,10 +649,14 @@ def confirm_password_reset(request, uidb64, token):
             'client_ip': client_ip,
         }
 
-        # Render email subject and body from templates
-        subject = render_to_string('account/email/password_changed_subject.txt', context).strip()
-        html_message = render_to_string('account/email/password_changed_message.html', context)
-        text_message = render_to_string('account/email/password_changed_message.txt', context)
+        # Get user's language preference for email localization
+        user_lang = getattr(user.userprofile, 'language_preference', 'en')
+
+        # Render email subject and body from templates in user's preferred language
+        with translation.override(user_lang):
+            subject = render_to_string('account/email/password_changed_subject.txt', context).strip()
+            html_message = render_to_string('account/email/password_changed_message.html', context)
+            text_message = render_to_string('account/email/password_changed_message.txt', context)
 
         # Create email message
         email_msg = EmailMultiAlternatives(

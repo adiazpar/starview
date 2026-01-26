@@ -380,6 +380,13 @@ USE_TZ = True
 LANGUAGES = [
     ('en', 'English'),
     ('es', 'Español'),
+    ('fr', 'Français'),
+    ('ja', '日本語'),
+    ('de', 'Deutsch'),
+    ('pt-BR', 'Português'),
+    ('zh-CN', '简体中文'),
+    ('ko', '한국어'),
+    ('it', 'Italiano'),
 ]
 
 # Path to translation files

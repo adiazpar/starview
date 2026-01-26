@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "explore": "Entdecken",
+    "sky": "Himmel",
+    "profile": "Profil",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "getStarted": "Jetzt starten"
+  },
+  "search": {
+    "placeholder": "Sternenbeobachtungsstandorte suchen...",
+    "placeholderShort": "Standorte suchen...",
+    "clearSearch": "Suche löschen"
+  },
+  "filters": {
+    "filters": "Filter",
+    "type": "Typ",
+    "rating": "Bewertung",
+    "distance": "Entfernung",
+    "verified": "Verifiziert"
+  }
+}

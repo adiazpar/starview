@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "홈",
+    "explore": "탐색",
+    "sky": "하늘",
+    "profile": "프로필",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "getStarted": "시작하기"
+  },
+  "search": {
+    "placeholder": "별 관측 장소 검색...",
+    "placeholderShort": "장소 검색...",
+    "clearSearch": "검색 지우기"
+  },
+  "filters": {
+    "filters": "필터",
+    "type": "유형",
+    "rating": "평점",
+    "distance": "거리",
+    "verified": "인증됨"
+  }
+}

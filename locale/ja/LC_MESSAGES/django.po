@@ -1,0 +1,431 @@
+# Starview Japanese Translations
+# Copyright (C) 2025 Starview
+# This file is distributed under the same license as the Starview package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Starview 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-09 01:44+0000\n"
+"PO-Revision-Date: 2025-01-25 01:50+0000\n"
+"Last-Translator: Starview Team\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:8
+#: starview_app/templates/account/email/email_confirmation_signup_subject.txt:3
+msgid "Verify Your Starview Account"
+msgstr "Starviewアカウントを確認"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:185
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:234
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:26
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:216
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:245
+msgid "Find Your Perfect Night Sky"
+msgstr "あなたにぴったりの夜空を見つけよう"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:190
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:3
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:174
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:199
+msgid "Hello"
+msgstr "こんにちは"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:194
+msgid ""
+"Welcome to <strong>Starview</strong>! We're excited to have you join our "
+"community of stargazers and astronomy enthusiasts."
+msgstr ""
+"<strong>Starview</strong>へようこそ！星空観察や天文学愛好家のコミュニティに参加していただき、嬉しく思います。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:198
+msgid ""
+"To complete your registration and start exploring the best stargazing "
+"locations, please verify your email address by clicking the button below:"
+msgstr ""
+"登録を完了し、最高の星空観察スポットの探索を始めるには、下のボタンをクリックしてメールアドレスを確認してください："
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:202
+msgid "Verify Email Address"
+msgstr "メールアドレスを確認"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:206
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:215
+msgid "Important"
+msgstr "重要"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:207
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:12
+msgid "This verification link will expire in 3 days for security purposes."
+msgstr ""
+"このリンクはセキュリティ上の理由から3日間で期限切れになります。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:211
+msgid "What You Can Do on Starview:"
+msgstr "Starviewでできること："
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:213
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:15
+msgid "Discover amazing stargazing locations worldwide"
+msgstr "世界中の素晴らしい星空観察スポットを発見"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:214
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:16
+msgid "Share your own reviews and astrophotography"
+msgstr "自分のレビューや天体写真を共有"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:215
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:17
+msgid "Save your favorite spots for future visits"
+msgstr "お気に入りのスポットを保存して次回の訪問に備える"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:216
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:18
+msgid "Connect with fellow astronomy lovers"
+msgstr "天文学仲間とつながる"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:223
+msgid ""
+"If you didn't create an account on Starview, you can safely ignore this "
+"email."
+msgstr ""
+"Starviewでアカウントを作成していない場合は、このメールを無視しても問題ありません。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:227
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:22
+msgid "Happy stargazing!"
+msgstr "素敵な星空観察を！"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:228
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:23
+msgid "The Starview Team"
+msgstr "Starviewチーム"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:5
+msgid ""
+"Welcome to Starview! We're excited to have you join our community of "
+"stargazers and astronomy enthusiasts."
+msgstr ""
+"Starviewへようこそ！星空観察や天文学愛好家のコミュニティに参加していただき、嬉しく思います。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:7
+#, fuzzy
+#| msgid ""
+#| "To complete your registration and start exploring the best stargazing "
+#| "locations, please verify your email address by clicking the link below:"
+msgid ""
+"To complete your registration and start exploring the best stargazing "
+"locations, please verify your email address by visiting the following link:"
+msgstr ""
+"登録を完了し、最高の星空観察スポットの探索を始めるには、下のリンクにアクセスしてメールアドレスを確認してください："
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:9
+msgid "Verify your email:"
+msgstr "メールを確認："
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:14
+msgid "Once verified, you'll be able to:"
+msgstr "確認後、以下のことができます："
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:20
+#, fuzzy
+#| msgid ""
+#| "If you didn't create an account on Starview, you can safely ignore this "
+#| "email."
+msgid ""
+"If you didn't create an account on Starview, you can safely ignore this "
+"email. No further action is required."
+msgstr ""
+"Starviewでアカウントを作成していない場合は、このメールを無視しても問題ありません。これ以上のアクションは必要ありません。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.txt:29
+msgid "This is an automated message. Please do not reply to this email."
+msgstr "これは自動送信メッセージです。このメールには返信しないでください。"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:7
+msgid "Password Changed Successfully"
+msgstr "パスワードが正常に変更されました"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:168
+msgid "Password Changed"
+msgstr "パスワード変更"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:178
+msgid "Password Successfully Changed"
+msgstr "パスワードが正常に変更されました"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:180
+#, python-format
+msgid ""
+"Your %(site_name)s password has been successfully changed. You can now log "
+"in using your new password."
+msgstr ""
+"%(site_name)sのパスワードが正常に変更されました。新しいパスワードでログインできます。"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:185
+#, python-format
+msgid ""
+"This email confirms that the password for your <strong>%(site_name)s</"
+"strong> account (<strong>%(user_email)s</strong>) was recently changed."
+msgstr ""
+"このメールは、<strong>%(site_name)s</strong>アカウント（<strong>%(user_email)s</strong>）のパスワードが最近変更されたことを確認するものです。"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:189
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:220
+msgid "Security Information"
+msgstr "セキュリティ情報"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:190
+msgid "Change IP:"
+msgstr "変更元IP："
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:191
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:222
+msgid "Account:"
+msgstr "アカウント："
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:192
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:223
+msgid "Email:"
+msgstr "メール："
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:196
+msgid "Didn't make this change?"
+msgstr "この変更を行っていませんか？"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:198
+msgid ""
+"If you did NOT change your password, your account may have been compromised. "
+"Please take immediate action:"
+msgstr ""
+"パスワードを変更していない場合、アカウントが侵害された可能性があります。直ちに以下の対応を行ってください："
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:200
+msgid "1. Reset your password immediately using the \"Forgot Password\" link"
+msgstr "1. 「パスワードを忘れた」リンクを使用して直ちにパスワードをリセット"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:201
+msgid "2. Review your account activity for any unauthorized changes"
+msgstr "2. 不正な変更がないかアカウントの活動を確認"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:202
+msgid "3. Contact our support team if you need assistance"
+msgstr "3. サポートが必要な場合はサポートチームに連絡"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:209
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:238
+msgid "Best,"
+msgstr "よろしくお願いします、"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:210
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:239
+#, fuzzy, python-format
+#| msgid "The Starview Team"
+msgid "The %(site_name)s Team"
+msgstr "%(site_name)sチーム"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:219
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:248
+msgid "This is an automated security email. Please do not reply."
+msgstr "これは自動送信のセキュリティメールです。返信しないでください。"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:7
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:193
+msgid "Password Reset Request"
+msgstr "パスワードリセットリクエスト"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:203
+#, python-format
+msgid ""
+"We received a request to reset the password for your <strong>%(site_name)s</"
+"strong> account (<strong>%(user_email)s</strong>)."
+msgstr ""
+"<strong>%(site_name)s</strong>アカウント（<strong>%(user_email)s</strong>）のパスワードをリセットするリクエストを受け取りました。"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:207
+msgid ""
+"If you requested this password reset, click the button below to set a new "
+"password:"
+msgstr ""
+"このパスワードリセットをリクエストした場合は、下のボタンをクリックして新しいパスワードを設定してください："
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:211
+msgid "Reset My Password"
+msgstr "パスワードをリセット"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:216
+#, python-format
+msgid ""
+"This link will expire in %(hours)s hour for security purposes. If it "
+"expires, you'll need to request a new password reset."
+msgstr ""
+"このリンクはセキュリティ上の理由から%(hours)s時間で期限切れになります。期限が切れた場合は、新しいパスワードリセットをリクエストする必要があります。"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:221
+msgid "Request IP:"
+msgstr "リクエスト元IP："
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:227
+msgid "Didn't request this?"
+msgstr "このリクエストをしていませんか？"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:229
+msgid ""
+"If you didn't request a password reset, you can safely ignore this email. "
+"Your password will remain unchanged, and your account is secure."
+msgstr ""
+"パスワードリセットをリクエストしていない場合は、このメールを無視しても問題ありません。パスワードは変更されず、アカウントは安全です。"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:231
+msgid ""
+"However, if you're concerned about unauthorized access attempts, we "
+"recommend reviewing your account security settings."
+msgstr ""
+"ただし、不正アクセスの試みが心配な場合は、アカウントのセキュリティ設定を確認することをお勧めします。"
+
+#: starview_app/utils/validators.py:301
+msgid "Password must contain at least 1 uppercase letter."
+msgstr "パスワードには大文字を1文字以上含める必要があります。"
+
+#: starview_app/utils/validators.py:306
+msgid "Your password must contain at least 1 uppercase letter."
+msgstr "パスワードには大文字を1文字以上含める必要があります。"
+
+#: starview_app/utils/validators.py:323
+msgid "Password must contain at least 1 number."
+msgstr "パスワードには数字を1文字以上含める必要があります。"
+
+#: starview_app/utils/validators.py:328
+msgid "Your password must contain at least 1 number."
+msgstr "パスワードには数字を1文字以上含める必要があります。"
+
+#: starview_app/utils/validators.py:348
+#, python-brace-format
+msgid ""
+"Password must contain at least 1 special character (!@#$%^&*(),.?\":{}|<>)."
+msgstr ""
+"パスワードには特殊文字を1文字以上含める必要があります（!@#$%^&*(),.?\":{}|<>）。"
+
+#: starview_app/utils/validators.py:353
+#, python-brace-format
+msgid ""
+"Your password must contain at least 1 special character (!@#$%^&*(),.?\":{}|"
+"<>)."
+msgstr ""
+"パスワードには特殊文字を1文字以上含める必要があります（!@#$%^&*(),.?\":{}|<>）。"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:7
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:158
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:159
+msgid "Email Change Request"
+msgstr "メールアドレス変更リクエスト"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:168
+#, python-format
+msgid "A request has been made to change the email address associated with your <strong>%(site_name)s</strong> account."
+msgstr "<strong>%(site_name)s</strong>アカウントに関連付けられたメールアドレスを変更するリクエストが行われました。"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:172
+msgid "Email Address Change Details"
+msgstr "メールアドレス変更の詳細"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:173
+msgid "Current email:"
+msgstr "現在のメール："
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:174
+msgid "New email:"
+msgstr "新しいメール："
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:178
+#, python-format
+msgid "A verification email has been sent to <strong>%(new_email)s</strong>. Your email address will <strong>not change</strong> until the new address is verified by clicking the link in that email."
+msgstr "確認メールが<strong>%(new_email)s</strong>に送信されました。新しいアドレスがそのメールのリンクをクリックして確認されるまで、メールアドレスは<strong>変更されません</strong>。"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:182
+msgid "Didn't make this request?"
+msgstr "このリクエストをしていませんか？"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:184
+msgid "If you did NOT request this change, please secure your account immediately by:"
+msgstr "この変更をリクエストしていない場合は、直ちに以下の方法でアカウントを保護してください："
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:186
+msgid "Changing your password"
+msgstr "パスワードを変更"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:187
+msgid "Reviewing recent account activity"
+msgstr "最近のアカウント活動を確認"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:188
+msgid "Contacting support if you notice suspicious activity"
+msgstr "不審な活動に気付いた場合はサポートに連絡"
+
+#: starview_app/templates/starview_app/auth/email/email_change_notification.html:194
+msgid "If you initiated this change, please check your new email inbox and click the verification link to complete the process."
+msgstr "この変更を開始した場合は、新しいメールの受信トレイを確認し、確認リンクをクリックしてプロセスを完了してください。"
+
+#: starview_app/templates/account/email/welcome_message.html:7
+#: starview_app/templates/account/email/welcome_message.html:107
+#: starview_app/templates/account/email/welcome_subject.txt:1
+msgid "Welcome to Starview"
+msgstr "Starviewへようこそ"
+
+#: starview_app/templates/account/email/welcome_message.html:129
+#: starview_app/templates/account/email/welcome_subject.txt:1
+#, python-format
+msgid "Welcome to %(site_name)s!"
+msgstr "%(site_name)sへようこそ！"
+
+#: starview_app/templates/account/email/welcome_message.html:140
+#: starview_app/templates/account/email/welcome_message.txt:7
+#, python-format
+msgid "Thank you for joining <strong>%(site_name)s</strong>! We're excited to have you as part of our community of stargazers and astronomy enthusiasts."
+msgstr "<strong>%(site_name)s</strong>に参加していただきありがとうございます！星空観察や天文学愛好家のコミュニティの一員として、あなたを迎えられることを嬉しく思います。"
+
+#: starview_app/templates/account/email/welcome_message.html:144
+#: starview_app/templates/account/email/welcome_message.txt:9
+msgid "Your account is now fully set up and ready to use. You can start exploring stargazing locations, sharing your own reviews, and connecting with fellow astronomy lovers."
+msgstr "アカウントは完全に設定され、使用する準備が整いました。星空観察スポットの探索、レビューの共有、天文学仲間とのつながりを始めることができます。"
+
+#: starview_app/templates/account/email/welcome_message.html:148
+#: starview_app/templates/account/email/welcome_message.txt:11
+msgid "Your Username:"
+msgstr "ユーザー名："
+
+#: starview_app/templates/account/email/welcome_message.html:154
+#: starview_app/templates/account/email/welcome_message.txt:13
+msgid "Thank you for choosing Starview. We hope you discover amazing night skies!"
+msgstr "Starviewをお選びいただきありがとうございます。素晴らしい夜空を発見されることを願っています！"
+
+#: starview_app/templates/account/email/welcome_message.html:155
+#: starview_app/templates/account/email/welcome_message.txt:15
+msgid "Clear skies,"
+msgstr "晴れやかな空を、"
+
+#: starview_app/templates/account/email/welcome_message.html:167
+#: starview_app/templates/account/email/welcome_message.txt:20
+msgid "This is an automated email. Please do not reply."
+msgstr "これは自動送信メールです。返信しないでください。"
+
+#: starview_app/templates/account/email/email_confirmation_signup_message.html:185
+msgid "Email Verification"
+msgstr "メール確認"
+
+#: starview_app/templates/account/email/welcome_message.html:117
+msgid "Welcome"
+msgstr "ようこそ"
+
+#: starview_app/templates/starview_app/auth/email/password_reset_email.html:194
+msgid "Password Reset"
+msgstr "パスワードリセット"
+
+#: starview_app/templates/starview_app/auth/email/password_changed_email.html:169
+msgid "Security Alert"
+msgstr "セキュリティ警告"

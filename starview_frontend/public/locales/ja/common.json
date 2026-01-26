@@ -1,0 +1,28 @@
+{
+  "buttons": {
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "loading": "読み込み中...",
+    "getStarted": "始める",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "登録"
+  },
+  "labels": {
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "username": "ユーザー名",
+    "search": "検索"
+  },
+  "status": {
+    "allSystemsOperational": "すべてのシステムが稼働中",
+    "loading": "読み込み中",
+    "error": "エラー",
+    "success": "成功"
+  },
+  "soon": "近日公開"
+}

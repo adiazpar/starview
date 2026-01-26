@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "explore": {
+      "title": "探索",
+      "discoverLocations": "发现地点",
+      "starMap": "星图",
+      "lightPollutionData": "光污染数据"
+    },
+    "sky": {
+      "title": "天空",
+      "skyConditions": "天空状况",
+      "tonightsForecast": "今夜预报",
+      "sevenDayForecast": "7天预报",
+      "moonCalendar": "月相日历"
+    },
+    "community": {
+      "title": "社区",
+      "topContributors": "顶级贡献者",
+      "recentReviews": "最新评论",
+      "submitLocation": "提交地点"
+    },
+    "company": {
+      "title": "公司",
+      "aboutStarview": "关于Starview",
+      "contact": "联系我们",
+      "api": "API"
+    }
+  },
+  "support": {
+    "label": "想要支持Starview吗？",
+    "buyMeCoffee": "请我喝咖啡"
+  },
+  "legal": {
+    "privacy": "隐私",
+    "terms": "条款",
+    "accessibility": "无障碍",
+    "llms": "LLMs"
+  },
+  "copyright": "{{year}} Starview. 保留所有权利。"
+}

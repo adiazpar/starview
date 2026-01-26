@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "explore": "Explorer",
+    "sky": "Ciel",
+    "profile": "Profil",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "getStarted": "Commencer"
+  },
+  "search": {
+    "placeholder": "Rechercher des sites d'observation...",
+    "placeholderShort": "Rechercher des sites...",
+    "clearSearch": "Effacer la recherche"
+  },
+  "filters": {
+    "filters": "Filtres",
+    "type": "Type",
+    "rating": "Note",
+    "distance": "Distance",
+    "verified": "Vérifié"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "buttons": {
+    "submit": "提交",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "loading": "加载中...",
+    "getStarted": "开始使用",
+    "login": "登录",
+    "logout": "退出",
+    "register": "注册"
+  },
+  "labels": {
+    "email": "邮箱",
+    "password": "密码",
+    "username": "用户名",
+    "search": "搜索"
+  },
+  "status": {
+    "allSystemsOperational": "所有系统正常运行",
+    "loading": "加载中",
+    "error": "错误",
+    "success": "成功"
+  },
+  "soon": "即将推出"
+}

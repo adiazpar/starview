@@ -13,7 +13,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import HttpBackend from 'i18next-http-backend';
 
 // Supported languages
-export const SUPPORTED_LANGUAGES = ['en', 'es'];
+export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'ja', 'de', 'pt-BR', 'zh-CN', 'ko', 'it'];
 export const DEFAULT_LANGUAGE = 'en';
 
 // Language metadata for UI display
@@ -29,6 +29,48 @@ export const LANGUAGE_CONFIG = {
     nativeName: 'Español',
     flag: 'es',
     region: 'España',
+  },
+  fr: {
+    name: 'French',
+    nativeName: 'Français',
+    flag: 'fr',
+    region: 'France',
+  },
+  ja: {
+    name: 'Japanese',
+    nativeName: '日本語',
+    flag: 'jp',
+    region: '日本',
+  },
+  de: {
+    name: 'German',
+    nativeName: 'Deutsch',
+    flag: 'de',
+    region: 'Deutschland',
+  },
+  'pt-BR': {
+    name: 'Portuguese',
+    nativeName: 'Português',
+    flag: 'br',
+    region: 'Brasil',
+  },
+  'zh-CN': {
+    name: 'Chinese (Simplified)',
+    nativeName: '简体中文',
+    flag: 'cn',
+    region: '中国',
+  },
+  ko: {
+    name: 'Korean',
+    nativeName: '한국어',
+    flag: 'kr',
+    region: '대한민국',
+  },
+  it: {
+    name: 'Italian',
+    nativeName: 'Italiano',
+    flag: 'it',
+    region: 'Italia',
   },
 };
 

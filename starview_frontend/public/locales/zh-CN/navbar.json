@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "首页",
+    "explore": "探索",
+    "sky": "天空",
+    "profile": "个人资料",
+    "login": "登录",
+    "logout": "退出",
+    "getStarted": "开始使用"
+  },
+  "search": {
+    "placeholder": "搜索观星地点...",
+    "placeholderShort": "搜索地点...",
+    "clearSearch": "清除搜索"
+  },
+  "filters": {
+    "filters": "筛选",
+    "type": "类型",
+    "rating": "评分",
+    "distance": "距离",
+    "verified": "已验证"
+  }
+}

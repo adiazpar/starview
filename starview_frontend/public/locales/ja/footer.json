@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "explore": {
+      "title": "探索",
+      "discoverLocations": "場所を発見",
+      "starMap": "星図",
+      "lightPollutionData": "光害データ"
+    },
+    "sky": {
+      "title": "空",
+      "skyConditions": "空の状態",
+      "tonightsForecast": "今夜の予報",
+      "sevenDayForecast": "7日間予報",
+      "moonCalendar": "月のカレンダー"
+    },
+    "community": {
+      "title": "コミュニティ",
+      "topContributors": "トップ貢献者",
+      "recentReviews": "最近のレビュー",
+      "submitLocation": "場所を投稿"
+    },
+    "company": {
+      "title": "会社",
+      "aboutStarview": "Starviewについて",
+      "contact": "お問い合わせ",
+      "api": "API"
+    }
+  },
+  "support": {
+    "label": "Starviewをサポートしますか？",
+    "buyMeCoffee": "コーヒーを贈る"
+  },
+  "legal": {
+    "privacy": "プライバシー",
+    "terms": "利用規約",
+    "accessibility": "アクセシビリティ",
+    "llms": "LLMs"
+  },
+  "copyright": "{{year}} Starview. All rights reserved."
+}

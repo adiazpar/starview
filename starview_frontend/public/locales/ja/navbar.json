@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "explore": "探索",
+    "sky": "空",
+    "profile": "プロフィール",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "getStarted": "始める"
+  },
+  "search": {
+    "placeholder": "星空観察スポットを検索...",
+    "placeholderShort": "場所を検索...",
+    "clearSearch": "検索をクリア"
+  },
+  "filters": {
+    "filters": "フィルター",
+    "type": "種類",
+    "rating": "評価",
+    "distance": "距離",
+    "verified": "認証済み"
+  }
+}

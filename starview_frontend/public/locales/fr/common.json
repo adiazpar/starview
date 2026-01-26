@@ -1,0 +1,28 @@
+{
+  "buttons": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "loading": "Chargement...",
+    "getStarted": "Commencer",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire"
+  },
+  "labels": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "search": "Rechercher"
+  },
+  "status": {
+    "allSystemsOperational": "Tous les systèmes opérationnels",
+    "loading": "Chargement",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "soon": "Bientôt"
+}

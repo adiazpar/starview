@@ -1,0 +1,28 @@
+{
+  "buttons": {
+    "submit": "제출",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "close": "닫기",
+    "loading": "로딩 중...",
+    "getStarted": "시작하기",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "register": "회원가입"
+  },
+  "labels": {
+    "email": "이메일",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "search": "검색"
+  },
+  "status": {
+    "allSystemsOperational": "모든 시스템 정상 작동 중",
+    "loading": "로딩 중",
+    "error": "오류",
+    "success": "성공"
+  },
+  "soon": "곧 출시"
+}

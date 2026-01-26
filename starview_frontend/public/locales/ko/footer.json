@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "explore": {
+      "title": "탐색",
+      "discoverLocations": "장소 발견하기",
+      "starMap": "별 지도",
+      "lightPollutionData": "광공해 데이터"
+    },
+    "sky": {
+      "title": "하늘",
+      "skyConditions": "하늘 상태",
+      "tonightsForecast": "오늘 밤 예보",
+      "sevenDayForecast": "7일 예보",
+      "moonCalendar": "달 달력"
+    },
+    "community": {
+      "title": "커뮤니티",
+      "topContributors": "최고 기여자",
+      "recentReviews": "최근 리뷰",
+      "submitLocation": "장소 제출"
+    },
+    "company": {
+      "title": "회사",
+      "aboutStarview": "Starview 소개",
+      "contact": "문의",
+      "api": "API"
+    }
+  },
+  "support": {
+    "label": "Starview를 후원하시겠어요?",
+    "buyMeCoffee": "커피 한 잔 사주기"
+  },
+  "legal": {
+    "privacy": "개인정보",
+    "terms": "이용약관",
+    "accessibility": "접근성",
+    "llms": "LLMs"
+  },
+  "copyright": "{{year}} Starview. 모든 권리 보유."
+}
