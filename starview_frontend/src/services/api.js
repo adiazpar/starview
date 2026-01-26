@@ -80,7 +80,7 @@ api.interceptors.response.use(
 
 /**
  * Helper function to extract CSRF token from cookies
- * Django stores it as 'csrftoken' cookie
+ * Django stores it as '__Secure-csrftoken' (production) or 'csrftoken' (dev)
  */
 function getCookie(name) {
   let cookieValue = null;
