@@ -49,7 +49,7 @@ function LocationNavbarActions({
           onClick={onMarkVisited}
           aria-label={isVisited ? 'Remove visit' : 'Mark as visited'}
         >
-          <i className="fa-solid fa-map-pin"></i>
+          <i className={`fa-${isVisited ? 'solid' : 'regular'} fa-flag`}></i>
           <span className="location-navbar-actions__action-text">
             {isVisited ? 'Visited' : 'Visit'}
           </span>
