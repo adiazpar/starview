@@ -13,7 +13,10 @@
    ============================================ */
 
 .location-hero {
-  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: 1fr;
+  align-items: center;
   width: 100%;
   height: 400px;
   overflow: hidden;
@@ -24,8 +27,11 @@
    ============================================ */
 
 .location-hero__image-container {
-  position: absolute;
-  inset: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -82,12 +88,11 @@
    ============================================ */
 
 .location-hero__arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -102,11 +107,13 @@
 }
 
 .location-hero__arrow--left {
-  left: var(--space-sm);
+  grid-column: 1;
+  margin-left: var(--space-sm);
 }
 
 .location-hero__arrow--right {
-  right: var(--space-sm);
+  grid-column: 3;
+  margin-right: var(--space-sm);
 }
 
 /* Show arrows on hover */
@@ -184,10 +191,9 @@
    ============================================ */
 
 .location-hero__nav {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: start;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -306,10 +312,9 @@
    ============================================ */
 
 .location-hero__info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: end;
   padding: var(--space-lg) var(--space-md);
   z-index: 5;
   animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;

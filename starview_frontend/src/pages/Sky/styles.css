@@ -7,28 +7,6 @@
 /* ANIMATIONS */
 /* ============================================ */
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 @keyframes subtleGlow {
   0%, 100% {
     box-shadow:
@@ -496,7 +474,7 @@
 }
 
 .sky-feature--visible .sky-feature__card {
-  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__card:hover {
@@ -596,7 +574,7 @@
 }
 
 .sky-feature--visible .sky-feature__lunar-cycle {
-  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 /* Horizontal strip of moon phases */
@@ -617,7 +595,7 @@
 
 /* Staggered moon phase animations - only when parent visible */
 .sky-feature--visible .sky-feature__lunar-phase {
-  animation: fadeInScale var(--animation-duration) ease-out both;
+  animation: fadeInUp var(--animation-duration) ease-out both;
 }
 .sky-feature--visible .sky-feature__lunar-phase:nth-child(1) { animation-delay: 0.25s; }
 .sky-feature--visible .sky-feature__lunar-phase:nth-child(2) { animation-delay: 0.32s; }
@@ -654,7 +632,7 @@
 }
 
 .sky-feature--visible .sky-feature__bortle {
-  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__bortle-scale {
@@ -749,7 +727,7 @@
 }
 
 .sky-feature--visible .sky-feature__weather {
-  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 /* Main atmospheric layers container */
@@ -932,7 +910,7 @@
 }
 
 .sky-feature--visible .sky-feature__forecast {
-  animation: fadeInScale var(--animation-duration) ease-out 0.2s both;
+  animation: fadeInUp var(--animation-duration) ease-out 0.2s both;
 }
 
 .sky-feature__forecast-day {

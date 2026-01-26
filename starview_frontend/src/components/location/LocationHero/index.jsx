@@ -109,6 +109,17 @@ const LocationHero = forwardRef(function LocationHero({
 
   return (
     <header ref={ref} className="location-hero">
+      {/* Left arrow - grid item */}
+      {hasMultiple && (
+        <button
+          className="location-hero__arrow location-hero__arrow--left"
+          onClick={goToPrevious}
+          aria-label="Previous photo"
+        >
+          <i className="fa-solid fa-chevron-left"></i>
+        </button>
+      )}
+
       {/* Hero Image Carousel - Crossfade (lazy loaded) */}
       <div className="location-hero__image-container">
         {/* Only render exiting + current images (max 2 in DOM) */}
@@ -143,27 +154,18 @@ const LocationHero = forwardRef(function LocationHero({
         </div>
 
         <div className="location-hero__gradient" />
-
-        {/* Arrow buttons for navigation */}
-        {hasMultiple && (
-          <>
-            <button
-              className="location-hero__arrow location-hero__arrow--left"
-              onClick={goToPrevious}
-              aria-label="Previous photo"
-            >
-              <i className="fa-solid fa-chevron-left"></i>
-            </button>
-            <button
-              className="location-hero__arrow location-hero__arrow--right"
-              onClick={goToNext}
-              aria-label="Next photo"
-            >
-              <i className="fa-solid fa-chevron-right"></i>
-            </button>
-          </>
-        )}
       </div>
+
+      {/* Right arrow - grid item */}
+      {hasMultiple && (
+        <button
+          className="location-hero__arrow location-hero__arrow--right"
+          onClick={goToNext}
+          aria-label="Next photo"
+        >
+          <i className="fa-solid fa-chevron-right"></i>
+        </button>
+      )}
 
       {/* Top Navigation Bar */}
       <nav className="location-hero__nav">

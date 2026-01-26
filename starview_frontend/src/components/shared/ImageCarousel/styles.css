@@ -3,10 +3,10 @@
  */
 
 .image-carousel {
-  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   width: 100%;
-  overflow: hidden;
-  background: var(--surface-secondary);
 }
 
 .image-carousel:focus {
@@ -20,9 +20,13 @@
 
 /* Image container - stacked slides for crossfade */
 .image-carousel__container {
+  grid-column: 1;
+  grid-row: 1;
   position: relative;
   width: 100%;
-  height: 100%;
+  overflow: hidden;
+  background: var(--surface-secondary);
+  border-radius: var(--radius);
 }
 
 /* Slides - stacked with crossfade animations */
@@ -83,11 +87,11 @@
   100% { opacity: 1; }
 }
 
-/* Arrow Buttons - minimal, no background */
+/* Arrow Buttons - grid items overlaying image */
 .image-carousel__arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,11 +109,13 @@
 }
 
 .image-carousel__arrow--left {
-  left: var(--space-xs);
+  justify-self: start;
+  margin-left: var(--space-xs);
 }
 
 .image-carousel__arrow--right {
-  right: var(--space-xs);
+  justify-self: end;
+  margin-right: var(--space-xs);
 }
 
 /* Show arrows on hover */
@@ -121,7 +127,7 @@
   color: rgba(255, 255, 255, 1);
 }
 
-/* Indicator Dots */
+/* Indicator Dots - positioned at bottom of image container */
 .image-carousel__dots {
   position: absolute;
   bottom: var(--space-sm);
@@ -152,6 +158,10 @@
 }
 
 /* Single image mode - no dots or arrows needed */
+.image-carousel--single {
+  display: block;
+}
+
 .image-carousel--single .image-carousel__dots,
 .image-carousel--single .image-carousel__arrow {
   display: none;

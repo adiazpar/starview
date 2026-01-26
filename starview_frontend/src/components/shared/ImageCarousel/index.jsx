@@ -152,7 +152,6 @@ function ImageCarousel({
   return (
     <div
       className={`image-carousel ${className}`}
-      style={{ aspectRatio }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onKeyDown={handleKeyDown}
@@ -160,8 +159,17 @@ function ImageCarousel({
       role="region"
       aria-label={`Image carousel with ${imageCount} images`}
     >
+      {/* Left arrow */}
+      <button
+        className="image-carousel__arrow image-carousel__arrow--left"
+        onClick={handlePrev}
+        aria-label="Previous image"
+      >
+        <i className="fa-solid fa-chevron-left"></i>
+      </button>
+
       {/* Image container with crossfade */}
-      <div className="image-carousel__container">
+      <div className="image-carousel__container" style={{ aspectRatio }}>
         {/* Exiting image - fading out */}
         {exitingIndex !== null && (
           <div
@@ -192,16 +200,22 @@ function ImageCarousel({
             <div className="image-carousel__placeholder" />
           )}
         </div>
+
+        {/* Indicator Dots */}
+        <div className="image-carousel__dots">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              className={`image-carousel__dot ${index === currentIndex ? 'image-carousel__dot--active' : ''}`}
+              onClick={(e) => handleDotClick(e, index)}
+              aria-label={`Go to image ${index + 1}`}
+              aria-current={index === currentIndex ? 'true' : undefined}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Arrow buttons */}
-      <button
-        className="image-carousel__arrow image-carousel__arrow--left"
-        onClick={handlePrev}
-        aria-label="Previous image"
-      >
-        <i className="fa-solid fa-chevron-left"></i>
-      </button>
+      {/* Right arrow */}
       <button
         className="image-carousel__arrow image-carousel__arrow--right"
         onClick={handleNext}
@@ -209,19 +223,6 @@ function ImageCarousel({
       >
         <i className="fa-solid fa-chevron-right"></i>
       </button>
-
-      {/* Indicator Dots */}
-      <div className="image-carousel__dots">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            className={`image-carousel__dot ${index === currentIndex ? 'image-carousel__dot--active' : ''}`}
-            onClick={(e) => handleDotClick(e, index)}
-            aria-label={`Go to image ${index + 1}`}
-            aria-current={index === currentIndex ? 'true' : undefined}
-          />
-        ))}
-      </div>
     </div>
   );
 }
