@@ -159,21 +159,35 @@ function PhotoMosaic({ images, locationName }) {
           {/* Bottom Bar with Attribution */}
           <div className="photo-mosaic__lightbox-bar">
             {currentImage.uploaded_by ? (
-              <Link
-                to={`/profile/${currentImage.uploaded_by.username}`}
-                className="photo-mosaic__lightbox-attribution"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <img
-                  src={currentImage.uploaded_by.profile_picture}
-                  alt=""
-                  className="photo-mosaic__lightbox-avatar"
-                />
-                <div className="photo-mosaic__lightbox-user">
-                  <span className="photo-mosaic__lightbox-username">@{currentImage.uploaded_by.username}</span>
-                  <span className="photo-mosaic__lightbox-name">{currentImage.uploaded_by.display_name}</span>
+              currentImage.uploaded_by.is_system_account ? (
+                <div className="photo-mosaic__lightbox-attribution">
+                  <img
+                    src={currentImage.uploaded_by.profile_picture}
+                    alt=""
+                    className="photo-mosaic__lightbox-avatar"
+                  />
+                  <div className="photo-mosaic__lightbox-user">
+                    <span className="photo-mosaic__lightbox-username">@{currentImage.uploaded_by.username}</span>
+                    <span className="photo-mosaic__lightbox-name">{currentImage.uploaded_by.display_name}</span>
+                  </div>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  to={`/profile/${currentImage.uploaded_by.username}`}
+                  className="photo-mosaic__lightbox-attribution"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <img
+                    src={currentImage.uploaded_by.profile_picture}
+                    alt=""
+                    className="photo-mosaic__lightbox-avatar"
+                  />
+                  <div className="photo-mosaic__lightbox-user">
+                    <span className="photo-mosaic__lightbox-username">@{currentImage.uploaded_by.username}</span>
+                    <span className="photo-mosaic__lightbox-name">{currentImage.uploaded_by.display_name}</span>
+                  </div>
+                </Link>
+              )
             ) : (
               <div className="photo-mosaic__lightbox-attribution">
                 <span className="photo-mosaic__lightbox-name">Unknown photographer</span>

@@ -40,15 +40,18 @@ def get_user_attribution(user):
     full_name = f"{user.first_name} {user.last_name}".strip()
     display_name = full_name if full_name else user.username
 
-    # Get profile picture URL
+    # Get profile picture URL and system account flag
     profile_picture = settings.DEFAULT_PROFILE_PICTURE
+    is_system_account = False
     if hasattr(user, 'userprofile') and user.userprofile:
         profile_picture = user.userprofile.get_profile_picture_url
+        is_system_account = user.userprofile.is_system_account
 
     return {
         'username': user.username,
         'display_name': display_name,
         'profile_picture': profile_picture,
+        'is_system_account': is_system_account,
     }
 
 

@@ -268,10 +268,13 @@
   align-items: center;
   gap: var(--space-sm);
   text-decoration: none;
+}
+
+a.photo-mosaic__lightbox-attribution {
   transition: opacity 0.2s ease;
 }
 
-.photo-mosaic__lightbox-attribution:hover {
+a.photo-mosaic__lightbox-attribution:hover {
   opacity: 0.8;
 }
 
