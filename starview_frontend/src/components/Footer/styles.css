@@ -20,6 +20,21 @@
   padding-bottom: var(--space-xl);
 }
 
+/* Grid pattern overlay */
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--accent-bg) 1px, transparent 1px),
+    linear-gradient(90deg, var(--accent-bg) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+  pointer-events: none;
+}
+
 .footer__container {
   position: relative;
   max-width: 1200px;
