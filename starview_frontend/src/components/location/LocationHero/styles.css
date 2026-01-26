@@ -26,6 +26,36 @@
 .location-hero__image-container {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Carousel slide - stacked with crossfade animations */
+.location-hero__slide {
+  position: absolute;
+  inset: 0;
+}
+
+.location-hero__slide--active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* Fade-in animation for entering slide */
+.location-hero__slide--entering {
+  animation: heroFadeIn var(--animation-duration) ease-out;
+}
+
+/* Fade-out animation for exiting slide */
+.location-hero__slide--exiting {
+  opacity: 0;
+  z-index: 0;
+  animation: heroFadeOut var(--animation-duration) ease-out;
+}
+
+@keyframes heroFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .location-hero__image {
@@ -46,6 +76,63 @@
   to {
     opacity: 1;
   }
+}
+
+/* ============================================
+   CAROUSEL TAP ZONES
+   ============================================ */
+
+.location-hero__tap-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 25%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.location-hero__tap-zone:disabled {
+  cursor: default;
+}
+
+.location-hero__tap-zone--left {
+  left: 0;
+}
+
+.location-hero__tap-zone--right {
+  right: 0;
+}
+
+/* ============================================
+   CAROUSEL DOT INDICATORS
+   ============================================ */
+
+.location-hero__dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--space-sm);
+}
+
+.location-hero__dot {
+  width: 5px;
+  height: 5px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.location-hero__dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.location-hero__dot--active {
+  background: rgba(255, 255, 255, 0.7);
 }
 
 /* ============================================
@@ -107,10 +194,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: rgba(10, 15, 26, 0.6);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   color: rgba(255, 255, 255, 0.8);
   font-size: var(--text-base);
@@ -120,8 +207,8 @@
 
 .location-hero__back:hover {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(10, 15, 26, 0.75);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
 }
 
 .location-hero__back-text {
@@ -144,10 +231,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: rgba(10, 15, 26, 0.6);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   color: rgba(255, 255, 255, 0.8);
   font-size: var(--text-base);
@@ -157,8 +244,8 @@
 
 .location-hero__action:hover {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(10, 15, 26, 0.75);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
 }
 
 .location-hero__action-text {
@@ -297,7 +384,7 @@
   margin-top: var(--space-sm);
   font-family: var(--font-family);
   font-size: var(--text-sm);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-primary);
 }
 
 .location-hero__stat {
@@ -312,72 +399,45 @@
 }
 
 .location-hero__stat-label {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   margin-left: 2px;
 }
 
 .location-hero__stat-divider {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   margin: 0 2px;
 }
 
 .location-hero__stat--muted {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .location-hero__stat--muted i {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 /* ============================================
-   PHOTO COUNT BUTTON
+   PHOTO COUNTER (inline in stats row)
    ============================================ */
 
-.location-hero__photo-count {
-  position: absolute;
-  bottom: var(--space-lg);
-  right: var(--space-lg);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: rgba(10, 15, 26, 0.7);
+.location-hero__photo-counter {
+  margin-left: auto;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-full);
-  color: white;
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 6;
-}
-
-.location-hero__photo-count:hover {
-  background: rgba(10, 15, 26, 0.85);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.location-hero__photo-count i {
-  font-size: 12px;
-  opacity: 0.8;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: rgba(255, 255, 255, 0.85);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================
    DESKTOP STYLES
    ============================================ */
 
-/* Mobile: Hide photo count, tighter spacing */
+/* Mobile: tighter spacing */
 @media (max-width: 767px) {
-  .location-hero__photo-count {
-    bottom: var(--space-md);
-    right: var(--space-md);
-    padding: 6px 12px;
-    font-size: 11px;
-  }
-
   .location-hero__stats {
     gap: var(--space-xs);
     font-size: var(--text-xs);
@@ -427,11 +487,6 @@
     font-size: var(--text-4xl);
   }
 
-  .location-hero__photo-count {
-    bottom: var(--space-xl);
-    right: var(--space-xl);
-  }
-
   .location-hero__stats {
     gap: var(--space-md);
   }
@@ -447,19 +502,27 @@
     opacity: 1;
   }
 
+  .location-hero__slide--entering,
+  .location-hero__slide--exiting {
+    animation: none;
+  }
+
   .location-hero__nav,
   .location-hero__info {
     animation: none;
   }
 
   .location-hero__back,
-  .location-hero__action,
-  .location-hero__photo-count {
+  .location-hero__action {
     transition: none;
   }
 
   .location-hero__action--active i,
   .location-hero__action--visited i {
     animation: none;
+  }
+
+  .location-hero__dot {
+    transition: none;
   }
 }

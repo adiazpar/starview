@@ -13,7 +13,7 @@
  * - onShare: Callback for share action
  */
 
-import { useState, forwardRef } from 'react';
+import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
 import { useUnits } from '../../../hooks/useUnits';
 import './styles.css';
 
@@ -30,11 +30,104 @@ const LocationHero = forwardRef(function LocationHero({
   onShare,
 }, ref) {
   const { formatElevation } = useUnits();
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageErrors, setImageErrors] = useState({});
+  const [imagesLoaded, setImagesLoaded] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [exitingIndex, setExitingIndex] = useState(null);
 
-  // Get hero image (first image or placeholder)
-  const heroImage = location.images?.[0]?.full || location.images?.[0]?.thumbnail || PLACEHOLDER_IMAGE;
+  // Touch handling refs
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  // Track preloaded images
+  const preloadedRef = useRef(new Set([0]));
+
+  // Get all images or fallback to placeholder
+  const images = location.images?.length > 0
+    ? location.images
+    : [{ id: 'placeholder', full: PLACEHOLDER_IMAGE, thumbnail: PLACEHOLDER_IMAGE }];
+
+  const totalImages = images.length;
+  const hasMultiple = totalImages > 1;
+
+  // Preload adjacent images in background (not rendered, just cached)
+  useEffect(() => {
+    if (totalImages <= 1) return;
+
+    const adjacentIndices = [
+      (currentIndex - 1 + totalImages) % totalImages,
+      (currentIndex + 1) % totalImages
+    ];
+
+    adjacentIndices.forEach(index => {
+      if (!preloadedRef.current.has(index)) {
+        const img = new Image();
+        img.src = images[index].full || images[index].thumbnail;
+        preloadedRef.current.add(index);
+      }
+    });
+  }, [currentIndex, images, totalImages]);
+
+  // Change image with crossfade animation
+  const changeImage = useCallback((newIndex) => {
+    if (exitingIndex !== null || newIndex === currentIndex) return;
+    setExitingIndex(currentIndex);
+    setCurrentIndex(newIndex);
+  }, [currentIndex, exitingIndex]);
+
+  // Navigate to next image (with wrap-around)
+  const goToNext = useCallback(() => {
+    if (!hasMultiple) return;
+    changeImage((currentIndex + 1) % totalImages);
+  }, [hasMultiple, currentIndex, totalImages, changeImage]);
+
+  // Navigate to previous image (with wrap-around)
+  const goToPrevious = useCallback(() => {
+    if (!hasMultiple) return;
+    changeImage((currentIndex - 1 + totalImages) % totalImages);
+  }, [hasMultiple, currentIndex, totalImages, changeImage]);
+
+  // Clear exiting image after fade-out animation
+  const handleAnimationEnd = useCallback((e) => {
+    if (e.target.classList.contains('location-hero__slide--exiting')) {
+      setExitingIndex(null);
+    }
+  }, []);
+
+  // Handle swipe gestures
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50; // Minimum swipe distance
+
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
+    }
+  }, [goToNext, goToPrevious]);
+
+  // Handle image error for specific index
+  const handleImageError = useCallback((id) => {
+    setImageErrors(prev => ({ ...prev, [id]: true }));
+  }, []);
+
+  // Handle image load for specific index
+  const handleImageLoad = useCallback((id) => {
+    setTimeout(() => {
+      setImagesLoaded(prev => ({ ...prev, [id]: true }));
+    }, 50);
+  }, []);
 
   // Build region string
   const region = [location.locality, location.administrative_area, location.country]
@@ -43,16 +136,61 @@ const LocationHero = forwardRef(function LocationHero({
 
   return (
     <header ref={ref} className="location-hero">
-      {/* Hero Image */}
-      <div className="location-hero__image-container">
-        <img
-          src={imageError ? PLACEHOLDER_IMAGE : heroImage}
-          alt={location.name}
-          className={`location-hero__image ${imageLoaded ? 'location-hero__image--loaded' : ''}`}
-          onLoad={() => setTimeout(() => setImageLoaded(true), 50)}
-          onError={() => setImageError(true)}
-        />
+      {/* Hero Image Carousel - Crossfade (lazy loaded) */}
+      <div
+        className="location-hero__image-container"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Only render exiting + current images (max 2 in DOM) */}
+
+        {/* Exiting image - fading out */}
+        {exitingIndex !== null && (
+          <div
+            key={`exiting-${images[exitingIndex].id}`}
+            className="location-hero__slide location-hero__slide--exiting"
+            onAnimationEnd={handleAnimationEnd}
+          >
+            <img
+              src={imageErrors[images[exitingIndex].id] ? PLACEHOLDER_IMAGE : (images[exitingIndex].full || images[exitingIndex].thumbnail)}
+              alt={`${location.name} - Photo ${exitingIndex + 1}`}
+              className="location-hero__image location-hero__image--loaded"
+            />
+          </div>
+        )}
+
+        {/* Current image - fading in or static */}
+        <div
+          key={`current-${images[currentIndex].id}`}
+          className={`location-hero__slide location-hero__slide--active ${exitingIndex !== null ? 'location-hero__slide--entering' : ''}`}
+        >
+          <img
+            src={imageErrors[images[currentIndex].id] ? PLACEHOLDER_IMAGE : (images[currentIndex].full || images[currentIndex].thumbnail)}
+            alt={`${location.name} - Photo ${currentIndex + 1}`}
+            className={`location-hero__image ${imagesLoaded[images[currentIndex].id] ? 'location-hero__image--loaded' : ''}`}
+            onLoad={() => handleImageLoad(images[currentIndex].id)}
+            onError={() => handleImageError(images[currentIndex].id)}
+          />
+        </div>
+
         <div className="location-hero__gradient" />
+
+        {/* Tap zones for navigation */}
+        {hasMultiple && (
+          <>
+            <button
+              className="location-hero__tap-zone location-hero__tap-zone--left"
+              onClick={goToPrevious}
+              aria-label="Previous photo"
+            />
+            <button
+              className="location-hero__tap-zone location-hero__tap-zone--right"
+              onClick={goToNext}
+              aria-label="Next photo"
+            />
+          </>
+        )}
       </div>
 
       {/* Top Navigation Bar */}
@@ -98,25 +236,20 @@ const LocationHero = forwardRef(function LocationHero({
         </div>
       </nav>
 
-      {/* Photo Count Indicator */}
-      {location.images?.length > 1 && (
-        <button
-          className="location-hero__photo-count"
-          onClick={() => {
-            document.getElementById('photo-gallery')?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            });
-          }}
-          aria-label={`View all ${location.images.length} photos`}
-        >
-          <i className="fa-solid fa-images"></i>
-          View {location.images.length} photos
-        </button>
-      )}
-
       {/* Location Info Overlay */}
       <div className="location-hero__info">
+        {/* Dot indicators */}
+        <div className="location-hero__dots">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              className={`location-hero__dot ${index === currentIndex ? 'location-hero__dot--active' : ''}`}
+              onClick={() => changeImage(index)}
+              aria-label={`Go to photo ${index + 1}`}
+            />
+          ))}
+        </div>
+
         {location.is_verified && (
           <div className="location-hero__badges">
             <span className="location-hero__badge location-hero__badge--verified">
@@ -168,6 +301,11 @@ const LocationHero = forwardRef(function LocationHero({
               </span>
             </>
           )}
+
+          {/* Photo counter - pushed to right */}
+          <span className="location-hero__photo-counter">
+            {currentIndex + 1}/{totalImages}
+          </span>
         </div>
       </div>
     </header>
