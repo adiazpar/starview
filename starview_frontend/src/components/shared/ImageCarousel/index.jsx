@@ -1,5 +1,5 @@
 /* ImageCarousel Component
- * Displays 1-5 images with swipe gestures (mobile) and hover arrows (desktop).
+ * Displays images with swipe gestures and tap zones for navigation.
  * Includes indicator dots at bottom showing current position.
  */
 
@@ -196,23 +196,19 @@ function ImageCarousel({
         ))}
       </div>
 
-      {/* Navigation Arrows (desktop only via CSS) */}
+      {/* Tap zones for navigation (invisible, left/right edges) */}
       <button
-        className="image-carousel__arrow image-carousel__arrow--left"
+        className="image-carousel__tap-zone image-carousel__tap-zone--left"
         onClick={handlePrev}
         onMouseEnter={() => preloadImage(currentIndex - 1)}
         aria-label="Previous image"
-      >
-        <i className="fa-solid fa-chevron-left"></i>
-      </button>
+      />
       <button
-        className="image-carousel__arrow image-carousel__arrow--right"
+        className="image-carousel__tap-zone image-carousel__tap-zone--right"
         onClick={handleNext}
         onMouseEnter={() => preloadImage(currentIndex + 1)}
         aria-label="Next image"
-      >
-        <i className="fa-solid fa-chevron-right"></i>
-      </button>
+      />
 
       {/* Indicator Dots */}
       <div className="image-carousel__dots">
