@@ -27,7 +27,8 @@ api.interceptors.request.use(
   (config) => {
     // Django requires CSRF token for POST, PUT, PATCH, DELETE
     if (['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
-      const csrfToken = getCookie('csrftoken');
+      // Production uses '__Secure-csrftoken', dev uses 'csrftoken'
+      const csrfToken = getCookie('__Secure-csrftoken') || getCookie('csrftoken');
       if (csrfToken) {
         config.headers['X-CSRFToken'] = csrfToken;
       }
