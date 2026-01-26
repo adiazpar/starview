@@ -1,7 +1,6 @@
 /* PhotoMosaic Styles
  * Asymmetric grid layout for editorial feel.
- * Full-screen lightbox with smooth transitions.
- * Hover overlays show photographer attribution.
+ * Modal lightbox with hover attribution overlay.
  */
 
 /* ============================================
@@ -86,7 +85,7 @@
   z-index: 2;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: var(--space-md);
   background: linear-gradient(
     to top,
@@ -99,8 +98,14 @@
   pointer-events: none;
 }
 
-.photo-mosaic__item:hover .photo-mosaic__overlay {
+.photo-mosaic__item:hover .photo-mosaic__overlay,
+.photo-mosaic__lightbox-content:hover .photo-mosaic__overlay {
   opacity: 1;
+}
+
+/* Enable pointer events on attribution link inside lightbox */
+.photo-mosaic__lightbox-content .photo-mosaic__overlay a {
+  pointer-events: auto;
 }
 
 /* Attribution Row */
@@ -108,6 +113,15 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  text-decoration: none;
+}
+
+a.photo-mosaic__attribution {
+  transition: opacity 0.2s ease;
+}
+
+a.photo-mosaic__attribution:hover {
+  opacity: 0.8;
 }
 
 .photo-mosaic__avatar {
@@ -174,16 +188,15 @@
 .photo-mosaic__lightbox {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-modal, 1000);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.95);
-  animation: fadeIn var(--animation-duration) ease-out;
+  background: rgba(0, 0, 0, 0.9);
+  animation: photoMosaicFadeIn var(--animation-duration) ease;
 }
 
-@keyframes fadeIn {
+@keyframes photoMosaicFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
@@ -191,167 +204,41 @@
 .photo-mosaic__lightbox-content {
   position: relative;
   max-width: 90vw;
-  max-height: calc(100vh - 120px);
-  animation: lightboxZoom var(--animation-duration) ease-out;
+  max-height: 90vh;
+  animation: photoMosaicFadeIn var(--animation-duration) ease;
 }
 
-@keyframes lightboxZoom {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.photo-mosaic__lightbox-content img {
-  max-width: 100%;
-  max-height: calc(100vh - 120px);
+.photo-mosaic__lightbox-content > img {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: var(--radius);
-}
-
-/* Lightbox Navigation */
-.photo-mosaic__lightbox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  color: #fff;
-  font-size: var(--text-lg);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.photo-mosaic__lightbox-nav:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.photo-mosaic__lightbox-nav--prev {
-  left: -70px;
-}
-
-.photo-mosaic__lightbox-nav--next {
-  right: -70px;
-}
-
-/* ============================================
-   LIGHTBOX BOTTOM BAR (Attribution + Meta)
-   ============================================ */
-
-.photo-mosaic__lightbox-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-md) var(--space-lg);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
-}
-
-.photo-mosaic__lightbox-attribution {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  text-decoration: none;
-}
-
-a.photo-mosaic__lightbox-attribution {
-  transition: opacity 0.2s ease;
-}
-
-a.photo-mosaic__lightbox-attribution:hover {
-  opacity: 0.8;
-}
-
-.photo-mosaic__lightbox-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  flex-shrink: 0;
-}
-
-.photo-mosaic__lightbox-user {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.photo-mosaic__lightbox-username {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  line-height: 1.2;
-  color: #fff;
-}
-
-.photo-mosaic__lightbox-name {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.photo-mosaic__lightbox-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.photo-mosaic__lightbox-date {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  color: #fff;
-  white-space: nowrap;
-}
-
-.photo-mosaic__lightbox-counter {
-  font-family: var(--font-technical);
-  font-size: var(--text-sm);
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.1em;
 }
 
 /* Lightbox Close Button */
 .photo-mosaic__lightbox-close {
   position: absolute;
-  top: var(--space-lg);
-  right: var(--space-lg);
-  width: 48px;
-  height: 48px;
+  top: 0;
+  right: 0;
+  transform: translateY(calc(-100% - var(--space-sm)));
+  z-index: 3;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  color: #fff;
-  font-size: var(--text-xl);
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.2s ease;
 }
 
 .photo-mosaic__lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-primary);
 }
 
 /* ============================================
@@ -373,39 +260,7 @@ a.photo-mosaic__lightbox-attribution:hover {
     grid-column: 1 / 3;
   }
 
-
-  .photo-mosaic__lightbox-nav--prev {
-    left: var(--space-md);
-  }
-
-  .photo-mosaic__lightbox-nav--next {
-    right: var(--space-md);
-  }
-
-  .photo-mosaic__lightbox-close {
-    top: var(--space-md);
-    right: var(--space-md);
-  }
-
-  .photo-mosaic__lightbox-bar {
-    padding: var(--space-sm) var(--space-md);
-  }
-
-  .photo-mosaic__lightbox-avatar {
-    width: 32px;
-    height: 32px;
-  }
-
-  .photo-mosaic__lightbox-meta {
-    gap: var(--space-md);
-  }
-
-  .photo-mosaic__lightbox-date {
-    display: none;
-  }
-
-  .photo-mosaic__username,
-  .photo-mosaic__lightbox-username {
+  .photo-mosaic__username {
     font-size: var(--text-xs);
   }
 }

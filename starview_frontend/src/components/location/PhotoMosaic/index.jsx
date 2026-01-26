@@ -7,57 +7,33 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './styles.css';
 
-// Format date for display
-function formatUploadDate(isoDate) {
-  if (!isoDate) return '';
-  const date = new Date(isoDate);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 function PhotoMosaic({ images, locationName }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const lightboxRef = useRef(null);
 
   const openLightbox = useCallback((index) => {
     setLightboxIndex(index);
-    document.body.style.overflow = 'hidden';
   }, []);
 
   const closeLightbox = useCallback(() => {
     setLightboxIndex(null);
-    document.body.style.overflow = '';
     // Clear any lingering hover/focus state on mobile
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
   }, []);
 
-  const navigateLightbox = useCallback((direction) => {
-    setLightboxIndex((prev) => {
-      const newIndex = prev + direction;
-      if (newIndex < 0) return images.length - 1;
-      if (newIndex >= images.length) return 0;
-      return newIndex;
-    });
-  }, [images.length]);
-
-  // Handle keyboard navigation in lightbox
+  // Handle keyboard escape to close lightbox
   useEffect(() => {
     if (lightboxIndex === null) return;
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowLeft') navigateLightbox(-1);
-      if (e.key === 'ArrowRight') navigateLightbox(1);
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxIndex, closeLightbox, navigateLightbox]);
+  }, [lightboxIndex, closeLightbox]);
 
   // Focus lightbox when opened for accessibility
   useEffect(() => {
@@ -135,83 +111,50 @@ function PhotoMosaic({ images, locationName }) {
               alt={`${locationName} photo ${lightboxIndex + 1}`}
             />
 
-            {/* Navigation */}
-            {images.length > 1 && (
-              <>
-                <button
-                  className="photo-mosaic__lightbox-nav photo-mosaic__lightbox-nav--prev"
-                  onClick={() => navigateLightbox(-1)}
-                  aria-label="Previous photo"
-                >
-                  <i className="fa-solid fa-chevron-left"></i>
-                </button>
-                <button
-                  className="photo-mosaic__lightbox-nav photo-mosaic__lightbox-nav--next"
-                  onClick={() => navigateLightbox(1)}
-                  aria-label="Next photo"
-                >
-                  <i className="fa-solid fa-chevron-right"></i>
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Bottom Bar with Attribution */}
-          <div className="photo-mosaic__lightbox-bar">
-            {currentImage.uploaded_by ? (
-              currentImage.uploaded_by.is_system_account ? (
-                <div className="photo-mosaic__lightbox-attribution">
-                  <img
-                    src={currentImage.uploaded_by.profile_picture}
-                    alt=""
-                    className="photo-mosaic__lightbox-avatar"
-                  />
-                  <div className="photo-mosaic__lightbox-user">
-                    <span className="photo-mosaic__lightbox-username">@{currentImage.uploaded_by.username}</span>
-                    <span className="photo-mosaic__lightbox-name">{currentImage.uploaded_by.display_name}</span>
+            {/* Hover Overlay with User Attribution - matches mosaic overlay */}
+            {currentImage.uploaded_by && (
+              <div className="photo-mosaic__overlay">
+                {currentImage.uploaded_by.is_system_account ? (
+                  <div className="photo-mosaic__attribution">
+                    <img
+                      src={currentImage.uploaded_by.profile_picture}
+                      alt=""
+                      className="photo-mosaic__avatar"
+                    />
+                    <div className="photo-mosaic__user-info">
+                      <span className="photo-mosaic__username">@{currentImage.uploaded_by.username}</span>
+                      <span className="photo-mosaic__display-name">{currentImage.uploaded_by.display_name}</span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <Link
-                  to={`/profile/${currentImage.uploaded_by.username}`}
-                  className="photo-mosaic__lightbox-attribution"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <img
-                    src={currentImage.uploaded_by.profile_picture}
-                    alt=""
-                    className="photo-mosaic__lightbox-avatar"
-                  />
-                  <div className="photo-mosaic__lightbox-user">
-                    <span className="photo-mosaic__lightbox-username">@{currentImage.uploaded_by.username}</span>
-                    <span className="photo-mosaic__lightbox-name">{currentImage.uploaded_by.display_name}</span>
-                  </div>
-                </Link>
-              )
-            ) : (
-              <div className="photo-mosaic__lightbox-attribution">
-                <span className="photo-mosaic__lightbox-name">Unknown photographer</span>
+                ) : (
+                  <Link
+                    to={`/profile/${currentImage.uploaded_by.username}`}
+                    className="photo-mosaic__attribution"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img
+                      src={currentImage.uploaded_by.profile_picture}
+                      alt=""
+                      className="photo-mosaic__avatar"
+                    />
+                    <div className="photo-mosaic__user-info">
+                      <span className="photo-mosaic__username">@{currentImage.uploaded_by.username}</span>
+                      <span className="photo-mosaic__display-name">{currentImage.uploaded_by.display_name}</span>
+                    </div>
+                  </Link>
+                )}
               </div>
             )}
 
-            <div className="photo-mosaic__lightbox-meta">
-              {currentImage.uploaded_at && (
-                <span className="photo-mosaic__lightbox-date">{formatUploadDate(currentImage.uploaded_at)}</span>
-              )}
-              <span className="photo-mosaic__lightbox-counter">
-                {lightboxIndex + 1} / {images.length}
-              </span>
-            </div>
+            {/* Close button */}
+            <button
+              className="photo-mosaic__lightbox-close"
+              onClick={closeLightbox}
+              aria-label="Close lightbox"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
           </div>
-
-          {/* Close button */}
-          <button
-            className="photo-mosaic__lightbox-close"
-            onClick={closeLightbox}
-            aria-label="Close lightbox"
-          >
-            <i className="fa-solid fa-xmark"></i>
-          </button>
         </div>
       )}
     </div>
