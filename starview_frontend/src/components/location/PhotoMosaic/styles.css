@@ -1,46 +1,8 @@
 /* PhotoMosaic Styles
  * Asymmetric grid layout for editorial feel.
  * Full-screen lightbox with smooth transitions.
+ * Hover overlays show photographer attribution.
  */
-
-/* ============================================
-   CONTAINER
-   ============================================ */
-
-.photo-mosaic {
-  padding: var(--space-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-/* ============================================
-   SECTION HEADER (Observatory Aesthetic)
-   ============================================ */
-
-.photo-mosaic__header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-
-.photo-mosaic__header span {
-  font-family: var(--font-technical);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.photo-mosaic__header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
 
 /* ============================================
    MOSAIC GRID
@@ -108,33 +70,81 @@
   aspect-ratio: auto;
 }
 
-.photo-mosaic__item img {
+.photo-mosaic__item > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
 }
 
-.photo-mosaic__item:hover img {
-  transform: scale(1.05);
-}
+/* ============================================
+   HOVER OVERLAY WITH USER ATTRIBUTION
+   ============================================ */
 
-/* Hover Overlay */
-.photo-mosaic__item::after {
-  content: '';
+.photo-mosaic__overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: var(--space-md);
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.3) 0%,
-    transparent 50%
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 30%,
+    transparent 70%
   );
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-.photo-mosaic__item:hover::after {
+.photo-mosaic__item:hover .photo-mosaic__overlay {
   opacity: 1;
+}
+
+/* Attribution Row */
+.photo-mosaic__attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.photo-mosaic__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.photo-mosaic__user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.photo-mosaic__username {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-mosaic__display-name {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* More Photos Overlay */
@@ -147,6 +157,7 @@
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  z-index: 1;
 }
 
 .photo-mosaic__more span {
@@ -165,6 +176,7 @@
   inset: 0;
   z-index: 100;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.95);
@@ -179,7 +191,7 @@
 .photo-mosaic__lightbox-content {
   position: relative;
   max-width: 90vw;
-  max-height: 85vh;
+  max-height: calc(100vh - 120px);
   animation: lightboxZoom var(--animation-duration) ease-out;
 }
 
@@ -196,7 +208,7 @@
 
 .photo-mosaic__lightbox-content img {
   max-width: 100%;
-  max-height: 85vh;
+  max-height: calc(100vh - 120px);
   object-fit: contain;
   border-radius: var(--radius);
 }
@@ -235,12 +247,78 @@
   right: -70px;
 }
 
-/* Lightbox Counter */
-.photo-mosaic__lightbox-counter {
+/* ============================================
+   LIGHTBOX BOTTOM BAR (Attribution + Meta)
+   ============================================ */
+
+.photo-mosaic__lightbox-bar {
   position: absolute;
-  bottom: -48px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+}
+
+.photo-mosaic__lightbox-attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.photo-mosaic__lightbox-attribution:hover {
+  opacity: 0.8;
+}
+
+.photo-mosaic__lightbox-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.photo-mosaic__lightbox-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.photo-mosaic__lightbox-username {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.photo-mosaic__lightbox-name {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.photo-mosaic__lightbox-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.photo-mosaic__lightbox-date {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.photo-mosaic__lightbox-counter {
   font-family: var(--font-technical);
   font-size: var(--text-sm);
   color: rgba(255, 255, 255, 0.6);
@@ -292,6 +370,7 @@
     grid-column: 1 / 3;
   }
 
+
   .photo-mosaic__lightbox-nav--prev {
     left: var(--space-md);
   }
@@ -304,6 +383,28 @@
     top: var(--space-md);
     right: var(--space-md);
   }
+
+  .photo-mosaic__lightbox-bar {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .photo-mosaic__lightbox-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .photo-mosaic__lightbox-meta {
+    gap: var(--space-md);
+  }
+
+  .photo-mosaic__lightbox-date {
+    display: none;
+  }
+
+  .photo-mosaic__username,
+  .photo-mosaic__lightbox-username {
+    font-size: var(--text-xs);
+  }
 }
 
 /* ============================================
@@ -311,12 +412,12 @@
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .photo-mosaic__item:hover img {
-    transform: none;
-  }
-
   .photo-mosaic__lightbox,
   .photo-mosaic__lightbox-content {
     animation: none;
+  }
+
+  .photo-mosaic__overlay {
+    transition: none;
   }
 }

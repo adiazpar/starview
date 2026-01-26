@@ -226,11 +226,10 @@ function LocationDetailPage() {
         onShare={handleShare}
       />
 
-      {/* Main Content */}
+      {/* Main Content Grid */}
       <div className="location-detail__content">
-        {/* Desktop: Two-column layout */}
+        {/* Left Column - Main Content */}
         <div className="location-detail__main">
-          {/* About Section - Stats + Description */}
           <section className="location-detail__about">
             <div className="location-detail__section-header">
               <span>About this Location</span>
@@ -238,55 +237,36 @@ function LocationDetailPage() {
             <LocationStats location={location} />
             <LocationAbout location={location} />
           </section>
-
-          {/* Sky Quality Dashboard - Mobile only (desktop shows in sidebar) */}
-          <div className="location-detail__sky-quality--mobile">
-            <SkyQualityPanel
-              bortle={location.bortle_class}
-              sqm={location.bortle_sqm}
-              elevation={location.elevation}
-            />
-          </div>
-
-          {/* Photo Gallery */}
-          {location.images?.length > 0 && (
-            <div id="photo-gallery">
-              <PhotoMosaic images={location.images} locationName={location.name} />
-            </div>
-          )}
-
-          {/* Map Section - Mobile only */}
-          <div className="location-detail__map--mobile">
-            <LocationMap location={location} />
-          </div>
-
-          {/* Community Stats - Mobile only */}
-          <div className="location-detail__community--mobile">
-            <CommunityStats location={location} />
-          </div>
-
-          {/* Rating Summary */}
-          <RatingSummary location={location} />
-
-          {/* Reviews Section */}
-          <ReviewSection locationId={location.id} reviews={location.reviews} />
         </div>
 
-        {/* Desktop Sidebar - Sticky */}
+        {/* Right Column - Desktop Only */}
         <aside className="location-detail__sidebar">
-          {/* Sky Quality Panel */}
+          {/* Content here will show on desktop, move to mobile-sections for mobile */}
+        </aside>
+
+        {/* Photo Gallery - Spans full width */}
+        {location.images?.length > 0 && (
+          <div className="location-detail__photos">
+            <PhotoMosaic images={location.images} locationName={location.name} />
+          </div>
+        )}
+
+        {/* Mobile-only sections */}
+        <div className="location-detail__mobile-sections">
           <SkyQualityPanel
             bortle={location.bortle_class}
             sqm={location.bortle_sqm}
             elevation={location.elevation}
           />
-
-          {/* Community Stats */}
+          <LocationMap location={location} />
           <CommunityStats location={location} />
+        </div>
 
-          {/* Mini Map */}
-          <LocationMap location={location} compact />
-        </aside>
+        {/* Reviews - Spans full width */}
+        <div className="location-detail__reviews">
+          <RatingSummary location={location} />
+          <ReviewSection locationId={location.id} reviews={location.reviews} />
+        </div>
       </div>
     </div>
   );

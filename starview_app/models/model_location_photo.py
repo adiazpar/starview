@@ -6,6 +6,7 @@
 # generation, and validation. Each location can have up to 5 photos organized by display order.        #
 #                                                                                                       #
 # Key Features:                                                                                         #
+# - User attribution: Tracks who uploaded each photo via uploaded_by field                             #
 # - Automatic image optimization: Resizes to max 1920x1920, converts to JPEG, optimizes quality        #
 # - Thumbnail generation: Creates 300x300 thumbnails automatically                                     #
 # - Organized storage: Photos stored in location_photos/{location_id}/ hierarchy                       #
@@ -15,6 +16,7 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import ValidationError
 import os
@@ -26,6 +28,8 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 from . import Location
+
+User = get_user_model()
 
 
 def location_photo_path(instance, filename):
@@ -49,6 +53,14 @@ class LocationPhoto(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='photos')
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uploaded_location_photos',
+        help_text="User who uploaded this photo"
+    )
 
     image = models.ImageField(upload_to=location_photo_path, help_text="Photo for the location")
     thumbnail = models.ImageField(upload_to=location_thumbnail_path, blank=True, null=True, help_text="Thumbnail version of the photo")

@@ -104,7 +104,41 @@
 }
 
 /* ============================================
-   DESKTOP SIDEBAR
+   PHOTOS SECTION
+   ============================================ */
+
+.location-detail__photos {
+  margin-top: var(--space-lg);
+  animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards;
+}
+
+/* ============================================
+   MOBILE SECTIONS (Sky Quality, Map, Community)
+   ============================================ */
+
+.location-detail__mobile-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+/* ============================================
+   REVIEWS SECTION
+   ============================================ */
+
+.location-detail__reviews {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.location-detail__reviews > *:nth-child(1) { animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards; }
+.location-detail__reviews > *:nth-child(2) { animation: fadeInUp var(--animation-duration) ease-out 0.15s backwards; }
+
+/* ============================================
+   SIDEBAR (hidden on mobile, shown on desktop)
    ============================================ */
 
 .location-detail__sidebar {
@@ -112,17 +146,7 @@
 }
 
 /* ============================================
-   MOBILE-ONLY SECTIONS
-   ============================================ */
-
-.location-detail__sky-quality--mobile,
-.location-detail__map--mobile,
-.location-detail__community--mobile {
-  display: block;
-}
-
-/* ============================================
-   DESKTOP LAYOUT (Two-Column)
+   DESKTOP LAYOUT (Two-Column for Detail Section)
    ============================================ */
 
 @media (min-width: 1024px) {
@@ -134,41 +158,34 @@
     align-items: start;
   }
 
+  /* Main content - left column */
   .location-detail__main {
-    padding-bottom: var(--space-xl);
+    grid-column: 1;
+    grid-row: 1;
   }
 
-  /* Sidebar - Sticky with staggered animations */
+  /* Sidebar - right column, same row as main */
   .location-detail__sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-    position: sticky;
-    top: calc(var(--navbar-height) + var(--space-lg));
-    height: fit-content;
-    max-height: calc(100vh - var(--navbar-height) - var(--space-xl) * 2);
-    overflow-y: auto;
-
-    /* Hide scrollbar but keep functionality */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
   }
 
-  .location-detail__sidebar::-webkit-scrollbar {
+  /* Photos - span full width */
+  .location-detail__photos {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  /* Hide mobile sections on desktop */
+  .location-detail__mobile-sections {
     display: none;
   }
 
-  /* Sidebar item animations */
-  .location-detail__sidebar > *:nth-child(1) { animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards; }
-  .location-detail__sidebar > *:nth-child(2) { animation: fadeInUp var(--animation-duration) ease-out 0.3s backwards; }
-  .location-detail__sidebar > *:nth-child(3) { animation: fadeInUp var(--animation-duration) ease-out 0.4s backwards; }
-  .location-detail__sidebar > *:nth-child(4) { animation: fadeInUp var(--animation-duration) ease-out 0.5s backwards; }
-
-  /* Hide mobile-only sections on desktop */
-  .location-detail__sky-quality--mobile,
-  .location-detail__map--mobile,
-  .location-detail__community--mobile {
-    display: none;
+  /* Reviews - span full width */
+  .location-detail__reviews {
+    grid-column: 1 / -1;
+    margin-top: 0;
   }
 }
 
@@ -179,6 +196,7 @@
   }
 }
 
+
 /* ============================================
    REDUCED MOTION
    ============================================ */
@@ -186,6 +204,8 @@
 @media (prefers-reduced-motion: reduce) {
   .location-detail__main > *,
   .location-detail__sidebar > *,
+  .location-detail__photos,
+  .location-detail__reviews > *,
   .location-detail__error-content {
     animation: none !important;
   }

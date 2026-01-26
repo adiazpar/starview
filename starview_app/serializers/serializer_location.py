@@ -19,12 +19,37 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 # Import tools:
+from django.conf import settings
 from django.db.models import Avg
 from rest_framework import serializers
 from ..models import Location
 from ..models import FavoriteLocation
 from ..models import LocationVisit
 from . import ReviewSerializer
+
+
+def get_user_attribution(user):
+    """
+    Returns user attribution data for photo overlays.
+    Used by get_images() to include uploader info for each photo.
+    """
+    if not user:
+        return None
+
+    # Get display name (full name or username fallback)
+    full_name = f"{user.first_name} {user.last_name}".strip()
+    display_name = full_name if full_name else user.username
+
+    # Get profile picture URL
+    profile_picture = settings.DEFAULT_PROFILE_PICTURE
+    if hasattr(user, 'userprofile') and user.userprofile:
+        profile_picture = user.userprofile.get_profile_picture_url
+
+    return {
+        'username': user.username,
+        'display_name': display_name,
+        'profile_picture': profile_picture,
+    }
 
 
 
@@ -153,22 +178,26 @@ class LocationSerializer(serializers.ModelSerializer):
         return None
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""
+        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
         photos = []
 
         # 1. Get location photos (creator uploads) - most recent first
         if hasattr(obj, 'prefetched_location_photos'):
             location_photos = obj.prefetched_location_photos
         else:
-            location_photos = obj.photos.all().order_by('-created_at')[:5]
+            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
 
         for photo in location_photos:
             if len(photos) >= 5:
                 break
+            # Use uploaded_by if set, otherwise fall back to location.added_by
+            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
             photos.append({
                 'id': f'loc_{photo.id}',
                 'thumbnail': photo.thumbnail_url,
                 'full': photo.image_url,
+                'uploaded_by': get_user_attribution(uploader),
+                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
             })
 
         # 2. Add review photos to fill up to 5
@@ -176,7 +205,7 @@ class LocationSerializer(serializers.ModelSerializer):
             if hasattr(obj, 'prefetched_reviews'):
                 reviews = obj.prefetched_reviews
             else:
-                reviews = obj.reviews.prefetch_related('photos').order_by('-created_at')
+                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
 
             for review in reviews:
                 if hasattr(review, 'prefetched_photos'):
@@ -191,6 +220,8 @@ class LocationSerializer(serializers.ModelSerializer):
                         'id': f'rev_{photo.id}',
                         'thumbnail': photo.thumbnail_url,
                         'full': photo.image_url,
+                        'uploaded_by': get_user_attribution(review.user),
+                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
                     })
                 if len(photos) >= 5:
                     break
@@ -272,22 +303,26 @@ class MapLocationSerializer(serializers.ModelSerializer):
         return obj.reviews.count()
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""
+        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
         photos = []
 
         # 1. Get location photos (creator uploads) - most recent first
         if hasattr(obj, 'prefetched_location_photos'):
             location_photos = obj.prefetched_location_photos
         else:
-            location_photos = obj.photos.all().order_by('-created_at')[:5]
+            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
 
         for photo in location_photos:
             if len(photos) >= 5:
                 break
+            # Use uploaded_by if set, otherwise fall back to location.added_by
+            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
             photos.append({
                 'id': f'loc_{photo.id}',
                 'thumbnail': photo.thumbnail_url,
                 'full': photo.image_url,
+                'uploaded_by': get_user_attribution(uploader),
+                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
             })
 
         # 2. Add review photos to fill up to 5
@@ -295,7 +330,7 @@ class MapLocationSerializer(serializers.ModelSerializer):
             if hasattr(obj, 'prefetched_reviews'):
                 reviews = obj.prefetched_reviews
             else:
-                reviews = obj.reviews.prefetch_related('photos').order_by('-created_at')
+                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
 
             for review in reviews:
                 if hasattr(review, 'prefetched_photos'):
@@ -310,6 +345,8 @@ class MapLocationSerializer(serializers.ModelSerializer):
                         'id': f'rev_{photo.id}',
                         'thumbnail': photo.thumbnail_url,
                         'full': photo.image_url,
+                        'uploaded_by': get_user_attribution(review.user),
+                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
                     })
                 if len(photos) >= 5:
                     break
@@ -475,22 +512,26 @@ class LocationListSerializer(serializers.ModelSerializer):
         return obj.get_location_type_display()
 
     def get_images(self, obj):
-        """Return up to 5 images from hybrid pool (location + review photos), ordered by recency."""
+        """Return up to 5 images from hybrid pool (location + review photos), with user attribution."""
         photos = []
 
         # 1. Get location photos (creator uploads) - most recent first
         if hasattr(obj, 'prefetched_location_photos'):
             location_photos = obj.prefetched_location_photos
         else:
-            location_photos = obj.photos.all().order_by('-created_at')[:5]
+            location_photos = obj.photos.select_related('uploaded_by__userprofile').order_by('-created_at')[:5]
 
         for photo in location_photos:
             if len(photos) >= 5:
                 break
+            # Use uploaded_by if set, otherwise fall back to location.added_by
+            uploader = photo.uploaded_by if photo.uploaded_by else obj.added_by
             photos.append({
                 'id': f'loc_{photo.id}',
                 'thumbnail': photo.thumbnail_url,
                 'full': photo.image_url,
+                'uploaded_by': get_user_attribution(uploader),
+                'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
             })
 
         # 2. Add review photos to fill up to 5
@@ -498,7 +539,7 @@ class LocationListSerializer(serializers.ModelSerializer):
             if hasattr(obj, 'prefetched_reviews'):
                 reviews = obj.prefetched_reviews
             else:
-                reviews = obj.reviews.prefetch_related('photos').order_by('-created_at')
+                reviews = obj.reviews.select_related('user__userprofile').prefetch_related('photos').order_by('-created_at')
 
             for review in reviews:
                 if hasattr(review, 'prefetched_photos'):
@@ -513,6 +554,8 @@ class LocationListSerializer(serializers.ModelSerializer):
                         'id': f'rev_{photo.id}',
                         'thumbnail': photo.thumbnail_url,
                         'full': photo.image_url,
+                        'uploaded_by': get_user_attribution(review.user),
+                        'uploaded_at': photo.created_at.isoformat() if photo.created_at else None,
                     })
                 if len(photos) >= 5:
                     break
