@@ -112,6 +112,15 @@ export const locationsApi = {
   },
 
   /**
+   * Toggle visited status for a location
+   * @param {number} locationId - Location ID
+   * @returns {Promise} - { is_visited: boolean, newly_earned_badges: Array }
+   */
+  toggleVisited: (locationId) => {
+    return api.post(`/locations/${locationId}/toggle-visited/`);
+  },
+
+  /**
    * Toggle favorite status for a location
    * @param {number} locationId - Location ID
    * @returns {Promise} - { is_favorited: boolean }

@@ -10,7 +10,6 @@ function LocationNavbarActions({
   locationAddress,
   isFavorited,
   isVisited,
-  isMarkingVisited,
   onBack,
   onFavorite,
   onMarkVisited,
@@ -48,15 +47,12 @@ function LocationNavbarActions({
         <button
           className={`location-navbar-actions__action ${isVisited ? 'location-navbar-actions__action--visited' : ''}`}
           onClick={onMarkVisited}
-          disabled={isMarkingVisited}
           aria-label={isVisited ? 'Remove visit' : 'Mark as visited'}
         >
-          {isMarkingVisited ? (
-            <i className="fa-solid fa-spinner fa-spin"></i>
-          ) : (
-            <i className="fa-solid fa-map-pin"></i>
-          )}
-          <span className="location-navbar-actions__action-text">Visited</span>
+          <i className="fa-solid fa-map-pin"></i>
+          <span className="location-navbar-actions__action-text">
+            {isVisited ? 'Visited' : 'Visit'}
+          </span>
         </button>
         <button
           className="location-navbar-actions__action"

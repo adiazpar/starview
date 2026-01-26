@@ -23,6 +23,7 @@ from django.db.models import Avg
 from rest_framework import serializers
 from ..models import Location
 from ..models import FavoriteLocation
+from ..models import LocationVisit
 from . import ReviewSerializer
 
 
@@ -50,6 +51,7 @@ from . import ReviewSerializer
 class LocationSerializer(serializers.ModelSerializer):
     added_by = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    is_visited = serializers.SerializerMethodField()
     verified_by = serializers.SerializerMethodField()
     location_type_display = serializers.SerializerMethodField()
 
@@ -66,7 +68,7 @@ class LocationSerializer(serializers.ModelSerializer):
                   'bortle_class', 'bortle_sqm',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
-                  'created_at', 'is_favorited',
+                  'created_at', 'is_favorited', 'is_visited',
                   'reviews', 'average_rating', 'review_count', 'images',
 
                   # Verification fields:
@@ -124,6 +126,21 @@ class LocationSerializer(serializers.ModelSerializer):
             ).exists()
 
         # Otherwise return false since no favorites:
+        return False
+
+
+    def get_is_visited(self, obj):
+        # Use annotation if available (from optimized queryset), otherwise compute
+        if hasattr(obj, 'is_visited_annotated'):
+            return obj.is_visited_annotated
+
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return LocationVisit.objects.filter(
+                user=request.user,
+                location=obj
+            ).exists()
+
         return False
 
 
@@ -197,6 +214,7 @@ class LocationSerializer(serializers.ModelSerializer):
 # ----------------------------------------------------------------------------- #
 class MapLocationSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
+    is_visited = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
@@ -209,7 +227,7 @@ class MapLocationSerializer(serializers.ModelSerializer):
             'latitude', 'longitude',
             'administrative_area', 'country', 'elevation',
             'bortle_class', 'bortle_sqm',
-            'average_rating', 'review_count', 'is_favorited', 'images'
+            'average_rating', 'review_count', 'is_favorited', 'is_visited', 'images'
         ]
         read_only_fields = fields
 
@@ -224,6 +242,18 @@ class MapLocationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return FavoriteLocation.objects.filter(
+                user=request.user,
+                location=obj
+            ).exists()
+        return False
+
+    def get_is_visited(self, obj):
+        # Use annotation if available, otherwise query
+        if hasattr(obj, 'is_visited_annotated'):
+            return obj.is_visited_annotated
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return LocationVisit.objects.filter(
                 user=request.user,
                 location=obj
             ).exists()
@@ -341,6 +371,7 @@ class LocationInfoPanelSerializer(serializers.ModelSerializer):
 class LocationListSerializer(serializers.ModelSerializer):
     added_by = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    is_visited = serializers.SerializerMethodField()
     verified_by = serializers.SerializerMethodField()
     location_type_display = serializers.SerializerMethodField()
 
@@ -360,7 +391,7 @@ class LocationListSerializer(serializers.ModelSerializer):
                   'bortle_class', 'bortle_sqm',
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
-                  'created_at', 'is_favorited',
+                  'created_at', 'is_favorited', 'is_visited',
                   'average_rating', 'review_count', 'images', 'distance',
 
                   # Verification fields:
@@ -413,6 +444,21 @@ class LocationListSerializer(serializers.ModelSerializer):
             ).exists()
 
         # Otherwise return false since no favorites:
+        return False
+
+
+    def get_is_visited(self, obj):
+        # Use annotation if available (from optimized queryset), otherwise compute
+        if hasattr(obj, 'is_visited_annotated'):
+            return obj.is_visited_annotated
+
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return LocationVisit.objects.filter(
+                user=request.user,
+                location=obj
+            ).exists()
+
         return False
 
 

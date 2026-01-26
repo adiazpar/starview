@@ -4,14 +4,12 @@
  */
 
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocation, useToggleFavorite } from '../../hooks/useLocations';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useLocation, useToggleFavorite, useToggleVisited } from '../../hooks/useLocations';
 import { useSEO } from '../../hooks/useSEO';
 import { useNavbarExtension } from '../../contexts/NavbarExtensionContext';
 import { useToast } from '../../contexts/ToastContext';
 import useRequireAuth from '../../hooks/useRequireAuth';
-import { locationsApi } from '../../services/locations';
 import LocationHero from '../../components/location/LocationHero';
 import SkyQualityPanel from '../../components/location/SkyQualityPanel';
 import LocationAbout from '../../components/location/LocationAbout';
@@ -25,23 +23,17 @@ import './styles.css';
 function LocationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { location, isLoading, isError, error } = useLocation(id);
   const { setLocationExtension, updateLocationExtension, setExtensionVisible } = useNavbarExtension();
   const { showToast } = useToast();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
+  const toggleVisited = useToggleVisited();
   const heroRef = useRef(null);
 
-  // Local visited state (synced from location data)
-  const [isVisited, setIsVisited] = useState(false);
-
-  // Sync visited state from location data
-  useEffect(() => {
-    if (location?.is_visited !== undefined) {
-      setIsVisited(location.is_visited);
-    }
-  }, [location?.is_visited]);
+  // Derive state from location cache (updated optimistically by hooks)
+  const isFavorited = location?.is_favorited || false;
+  const isVisited = location?.is_visited || false;
 
   // Set SEO meta tags
   useSEO({
@@ -52,44 +44,21 @@ function LocationDetailPage() {
     path: `/locations/${id}`,
   });
 
-  // Mark visited mutation
-  const markVisitedMutation = useMutation({
-    mutationFn: () => locationsApi.markVisited(location.id),
-    onSuccess: (response) => {
-      setIsVisited(true);
-      showToast('Location marked as visited!', 'success');
+  // Handle badge notifications when visiting a location
+  useEffect(() => {
+    if (toggleVisited.isSuccess && toggleVisited.data?.newly_earned_badges?.length > 0) {
+      toggleVisited.data.newly_earned_badges.forEach((badge) => {
+        showToast(`Badge earned: ${badge.name}!`, 'success');
+      });
+    }
+  }, [toggleVisited.isSuccess, toggleVisited.data, showToast]);
 
-      // Check for newly earned badges
-      if (response.data.newly_earned_badges?.length > 0) {
-        const badges = response.data.newly_earned_badges;
-        badges.forEach((badge) => {
-          showToast(`Badge earned: ${badge.name}!`, 'success');
-        });
-      }
-
-      // Invalidate location query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['location', location.id] });
-    },
-    onError: () => {
-      showToast('Failed to mark as visited', 'error');
-    },
-  });
-
-  // Unmark visited mutation
-  const unmarkVisitedMutation = useMutation({
-    mutationFn: () => locationsApi.unmarkVisited(location.id),
-    onSuccess: () => {
-      setIsVisited(false);
-      showToast('Visit removed', 'info');
-      queryClient.invalidateQueries({ queryKey: ['location', location.id] });
-    },
-    onError: () => {
-      showToast('Failed to remove visit', 'error');
-    },
-  });
-
-  const isMarkingVisited = markVisitedMutation.isPending || unmarkVisitedMutation.isPending;
-  const isFavorited = location?.is_favorited || false;
+  // Handle visited toggle errors
+  useEffect(() => {
+    if (toggleVisited.isError) {
+      showToast('Failed to update visit status', 'error');
+    }
+  }, [toggleVisited.isError, showToast]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -111,12 +80,8 @@ function LocationDetailPage() {
   const handleMarkVisited = useCallback((e) => {
     if (e) e.stopPropagation();
     if (!requireAuth()) return;
-    if (isVisited) {
-      unmarkVisitedMutation.mutate();
-    } else {
-      markVisitedMutation.mutate();
-    }
-  }, [requireAuth, isVisited, markVisitedMutation, unmarkVisitedMutation]);
+    toggleVisited.mutate(location.id);
+  }, [requireAuth, location?.id, toggleVisited]);
 
   // Handle share
   const handleShare = useCallback(async (e) => {
@@ -197,7 +162,6 @@ function LocationDetailPage() {
       locationAddress: address,
       isFavorited,
       isVisited,
-      isMarkingVisited,
       ...stableHandlers,
     });
 
@@ -213,13 +177,11 @@ function LocationDetailPage() {
     updateLocationExtension({
       isFavorited,
       isVisited,
-      isMarkingVisited,
     });
   }, [
     location?.id,
     isFavorited,
     isVisited,
-    isMarkingVisited,
     updateLocationExtension,
   ]);
 
@@ -258,7 +220,6 @@ function LocationDetailPage() {
         onBack={handleBack}
         isFavorited={isFavorited}
         isVisited={isVisited}
-        isMarkingVisited={isMarkingVisited}
         onFavorite={handleFavorite}
         onMarkVisited={handleMarkVisited}
         onShare={handleShare}

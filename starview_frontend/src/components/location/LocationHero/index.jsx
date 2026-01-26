@@ -5,10 +5,9 @@
  * Props:
  * - location: Location object with all details
  * - onBack: Callback for back button
- * - heroRef: Ref to attach to the hero element for scroll detection
+ * - ref: Ref to attach to the hero element for scroll detection
  * - isFavorited: Whether location is favorited
  * - isVisited: Whether location is marked as visited
- * - isMarkingVisited: Whether a visited mutation is in progress
  * - onFavorite: Callback for favorite toggle
  * - onMarkVisited: Callback for mark visited toggle
  * - onShare: Callback for share action
@@ -26,7 +25,6 @@ const LocationHero = forwardRef(function LocationHero({
   onBack,
   isFavorited,
   isVisited,
-  isMarkingVisited,
   onFavorite,
   onMarkVisited,
   onShare,
@@ -82,16 +80,11 @@ const LocationHero = forwardRef(function LocationHero({
           <button
             className={`location-hero__action ${isVisited ? 'location-hero__action--visited' : ''}`}
             onClick={onMarkVisited}
-            disabled={isMarkingVisited}
             aria-label={isVisited ? 'Remove visit' : 'Mark as visited'}
           >
-            {isMarkingVisited ? (
-              <i className="fa-solid fa-spinner fa-spin"></i>
-            ) : (
-              <i className="fa-solid fa-map-pin"></i>
-            )}
+            <i className="fa-solid fa-map-pin"></i>
             <span className="location-hero__action-text">
-              {isVisited ? 'Visited' : 'Visited'}
+              {isVisited ? 'Visited' : 'Visit'}
             </span>
           </button>
           <button

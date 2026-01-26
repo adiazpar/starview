@@ -711,7 +711,7 @@ class LocationViewSet(viewsets.ModelViewSet):
     # Authentication: Required                                                      #
     # Returns: Success message, total visits, and newly earned badges               #
     # ----------------------------------------------------------------------------- #
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], url_path='mark-visited')
     def mark_visited(self, request, pk=None):
         from starview_app.models import LocationVisit, UserBadge
         from django.utils import timezone
@@ -764,7 +764,7 @@ class LocationViewSet(viewsets.ModelViewSet):
     # Authentication: Required                                                      #
     # Returns: Success message and updated total visits                             #
     # ----------------------------------------------------------------------------- #
-    @action(detail=True, methods=['DELETE'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['DELETE'], permission_classes=[IsAuthenticated], url_path='unmark-visited')
     def unmark_visited(self, request, pk=None):
         from starview_app.models import LocationVisit
 
@@ -787,6 +787,62 @@ class LocationViewSet(viewsets.ModelViewSet):
                 'detail': 'You have not marked this location as visited.',
                 'total_visits': LocationVisit.objects.filter(user=request.user).count()
             }, status=status.HTTP_200_OK)
+
+
+    # ----------------------------------------------------------------------------- #
+    # Toggle Visited - Mark or unmark a location as visited.                        #
+    #                                                                               #
+    # Creates a LocationVisit record if it doesn't exist, removes it if it does.    #
+    # Returns the new visited status so frontend can update UI optimistically.      #
+    # Triggers exploration badge checking via signal when marking visited.          #
+    #                                                                               #
+    # HTTP Method: POST                                                             #
+    # Endpoint: /api/locations/{id}/toggle-visited/                                 #
+    # Authentication: Required                                                      #
+    # Returns: { is_visited: boolean, newly_earned_badges: Array }                  #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], url_path='toggle-visited')
+    def toggle_visited(self, request, pk=None):
+        from starview_app.models import LocationVisit, UserBadge
+        from django.utils import timezone
+
+        location = self.get_object()
+
+        # Try to get existing visit
+        visit = LocationVisit.objects.filter(
+            user=request.user,
+            location=location
+        ).first()
+
+        newly_earned_badges = []
+
+        if visit:
+            # Already visited - remove it
+            visit.delete()
+            is_visited = False
+        else:
+            # Not visited - create it
+            # Get user's badges before creating visit (to detect new ones)
+            badges_before = set(UserBadge.objects.filter(user=request.user).values_list('badge_id', flat=True))
+
+            LocationVisit.objects.create(
+                user=request.user,
+                location=location
+            )
+            is_visited = True
+
+            # Check for newly earned badges (signal handler awards them)
+            badges_after = set(UserBadge.objects.filter(user=request.user).values_list('badge_id', flat=True))
+            new_badge_ids = badges_after - badges_before
+
+            if new_badge_ids:
+                from starview_app.models import Badge
+                newly_earned_badges = list(Badge.objects.filter(id__in=new_badge_ids).values('id', 'name', 'icon_path'))
+
+        return Response({
+            'is_visited': is_visited,
+            'newly_earned_badges': newly_earned_badges,
+        })
 
 
     # ----------------------------------------------------------------------------- #

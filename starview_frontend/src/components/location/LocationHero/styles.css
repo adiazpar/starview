@@ -201,11 +201,6 @@
   animation: heartPop var(--animation-duration) ease-out;
 }
 
-.location-hero__action:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* ============================================
    LOCATION INFO OVERLAY
    ============================================ */
@@ -463,7 +458,8 @@
     transition: none;
   }
 
-  .location-hero__action--active i {
+  .location-hero__action--active i,
+  .location-hero__action--visited i {
     animation: none;
   }
 }
