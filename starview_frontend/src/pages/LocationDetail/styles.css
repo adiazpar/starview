@@ -54,7 +54,7 @@
 .location-detail__content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-lg) var(--space-md);
+  padding: var(--space-lg);
 }
 
 /* ============================================
@@ -130,7 +130,7 @@
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: var(--space-xl);
-    padding: var(--space-xl);
+    padding: var(--space-xl) var(--space-lg);
     align-items: start;
   }
 

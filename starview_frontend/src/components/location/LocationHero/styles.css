@@ -197,7 +197,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg) var(--space-md);
+  padding: var(--space-lg);
   padding-top: max(var(--space-lg), calc(env(safe-area-inset-top) + var(--space-sm)));
   z-index: 10;
 }
@@ -315,7 +315,7 @@
   grid-column: 1 / -1;
   grid-row: 1;
   align-self: end;
-  padding: var(--space-lg) var(--space-md);
+  padding: var(--space-lg);
   z-index: 5;
   animation: fadeInUp var(--animation-duration) ease-out 0.2s backwards;
 }
@@ -468,7 +468,7 @@
   }
 
   .location-hero__nav {
-    padding: var(--space-lg) var(--space-xl);
+    padding: var(--space-lg);
   }
 
   .location-hero__back {
@@ -496,7 +496,7 @@
   }
 
   .location-hero__info {
-    padding: var(--space-xl);
+    padding: var(--space-xl) var(--space-lg);
     max-width: 1200px;
     margin: 0 auto;
   }
