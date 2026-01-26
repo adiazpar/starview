@@ -1,5 +1,5 @@
 /* ImageCarousel Component
- * Displays images with swipe gestures and tap zones for navigation.
+ * Displays images with crossfade transitions and arrow navigation.
  * Includes indicator dots at bottom showing current position.
  */
 
@@ -18,28 +18,43 @@ function ImageCarousel({
   autoPlayInterval = 5000 // 5 seconds
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [exitingIndex, setExitingIndex] = useState(null);
   const [loadedImages, setLoadedImages] = useState(new Set([0]));
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef(null);
-
-  // Minimum swipe distance to trigger navigation (in pixels)
-  const minSwipeDistance = 50;
+  const preloadedRef = useRef(new Set([0]));
 
   // Safely get images length (handles null/undefined)
   const imageCount = images?.length || 0;
 
+  // Preload adjacent images in background
+  useEffect(() => {
+    if (imageCount <= 1) return;
+
+    const adjacentIndices = [
+      (currentIndex - 1 + imageCount) % imageCount,
+      (currentIndex + 1) % imageCount
+    ];
+
+    adjacentIndices.forEach(index => {
+      if (!preloadedRef.current.has(index)) {
+        const img = new Image();
+        img.src = images[index]?.full || images[index]?.thumbnail;
+        preloadedRef.current.add(index);
+      }
+    });
+  }, [currentIndex, images, imageCount]);
+
   // Auto-advance effect
   useEffect(() => {
-    // Only auto-play if enabled, not paused, and more than 1 image
     if (!autoPlay || isPaused || imageCount <= 1) {
       return;
     }
 
     autoPlayRef.current = setInterval(() => {
       setCurrentIndex(prev => {
-        const nextIndex = prev < imageCount - 1 ? prev + 1 : 0;
+        const nextIndex = (prev + 1) % imageCount;
+        setExitingIndex(prev);
         setLoadedImages(loaded => new Set([...loaded, nextIndex]));
         return nextIndex;
       });
@@ -56,59 +71,40 @@ function ImageCarousel({
   const handleMouseEnter = useCallback(() => setIsPaused(true), []);
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);
 
-  // Navigation handlers - defined before early returns to satisfy Rules of Hooks
+  // Change image with crossfade
+  const changeImage = useCallback((newIndex) => {
+    if (exitingIndex !== null || newIndex === currentIndex) return;
+    setExitingIndex(currentIndex);
+    setCurrentIndex(newIndex);
+    setLoadedImages(prev => new Set([...prev, newIndex]));
+  }, [currentIndex, exitingIndex]);
+
+  // Navigation handlers
   const handlePrev = useCallback((e) => {
     e?.stopPropagation();
     if (imageCount <= 1) return;
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : imageCount - 1;
-    setCurrentIndex(newIndex);
-    setLoadedImages(prev => new Set([...prev, newIndex]));
-  }, [currentIndex, imageCount]);
+    const newIndex = (currentIndex - 1 + imageCount) % imageCount;
+    changeImage(newIndex);
+  }, [currentIndex, imageCount, changeImage]);
 
   const handleNext = useCallback((e) => {
     e?.stopPropagation();
     if (imageCount <= 1) return;
-    const newIndex = currentIndex < imageCount - 1 ? currentIndex + 1 : 0;
-    setCurrentIndex(newIndex);
-    setLoadedImages(prev => new Set([...prev, newIndex]));
-  }, [currentIndex, imageCount]);
+    const newIndex = (currentIndex + 1) % imageCount;
+    changeImage(newIndex);
+  }, [currentIndex, imageCount, changeImage]);
 
   const handleDotClick = useCallback((e, index) => {
     e.stopPropagation();
-    setCurrentIndex(index);
-    setLoadedImages(prev => new Set([...prev, index]));
-  }, []);
+    changeImage(index);
+  }, [changeImage]);
 
-  // Touch handlers for swipe
-  const onTouchStart = useCallback((e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  }, []);
-
-  const onTouchMove = useCallback((e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  }, []);
-
-  const onTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd || imageCount <= 1) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      // Swipe left = next image
-      const newIndex = currentIndex < imageCount - 1 ? currentIndex + 1 : 0;
-      setCurrentIndex(newIndex);
-      setLoadedImages(prev => new Set([...prev, newIndex]));
+  // Clear exiting image after animation
+  const handleAnimationEnd = useCallback((e) => {
+    if (e.target.classList.contains('image-carousel__slide--exiting')) {
+      setExitingIndex(null);
     }
-    if (isRightSwipe) {
-      // Swipe right = previous image
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : imageCount - 1;
-      setCurrentIndex(newIndex);
-      setLoadedImages(prev => new Set([...prev, newIndex]));
-    }
-  }, [touchStart, touchEnd, currentIndex, imageCount]);
+  }, []);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e) => {
@@ -118,14 +114,6 @@ function ImageCarousel({
       handleNext(e);
     }
   }, [handlePrev, handleNext]);
-
-  // Preload adjacent images on arrow hover
-  const preloadImage = useCallback((index) => {
-    if (index >= 0 && index < imageCount && !loadedImages.has(index)) {
-      const img = new Image();
-      img.src = images[index]?.thumbnail || images[index]?.full;
-    }
-  }, [images, imageCount, loadedImages]);
 
   // No images - show placeholder
   if (imageCount === 0) {
@@ -165,9 +153,6 @@ function ImageCarousel({
     <div
       className={`image-carousel ${className}`}
       style={{ aspectRatio }}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onKeyDown={handleKeyDown}
@@ -175,40 +160,55 @@ function ImageCarousel({
       role="region"
       aria-label={`Image carousel with ${imageCount} images`}
     >
-      {/* Image Track */}
-      <div
-        className="image-carousel__track"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {images.map((image, index) => (
-          <div key={image.id || index} className="image-carousel__slide">
-            {loadedImages.has(index) ? (
-              <img
-                src={image.full || image.thumbnail}
-                alt={`${alt} - image ${index + 1}`}
-                className="image-carousel__image"
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
-            ) : (
-              <div className="image-carousel__placeholder" />
-            )}
+      {/* Image container with crossfade */}
+      <div className="image-carousel__container">
+        {/* Exiting image - fading out */}
+        {exitingIndex !== null && (
+          <div
+            key={`exiting-${images[exitingIndex]?.id || exitingIndex}`}
+            className="image-carousel__slide image-carousel__slide--exiting"
+            onAnimationEnd={handleAnimationEnd}
+          >
+            <img
+              src={images[exitingIndex]?.full || images[exitingIndex]?.thumbnail}
+              alt={`${alt} - image ${exitingIndex + 1}`}
+              className="image-carousel__image"
+            />
           </div>
-        ))}
+        )}
+
+        {/* Current image - fading in or static */}
+        <div
+          key={`current-${images[currentIndex]?.id || currentIndex}`}
+          className={`image-carousel__slide image-carousel__slide--active ${exitingIndex !== null ? 'image-carousel__slide--entering' : ''}`}
+        >
+          {loadedImages.has(currentIndex) ? (
+            <img
+              src={images[currentIndex]?.full || images[currentIndex]?.thumbnail}
+              alt={`${alt} - image ${currentIndex + 1}`}
+              className="image-carousel__image"
+            />
+          ) : (
+            <div className="image-carousel__placeholder" />
+          )}
+        </div>
       </div>
 
-      {/* Tap zones for navigation (invisible, left/right edges) */}
+      {/* Arrow buttons */}
       <button
-        className="image-carousel__tap-zone image-carousel__tap-zone--left"
+        className="image-carousel__arrow image-carousel__arrow--left"
         onClick={handlePrev}
-        onMouseEnter={() => preloadImage(currentIndex - 1)}
         aria-label="Previous image"
-      />
+      >
+        <i className="fa-solid fa-chevron-left"></i>
+      </button>
       <button
-        className="image-carousel__tap-zone image-carousel__tap-zone--right"
+        className="image-carousel__arrow image-carousel__arrow--right"
         onClick={handleNext}
-        onMouseEnter={() => preloadImage(currentIndex + 1)}
         aria-label="Next image"
-      />
+      >
+        <i className="fa-solid fa-chevron-right"></i>
+      </button>
 
       {/* Indicator Dots */}
       <div className="image-carousel__dots">

@@ -1,5 +1,5 @@
 /* ImageCarousel Styles
- * Responsive image carousel with swipe gestures and tap zones.
+ * Responsive image carousel with crossfade transitions and arrow navigation.
  */
 
 .image-carousel {
@@ -18,26 +18,50 @@
   outline-offset: 2px;
 }
 
-/* Image Track - slides horizontally */
-.image-carousel__track {
-  display: flex;
-  transition: transform 0.3s ease-out;
+/* Image container - stacked slides for crossfade */
+.image-carousel__container {
+  position: relative;
+  width: 100%;
   height: 100%;
 }
 
+/* Slides - stacked with crossfade animations */
 .image-carousel__slide {
-  flex: 0 0 100%;
-  width: 100%;
-  height: 100%;
-  overflow: hidden; /* Clip scaled image within slide bounds */
+  position: absolute;
+  inset: 0;
+}
+
+.image-carousel__slide--active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* Fade-in animation for entering slide */
+.image-carousel__slide--entering {
+  animation: carouselFadeIn var(--animation-duration) ease-out;
+}
+
+/* Fade-out animation for exiting slide */
+.image-carousel__slide--exiting {
+  opacity: 0;
+  z-index: 0;
+  animation: carouselFadeOut var(--animation-duration) ease-out;
+}
+
+@keyframes carouselFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes carouselFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .image-carousel__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
-  will-change: transform;
 }
 
 /* Placeholder while image loads */
@@ -59,28 +83,45 @@
   100% { opacity: 1; }
 }
 
-/* Tap Zones for Navigation */
-.image-carousel__tap-zone {
+/* Arrow Buttons - minimal, no background */
+.image-carousel__arrow {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   background: transparent;
   border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--text-base);
   cursor: pointer;
-  z-index: 2;
-  -webkit-tap-highlight-color: transparent;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.image-carousel__tap-zone--left {
-  left: 0;
+.image-carousel__arrow--left {
+  left: var(--space-xs);
 }
 
-.image-carousel__tap-zone--right {
-  right: 0;
+.image-carousel__arrow--right {
+  right: var(--space-xs);
 }
 
-/* Indicator Dots - always visible */
+/* Show arrows on hover */
+.image-carousel:hover .image-carousel__arrow {
+  opacity: 1;
+}
+
+.image-carousel__arrow:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Indicator Dots */
 .image-carousel__dots {
   position: absolute;
   bottom: var(--space-sm);
@@ -110,24 +151,25 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
-/* Single image mode - no dots or tap zones needed */
+/* Single image mode - no dots or arrows needed */
 .image-carousel--single .image-carousel__dots,
-.image-carousel--single .image-carousel__tap-zone {
+.image-carousel--single .image-carousel__arrow {
   display: none;
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .image-carousel__track {
-    transition: none;
-  }
-
-  .image-carousel__image {
-    transition: none;
+  .image-carousel__slide--entering,
+  .image-carousel__slide--exiting {
+    animation: none;
   }
 
   .image-carousel__placeholder {
     animation: none;
+  }
+
+  .image-carousel__arrow {
+    transition: none;
   }
 
   .image-carousel__dot {
