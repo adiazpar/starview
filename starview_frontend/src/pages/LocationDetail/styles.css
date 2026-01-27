@@ -108,7 +108,7 @@
    ============================================ */
 
 .location-detail__photos {
-  margin-top: var(--space-lg);
+  margin-top: var(--space-xl);
   animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards;
 }
 

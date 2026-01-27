@@ -4,6 +4,34 @@
  */
 
 /* ============================================
+   SECTION HEADER (Observatory Aesthetic)
+   ============================================ */
+
+.photo-mosaic__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.photo-mosaic__header span {
+  font-family: var(--font-technical);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.photo-mosaic__header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+/* ============================================
    MOSAIC GRID
    ============================================ */
 

@@ -77,8 +77,19 @@ function PhotoMosaic({ images, locationName, locationId }) {
 
   const currentImage = lightboxIndex !== null ? images[lightboxIndex] : null;
 
+  // Format photo count with threshold (show "99+" for 100+ photos)
+  const PHOTO_COUNT_THRESHOLD = 99;
+  const photoCountDisplay = images.length > PHOTO_COUNT_THRESHOLD
+    ? `${PHOTO_COUNT_THRESHOLD}+`
+    : images.length;
+
   return (
     <div className="photo-mosaic">
+      {/* Section Header */}
+      <div className="photo-mosaic__header">
+        <span>Photos ({photoCountDisplay})</span>
+      </div>
+
       {/* Mosaic Grid */}
       <div className={`photo-mosaic__grid photo-mosaic__grid--${Math.min(visibleImages.length, 5)}`}>
         {visibleImages.map((image, index) => (
