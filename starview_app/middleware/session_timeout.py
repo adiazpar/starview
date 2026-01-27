@@ -6,13 +6,15 @@
 # opportunity for unattended sessions to be exploited.                          #
 #                                                                               #
 # Configuration:                                                                #
-# - Default timeout: 30 minutes (1800 seconds)                                  #
+# - Default timeout: 2 hours (7200 seconds)                                     #
 # - Can be customized via SESSION_IDLE_TIMEOUT in settings                      #
+# - Users who check "Remember me" at login bypass idle timeout entirely         #
 #                                                                               #
 # How it works:                                                                 #
 # 1. On each request from authenticated user, checks last_activity timestamp   #
-# 2. If elapsed time > IDLE_TIMEOUT, logs out the user                          #
-# 3. Otherwise, updates last_activity to current time                           #
+# 2. If user has remember_me set, skip idle timeout check                       #
+# 3. If elapsed time > IDLE_TIMEOUT, logs out the user                          #
+# 4. Otherwise, updates last_activity to current time                           #
 # ----------------------------------------------------------------------------- #
 
 import time
@@ -24,10 +26,11 @@ class SessionIdleTimeoutMiddleware:
     """
     Middleware to log out users after period of inactivity.
     Protects against session hijacking from unattended sessions.
+    Users who check "Remember me" at login bypass this check entirely.
     """
 
-    # Default idle timeout: 30 minutes (in seconds)
-    DEFAULT_IDLE_TIMEOUT = 1800
+    # Default idle timeout: 2 hours (in seconds)
+    DEFAULT_IDLE_TIMEOUT = 7200
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -36,6 +39,10 @@ class SessionIdleTimeoutMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
+            # Skip idle timeout for users who checked "Remember me"
+            if request.session.get('remember_me'):
+                return self.get_response(request)
+
             last_activity = request.session.get('last_activity')
             now = time.time()
 

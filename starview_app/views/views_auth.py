@@ -310,6 +310,8 @@ def custom_login(request):
 
             # Handle "Remember Me" functionality
             remember_me = request.data.get('remember_me', False)
+            # Store in session so middleware can skip idle timeout for remember_me users
+            request.session['remember_me'] = remember_me
             if remember_me:
                 # Keep session for 30 days (2,592,000 seconds)
                 request.session.set_expiry(2592000)
