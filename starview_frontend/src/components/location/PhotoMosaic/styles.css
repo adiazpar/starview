@@ -157,52 +157,50 @@ a.photo-mosaic__attribution:hover {
   text-overflow: ellipsis;
 }
 
-/* Lightbox overlay layout - four corners grid */
-.photo-mosaic__overlay--lightbox {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  align-items: start;
-  justify-items: start;
+/* ============================================
+   LIGHTBOX CONTROL BARS
+   ============================================ */
+
+.photo-mosaic__lightbox-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Show bars on hover over the image */
+.photo-mosaic__lightbox-content:hover .photo-mosaic__lightbox-bar {
+  opacity: 1;
   pointer-events: auto;
+}
+
+.photo-mosaic__lightbox-bar--top {
+  top: 0;
+  padding-top: var(--space-lg);
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.6) 0%,
-    rgba(0, 0, 0, 0.2) 20%,
-    transparent 40%,
-    transparent 60%,
-    rgba(0, 0, 0, 0.2) 80%,
-    rgba(0, 0, 0, 0.6) 100%
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
   );
 }
 
-/* Position items in grid corners */
-.photo-mosaic__overlay--lightbox .photo-mosaic__date {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  justify-self: start;
-}
-
-.photo-mosaic__overlay--lightbox .photo-mosaic__action--close {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
-  justify-self: end;
-}
-
-.photo-mosaic__overlay--lightbox .photo-mosaic__attribution {
-  grid-column: 1;
-  grid-row: 2;
-  align-self: end;
-  justify-self: start;
-}
-
-.photo-mosaic__overlay--lightbox .photo-mosaic__action--vote {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-  justify-self: end;
+.photo-mosaic__lightbox-bar--bottom {
+  bottom: 0;
+  padding-bottom: var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
+  );
 }
 
 /* ============================================
@@ -310,6 +308,15 @@ a.photo-mosaic__attribution:hover {
   to { opacity: 1; }
 }
 
+@keyframes photoMosaicFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.photo-mosaic__lightbox--closing {
+  animation: photoMosaicFadeOut var(--animation-duration) ease forwards;
+}
+
 .photo-mosaic__lightbox-content {
   position: relative;
   max-width: 90vw;
@@ -364,6 +371,41 @@ a.photo-mosaic__attribution:hover {
   .photo-mosaic__username {
     font-size: var(--text-xs);
   }
+
+  /* Mobile Lightbox - Edge to edge with always-visible controls */
+  .photo-mosaic__lightbox {
+    background: #000;
+  }
+
+  .photo-mosaic__lightbox-content {
+    position: relative;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
+  .photo-mosaic__lightbox-content > img {
+    max-width: 100vw;
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 0;
+  }
+
+  /* Control bars fixed to viewport, always visible on mobile */
+  .photo-mosaic__lightbox-bar {
+    position: fixed;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .photo-mosaic__lightbox-bar--top {
+    padding-top: max(var(--space-lg), env(safe-area-inset-top));
+  }
+
+  .photo-mosaic__lightbox-bar--bottom {
+    padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
+  }
 }
 
 /* ============================================
@@ -372,11 +414,13 @@ a.photo-mosaic__attribution:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .photo-mosaic__lightbox,
-  .photo-mosaic__lightbox-content {
+  .photo-mosaic__lightbox-content,
+  .photo-mosaic__lightbox--closing {
     animation: none;
   }
 
-  .photo-mosaic__overlay {
+  .photo-mosaic__overlay,
+  .photo-mosaic__lightbox-bar {
     transition: none;
   }
 }

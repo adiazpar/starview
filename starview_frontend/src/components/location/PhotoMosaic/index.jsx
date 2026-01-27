@@ -19,21 +19,29 @@ function formatUploadDate(dateString) {
 
 function PhotoMosaic({ images, locationName, locationId }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
   const lightboxRef = useRef(null);
   const { requireAuth } = useRequireAuth();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(locationId);
 
   const openLightbox = useCallback((index) => {
     setLightboxIndex(index);
+    setIsClosing(false);
   }, []);
 
   const closeLightbox = useCallback(() => {
-    setLightboxIndex(null);
-    // Clear any lingering hover/focus state on mobile
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  }, []);
+    if (isClosing) return;
+    setIsClosing(true);
+    // Wait for fade-out animation to complete
+    setTimeout(() => {
+      setLightboxIndex(null);
+      setIsClosing(false);
+      // Clear any lingering hover/focus state on mobile
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }, 200); // Match --animation-duration (0.2s)
+  }, [isClosing]);
 
   const handleVote = useCallback((e, photoId) => {
     e.stopPropagation();
@@ -117,29 +125,39 @@ function PhotoMosaic({ images, locationName, locationId }) {
       {lightboxIndex !== null && currentImage && (
         <div
           ref={lightboxRef}
-          className="photo-mosaic__lightbox"
+          className={`photo-mosaic__lightbox ${isClosing ? 'photo-mosaic__lightbox--closing' : ''}`}
           onClick={closeLightbox}
           tabIndex={-1}
           role="dialog"
           aria-modal="true"
           aria-label="Photo lightbox"
         >
+          {/* Image container with overlay bars */}
           <div className="photo-mosaic__lightbox-content" onClick={(e) => e.stopPropagation()}>
             <img
               src={currentImage.full || currentImage.thumbnail}
               alt={`${locationName} photo ${lightboxIndex + 1}`}
             />
 
-            {/* Hover Overlay with User Attribution and Vote Button */}
-            <div className="photo-mosaic__overlay photo-mosaic__overlay--lightbox">
-              {/* Upload Date (top left) */}
+            {/* Top Bar - date and close button */}
+            <div className="photo-mosaic__lightbox-bar photo-mosaic__lightbox-bar--top">
               {currentImage.uploaded_at && (
                 <div className="photo-mosaic__date">
                   <span className="photo-mosaic__date-label">Uploaded</span>
                   <span className="photo-mosaic__date-value">{formatUploadDate(currentImage.uploaded_at)}</span>
                 </div>
               )}
-              {/* Attribution (left side) */}
+              <button
+                className="photo-mosaic__action photo-mosaic__action--close"
+                onClick={closeLightbox}
+                aria-label="Close lightbox"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            {/* Bottom Bar - attribution and vote button */}
+            <div className="photo-mosaic__lightbox-bar photo-mosaic__lightbox-bar--bottom">
               {currentImage.uploaded_by && (
                 currentImage.uploaded_by.is_system_account ? (
                   <div className="photo-mosaic__attribution">
@@ -171,17 +189,6 @@ function PhotoMosaic({ images, locationName, locationId }) {
                   </Link>
                 )
               )}
-
-              {/* Close button (top right) */}
-              <button
-                className="photo-mosaic__action photo-mosaic__action--close"
-                onClick={closeLightbox}
-                aria-label="Close lightbox"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-
-              {/* Vote Button (bottom right) */}
               {locationId && (
                 <button
                   className={`photo-mosaic__action photo-mosaic__action--vote ${currentImage.user_has_upvoted ? 'photo-mosaic__action--active' : ''}`}
