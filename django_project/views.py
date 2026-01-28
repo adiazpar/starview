@@ -407,6 +407,23 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /accounts/
 
+# Block non-existent language prefix URLs (Google discovers these externally)
+Disallow: /en/
+Disallow: /es/
+Disallow: /fr/
+Disallow: /no/
+Disallow: /zh/
+Disallow: /de/
+Disallow: /it/
+Disallow: /pt/
+Disallow: /ja/
+Disallow: /ko/
+Disallow: /ru/
+Disallow: /ar/
+
+# Block legacy/removed pages
+Disallow: /map
+
 # Block auth and utility pages (no search value)
 Disallow: /login
 Disallow: /register
