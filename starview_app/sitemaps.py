@@ -135,6 +135,6 @@ class UserProfileSitemap(CanonicalSitemap):
 # Dictionary of all sitemaps for use in urls.py
 sitemaps = {
     'static': StaticViewSitemap,
-    'users': UserProfileSitemap,
+    # 'users': UserProfileSitemap,  # Disabled - profiles excluded from indexing
     # 'locations': LocationSitemap,  # Uncomment when location pages exist
 }

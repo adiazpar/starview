@@ -410,6 +410,7 @@ Disallow: /accounts/
 # Block auth and utility pages (no search value)
 Disallow: /login
 Disallow: /register
+Disallow: /users/
 Disallow: /signup
 Disallow: /forgot-password
 Disallow: /reset-password
