@@ -275,11 +275,54 @@ function LocationGalleryPage() {
             <h3>No photos yet</h3>
             <p>Be the first to share a photo of {location.name}</p>
           </div>
+        ) : transformedPhotos.length < 3 ? (
+          /* Simple grid for 1-2 photos to avoid oversized display */
+          <div className="location-gallery__sparse-grid">
+            {transformedPhotos.map((photo) => (
+              <button
+                key={photo.id}
+                className="location-gallery__photo location-gallery__photo--sparse"
+                onClick={() => openLightbox(photo.index)}
+                style={{ '--photo-index': photo.index % PAGE_SIZE }}
+                aria-label={`View photo ${photo.index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
+              >
+                <img
+                  src={photo.src}
+                  alt={`${location.name} photo ${photo.index + 1}`}
+                />
+
+                {/* Hover Overlay with User Attribution */}
+                {photo.uploaded_by && (
+                  <div className="location-gallery__photo-overlay">
+                    <div className="location-gallery__photo-attribution">
+                      <img
+                        src={photo.uploaded_by.profile_picture}
+                        alt=""
+                        className="location-gallery__photo-avatar"
+                      />
+                      <div className="location-gallery__photo-user-info">
+                        <span className="location-gallery__photo-username">@{photo.uploaded_by.username}</span>
+                        <span className="location-gallery__photo-display-name">{photo.uploaded_by.display_name}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vote count badge */}
+                {photo.upvote_count > 0 && (
+                  <span className="location-gallery__photo-votes">
+                    <i className="fa-solid fa-heart"></i>
+                    {photo.upvote_count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         ) : (
           <RowsPhotoAlbum
             photos={transformedPhotos}
             targetRowHeight={200}
-            rowConstraints={{ minPhotos: 2, maxPhotos: 5 }}
+            rowConstraints={{ minPhotos: 1, maxPhotos: 5 }}
             spacing={8}
             render={{
               image: (props, { photo, width, height }) => (
