@@ -43,6 +43,7 @@ from .throttles import (
     ContentCreationThrottle,
     VoteThrottle,
     ReportThrottle,
+    DirectionsThrottle,
 )
 
 # Import cache utilities
@@ -99,6 +100,7 @@ __all__ = [
     'ContentCreationThrottle',
     'VoteThrottle',
     'ReportThrottle',
+    'DirectionsThrottle',
 
     # Cache utilities
     'location_list_key',

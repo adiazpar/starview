@@ -1,35 +1,28 @@
 /**
  * ScrollToTop Component
  *
- * Handles scroll position on navigation:
- * - Scrolls to top on page refresh
- * - Scrolls to top on forward navigation (clicking links)
- * - Preserves scroll position on browser back/forward buttons
+ * Scrolls to top on every route change.
+ * Disables browser's native scroll restoration which doesn't work
+ * reliably with SPAs due to async content loading.
  */
 
-import { useEffect, useRef } from 'react';
-import { useLocation, useNavigationType } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
-  const navigationType = useNavigationType();
-  const isFirstMount = useRef(true);
 
+  // Disable browser's native scroll restoration
   useEffect(() => {
-    // On first mount (page refresh), always scroll to top
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      window.scrollTo(0, 0);
-      return;
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
     }
+  }, []);
 
-    // On subsequent navigations:
-    // - PUSH/REPLACE (clicking links): scroll to top
-    // - POP (browser back/forward): let browser handle scroll restoration
-    if (navigationType !== 'POP') {
-      window.scrollTo(0, 0);
-    }
-  }, [pathname, navigationType]);
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   return null;
 }

@@ -60,8 +60,9 @@ SITE_NAME = "Starview"
 
 # Use Redis for session storage (better performance than database sessions)
 # Sessions are cached in Redis and expire automatically
+# Note: Flushing Redis db 1 will log out all users (clear cache.clear() with caution)
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'  # Use default Redis cache
+SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
 
 # Cookie security flags (always enabled for both dev and production)
@@ -574,19 +575,17 @@ REST_FRAMEWORK = {
     'ALLOWED_VERSIONS': ['v1'],
     'VERSION_PARAM': 'version',
 
-    # Throttling (Phase 1: Rate limiting)
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
+    # Throttling - Applied explicitly to sensitive endpoints only
+    # Browsing (GET requests) is NOT throttled to allow natural site usage
+    # See starview_app/utils/throttles.py for throttle class implementations
+    'DEFAULT_THROTTLE_CLASSES': [],  # No global throttling - apply per-endpoint
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',             # Anonymous users
-        'user': '1000/hour',            # Authenticated users
-        'login': '5/minute',            # Login attempts (brute force prevention)
+        'login': '5/minute',            # Login/register attempts (brute force prevention)
         'password_reset': '3/hour',     # Password reset requests (prevents email bombing)
-        'content_creation': '20/hour',  # Create locations/reviews/comments
-        'vote': '60/hour',              # Upvotes/downvotes
+        'content_creation': '30/hour',  # Create locations/reviews/comments
+        'vote': '120/hour',             # Upvotes/downvotes (2 per minute)
         'report': '10/hour',            # Content reports
+        'directions': '30/hour',        # Directions API proxy (protects external API quota)
     },
 
     # Exception handling:
@@ -707,6 +706,11 @@ CORS_ALLOW_HEADERS = [
 # Using Redis for both development and production (Django 4.0+ native support)
 # Development: Local Redis via Homebrew (redis://127.0.0.1:6379/1)
 # Production: Render Redis service (set REDIS_URL in environment variables)
+#
+# Redis database allocation:
+# - db 0: Celery broker/results (task queue)
+# - db 1: API cache + sessions + rate limiting
+# Note: Flushing db 1 will log out all users and reset rate limits
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',

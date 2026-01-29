@@ -138,3 +138,21 @@ class VoteThrottle(UserRateThrottle):
 # ----------------------------------------------------------------------------- #
 class ReportThrottle(UserRateThrottle):
     scope = 'report'
+
+
+# ----------------------------------------------------------------------------- #
+# DirectionsThrottle                                                            #
+#                                                                               #
+# Prevents abuse of the directions API proxy which calls external paid services.#
+# Rate: 30/hour (enough for legitimate use, protects API quota)                 #
+#                                                                               #
+# Applied to:                                                                   #
+# - /api/directions/ (OpenRouteService proxy)                                   #
+#                                                                               #
+# Why 30/hour:                                                                  #
+# - Most users request 1-5 directions per session                               #
+# - 30/hour allows power users planning multiple routes                         #
+# - Protects against API quota abuse                                            #
+# ----------------------------------------------------------------------------- #
+class DirectionsThrottle(AnonRateThrottle):
+    scope = 'directions'
