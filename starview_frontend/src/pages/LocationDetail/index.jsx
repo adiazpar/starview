@@ -247,7 +247,7 @@ function LocationDetailPage() {
         {/* Photo Gallery - Spans full width */}
         {location.images?.length > 0 && (
           <div className="location-detail__photos">
-            <PhotoMosaic images={location.images} locationName={location.name} locationId={location.id} />
+            <PhotoMosaic images={location.images} locationName={location.name} locationId={location.id} photoCount={location.photo_count} />
           </div>
         )}
 

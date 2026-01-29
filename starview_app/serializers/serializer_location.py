@@ -186,6 +186,31 @@ def get_images_with_votes(obj, request):
     return all_photos[:5]
 
 
+def get_total_photo_count(obj):
+    """
+    Return total count of photos for a location (LocationPhoto + ReviewPhoto).
+    Uses prefetched data if available for efficiency.
+    """
+    # Count location photos
+    if hasattr(obj, 'prefetched_location_photos'):
+        loc_count = len(obj.prefetched_location_photos)
+    else:
+        loc_count = obj.photos.count()
+
+    # Count review photos
+    rev_count = 0
+    if hasattr(obj, 'prefetched_reviews'):
+        for review in obj.prefetched_reviews:
+            if hasattr(review, 'prefetched_photos'):
+                rev_count += len(review.prefetched_photos)
+            else:
+                rev_count += review.photos.count()
+    else:
+        from ..models import ReviewPhoto
+        rev_count = ReviewPhoto.objects.filter(review__location=obj).count()
+
+    return loc_count + rev_count
+
 
 # ----------------------------------------------------------------------------- #
 # Full location serializer with nested reviews (for detail view).               #
@@ -218,6 +243,7 @@ class LocationSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    photo_count = serializers.SerializerMethodField()
 
 
     class Meta:
@@ -228,7 +254,7 @@ class LocationSerializer(serializers.ModelSerializer):
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited', 'is_visited',
-                  'reviews', 'average_rating', 'review_count', 'images',
+                  'reviews', 'average_rating', 'review_count', 'images', 'photo_count',
 
                   # Verification fields:
                   'is_verified', 'verification_date', 'verified_by',
@@ -316,6 +342,9 @@ class LocationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return get_images_with_votes(obj, request)
 
+    def get_photo_count(self, obj):
+        """Return total count of photos (LocationPhoto + ReviewPhoto)."""
+        return get_total_photo_count(obj)
 
 
 # ----------------------------------------------------------------------------- #

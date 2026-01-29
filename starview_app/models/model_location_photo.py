@@ -2,15 +2,15 @@
 # This model_location_photo.py file defines the LocationPhoto model:                                   #
 #                                                                                                       #
 # Purpose:                                                                                              #
-# Manages photo attachments uploaded by location creators with automatic image processing, thumbnail    #
-# generation, and validation. Each location can have up to 5 photos organized by display order.        #
+# Manages photo attachments uploaded by users with automatic image processing, thumbnail generation,   #
+# and validation. Photos are organized by display order and sorted by upvotes in the gallery.          #
 #                                                                                                       #
 # Key Features:                                                                                         #
 # - User attribution: Tracks who uploaded each photo via uploaded_by field                             #
 # - Automatic image optimization: Resizes to max 1920x1920, converts to JPEG, optimizes quality        #
 # - Thumbnail generation: Creates 300x300 thumbnails automatically                                     #
 # - Organized storage: Photos stored in location_photos/{location_id}/ hierarchy                       #
-# - Validation: Enforces 5 photo maximum per location                                                  #
+# - Voting: Photos can receive upvotes from users via generic Vote relation                            #
 # - Auto-ordering: Automatically assigns display order if not specified                                #
 # - UUID filenames: Generates unique filenames to prevent collisions                                   #
 # ----------------------------------------------------------------------------------------------------- #
@@ -19,7 +19,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.validators import ValidationError
 import os
 import io
 import logging
@@ -48,7 +47,7 @@ def location_thumbnail_path(instance, filename):
 
 
 class LocationPhoto(models.Model):
-    """Photos uploaded by location creators for display in location card carousels."""
+    """Photos uploaded by users for display in location galleries and card carousels."""
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -88,15 +87,7 @@ class LocationPhoto(models.Model):
     def __str__(self):
         return f"Photo {self.order + 1} for {self.location.name}"
 
-    def clean(self):
-        """Validates that location doesn't exceed 5 photo maximum."""
-        if self.location_id:
-            existing_count = LocationPhoto.objects.filter(location_id=self.location_id).exclude(pk=self.pk).count()
-            if existing_count >= 5:
-                raise ValidationError("A location can have a maximum of 5 photos.")
-
     def save(self, *args, **kwargs):
-        self.full_clean()
 
         # Process image if it's new or changed
         if self.image and (not self.pk or 'image' in kwargs.get('update_fields', [])):

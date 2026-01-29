@@ -40,6 +40,7 @@
   gap: var(--space-sm);
   border-radius: var(--radius);
   overflow: hidden;
+  max-height: 800px;
 }
 
 /* Grid Layouts by Image Count */
@@ -78,13 +79,18 @@
   grid-row: 1 / 3;
 }
 
+
+/* Hide See All card on desktop */
+.photo-mosaic__item--see-all {
+  display: none;
+}
+
 /* ============================================
    GRID ITEMS
    ============================================ */
 
 .photo-mosaic__item {
   position: relative;
-  aspect-ratio: 4 / 3;
   padding: 0;
   border: none;
   border-radius: 0;
@@ -93,9 +99,6 @@
   background: var(--bg-elevated);
 }
 
-.photo-mosaic__item--1 {
-  aspect-ratio: auto;
-}
 
 .photo-mosaic__item > img {
   width: 100%;
@@ -317,6 +320,45 @@ a.photo-mosaic__attribution:hover {
 }
 
 /* ============================================
+   FOOTER LINK (Desktop)
+   ============================================ */
+
+.photo-mosaic__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.photo-mosaic__link {
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--animation-duration) ease;
+}
+
+.photo-mosaic__link:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================
+   SEE ALL PHOTOS CARD (Mobile)
+   ============================================ */
+
+.photo-mosaic__item--see-all span {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  transition: color var(--animation-duration) ease;
+}
+
+.photo-mosaic__item--see-all:hover span {
+  color: var(--text-primary);
+}
+
+/* ============================================
    LIGHTBOX
    ============================================ */
 
@@ -382,6 +424,8 @@ a.photo-mosaic__attribution:hover {
    ============================================ */
 
 @media (max-width: 768px) {
+  .photo-mosaic__grid--1,
+  .photo-mosaic__grid--2,
   .photo-mosaic__grid--3,
   .photo-mosaic__grid--4,
   .photo-mosaic__grid--5 {
@@ -389,11 +433,37 @@ a.photo-mosaic__attribution:hover {
     grid-template-rows: auto;
   }
 
+  .photo-mosaic__grid--1 .photo-mosaic__item--1,
+  .photo-mosaic__grid--2 .photo-mosaic__item--1,
   .photo-mosaic__grid--3 .photo-mosaic__item--1,
   .photo-mosaic__grid--4 .photo-mosaic__item--1,
   .photo-mosaic__grid--5 .photo-mosaic__item--1 {
     grid-row: auto;
     grid-column: 1 / 3;
+  }
+
+  /* Hide footer link on mobile */
+  .photo-mosaic__footer {
+    display: none;
+  }
+
+  /* Show See All card on mobile */
+  .photo-mosaic__item--see-all {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    grid-column: 1 / -1;
+    aspect-ratio: 5 / 1;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    text-decoration: none;
+  }
+
+  .photo-mosaic__item--see-all:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
   }
 
   .photo-mosaic__username {

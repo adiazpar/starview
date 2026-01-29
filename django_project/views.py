@@ -205,6 +205,7 @@ VALID_REACT_ROUTES = [
     r'^users/[^/]+/?$',                             # Public profile: /users/:username
     r'^explore/?$',                                 # Explore: /explore
     r'^locations/\d+/?$',                           # Location detail: /locations/:id
+    r'^locations/\d+/photos/?$',                    # Location gallery: /locations/:id/photos
     r'^sky/?$',                                     # Sky hub: /sky
     r'^tonight/?$',                                 # Tonight's conditions: /tonight
     r'^bortle/?$',                                  # Bortle scale guide: /bortle

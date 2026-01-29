@@ -28,6 +28,7 @@ const AccessibilityPage = lazy(() => import('./pages/Accessibility'));
 const CCPAPage = lazy(() => import('./pages/CCPA'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 const LocationDetailPage = lazy(() => import('./pages/LocationDetail'));
+const LocationGalleryPage = lazy(() => import('./pages/LocationGallery'));
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/users/:username" element={<PublicProfilePage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/locations/:id" element={<LocationDetailPage />} />
+          <Route path="/locations/:id/photos" element={<LocationGalleryPage />} />
           <Route path="/sky" element={<SkyPage />} />
           <Route path="/tonight" element={<TonightPage />} />
           <Route path="/bortle" element={<BortlePage />} />

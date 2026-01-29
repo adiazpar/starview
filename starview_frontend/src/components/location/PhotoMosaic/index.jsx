@@ -17,7 +17,7 @@ function formatUploadDate(dateString) {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-function PhotoMosaic({ images, locationName, locationId }) {
+function PhotoMosaic({ images, locationName, locationId, photoCount }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
   const lightboxRef = useRef(null);
@@ -73,15 +73,17 @@ function PhotoMosaic({ images, locationName, locationId }) {
 
   // Show up to 5 images in mosaic, rest in lightbox
   const visibleImages = images.slice(0, 5);
-  const remainingCount = images.length - 5;
+  // Use photoCount prop for total count, fallback to images.length
+  const totalCount = photoCount ?? images.length;
+  const remainingCount = totalCount - visibleImages.length;
 
   const currentImage = lightboxIndex !== null ? images[lightboxIndex] : null;
 
   // Format photo count with threshold (show "99+" for 100+ photos)
   const PHOTO_COUNT_THRESHOLD = 99;
-  const photoCountDisplay = images.length > PHOTO_COUNT_THRESHOLD
+  const photoCountDisplay = totalCount > PHOTO_COUNT_THRESHOLD
     ? `${PHOTO_COUNT_THRESHOLD}+`
-    : images.length;
+    : totalCount;
 
   return (
     <div className="photo-mosaic">
@@ -97,7 +99,7 @@ function PhotoMosaic({ images, locationName, locationId }) {
             key={image.id}
             className={`photo-mosaic__item photo-mosaic__item--${index + 1}`}
             onClick={() => openLightbox(index)}
-            aria-label={`View photo ${index + 1} of ${images.length}${image.uploaded_by ? ` by ${image.uploaded_by.display_name}` : ''}`}
+            aria-label={`View photo ${index + 1} of ${totalCount}${image.uploaded_by ? ` by ${image.uploaded_by.display_name}` : ''}`}
           >
             <img
               src={image.full || image.thumbnail}
@@ -130,6 +132,18 @@ function PhotoMosaic({ images, locationName, locationId }) {
             )}
           </button>
         ))}
+
+        {/* See All Photos Card (Mobile only) */}
+        <Link to={`/locations/${locationId}/photos`} className="photo-mosaic__item photo-mosaic__item--see-all">
+          <span>See all photos</span>
+        </Link>
+      </div>
+
+      {/* See All Photos Link (Desktop only) */}
+      <div className="photo-mosaic__footer">
+        <Link to={`/locations/${locationId}/photos`} className="photo-mosaic__link">
+          See all photos
+        </Link>
       </div>
 
       {/* Lightbox */}
