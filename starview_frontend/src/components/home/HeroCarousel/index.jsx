@@ -8,45 +8,14 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { locationsApi } from '../../../services/locations';
+import { useHeroCarousel } from '../../../hooks/useHeroCarousel';
 import './styles.css';
 
 const SLIDE_DURATION = 12000; // 12 seconds per slide
 
 function HeroCarousel() {
-  const [images, setImages] = useState([]);
+  const { images, isLoading, isReady } = useHeroCarousel();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false); // True when first image is loaded
-
-  // Fetch carousel images on mount
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const response = await locationsApi.getHeroCarousel();
-        if (response.data && response.data.length > 0) {
-          setImages(response.data);
-
-          // Preload the first image before showing carousel
-          const firstImage = new Image();
-          firstImage.onload = () => {
-            setIsReady(true);
-          };
-          firstImage.onerror = () => {
-            // Still show carousel even if first image fails
-            setIsReady(true);
-          };
-          firstImage.src = response.data[0].image_url;
-        }
-      } catch (error) {
-        console.error('Failed to fetch hero carousel images:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, []);
 
   // Auto-advance slides
   useEffect(() => {
