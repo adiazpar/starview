@@ -1,9 +1,11 @@
 /* LocationHero Component
  * Full-bleed hero image with gradient overlay and location title.
  * Includes back navigation and share/save/visited actions.
+ * Photos are passed as props from parent (fetched at page level for combined loading).
  *
  * Props:
  * - location: Location object with all details
+ * - photos: Array of photo objects from useLocationPhotos hook
  * - onBack: Callback for back button
  * - ref: Ref to attach to the hero element for scroll detection
  * - isFavorited: Whether location is favorited
@@ -13,7 +15,7 @@
  * - onShare: Callback for share action
  */
 
-import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
+import { useState, useRef, useCallback, useEffect, forwardRef, useMemo } from 'react';
 import './styles.css';
 
 // Placeholder for locations without photos
@@ -21,6 +23,7 @@ const PLACEHOLDER_IMAGE = '/images/default_location.jpg';
 
 const LocationHero = forwardRef(function LocationHero({
   location,
+  photos = [],
   onBack,
   isFavorited,
   isVisited,
@@ -36,10 +39,18 @@ const LocationHero = forwardRef(function LocationHero({
   // Track preloaded images
   const preloadedRef = useRef(new Set([0]));
 
-  // Get all images or fallback to placeholder
-  const images = location.images?.length > 0
-    ? location.images
-    : [{ id: 'placeholder', full: PLACEHOLDER_IMAGE, thumbnail: PLACEHOLDER_IMAGE }];
+  // Transform API response to match expected format
+  // Photos are passed from parent - use placeholder if none provided
+  const images = useMemo(() => {
+    if (photos.length === 0) {
+      return [{ id: 'placeholder', full: PLACEHOLDER_IMAGE, thumbnail: PLACEHOLDER_IMAGE }];
+    }
+    return photos.map((photo) => ({
+      id: photo.id,
+      thumbnail: photo.thumbnail_url,
+      full: photo.image_url,
+    }));
+  }, [photos]);
 
   const totalImages = images.length;
   const hasMultiple = totalImages > 1;
@@ -118,10 +129,8 @@ const LocationHero = forwardRef(function LocationHero({
         </button>
       )}
 
-      {/* Hero Image Carousel - Crossfade (lazy loaded) */}
+      {/* Hero Image Carousel - Crossfade */}
       <div className="location-hero__image-container">
-        {/* Only render exiting + current images (max 2 in DOM) */}
-
         {/* Exiting image - fading out */}
         {exitingIndex !== null && (
           <div

@@ -242,9 +242,7 @@ class LocationSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)  # ⚠️ Returns ALL reviews - see warning above
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
-    images = serializers.SerializerMethodField()
-    photo_count = serializers.SerializerMethodField()
-
+    # Note: images and photo_count removed - PhotoMosaic now fetches from /photos/ endpoint
 
     class Meta:
         model = Location
@@ -254,7 +252,7 @@ class LocationSerializer(serializers.ModelSerializer):
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited', 'is_visited',
-                  'reviews', 'average_rating', 'review_count', 'images', 'photo_count',
+                  'reviews', 'average_rating', 'review_count',
 
                   # Verification fields:
                   'is_verified', 'verification_date', 'verified_by',
@@ -337,14 +335,7 @@ class LocationSerializer(serializers.ModelSerializer):
             }
         return None
 
-    def get_images(self, obj):
-        """Return up to 5 images sorted by upvotes, with user attribution and vote data."""
-        request = self.context.get('request')
-        return get_images_with_votes(obj, request)
-
-    def get_photo_count(self, obj):
-        """Return total count of photos (LocationPhoto + ReviewPhoto)."""
-        return get_total_photo_count(obj)
+    # Note: get_images and get_photo_count removed - PhotoMosaic now fetches from /photos/ endpoint
 
 
 # ----------------------------------------------------------------------------- #

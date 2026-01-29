@@ -1,6 +1,7 @@
 /* PhotoMosaic Styles
  * Asymmetric grid layout for editorial feel.
- * Modal lightbox with hover attribution overlay.
+ * Hover attribution overlay on grid items.
+ * Uses shared PhotoLightbox component for modal.
  */
 
 /* ============================================
@@ -129,14 +130,8 @@
   pointer-events: none;
 }
 
-.photo-mosaic__item:hover .photo-mosaic__overlay,
-.photo-mosaic__lightbox-content:hover .photo-mosaic__overlay {
+.photo-mosaic__item:hover .photo-mosaic__overlay {
   opacity: 1;
-}
-
-/* Enable pointer events on attribution link inside lightbox */
-.photo-mosaic__lightbox-content .photo-mosaic__overlay a {
-  pointer-events: auto;
 }
 
 /* Attribution Row */
@@ -189,117 +184,9 @@ a.photo-mosaic__attribution:hover {
 }
 
 /* ============================================
-   LIGHTBOX CONTROL BARS
+   MORE PHOTOS OVERLAY
    ============================================ */
 
-.photo-mosaic__lightbox-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-md) var(--space-lg);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 10;
-}
-
-/* Show bars on hover over the image */
-.photo-mosaic__lightbox-content:hover .photo-mosaic__lightbox-bar {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.photo-mosaic__lightbox-bar--top {
-  top: 0;
-  padding-top: var(--space-lg);
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.6) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
-    transparent 100%
-  );
-}
-
-.photo-mosaic__lightbox-bar--bottom {
-  bottom: 0;
-  padding-bottom: var(--space-lg);
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.6) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
-    transparent 100%
-  );
-}
-
-/* ============================================
-   ACTION BUTTON (matches ExploreMap control buttons)
-   ============================================ */
-
-.photo-mosaic__action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  background: var(--navbar-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-size: var(--text-base);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-/* Expand width when showing vote count */
-.photo-mosaic__action:has(.photo-mosaic__vote-count) {
-  width: auto;
-  padding: 0 var(--space-sm);
-  gap: var(--space-xs);
-}
-
-.photo-mosaic__action:hover {
-  color: var(--text-primary);
-  border-color: var(--text-muted);
-}
-
-.photo-mosaic__action:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.photo-mosaic__action--active {
-  color: var(--favorite);
-  border-color: var(--favorite);
-}
-
-.photo-mosaic__action--active:hover {
-  color: var(--favorite-hover);
-  border-color: var(--favorite-hover);
-}
-
-.photo-mosaic__action--active i {
-  animation: photoMosaicThumbPop 0.3s ease;
-}
-
-@keyframes photoMosaicThumbPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
-}
-
-.photo-mosaic__vote-count {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  min-width: 1ch;
-}
-
-/* More Photos Overlay */
 .photo-mosaic__more {
   position: absolute;
   inset: 0;
@@ -359,67 +246,6 @@ a.photo-mosaic__attribution:hover {
 }
 
 /* ============================================
-   LIGHTBOX
-   ============================================ */
-
-.photo-mosaic__lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal, 1000);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.9);
-  animation: photoMosaicFadeIn var(--animation-duration) ease;
-}
-
-@keyframes photoMosaicFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes photoMosaicFadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-.photo-mosaic__lightbox--closing {
-  animation: photoMosaicFadeOut var(--animation-duration) ease forwards;
-}
-
-.photo-mosaic__lightbox-content {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  animation: photoMosaicFadeIn var(--animation-duration) ease;
-}
-
-.photo-mosaic__lightbox-content > img {
-  display: block;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: var(--radius);
-}
-
-/* Upload Date */
-.photo-mosaic__date {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-}
-
-.photo-mosaic__date-label,
-.photo-mosaic__date-value {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  line-height: var(--leading-tight);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* ============================================
    MOBILE ADJUSTMENTS
    ============================================ */
 
@@ -469,41 +295,6 @@ a.photo-mosaic__attribution:hover {
   .photo-mosaic__username {
     font-size: var(--text-xs);
   }
-
-  /* Mobile Lightbox - Edge to edge with always-visible controls */
-  .photo-mosaic__lightbox {
-    background: #000;
-  }
-
-  .photo-mosaic__lightbox-content {
-    position: relative;
-    max-width: 100vw;
-    max-height: 100vh;
-  }
-
-  .photo-mosaic__lightbox-content > img {
-    max-width: 100vw;
-    max-height: 100vh;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    border-radius: 0;
-  }
-
-  /* Control bars fixed to viewport, always visible on mobile */
-  .photo-mosaic__lightbox-bar {
-    position: fixed;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .photo-mosaic__lightbox-bar--top {
-    padding-top: max(var(--space-lg), env(safe-area-inset-top));
-  }
-
-  .photo-mosaic__lightbox-bar--bottom {
-    padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
-  }
 }
 
 /* ============================================
@@ -511,14 +302,7 @@ a.photo-mosaic__attribution:hover {
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .photo-mosaic__lightbox,
-  .photo-mosaic__lightbox-content,
-  .photo-mosaic__lightbox--closing {
-    animation: none;
-  }
-
-  .photo-mosaic__overlay,
-  .photo-mosaic__lightbox-bar {
+  .photo-mosaic__overlay {
     transition: none;
   }
 }

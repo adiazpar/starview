@@ -6,6 +6,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLocation, useToggleFavorite, useToggleVisited } from '../../hooks/useLocations';
+import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { useSEO } from '../../hooks/useSEO';
 import { useNavbarExtension } from '../../contexts/NavbarExtensionContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -19,12 +20,19 @@ import CommunityStats from '../../components/location/CommunityStats';
 import LocationMap from '../../components/location/LocationMap';
 import ReviewSection from '../../components/location/ReviewSection';
 import RatingSummary from '../../components/location/RatingSummary';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 function LocationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { location, isLoading, isError, error } = useLocation(id);
+  const { location, isLoading: locationLoading, isError, error } = useLocation(id);
+
+  // Fetch hero photos (top 5 most upvoted) - shares cache with PhotoMosaic via React Query
+  const { photos: heroPhotos, isLoading: photosLoading } = useLocationPhotos(id, 'most_upvoted', 5);
+
+  // Combined loading state - wait for both location AND photos before rendering
+  const isLoading = locationLoading || photosLoading;
   const { setLocationExtension, updateLocationExtension, setExtensionVisible } = useNavbarExtension();
   const { showToast } = useToast();
   const { requireAuth } = useRequireAuth();
@@ -186,9 +194,9 @@ function LocationDetailPage() {
     updateLocationExtension,
   ]);
 
-  // Loading state - return empty container with min-height to prevent layout shift
+  // Loading state - fills viewport to prevent layout jump
   if (isLoading) {
-    return <div className="location-detail location-detail--loading" />;
+    return <LoadingSpinner size="lg" fullPage />;
   }
 
   // Error state
@@ -218,6 +226,7 @@ function LocationDetailPage() {
       <LocationHero
         ref={heroRef}
         location={location}
+        photos={heroPhotos}
         onBack={handleBack}
         isFavorited={isFavorited}
         isVisited={isVisited}
@@ -244,12 +253,10 @@ function LocationDetailPage() {
           {/* Content here will show on desktop, move to mobile-sections for mobile */}
         </aside>
 
-        {/* Photo Gallery - Spans full width */}
-        {location.images?.length > 0 && (
-          <div className="location-detail__photos">
-            <PhotoMosaic images={location.images} locationName={location.name} locationId={location.id} photoCount={location.photo_count} />
-          </div>
-        )}
+        {/* Photo Mosaic - fetches its own photos from dedicated endpoint */}
+        <div className="location-detail__photos">
+          <PhotoMosaic locationName={location.name} locationId={location.id} />
+        </div>
 
         {/* Mobile-only sections */}
         <div className="location-detail__mobile-sections">

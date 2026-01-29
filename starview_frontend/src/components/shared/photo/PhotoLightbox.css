@@ -1,0 +1,283 @@
+/* PhotoLightbox Styles
+ * Shared lightbox modal for displaying photos with attribution and voting.
+ */
+
+/* ============================================
+   LIGHTBOX CONTAINER
+   ============================================ */
+
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  animation: photoLightboxFadeIn var(--animation-duration) ease;
+}
+
+.photo-lightbox--closing {
+  animation: photoLightboxFadeOut var(--animation-duration) ease forwards;
+}
+
+.photo-lightbox__content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: photoLightboxFadeIn var(--animation-duration) ease;
+}
+
+.photo-lightbox__content > img {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+/* ============================================
+   CONTROL BARS
+   ============================================ */
+
+.photo-lightbox__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Show bars on hover over the image */
+.photo-lightbox__content:hover .photo-lightbox__bar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.photo-lightbox__bar--top {
+  top: 0;
+  padding-top: var(--space-lg);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
+  );
+}
+
+.photo-lightbox__bar--bottom {
+  bottom: 0;
+  padding-bottom: var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   ACTION BUTTON
+   ============================================ */
+
+.photo-lightbox__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--navbar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Expand width when showing vote count */
+.photo-lightbox__action:has(.photo-lightbox__vote-count) {
+  width: auto;
+  padding: 0 var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.photo-lightbox__action:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.photo-lightbox__action:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.photo-lightbox__action--active {
+  color: var(--favorite);
+  border-color: var(--favorite);
+}
+
+.photo-lightbox__action--active:hover {
+  color: var(--favorite-hover);
+  border-color: var(--favorite-hover);
+}
+
+.photo-lightbox__action--active i {
+  animation: photoLightboxThumbPop 0.3s ease;
+}
+
+.photo-lightbox__vote-count {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  min-width: 1ch;
+}
+
+/* ============================================
+   ATTRIBUTION
+   ============================================ */
+
+.photo-lightbox__attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  transition: opacity var(--animation-duration) ease;
+}
+
+a.photo-lightbox__attribution:hover {
+  opacity: 0.8;
+}
+
+.photo-lightbox__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.photo-lightbox__user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.photo-lightbox__username {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-lightbox__display-name {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Upload Date */
+.photo-lightbox__date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.photo-lightbox__date-label,
+.photo-lightbox__date-value {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes photoLightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes photoLightboxFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes photoLightboxThumbPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================
+   MOBILE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .photo-lightbox {
+    background: #000;
+  }
+
+  .photo-lightbox__content {
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
+  .photo-lightbox__content > img {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  /* Control bars fixed to viewport, always visible on mobile */
+  .photo-lightbox__bar {
+    position: fixed;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .photo-lightbox__bar--top {
+    padding-top: max(var(--space-lg), env(safe-area-inset-top));
+  }
+
+  .photo-lightbox__bar--bottom {
+    padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-lightbox,
+  .photo-lightbox__content,
+  .photo-lightbox--closing {
+    animation: none;
+  }
+
+  .photo-lightbox__bar {
+    transition: none;
+  }
+}

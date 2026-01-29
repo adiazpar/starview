@@ -1,18 +1,82 @@
 /* LocationGallery Page
- * Displays all photos for a location with a simplified hero-style header.
+ * Displays all photos for a location with cursor-based pagination.
  * Header adapted from LocationHero without image carousel or action buttons.
+ * Uses shared photo components for grid items and lightbox modal.
  */
 
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCallback } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { useLocation } from '../../hooks/useLocations';
+import { useLocationPhotos } from '../../hooks/useLocationPhotos';
+import { usePhotoVote } from '../../hooks/usePhotoVote';
+import useRequireAuth from '../../hooks/useRequireAuth';
 import { useSEO } from '../../hooks/useSEO';
+import { PhotoItem, PhotoLightbox } from '../../components/shared/photo';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
+
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'most_upvoted', label: 'Most Upvoted' },
+];
 
 function LocationGalleryPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { location, isLoading, isError, error } = useLocation(id);
+
+  // Sort state
+  const [sort, setSort] = useState('newest');
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const sortRef = useRef(null);
+
+  // Lightbox state
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
+
+  // Auth and voting
+  const { requireAuth } = useRequireAuth();
+  const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(id);
+
+  // Fetch photos with pagination
+  const {
+    photos,
+    totalCount,
+    hasNextPage,
+    isLoading: photosLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useLocationPhotos(id, sort);
+
+  // Transform API response to match expected format
+  const transformedPhotos = photos.map((photo) => ({
+    id: photo.id,
+    full: photo.image_url,
+    thumbnail: photo.thumbnail_url || photo.image_url,
+    uploaded_at: photo.created_at,
+    upvote_count: photo.upvote_count,
+    user_has_upvoted: photo.user_has_upvoted,
+    uploaded_by: photo.uploaded_by ? {
+      username: photo.uploaded_by.username,
+      display_name: photo.uploaded_by.display_name || photo.uploaded_by.username,
+      profile_picture: photo.uploaded_by.profile_picture_url,
+      is_system_account: photo.uploaded_by.is_system_account || false,
+    } : null,
+  }));
+
+  const currentPhoto = lightboxIndex !== null ? transformedPhotos[lightboxIndex] : null;
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sortRef.current && !sortRef.current.contains(event.target)) {
+        setSortDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Set SEO meta tags
   useSEO({
@@ -33,6 +97,41 @@ function LocationGalleryPage() {
     }
   }, [navigate, id]);
 
+  // Handle sort change
+  const handleSortChange = useCallback((newSort) => {
+    setSort(newSort);
+    setSortDropdownOpen(false);
+  }, []);
+
+  // Lightbox handlers
+  const openLightbox = useCallback((index) => {
+    setLightboxIndex(index);
+    setIsClosing(false);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    // Wait for fade-out animation to complete
+    setTimeout(() => {
+      setLightboxIndex(null);
+      setIsClosing(false);
+      // Clear any lingering hover/focus state on mobile
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }, 200); // Match --animation-duration (0.2s)
+  }, [isClosing]);
+
+  const handleVote = useCallback((photoId) => {
+    if (!requireAuth()) return;
+    if (isVoting) return;
+    toggleVote(photoId);
+  }, [requireAuth, isVoting, toggleVote]);
+
+  // Get current sort label
+  const currentSortLabel = SORT_OPTIONS.find((opt) => opt.value === sort)?.label || 'Newest';
+
   // Build region string
   const region = location
     ? [location.locality, location.administrative_area, location.country]
@@ -40,9 +139,9 @@ function LocationGalleryPage() {
         .join(', ')
     : '';
 
-  // Loading state
+  // Loading state - fills viewport to prevent layout jump
   if (isLoading) {
-    return <div className="location-gallery location-gallery--loading" />;
+    return <LoadingSpinner size="lg" fullPage />;
   }
 
   // Error state
@@ -115,26 +214,95 @@ function LocationGalleryPage() {
         <button className="location-gallery__upload">
           Upload Photo
         </button>
-        <button className="location-gallery__sort" aria-haspopup="listbox">
-          <i className="fa-solid fa-sort"></i>
-          <span>Newest</span>
-          <i className="fa-solid fa-chevron-down"></i>
-        </button>
+
+        {/* Sort Dropdown */}
+        <div className="location-gallery__sort-wrapper" ref={sortRef}>
+          <button
+            className="location-gallery__sort"
+            onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+            aria-haspopup="listbox"
+            aria-expanded={sortDropdownOpen}
+          >
+            <i className="fa-solid fa-sort"></i>
+            <span>{currentSortLabel}</span>
+            <i className="fa-solid fa-chevron-down"></i>
+          </button>
+
+          {sortDropdownOpen && (
+            <ul className="location-gallery__sort-menu" role="listbox">
+              {SORT_OPTIONS.map((option) => (
+                <li
+                  key={option.value}
+                  role="option"
+                  aria-selected={sort === option.value}
+                  className={`location-gallery__sort-option ${sort === option.value ? 'location-gallery__sort-option--active' : ''}`}
+                  onClick={() => handleSortChange(option.value)}
+                >
+                  {option.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Content Area */}
       <div className="location-gallery__content">
-        <div className="location-gallery__empty">
-          <i className="fa-regular fa-image"></i>
-          <h3>No photos yet</h3>
-          <p>Be the first to share a photo of {location.name}</p>
-        </div>
+        {photosLoading ? (
+          <div className="location-gallery__loading">
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <span>Loading photos...</span>
+          </div>
+        ) : transformedPhotos.length === 0 ? (
+          <div className="location-gallery__empty">
+            <i className="fa-regular fa-image"></i>
+            <h3>No photos yet</h3>
+            <p>Be the first to share a photo of {location.name}</p>
+          </div>
+        ) : (
+          <div className="location-gallery__grid">
+            {transformedPhotos.map((photo, index) => (
+              <PhotoItem
+                key={photo.id}
+                photo={photo}
+                locationName={location.name}
+                index={index}
+                totalCount={totalCount}
+                onClick={openLightbox}
+                showVoteCount={true}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Footer with pagination info */}
       <footer className="location-gallery__footer">
-        <span>Showing results 0 - 0 of 0</span>
+        {hasNextPage && (
+          <button
+            className="location-gallery__see-more"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? 'Loading...' : 'SEE MORE PHOTOS'}
+          </button>
+        )}
+        <span>
+          Showing results {transformedPhotos.length > 0 ? 1 : 0} - {transformedPhotos.length} of {totalCount}
+        </span>
       </footer>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && currentPhoto && (
+        <PhotoLightbox
+          photo={currentPhoto}
+          locationName={location.name}
+          isClosing={isClosing}
+          onClose={closeLightbox}
+          onVote={handleVote}
+          isVoting={isVoting}
+        />
+      )}
     </div>
   );
 }

@@ -159,6 +159,19 @@ export const locationsApi = {
   voteOnPhoto: (locationId, photoId) => {
     return api.post(`/locations/${locationId}/photos/${photoId}/vote/`);
   },
+
+  /**
+   * Get photos for a location with cursor-based pagination
+   * @param {number} locationId - Location ID
+   * @param {Object} params - Query parameters
+   * @param {string} params.sort - Sort order: "newest", "oldest", "most_upvoted"
+   * @param {string} params.cursor - Pagination cursor (optional)
+   * @param {number} params.limit - Page size (default 24, max 50)
+   * @returns {Promise} - { results, next_cursor, has_more, total_count }
+   */
+  getPhotos: (locationId, params = {}) => {
+    return api.get(`/locations/${locationId}/photos/`, { params });
+  },
 };
 
 export default locationsApi;

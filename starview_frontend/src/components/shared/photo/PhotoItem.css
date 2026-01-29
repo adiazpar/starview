@@ -1,0 +1,176 @@
+/* PhotoItem Styles
+ * Shared photo grid item with hover overlay showing attribution.
+ */
+
+/* ============================================
+   PHOTO ITEM CONTAINER
+   ============================================ */
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-elevated);
+  border: none;
+  padding: 0;
+  width: 100%;
+}
+
+.photo-item > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================
+   HOVER OVERLAY
+   ============================================ */
+
+.photo-item__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: var(--space-md);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 30%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.photo-item:hover .photo-item__overlay {
+  opacity: 1;
+}
+
+/* ============================================
+   ATTRIBUTION
+   ============================================ */
+
+.photo-item__attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  transition: opacity var(--animation-duration) ease;
+}
+
+a.photo-item__attribution:hover {
+  opacity: 0.8;
+}
+
+.photo-item__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.photo-item__user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.photo-item__username {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-item__display-name {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================
+   VOTE COUNT BADGE
+   ============================================ */
+
+.photo-item__votes {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: #fff;
+}
+
+.photo-item__votes i {
+  color: var(--favorite);
+  font-size: 10px;
+}
+
+/* ============================================
+   REMAINING COUNT OVERLAY ("SEE MORE" STYLE)
+   ============================================ */
+
+.photo-item__more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  transition: background 0.2s ease;
+}
+
+.photo-item:hover .photo-item__more {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.photo-item__more span {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: #fff;
+}
+
+/* ============================================
+   MOBILE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .photo-item__username {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-item__overlay {
+    transition: none;
+  }
+}

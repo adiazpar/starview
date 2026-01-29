@@ -2,27 +2,45 @@
  * Asymmetric photo grid that feels editorial, not generic carousel.
  * Click to open lightbox. Hover shows photographer attribution.
  * Photos sorted by upvotes - users can vote in lightbox.
+ * Fetches photos from dedicated endpoint for consistency with gallery page.
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { usePhotoVote } from '../../../hooks/usePhotoVote';
+import { useLocationPhotos } from '../../../hooks/useLocationPhotos';
+import { PhotoLightbox } from '../../shared/photo';
 import './styles.css';
 
-// Format upload date as "Jan 2024" or similar
-function formatUploadDate(dateString) {
-  if (!dateString) return null;
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
-
-function PhotoMosaic({ images, locationName, locationId, photoCount }) {
+function PhotoMosaic({ locationName, locationId }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
-  const lightboxRef = useRef(null);
   const { requireAuth } = useRequireAuth();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(locationId);
+
+  // Fetch photos from dedicated endpoint (same as gallery page)
+  const { photos, totalCount, isLoading } = useLocationPhotos(
+    locationId,
+    'most_upvoted',
+    5
+  );
+
+  // Transform API response to match expected format
+  const images = photos.map((photo) => ({
+    id: photo.id,
+    thumbnail: photo.thumbnail_url,
+    full: photo.image_url,
+    uploaded_at: photo.created_at,
+    upvote_count: photo.upvote_count,
+    user_has_upvoted: photo.user_has_upvoted,
+    uploaded_by: photo.uploaded_by ? {
+      username: photo.uploaded_by.username,
+      display_name: photo.uploaded_by.display_name,
+      profile_picture: photo.uploaded_by.profile_picture_url,
+      is_system_account: photo.uploaded_by.is_system_account,
+    } : null,
+  }));
 
   const openLightbox = useCallback((index) => {
     setLightboxIndex(index);
@@ -43,38 +61,17 @@ function PhotoMosaic({ images, locationName, locationId, photoCount }) {
     }, 200); // Match --animation-duration (0.2s)
   }, [isClosing]);
 
-  const handleVote = useCallback((e, photoId) => {
-    e.stopPropagation();
+  const handleVote = useCallback((photoId) => {
     if (!requireAuth()) return;
     if (isVoting) return;
     toggleVote(photoId);
   }, [requireAuth, isVoting, toggleVote]);
 
-  // Handle keyboard escape to close lightbox
-  useEffect(() => {
-    if (lightboxIndex === null) return;
+  // Don't render while loading or if no photos
+  if (isLoading || images.length === 0) return null;
 
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeLightbox();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxIndex, closeLightbox]);
-
-  // Focus lightbox when opened for accessibility
-  useEffect(() => {
-    if (lightboxIndex !== null && lightboxRef.current) {
-      lightboxRef.current.focus();
-    }
-  }, [lightboxIndex]);
-
-  if (!images || images.length === 0) return null;
-
-  // Show up to 5 images in mosaic, rest in lightbox
+  // Show up to 5 images in mosaic
   const visibleImages = images.slice(0, 5);
-  // Use photoCount prop for total count, fallback to images.length
-  const totalCount = photoCount ?? images.length;
   const remainingCount = totalCount - visibleImages.length;
 
   const currentImage = lightboxIndex !== null ? images[lightboxIndex] : null;
@@ -148,87 +145,14 @@ function PhotoMosaic({ images, locationName, locationId, photoCount }) {
 
       {/* Lightbox */}
       {lightboxIndex !== null && currentImage && (
-        <div
-          ref={lightboxRef}
-          className={`photo-mosaic__lightbox ${isClosing ? 'photo-mosaic__lightbox--closing' : ''}`}
-          onClick={closeLightbox}
-          tabIndex={-1}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Photo lightbox"
-        >
-          {/* Image container with overlay bars */}
-          <div className="photo-mosaic__lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={currentImage.full || currentImage.thumbnail}
-              alt={`${locationName} photo ${lightboxIndex + 1}`}
-            />
-
-            {/* Top Bar - date and close button */}
-            <div className="photo-mosaic__lightbox-bar photo-mosaic__lightbox-bar--top">
-              {currentImage.uploaded_at && (
-                <div className="photo-mosaic__date">
-                  <span className="photo-mosaic__date-label">Uploaded</span>
-                  <span className="photo-mosaic__date-value">{formatUploadDate(currentImage.uploaded_at)}</span>
-                </div>
-              )}
-              <button
-                className="photo-mosaic__action photo-mosaic__action--close"
-                onClick={closeLightbox}
-                aria-label="Close lightbox"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            {/* Bottom Bar - attribution and vote button */}
-            <div className="photo-mosaic__lightbox-bar photo-mosaic__lightbox-bar--bottom">
-              {currentImage.uploaded_by && (
-                currentImage.uploaded_by.is_system_account ? (
-                  <div className="photo-mosaic__attribution">
-                    <img
-                      src={currentImage.uploaded_by.profile_picture}
-                      alt=""
-                      className="photo-mosaic__avatar"
-                    />
-                    <div className="photo-mosaic__user-info">
-                      <span className="photo-mosaic__username">@{currentImage.uploaded_by.username}</span>
-                      <span className="photo-mosaic__display-name">{currentImage.uploaded_by.display_name}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <Link
-                    to={`/profile/${currentImage.uploaded_by.username}`}
-                    className="photo-mosaic__attribution"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <img
-                      src={currentImage.uploaded_by.profile_picture}
-                      alt=""
-                      className="photo-mosaic__avatar"
-                    />
-                    <div className="photo-mosaic__user-info">
-                      <span className="photo-mosaic__username">@{currentImage.uploaded_by.username}</span>
-                      <span className="photo-mosaic__display-name">{currentImage.uploaded_by.display_name}</span>
-                    </div>
-                  </Link>
-                )
-              )}
-              {locationId && (
-                <button
-                  className={`photo-mosaic__action photo-mosaic__action--vote ${currentImage.user_has_upvoted ? 'photo-mosaic__action--active' : ''}`}
-                  onClick={(e) => handleVote(e, currentImage.id)}
-                  aria-label={currentImage.user_has_upvoted ? 'Remove upvote' : 'Upvote photo'}
-                >
-                  <i className={`fa-${currentImage.user_has_upvoted ? 'solid' : 'regular'} fa-thumbs-up`}></i>
-                  {currentImage.upvote_count > 0 && (
-                    <span className="photo-mosaic__vote-count">{currentImage.upvote_count}</span>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <PhotoLightbox
+          photo={currentImage}
+          locationName={locationName}
+          isClosing={isClosing}
+          onClose={closeLightbox}
+          onVote={locationId ? handleVote : null}
+          isVoting={isVoting}
+        />
       )}
     </div>
   );

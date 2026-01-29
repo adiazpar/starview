@@ -1107,3 +1107,273 @@ class LocationViewSet(viewsets.ModelViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
 
+    # ----------------------------------------------------------------------------- #
+    # List photos for a location with cursor-based pagination.                      #
+    #                                                                               #
+    # Combines photos from LocationPhoto and ReviewPhoto into a single stream.      #
+    # Supports sorting by newest, oldest, or most_upvoted.                          #
+    #                                                                               #
+    # HTTP Method: GET                                                              #
+    # Endpoint: /api/locations/{id}/photos/                                         #
+    # Query params:                                                                 #
+    #   - sort: "newest" (default), "oldest", "most_upvoted"                        #
+    #   - cursor: pagination cursor (optional)                                      #
+    #   - limit: page size (default 24, max 50)                                     #
+    # Authentication: None required                                                 #
+    # Returns: { results, next_cursor, has_more, total_count }                      #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=True, methods=['GET'], url_path='photos')
+    def list_photos(self, request, pk=None):
+        from django.db.models import Count, Q
+        from datetime import datetime
+        from starview_app.utils.pagination import decode_cursor, encode_cursor
+
+        from django.contrib.contenttypes.models import ContentType
+        from ..models import Vote
+
+        location = self.get_object()
+        user = request.user if request.user.is_authenticated else None
+
+        # Get user's votes for efficient lookup using generic Vote model
+        user_location_votes = set()
+        user_review_votes = set()
+        if user:
+            location_photo_ct = ContentType.objects.get_for_model(LocationPhoto)
+            review_photo_ct = ContentType.objects.get_for_model(ReviewPhoto)
+
+            # Get all location photo IDs for this location
+            location_photo_ids = list(
+                LocationPhoto.objects.filter(location=location).values_list('id', flat=True)
+            )
+            # Get all review photo IDs for this location
+            review_photo_ids = list(
+                ReviewPhoto.objects.filter(review__location=location).values_list('id', flat=True)
+            )
+
+            # Query votes for location photos
+            user_location_votes = set(
+                Vote.objects.filter(
+                    user=user,
+                    content_type=location_photo_ct,
+                    object_id__in=location_photo_ids,
+                    is_upvote=True
+                ).values_list('object_id', flat=True)
+            )
+            # Query votes for review photos
+            user_review_votes = set(
+                Vote.objects.filter(
+                    user=user,
+                    content_type=review_photo_ct,
+                    object_id__in=review_photo_ids,
+                    is_upvote=True
+                ).values_list('object_id', flat=True)
+            )
+
+        # Parse query parameters
+        sort = request.query_params.get('sort', 'newest')
+        cursor_param = request.query_params.get('cursor')
+        try:
+            limit = min(int(request.query_params.get('limit', 24)), 50)
+        except (ValueError, TypeError):
+            limit = 24
+
+        # Decode cursor if provided
+        cursor = decode_cursor(cursor_param) if cursor_param else None
+
+        # Validate sort parameter
+        valid_sorts = ['newest', 'oldest', 'most_upvoted']
+        if sort not in valid_sorts:
+            sort = 'newest'
+
+        # Query LocationPhoto with upvote counts
+        location_photos_qs = LocationPhoto.objects.filter(
+            location=location
+        ).annotate(
+            upvote_count_annotated=Count('votes', filter=Q(votes__is_upvote=True))
+        ).select_related('uploaded_by', 'uploaded_by__userprofile')
+
+        # Query ReviewPhoto with upvote counts
+        review_photos_qs = ReviewPhoto.objects.filter(
+            review__location=location
+        ).annotate(
+            upvote_count_annotated=Count('votes', filter=Q(votes__is_upvote=True))
+        ).select_related('review__user', 'review__user__userprofile')
+
+        # Get total count (both types combined)
+        total_count = location_photos_qs.count() + review_photos_qs.count()
+
+        # Apply cursor filter based on sort
+        if cursor:
+            if sort == 'newest':
+                # Filter: created_at < cursor.created_at OR (created_at == cursor.created_at AND id < cursor.id)
+                cursor_created_at = cursor.get('created_at')
+                cursor_id = cursor.get('id')
+                cursor_type = cursor.get('type')  # 'loc' or 'rev'
+
+                if cursor_created_at and cursor_id:
+                    cursor_dt = datetime.fromisoformat(cursor_created_at.replace('Z', '+00:00'))
+                    location_photos_qs = location_photos_qs.filter(
+                        Q(created_at__lt=cursor_dt) |
+                        Q(created_at=cursor_dt, id__lt=cursor_id if cursor_type == 'loc' else 0)
+                    )
+                    review_photos_qs = review_photos_qs.filter(
+                        Q(created_at__lt=cursor_dt) |
+                        Q(created_at=cursor_dt, id__lt=cursor_id if cursor_type == 'rev' else 0)
+                    )
+
+            elif sort == 'oldest':
+                # Filter: created_at > cursor.created_at OR (created_at == cursor.created_at AND id > cursor.id)
+                cursor_created_at = cursor.get('created_at')
+                cursor_id = cursor.get('id')
+                cursor_type = cursor.get('type')
+
+                if cursor_created_at and cursor_id:
+                    cursor_dt = datetime.fromisoformat(cursor_created_at.replace('Z', '+00:00'))
+                    location_photos_qs = location_photos_qs.filter(
+                        Q(created_at__gt=cursor_dt) |
+                        Q(created_at=cursor_dt, id__gt=cursor_id if cursor_type == 'loc' else float('inf'))
+                    )
+                    review_photos_qs = review_photos_qs.filter(
+                        Q(created_at__gt=cursor_dt) |
+                        Q(created_at=cursor_dt, id__gt=cursor_id if cursor_type == 'rev' else float('inf'))
+                    )
+
+            elif sort == 'most_upvoted':
+                # Filter by upvote_count, then created_at, then id
+                cursor_upvotes = cursor.get('upvote_count', 0)
+                cursor_created_at = cursor.get('created_at')
+                cursor_id = cursor.get('id')
+                cursor_type = cursor.get('type')
+
+                if cursor_created_at and cursor_id is not None:
+                    cursor_dt = datetime.fromisoformat(cursor_created_at.replace('Z', '+00:00'))
+                    # Less upvotes OR (same upvotes AND older) OR (same upvotes AND same time AND lower id)
+                    location_photos_qs = location_photos_qs.filter(
+                        Q(upvote_count_annotated__lt=cursor_upvotes) |
+                        Q(upvote_count_annotated=cursor_upvotes, created_at__lt=cursor_dt) |
+                        Q(upvote_count_annotated=cursor_upvotes, created_at=cursor_dt, id__lt=cursor_id if cursor_type == 'loc' else 0)
+                    )
+                    review_photos_qs = review_photos_qs.filter(
+                        Q(upvote_count_annotated__lt=cursor_upvotes) |
+                        Q(upvote_count_annotated=cursor_upvotes, created_at__lt=cursor_dt) |
+                        Q(upvote_count_annotated=cursor_upvotes, created_at=cursor_dt, id__lt=cursor_id if cursor_type == 'rev' else 0)
+                    )
+
+        # Fetch photos from both querysets
+        # Fetch more than needed to ensure we have enough after merging
+        fetch_limit = limit + 1
+
+        if sort == 'newest':
+            location_photos = list(location_photos_qs.order_by('-created_at', '-id')[:fetch_limit])
+            review_photos = list(review_photos_qs.order_by('-created_at', '-id')[:fetch_limit])
+        elif sort == 'oldest':
+            location_photos = list(location_photos_qs.order_by('created_at', 'id')[:fetch_limit])
+            review_photos = list(review_photos_qs.order_by('created_at', 'id')[:fetch_limit])
+        else:  # most_upvoted
+            location_photos = list(location_photos_qs.order_by('-upvote_count_annotated', '-created_at', '-id')[:fetch_limit])
+            review_photos = list(review_photos_qs.order_by('-upvote_count_annotated', '-created_at', '-id')[:fetch_limit])
+
+        # Serialize photos to a common format
+        def serialize_location_photo(photo):
+            # Fall back to location's added_by if no uploader (matches main location endpoint)
+            uploader = photo.uploaded_by if photo.uploaded_by else location.added_by
+            profile = uploader.userprofile if uploader else None
+            # Compute display_name from user's first/last name (UserProfile doesn't have this field)
+            display_name = None
+            if uploader:
+                full_name = f"{uploader.first_name} {uploader.last_name}".strip()
+                display_name = full_name if full_name else uploader.username
+            return {
+                'id': f'loc_{photo.id}',
+                'type': 'location',
+                'image_url': photo.image.url if photo.image else None,
+                'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url if photo.image else None,
+                'caption': photo.caption or '',
+                'upvote_count': photo.upvote_count_annotated,
+                'user_has_upvoted': photo.id in user_location_votes,
+                'created_at': photo.created_at.isoformat(),
+                'uploaded_by': {
+                    'username': uploader.username,
+                    'display_name': display_name,
+                    'profile_picture_url': profile.get_profile_picture_url if profile else None,
+                    'is_system_account': profile.is_system_account if profile else False,
+                } if uploader else None,
+                '_sort_created_at': photo.created_at,
+                '_sort_id': photo.id,
+                '_sort_type': 'loc',
+            }
+
+        def serialize_review_photo(photo):
+            # Fall back to location's added_by if no review user (matches main location endpoint)
+            uploader = photo.review.user if photo.review and photo.review.user else location.added_by
+            profile = uploader.userprofile if uploader else None
+            # Compute display_name from user's first/last name (UserProfile doesn't have this field)
+            display_name = None
+            if uploader:
+                full_name = f"{uploader.first_name} {uploader.last_name}".strip()
+                display_name = full_name if full_name else uploader.username
+            return {
+                'id': f'rev_{photo.id}',
+                'type': 'review',
+                'image_url': photo.image.url if photo.image else None,
+                'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url if photo.image else None,
+                'caption': photo.caption or '',
+                'upvote_count': photo.upvote_count_annotated,
+                'user_has_upvoted': photo.id in user_review_votes,
+                'created_at': photo.created_at.isoformat(),
+                'uploaded_by': {
+                    'username': uploader.username,
+                    'display_name': display_name,
+                    'profile_picture_url': profile.get_profile_picture_url if profile else None,
+                    'is_system_account': profile.is_system_account if profile else False,
+                } if uploader else None,
+                'review_id': photo.review.id if photo.review else None,
+                '_sort_created_at': photo.created_at,
+                '_sort_id': photo.id,
+                '_sort_type': 'rev',
+            }
+
+        # Serialize all photos
+        serialized = [serialize_location_photo(p) for p in location_photos]
+        serialized.extend([serialize_review_photo(p) for p in review_photos])
+
+        # Sort combined results
+        if sort == 'newest':
+            serialized.sort(key=lambda x: (x['_sort_created_at'], x['_sort_id']), reverse=True)
+        elif sort == 'oldest':
+            serialized.sort(key=lambda x: (x['_sort_created_at'], x['_sort_id']))
+        else:  # most_upvoted
+            serialized.sort(key=lambda x: (-x['upvote_count'], x['_sort_created_at'], x['_sort_id']), reverse=False)
+            serialized.sort(key=lambda x: (-x['upvote_count'], -x['_sort_created_at'].timestamp(), -x['_sort_id']))
+
+        # Check if there are more results
+        has_more = len(serialized) > limit
+        results = serialized[:limit]
+
+        # Build next cursor from last item
+        next_cursor = None
+        if has_more and results:
+            last = results[-1]
+            cursor_data = {
+                'created_at': last['_sort_created_at'].isoformat(),
+                'id': last['_sort_id'],
+                'type': last['_sort_type'],
+            }
+            if sort == 'most_upvoted':
+                cursor_data['upvote_count'] = last['upvote_count']
+            next_cursor = encode_cursor(cursor_data)
+
+        # Clean up internal sort fields from response
+        for item in results:
+            del item['_sort_created_at']
+            del item['_sort_id']
+            del item['_sort_type']
+
+        return Response({
+            'results': results,
+            'next_cursor': next_cursor,
+            'has_more': has_more,
+            'total_count': total_count,
+        })
+
+
