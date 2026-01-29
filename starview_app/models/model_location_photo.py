@@ -19,6 +19,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.exceptions import ValidationError
 import os
 import io
 import logging
@@ -26,6 +27,10 @@ from uuid import uuid4
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+# Minimum dimensions for uploaded photos (prevents blurry/pixelated images in gallery)
+MIN_IMAGE_WIDTH = 600
+MIN_IMAGE_HEIGHT = 600
 
 from . import Location
 
@@ -87,10 +92,30 @@ class LocationPhoto(models.Model):
     def __str__(self):
         return f"Photo {self.order + 1} for {self.location.name}"
 
+    def _validate_image_dimensions(self):
+        """Validates that uploaded image meets minimum dimension requirements."""
+        try:
+            self.image.file.seek(0)
+            img = Image.open(self.image.file)
+            width, height = img.size
+            self.image.file.seek(0)  # Reset for subsequent processing
+
+            if width < MIN_IMAGE_WIDTH or height < MIN_IMAGE_HEIGHT:
+                raise ValidationError(
+                    f"Image dimensions ({width}x{height}) are too small. "
+                    f"Minimum required: {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels."
+                )
+        except ValidationError:
+            raise
+        except Exception as e:
+            logger.error(f"Error validating image dimensions: {e}")
+            raise ValidationError("Could not validate image dimensions. Please try a different image.")
+
     def save(self, *args, **kwargs):
 
         # Process image if it's new or changed
         if self.image and (not self.pk or 'image' in kwargs.get('update_fields', [])):
+            self._validate_image_dimensions()
             self._process_image()
 
         # Auto-set order if not provided

@@ -1314,22 +1314,13 @@ class LocationViewSet(viewsets.ModelViewSet):
             if uploader:
                 full_name = f"{uploader.first_name} {uploader.last_name}".strip()
                 display_name = full_name if full_name else uploader.username
-            # Get dimensions from ImageField (Django can read from file metadata)
-            width = None
-            height = None
-            try:
-                if photo.image:
-                    width = photo.image.width
-                    height = photo.image.height
-            except Exception:
-                pass  # File may not exist or be readable
             return {
                 'id': f'rev_{photo.id}',
                 'type': 'review',
                 'image_url': photo.image.url if photo.image else None,
                 'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url if photo.image else None,
-                'width': width,
-                'height': height,
+                'width': photo.width,
+                'height': photo.height,
                 'caption': photo.caption or '',
                 'upvote_count': photo.upvote_count_annotated,
                 'user_has_upvoted': photo.id in user_review_votes,

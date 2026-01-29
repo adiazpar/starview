@@ -18,7 +18,7 @@
 from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.validators import ValidationError
+from django.core.exceptions import ValidationError
 import os
 import io
 import logging
@@ -27,6 +27,10 @@ from PIL import Image
 
 # Configure module logger
 logger = logging.getLogger(__name__)
+
+# Minimum dimensions for uploaded photos (prevents blurry/pixelated images in gallery)
+MIN_IMAGE_WIDTH = 600
+MIN_IMAGE_HEIGHT = 600
 
 # Import models:
 from . import Review
@@ -63,6 +67,10 @@ class ReviewPhoto(models.Model):
     caption = models.CharField(max_length=255, blank=True, help_text="Optional caption for the photo")
     order = models.PositiveIntegerField(default=0, help_text="Order of display (lower numbers appear first)")
 
+    # Image dimensions (populated during processing for gallery layouts)
+    width = models.PositiveIntegerField(null=True, blank=True, help_text="Image width in pixels")
+    height = models.PositiveIntegerField(null=True, blank=True, help_text="Image height in pixels")
+
     # Votes (generic relation to Vote model)
     votes = GenericRelation('Vote', related_query_name='reviewphoto')
 
@@ -88,6 +96,25 @@ class ReviewPhoto(models.Model):
             if existing_count >= 5:
                 raise ValidationError("A review can have a maximum of 5 photos.")
 
+    def _validate_image_dimensions(self):
+        """Validates that uploaded image meets minimum dimension requirements."""
+        try:
+            self.image.file.seek(0)
+            img = Image.open(self.image.file)
+            width, height = img.size
+            self.image.file.seek(0)  # Reset for subsequent processing
+
+            if width < MIN_IMAGE_WIDTH or height < MIN_IMAGE_HEIGHT:
+                raise ValidationError(
+                    f"Image dimensions ({width}x{height}) are too small. "
+                    f"Minimum required: {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels."
+                )
+        except ValidationError:
+            raise
+        except Exception as e:
+            logger.error(f"Error validating image dimensions: {e}")
+            raise ValidationError("Could not validate image dimensions. Please try a different image.")
+
 
     # Override save to process images, generate thumbnails, and auto-set display order:
     def save(self, *args, **kwargs):
@@ -95,6 +122,7 @@ class ReviewPhoto(models.Model):
 
         # Process image if it's new or changed:
         if self.image and (not self.pk or 'image' in kwargs.get('update_fields', [])):
+            self._validate_image_dimensions()
             self._process_image()
 
         # Auto-set order if not provided:
@@ -120,6 +148,9 @@ class ReviewPhoto(models.Model):
 
             # Resize if too large (max 1920x1920, maintains aspect ratio):
             img.thumbnail((1920, 1920), Image.Resampling.LANCZOS)
+
+            # Store final dimensions for gallery layouts
+            self.width, self.height = img.size
 
             # Save the resized image back:
             img_io = io.BytesIO()

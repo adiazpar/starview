@@ -278,7 +278,7 @@ function LocationGalleryPage() {
         ) : (
           <RowsPhotoAlbum
             photos={transformedPhotos}
-            targetRowHeight={100}
+            targetRowHeight={200}
             rowConstraints={{ minPhotos: 2, maxPhotos: 5 }}
             spacing={8}
             render={{
