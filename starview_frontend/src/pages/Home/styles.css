@@ -80,6 +80,11 @@
   filter: drop-shadow(0 0 30px var(--glow-primary)) drop-shadow(0 0 60px var(--glow-primary));
 }
 
+/* Light mode: Use dark shadow for readability over bright carousel images */
+[data-theme="light"] .hero__title-accent {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
 /* Hero content fade - matches carousel timing */
 @keyframes heroContentFadeIn {
   from {

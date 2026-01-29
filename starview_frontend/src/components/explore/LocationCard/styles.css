@@ -21,6 +21,11 @@
   overflow: hidden;
 }
 
+/* Override ImageCarousel border-radius: only round top corners in card layout */
+.location-card__image-container .image-carousel__container {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
 .location-card__image {
   width: 100%;
   height: 100%;
