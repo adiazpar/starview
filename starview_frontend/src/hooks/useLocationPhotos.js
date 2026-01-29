@@ -17,8 +17,11 @@ import { locationsApi } from '../services/locations';
  * @returns {Object} Query result with photos data and pagination controls
  */
 export function useLocationPhotos(locationId, sort = 'newest', limit = 24, options = {}) {
+  // Normalize locationId to string for consistent query key matching with usePhotoVote
+  const locationIdStr = String(locationId);
+
   const query = useInfiniteQuery({
-    queryKey: ['locationPhotos', locationId, sort, limit],
+    queryKey: ['locationPhotos', locationIdStr, sort, limit],
     queryFn: async ({ pageParam = null }) => {
       const response = await locationsApi.getPhotos(locationId, {
         sort,

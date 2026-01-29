@@ -118,8 +118,8 @@
 }
 
 .photo-lightbox__action:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  /* Keep pointer cursor during brief disabled state (optimistic updates are instant) */
+  cursor: pointer;
 }
 
 .photo-lightbox__action--active {
