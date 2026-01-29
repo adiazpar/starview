@@ -9,7 +9,8 @@
    ============================================ */
 
 .location-gallery {
-  min-height: inherit;
+  /* Use svh (small viewport height) to prevent resizing when mobile browser UI changes */
+  min-height: calc(100svh - var(--navbar-total-height));
   display: flex;
   flex-direction: column;
 }
