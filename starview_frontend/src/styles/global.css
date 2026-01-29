@@ -381,7 +381,7 @@ h3 {
   display: flex;
   flex-direction: column;
   margin-top: var(--navbar-total-height);
-  min-height: calc(100dvh - var(--navbar-total-height));
+  min-height: calc(100vh - var(--navbar-total-height));
 }
 
 /* WebView fallback: use actual pixel height from JS instead of viewport units */
@@ -391,7 +391,7 @@ html.webview-browser .page-wrapper {
 
 .main-content {
   flex: 1 0 auto;
-  min-height: calc(100dvh - var(--navbar-total-height));
+  min-height: calc(100vh - var(--navbar-total-height));
 }
 
 /* WebView fallback for main-content */
