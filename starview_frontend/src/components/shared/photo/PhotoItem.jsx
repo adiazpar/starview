@@ -15,6 +15,7 @@ function PhotoItem({
   showVoteCount = false,
   remainingCount = 0,
   showRemainingOverlay = false,
+  style,
 }) {
   const handleClick = () => {
     if (onClick) onClick(index);
@@ -32,6 +33,7 @@ function PhotoItem({
       className={`photo-item ${className}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      style={style}
       aria-label={`View photo ${index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
     >
       <img

@@ -6,12 +6,14 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCallback, useState, useRef, useEffect } from 'react';
+import { RowsPhotoAlbum } from 'react-photo-album';
+import 'react-photo-album/rows.css';
 import { useLocation } from '../../hooks/useLocations';
 import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { usePhotoVote } from '../../hooks/usePhotoVote';
 import useRequireAuth from '../../hooks/useRequireAuth';
 import { useSEO } from '../../hooks/useSEO';
-import { PhotoItem, PhotoLightbox } from '../../components/shared/photo';
+import { PhotoLightbox } from '../../components/shared/photo';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -20,6 +22,8 @@ const SORT_OPTIONS = [
   { value: 'oldest', label: 'Oldest' },
   { value: 'most_upvoted', label: 'Most Upvoted' },
 ];
+
+const PAGE_SIZE = 24;
 
 function LocationGalleryPage() {
   const { id } = useParams();
@@ -49,8 +53,14 @@ function LocationGalleryPage() {
     fetchNextPage,
   } = useLocationPhotos(id, sort);
 
-  // Transform API response to match expected format
-  const transformedPhotos = photos.map((photo) => ({
+  // Transform API response to match expected format for both lightbox and photo album
+  // react-photo-album requires: src, width, height
+  // Default to 4:3 aspect ratio if dimensions are missing
+  const DEFAULT_WIDTH = 1920;
+  const DEFAULT_HEIGHT = 1440;
+
+  const transformedPhotos = photos.map((photo, index) => ({
+    // Lightbox data
     id: photo.id,
     full: photo.image_url,
     thumbnail: photo.thumbnail_url || photo.image_url,
@@ -63,6 +73,12 @@ function LocationGalleryPage() {
       profile_picture: photo.uploaded_by.profile_picture_url,
       is_system_account: photo.uploaded_by.is_system_account || false,
     } : null,
+    // react-photo-album required fields
+    src: photo.thumbnail_url || photo.image_url,
+    width: photo.width || DEFAULT_WIDTH,
+    height: photo.height || DEFAULT_HEIGHT,
+    // Track original index for lightbox
+    index,
   }));
 
   const currentPhoto = lightboxIndex !== null ? transformedPhotos[lightboxIndex] : null;
@@ -260,19 +276,56 @@ function LocationGalleryPage() {
             <p>Be the first to share a photo of {location.name}</p>
           </div>
         ) : (
-          <div className="location-gallery__grid">
-            {transformedPhotos.map((photo, index) => (
-              <PhotoItem
-                key={photo.id}
-                photo={photo}
-                locationName={location.name}
-                index={index}
-                totalCount={totalCount}
-                onClick={openLightbox}
-                showVoteCount={true}
-              />
-            ))}
-          </div>
+          <RowsPhotoAlbum
+            photos={transformedPhotos}
+            targetRowHeight={100}
+            rowConstraints={{ minPhotos: 2, maxPhotos: 5 }}
+            spacing={8}
+            render={{
+              image: (props, { photo, width, height }) => (
+                <button
+                  className="location-gallery__photo"
+                  onClick={() => openLightbox(photo.index)}
+                  style={{
+                    '--photo-index': photo.index % PAGE_SIZE,
+                    width,
+                    height,
+                  }}
+                  aria-label={`View photo ${photo.index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
+                >
+                  <img
+                    {...props}
+                    alt={`${location.name} photo ${photo.index + 1}`}
+                  />
+
+                  {/* Hover Overlay with User Attribution */}
+                  {photo.uploaded_by && (
+                    <div className="location-gallery__photo-overlay">
+                      <div className="location-gallery__photo-attribution">
+                        <img
+                          src={photo.uploaded_by.profile_picture}
+                          alt=""
+                          className="location-gallery__photo-avatar"
+                        />
+                        <div className="location-gallery__photo-user-info">
+                          <span className="location-gallery__photo-username">@{photo.uploaded_by.username}</span>
+                          <span className="location-gallery__photo-display-name">{photo.uploaded_by.display_name}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Vote count badge */}
+                  {photo.upvote_count > 0 && (
+                    <span className="location-gallery__photo-votes">
+                      <i className="fa-solid fa-heart"></i>
+                      {photo.upvote_count}
+                    </span>
+                  )}
+                </button>
+              ),
+            }}
+          />
         )}
       </div>
 

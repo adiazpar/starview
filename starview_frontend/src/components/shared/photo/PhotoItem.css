@@ -16,6 +16,10 @@
   border: none;
   padding: 0;
   width: 100%;
+
+  /* Staggered fade-in animation (reuses global fadeInUp) */
+  animation: fadeInUp var(--animation-duration) ease-out backwards;
+  animation-delay: calc(var(--photo-index, 0) * 0.04s);
 }
 
 .photo-item > img {
@@ -170,6 +174,10 @@ a.photo-item__attribution:hover {
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
+  .photo-item {
+    animation: none;
+  }
+
   .photo-item__overlay {
     transition: none;
   }
