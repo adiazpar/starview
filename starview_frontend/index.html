@@ -83,13 +83,18 @@
           document.documentElement.classList.add('webview-browser');
 
           // Set actual viewport height as CSS variable (in pixels)
+          // Only set once on load - don't update on resize to prevent layout shifts
+          // when browser UI shows/hides during scroll
           var setViewportHeight = function() {
             document.documentElement.style.setProperty('--actual-vh', window.innerHeight + 'px');
           };
           setViewportHeight();
 
-          // Update on resize (orientation change)
-          window.addEventListener('resize', setViewportHeight);
+          // Only update on orientation change, not resize (browser UI causes resize events)
+          window.addEventListener('orientationchange', function() {
+            // Delay to allow browser to settle after orientation change
+            setTimeout(setViewportHeight, 100);
+          });
         }
       })();
     </script>
