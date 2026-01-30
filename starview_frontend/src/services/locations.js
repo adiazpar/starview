@@ -161,6 +161,16 @@ export const locationsApi = {
   },
 
   /**
+   * Delete a photo (location photo or review photo)
+   * @param {number} locationId - Location ID
+   * @param {string} photoId - Photo ID in format "loc_123" or "rev_456"
+   * @returns {Promise} - { detail: "Photo deleted successfully" }
+   */
+  deletePhoto: (locationId, photoId) => {
+    return api.delete(`/locations/${locationId}/photos/${photoId}/`);
+  },
+
+  /**
    * Get photos for a location with cursor-based pagination
    * @param {number} locationId - Location ID
    * @param {Object} params - Query parameters

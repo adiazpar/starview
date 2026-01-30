@@ -3,8 +3,9 @@
  * Used by PhotoMosaic and LocationGallery.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useToast } from '../../../contexts/ToastContext';
 import './PhotoLightbox.css';
 
 // Format upload date as "Jan 2024" or similar
@@ -22,18 +23,46 @@ function PhotoLightbox({
   onVote,
   isVoting = false,
   isOwnPhoto = false,
+  onDelete,
+  isDeleting = false,
 }) {
   const lightboxRef = useRef(null);
+  const menuRef = useRef(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const { showToast } = useToast();
 
   // Handle keyboard escape to close lightbox
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (showConfirmDelete) {
+          setShowConfirmDelete(false);
+        } else if (isMenuOpen) {
+          setIsMenuOpen(false);
+        } else {
+          onClose();
+        }
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [onClose, isMenuOpen, showConfirmDelete]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMenuOpen]);
 
   // Focus lightbox when opened for accessibility
   useEffect(() => {
@@ -47,6 +76,34 @@ function PhotoLightbox({
     if (isVoting) return;
     onVote(photo.id);
   }, [onVote, photo.id, isVoting]);
+
+  const handleMoreClick = useCallback((e) => {
+    e.stopPropagation();
+    setIsMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleReportClick = useCallback((e) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    showToast('Coming soon', 'info');
+  }, [showToast]);
+
+  const handleDeleteClick = useCallback((e) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    setShowConfirmDelete(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback((e) => {
+    e.stopPropagation();
+    if (isDeleting || !onDelete) return;
+    onDelete(photo.id);
+  }, [onDelete, photo.id, isDeleting]);
+
+  const handleCancelDelete = useCallback((e) => {
+    e.stopPropagation();
+    setShowConfirmDelete(false);
+  }, []);
 
   if (!photo) return null;
 
@@ -141,15 +198,78 @@ function PhotoLightbox({
                 </button>
               )
             )}
-            <button
-              className="photo-lightbox__action photo-lightbox__action--more"
-              aria-label="More options"
-            >
-              <i className="fa-solid fa-ellipsis"></i>
-            </button>
+            <div className="photo-lightbox__menu-wrapper" ref={menuRef}>
+              <button
+                className="photo-lightbox__action photo-lightbox__action--more"
+                onClick={handleMoreClick}
+                aria-label="More options"
+                aria-expanded={isMenuOpen}
+                aria-haspopup="menu"
+              >
+                <i className="fa-solid fa-ellipsis"></i>
+              </button>
+
+              {isMenuOpen && (
+                <ul className="photo-lightbox__menu" role="menu">
+                  <li
+                    className="photo-lightbox__menu-item"
+                    onClick={handleReportClick}
+                    role="menuitem"
+                  >
+                    Report image
+                  </li>
+                  {isOwnPhoto && onDelete && (
+                    <li
+                      className="photo-lightbox__menu-item"
+                      onClick={handleDeleteClick}
+                      role="menuitem"
+                    >
+                      Delete
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showConfirmDelete && (
+        <div
+          className="photo-lightbox__confirm-overlay"
+          onClick={handleCancelDelete}
+        >
+          <div
+            className="photo-lightbox__confirm-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="alertdialog"
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-desc"
+          >
+            <h3 id="delete-dialog-title">Delete Photo</h3>
+            <p id="delete-dialog-desc">
+              Are you sure you want to delete this photo? This action cannot be undone.
+            </p>
+            <div className="photo-lightbox__confirm-actions">
+              <button
+                className="photo-lightbox__confirm-btn photo-lightbox__confirm-btn--cancel"
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                className="photo-lightbox__confirm-btn photo-lightbox__confirm-btn--delete"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

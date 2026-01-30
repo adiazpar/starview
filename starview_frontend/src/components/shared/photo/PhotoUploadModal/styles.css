@@ -201,24 +201,6 @@
   opacity: 0.7;
 }
 
-/* Error message */
-.photo-upload-modal__error {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  margin-top: var(--space-md);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius);
-  color: #ef4444;
-  font-size: var(--text-sm);
-}
-
-.photo-upload-modal__error i {
-  flex-shrink: 0;
-}
-
 /* Preview section */
 .photo-upload-modal__previews {
   overflow: hidden;

@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useToast } from '../../../../contexts/ToastContext';
 import { useLocationPhotoUpload } from '../../../../hooks/useLocationPhotoUpload';
 import './styles.css';
 
@@ -25,13 +26,13 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [validationError, setValidationError] = useState(null);
   const [isPreviewsClosing, setIsPreviewsClosing] = useState(false);
 
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
 
-  const { mutate: uploadPhotos, isPending: isUploading, error: uploadError, reset: resetUpload } = useLocationPhotoUpload(locationId);
+  const { showToast } = useToast();
+  const { mutate: uploadPhotos, isPending: isUploading, reset: resetUpload } = useLocationPhotoUpload(locationId);
 
   // Generate previews when files change
   useEffect(() => {
@@ -70,8 +71,7 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
       setIsClosing(false);
       setSelectedFiles([]);
       setPreviews([]);
-      setValidationError(null);
-      resetUpload(); // Clear any upload errors
+      resetUpload();
       onClose();
     }, 300);
   }, [onClose, isUploading, resetUpload]);
@@ -130,14 +130,13 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
   const handleFileSelect = useCallback((files) => {
     const error = validateFiles(files);
     if (error) {
-      setValidationError(error);
+      showToast(error, 'error');
       return;
     }
 
-    setValidationError(null);
     const fileArray = Array.from(files);
     setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, MAX_FILES));
-  }, [validateFiles]);
+  }, [validateFiles, showToast]);
 
   // Handle input change
   const handleInputChange = (e) => {
@@ -202,27 +201,29 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
     } else {
       setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     }
-    setValidationError(null);
   };
 
   // Handle upload
   const handleUpload = () => {
     if (selectedFiles.length === 0 || isUploading) return;
 
+    const fileCount = selectedFiles.length;
     uploadPhotos(selectedFiles, {
       onSuccess: () => {
         setSelectedFiles([]);
         setPreviews([]);
-        setValidationError(null);
+        showToast(fileCount === 1 ? 'Photo uploaded' : `${fileCount} photos uploaded`, 'success');
         onUploadSuccess?.();
         handleClose();
+      },
+      onError: (error) => {
+        const message = error?.response?.data?.detail || error?.message || 'Upload failed';
+        showToast(message, 'error');
       },
     });
   };
 
   if (!isOpen) return null;
-
-  const errorMessage = validationError || (uploadError?.response?.data?.detail || uploadError?.message);
 
   return createPortal(
     <div
@@ -281,14 +282,6 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
               </p>
             </div>
           </div>
-
-          {/* Error message */}
-          {errorMessage && (
-            <div className="photo-upload-modal__error">
-              <i className="fa-solid fa-circle-exclamation"></i>
-              <span>{errorMessage}</span>
-            </div>
-          )}
 
           {/* Preview thumbnails */}
           {(selectedFiles.length > 0 || isPreviewsClosing) && (

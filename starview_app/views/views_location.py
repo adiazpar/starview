@@ -1108,6 +1108,77 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
+    # Delete a photo (LocationPhoto or ReviewPhoto).                                #
+    #                                                                               #
+    # Deletes a photo. Only the photo owner can delete their photos.                #
+    # Pre-delete signal handles file cleanup automatically.                         #
+    #                                                                               #
+    # HTTP Method: DELETE                                                           #
+    # Endpoint: /api/locations/{id}/photos/{photo_id}/                              #
+    # Photo ID format: loc_123 (LocationPhoto) or rev_456 (ReviewPhoto)             #
+    # Authentication: Required                                                      #
+    # Permission: Photo owner only                                                  #
+    # Returns: { detail: "Photo deleted successfully" }                             #
+    # ----------------------------------------------------------------------------- #
+    @action(
+        detail=True,
+        methods=['DELETE'],
+        permission_classes=[IsAuthenticated],
+        url_path='photos/(?P<photo_id>[a-z]+_[0-9]+)'
+    )
+    def delete_photo(self, request, pk=None, photo_id=None):
+        from rest_framework import exceptions
+
+        # Parse photo_id (format: loc_123 or rev_456)
+        if not photo_id or '_' not in photo_id:
+            return Response(
+                {'detail': 'Invalid photo_id format. Expected loc_123 or rev_456'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        prefix, id_str = photo_id.split('_', 1)
+
+        try:
+            photo_pk = int(id_str)
+        except ValueError:
+            return Response(
+                {'detail': 'Invalid photo_id format. ID must be numeric'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the photo object
+        location = self.get_object()  # Ensures location exists
+
+        if prefix == 'loc':
+            photo = get_object_or_404(LocationPhoto, pk=photo_pk, location=location)
+            owner = photo.uploaded_by
+        elif prefix == 'rev':
+            photo = get_object_or_404(ReviewPhoto, pk=photo_pk, review__location=location)
+            owner = photo.review.user
+        else:
+            return Response(
+                {'detail': 'Invalid photo type. Expected loc_ or rev_'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check ownership - only photo owner can delete
+        if owner != request.user:
+            raise exceptions.PermissionDenied('You can only delete your own photos')
+
+        # Delete the photo (pre-delete signal handles file cleanup)
+        photo.delete()
+
+        # Invalidate caches
+        invalidate_location_detail(location.id)
+        invalidate_map_geojson()
+
+        return Response(
+            {'detail': 'Photo deleted successfully'},
+            status=status.HTTP_200_OK
+        )
+
+
+    # ----------------------------------------------------------------------------- #
     # List or upload photos for a location.                                         #
     #                                                                               #
     # GET: List photos with cursor-based pagination                                 #

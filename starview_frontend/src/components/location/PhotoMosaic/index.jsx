@@ -9,7 +9,9 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { usePhotoVote } from '../../../hooks/usePhotoVote';
+import { usePhotoDelete } from '../../../hooks/usePhotoDelete';
 import { useLocationPhotos } from '../../../hooks/useLocationPhotos';
 import { PhotoLightbox } from '../../shared/photo';
 import './styles.css';
@@ -19,7 +21,9 @@ function PhotoMosaic({ locationName, locationId }) {
   const [isClosing, setIsClosing] = useState(false);
   const { requireAuth } = useRequireAuth();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(locationId);
+  const { mutate: deletePhoto, isPending: isDeleting } = usePhotoDelete(locationId);
 
   // Fetch photos from dedicated endpoint (same as gallery page)
   const { photos, totalCount, isLoading } = useLocationPhotos(
@@ -68,6 +72,17 @@ function PhotoMosaic({ locationName, locationId }) {
     if (isVoting) return;
     toggleVote(photoId);
   }, [requireAuth, isVoting, toggleVote]);
+
+  const handleDelete = useCallback((photoId) => {
+    if (!requireAuth()) return;
+    if (isDeleting) return;
+    deletePhoto(photoId, {
+      onSuccess: () => {
+        closeLightbox();
+        showToast('Successfully deleted', 'success');
+      },
+    });
+  }, [requireAuth, isDeleting, deletePhoto, closeLightbox, showToast]);
 
   // Don't render while loading or if no photos
   if (isLoading || images.length === 0) return null;
@@ -155,6 +170,8 @@ function PhotoMosaic({ locationName, locationId }) {
           onVote={locationId ? handleVote : null}
           isVoting={isVoting}
           isOwnPhoto={user?.username === currentImage.uploaded_by?.username}
+          onDelete={locationId ? handleDelete : null}
+          isDeleting={isDeleting}
         />
       )}
     </div>

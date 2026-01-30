@@ -11,8 +11,10 @@ import 'react-photo-album/rows.css';
 import { useLocation } from '../../hooks/useLocations';
 import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { usePhotoVote } from '../../hooks/usePhotoVote';
+import { usePhotoDelete } from '../../hooks/usePhotoDelete';
 import useRequireAuth from '../../hooks/useRequireAuth';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useSEO } from '../../hooks/useSEO';
 import { PhotoItem, PhotoLightbox, PhotoUploadModal } from '../../components/shared/photo';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
@@ -44,10 +46,12 @@ function LocationGalleryPage() {
   // Upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // Auth and voting
+  // Auth, voting, and deletion
   const { requireAuth } = useRequireAuth();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(id);
+  const { mutate: deletePhoto, isPending: isDeleting } = usePhotoDelete(id);
 
   // Determine if filtering to user's photos only
   const mineOnly = sort === 'mine';
@@ -155,6 +159,17 @@ function LocationGalleryPage() {
     if (isVoting) return;
     toggleVote(photoId);
   }, [requireAuth, isVoting, toggleVote]);
+
+  const handleDelete = useCallback((photoId) => {
+    if (!requireAuth()) return;
+    if (isDeleting) return;
+    deletePhoto(photoId, {
+      onSuccess: () => {
+        closeLightbox();
+        showToast('Successfully deleted', 'success');
+      },
+    });
+  }, [requireAuth, isDeleting, deletePhoto, closeLightbox, showToast]);
 
   // Handle upload button click
   const handleUploadClick = useCallback(() => {
@@ -364,6 +379,8 @@ function LocationGalleryPage() {
           onVote={handleVote}
           isVoting={isVoting}
           isOwnPhoto={user?.username === currentPhoto.uploaded_by?.username}
+          onDelete={handleDelete}
+          isDeleting={isDeleting}
         />
       )}
 
