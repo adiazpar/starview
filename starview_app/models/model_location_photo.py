@@ -29,8 +29,8 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 # Minimum dimensions for uploaded photos (prevents blurry/pixelated images in gallery)
-MIN_IMAGE_WIDTH = 600
-MIN_IMAGE_HEIGHT = 600
+MIN_IMAGE_WIDTH = 500
+MIN_IMAGE_HEIGHT = 500
 
 from . import Location
 
@@ -102,8 +102,8 @@ class LocationPhoto(models.Model):
 
             if width < MIN_IMAGE_WIDTH or height < MIN_IMAGE_HEIGHT:
                 raise ValidationError(
-                    f"Image dimensions ({width}x{height}) are too small. "
-                    f"Minimum required: {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels."
+                    f"This image is too small ({width}x{height}). "
+                    f"Please use a photo that's at least {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels."
                 )
         except ValidationError:
             raise

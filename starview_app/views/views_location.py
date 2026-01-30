@@ -1159,17 +1159,21 @@ class LocationViewSet(viewsets.ModelViewSet):
         # Process each uploaded image (all validation passed)
         created_photos = []
         for idx, image in enumerate(uploaded_images):
-            photo = LocationPhoto.objects.create(
-                location=location,
-                image=image,
-                uploaded_by=request.user,
-                order=existing_photos_count + idx
-            )
-            created_photos.append({
-                'id': f'loc_{photo.id}',
-                'image_url': photo.image.url,
-                'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url,
-            })
+            try:
+                photo = LocationPhoto.objects.create(
+                    location=location,
+                    image=image,
+                    uploaded_by=request.user,
+                    order=existing_photos_count + idx
+                )
+                created_photos.append({
+                    'id': f'loc_{photo.id}',
+                    'image_url': photo.image.url,
+                    'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url,
+                })
+            except ValidationError as e:
+                # Convert Django ValidationError to DRF ValidationError for proper API response
+                raise exceptions.ValidationError(str(e.message if hasattr(e, 'message') else e))
 
         # Invalidate caches since location has new photos
         invalidate_location_detail(location.id)
