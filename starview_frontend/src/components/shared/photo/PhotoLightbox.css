@@ -136,6 +136,17 @@
   animation: photoLightboxThumbPop 0.3s ease;
 }
 
+/* Disabled state for own photos (display only, no interaction) */
+.photo-lightbox__action--disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.photo-lightbox__action--disabled:hover {
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
 .photo-lightbox__vote-count {
   font-family: var(--font-display);
   font-size: var(--text-sm);

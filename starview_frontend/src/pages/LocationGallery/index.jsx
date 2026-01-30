@@ -12,6 +12,7 @@ import { useLocation } from '../../hooks/useLocations';
 import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { usePhotoVote } from '../../hooks/usePhotoVote';
 import useRequireAuth from '../../hooks/useRequireAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useSEO } from '../../hooks/useSEO';
 import { PhotoItem, PhotoLightbox, PhotoUploadModal } from '../../components/shared/photo';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
@@ -44,6 +45,7 @@ function LocationGalleryPage() {
 
   // Auth and voting
   const { requireAuth } = useRequireAuth();
+  const { user } = useAuth();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(id);
 
   // Fetch photos with pagination
@@ -349,6 +351,7 @@ function LocationGalleryPage() {
           onClose={closeLightbox}
           onVote={handleVote}
           isVoting={isVoting}
+          isOwnPhoto={user?.username === currentPhoto.uploaded_by?.username}
         />
       )}
 

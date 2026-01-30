@@ -8,6 +8,7 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import useRequireAuth from '../../../hooks/useRequireAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { usePhotoVote } from '../../../hooks/usePhotoVote';
 import { useLocationPhotos } from '../../../hooks/useLocationPhotos';
 import { PhotoLightbox } from '../../shared/photo';
@@ -17,6 +18,7 @@ function PhotoMosaic({ locationName, locationId }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
   const { requireAuth } = useRequireAuth();
+  const { user } = useAuth();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(locationId);
 
   // Fetch photos from dedicated endpoint (same as gallery page)
@@ -152,6 +154,7 @@ function PhotoMosaic({ locationName, locationId }) {
           onClose={closeLightbox}
           onVote={locationId ? handleVote : null}
           isVoting={isVoting}
+          isOwnPhoto={user?.username === currentImage.uploaded_by?.username}
         />
       )}
     </div>

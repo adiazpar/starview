@@ -21,6 +21,7 @@ function PhotoLightbox({
   onClose,
   onVote,
   isVoting = false,
+  isOwnPhoto = false,
 }) {
   const lightboxRef = useRef(null);
 
@@ -117,17 +118,27 @@ function PhotoLightbox({
             )
           )}
           {onVote && (
-            <button
-              className={`photo-lightbox__action photo-lightbox__action--vote ${photo.user_has_upvoted ? 'photo-lightbox__action--active' : ''}`}
-              onClick={handleVoteClick}
-              disabled={isVoting}
-              aria-label={photo.user_has_upvoted ? 'Remove upvote' : 'Upvote photo'}
-            >
-              <i className={`fa-${photo.user_has_upvoted ? 'solid' : 'regular'} fa-thumbs-up`}></i>
-              {photo.upvote_count > 0 && (
-                <span className="photo-lightbox__vote-count">{photo.upvote_count}</span>
-              )}
-            </button>
+            isOwnPhoto ? (
+              /* Show vote count only for own photos (can't vote on own photo) */
+              photo.upvote_count > 0 && (
+                <div className="photo-lightbox__action photo-lightbox__action--vote photo-lightbox__action--disabled">
+                  <i className="fa-solid fa-thumbs-up"></i>
+                  <span className="photo-lightbox__vote-count">{photo.upvote_count}</span>
+                </div>
+              )
+            ) : (
+              <button
+                className={`photo-lightbox__action photo-lightbox__action--vote ${photo.user_has_upvoted ? 'photo-lightbox__action--active' : ''}`}
+                onClick={handleVoteClick}
+                disabled={isVoting}
+                aria-label={photo.user_has_upvoted ? 'Remove upvote' : 'Upvote photo'}
+              >
+                <i className={`fa-${photo.user_has_upvoted ? 'solid' : 'regular'} fa-thumbs-up`}></i>
+                {photo.upvote_count > 0 && (
+                  <span className="photo-lightbox__vote-count">{photo.upvote_count}</span>
+                )}
+              </button>
+            )
           )}
         </div>
       </div>
