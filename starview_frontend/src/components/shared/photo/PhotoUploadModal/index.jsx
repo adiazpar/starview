@@ -31,7 +31,7 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
 
-  const { mutate: uploadPhotos, isPending: isUploading, error: uploadError } = useLocationPhotoUpload(locationId);
+  const { mutate: uploadPhotos, isPending: isUploading, error: uploadError, reset: resetUpload } = useLocationPhotoUpload(locationId);
 
   // Generate previews when files change
   useEffect(() => {
@@ -71,9 +71,10 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
       setSelectedFiles([]);
       setPreviews([]);
       setValidationError(null);
+      resetUpload(); // Clear any upload errors
       onClose();
     }, 300);
-  }, [onClose, isUploading]);
+  }, [onClose, isUploading, resetUpload]);
 
   // Close modal on ESC key
   useEffect(() => {

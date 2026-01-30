@@ -15,8 +15,9 @@ import { locationsApi } from '../services/locations';
  * @returns {Object} Mutation object with mutate function, isPending, error, etc.
  *
  * Usage:
- *   const { mutate: uploadPhotos, isPending, error } = useLocationPhotoUpload(locationId);
+ *   const { mutate: uploadPhotos, isPending, error, reset } = useLocationPhotoUpload(locationId);
  *   uploadPhotos(files); // files is an array of File objects
+ *   reset(); // clears error state
  */
 export function useLocationPhotoUpload(locationId) {
   const queryClient = useQueryClient();
