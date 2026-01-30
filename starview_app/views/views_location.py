@@ -1168,9 +1168,8 @@ class LocationViewSet(viewsets.ModelViewSet):
         # Delete the photo (pre-delete signal handles file cleanup)
         photo.delete()
 
-        # Invalidate caches
-        invalidate_location_detail(location.id)
-        invalidate_map_geojson()
+        # Invalidate all location-related caches (detail, list, map, popular nearby)
+        invalidate_all_location_caches(location.id)
 
         return Response(
             {'detail': 'Photo deleted successfully'},
@@ -1246,9 +1245,8 @@ class LocationViewSet(viewsets.ModelViewSet):
                 # Convert Django ValidationError to DRF ValidationError for proper API response
                 raise exceptions.ValidationError(str(e.message if hasattr(e, 'message') else e))
 
-        # Invalidate caches since location has new photos
-        invalidate_location_detail(location.id)
-        invalidate_map_geojson()
+        # Invalidate all location-related caches (detail, list, map, popular nearby)
+        invalidate_all_location_caches(location.id)
 
         return Response(
             {

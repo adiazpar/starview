@@ -3,17 +3,30 @@
  *
  * React Query mutation hook for deleting photos.
  * Provides optimistic updates for instant UI feedback with rollback on error.
- * Updates both legacy location.images cache and new locationPhotos infinite query cache.
+ * Updates location.images in all caches: single location, list queries, and locationPhotos.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { locationsApi } from '../services/locations';
 
 /**
- * Helper to remove a photo from an array
+ * Helper to remove a photo from an array by ID
  */
 function removePhotoFromArray(photos, photoId) {
   return photos.filter((photo) => photo.id !== photoId);
+}
+
+/**
+ * Helper to update a location's images in a list of locations
+ */
+function updateLocationImagesInList(locations, locationId, photoId) {
+  if (!locations) return locations;
+  return locations.map((loc) => {
+    if (String(loc.id) === String(locationId) && loc.images) {
+      return { ...loc, images: removePhotoFromArray(loc.images, photoId) };
+    }
+    return loc;
+  });
 }
 
 /**
@@ -42,6 +55,7 @@ export function usePhotoDelete(locationId) {
     onMutate: async (photoId) => {
       // Cancel outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: ['location', locationIdStr] });
+      await queryClient.cancelQueries({ queryKey: ['locations'] });
       await queryClient.cancelQueries({
         queryKey: ['locationPhotos', locationIdStr],
         exact: false,
@@ -49,14 +63,15 @@ export function usePhotoDelete(locationId) {
 
       // Snapshot previous values for rollback
       const previousLocation = queryClient.getQueryData(['location', locationIdStr]);
-
-      // Get all locationPhotos queries for this location (different sort/limit combos)
+      const previousInfinite = queryClient.getQueriesData({ queryKey: ['locations', 'infinite'] });
+      const previousPaginated = queryClient.getQueriesData({ queryKey: ['locations', 'paginated'] });
+      const previousPopularNearby = queryClient.getQueriesData({ queryKey: ['locations', 'popularNearby'] });
       const locationPhotosQueries = queryClient.getQueriesData({
         queryKey: ['locationPhotos', locationIdStr],
         exact: false,
       });
 
-      // Optimistically remove from the legacy location.images cache
+      // Optimistically remove from the single location cache
       if (previousLocation) {
         queryClient.setQueryData(['location', locationIdStr], (old) => {
           if (!old?.images) return old;
@@ -64,29 +79,84 @@ export function usePhotoDelete(locationId) {
         });
       }
 
+      // Optimistically remove from infinite list queries (explore page)
+      queryClient.setQueriesData({ queryKey: ['locations', 'infinite'] }, (old) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            results: updateLocationImagesInList(page.results, locationIdStr, photoId),
+          })),
+        };
+      });
+
+      // Optimistically remove from paginated list queries
+      queryClient.setQueriesData({ queryKey: ['locations', 'paginated'] }, (old) => {
+        if (!old?.results) return old;
+        return {
+          ...old,
+          results: updateLocationImagesInList(old.results, locationIdStr, photoId),
+        };
+      });
+
+      // Optimistically remove from popular nearby queries (home page)
+      queryClient.setQueriesData({ queryKey: ['locations', 'popularNearby'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return updateLocationImagesInList(old, locationIdStr, photoId);
+      });
+
       // Optimistically remove from all locationPhotos infinite queries for this location
       locationPhotosQueries.forEach(([queryKey]) => {
         queryClient.setQueryData(queryKey, (old) => {
           if (!old?.pages) return old;
-
-          const updatedPages = old.pages.map((page) => ({
-            ...page,
-            results: removePhotoFromArray(page.results, photoId),
-            total_count: Math.max(0, (page.total_count || 0) - 1),
-          }));
-
-          return { ...old, pages: updatedPages };
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              results: removePhotoFromArray(page.results, photoId),
+              total_count: Math.max(0, (page.total_count || 0) - 1),
+            })),
+          };
         });
       });
 
-      return { previousLocation, locationPhotosQueries, photoId };
+      return {
+        previousLocation,
+        previousInfinite,
+        previousPaginated,
+        previousPopularNearby,
+        locationPhotosQueries,
+        photoId,
+      };
     },
 
     // ROLLBACK: Restore previous state on error
     onError: (err, photoId, context) => {
-      // Rollback legacy location cache
+      // Rollback single location cache
       if (context?.previousLocation) {
         queryClient.setQueryData(['location', locationIdStr], context.previousLocation);
+      }
+
+      // Rollback infinite list queries
+      if (context?.previousInfinite) {
+        context.previousInfinite.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+
+      // Rollback paginated list queries
+      if (context?.previousPaginated) {
+        context.previousPaginated.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+
+      // Rollback popular nearby queries
+      if (context?.previousPopularNearby) {
+        context.previousPopularNearby.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
 
       // Rollback all locationPhotos queries
@@ -105,6 +175,8 @@ export function usePhotoDelete(locationId) {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: ['location', locationIdStr] });
+      // Also invalidate list queries to get fresh data
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 }

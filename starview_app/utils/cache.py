@@ -267,9 +267,21 @@ def invalidate_location_list():
         r.delete(*keys)
 
 
-# Clear cached location detail for a specific location:
+# Clear cached location detail for a specific location (both anonymous and user-specific):
 def invalidate_location_detail(location_id):
+    from django.conf import settings
+    import redis
+
+    # Delete anonymous cache
     cache.delete(location_detail_key(location_id))
+
+    # Also delete all user-specific caches using pattern matching
+    redis_url = settings.CACHES['default']['LOCATION']
+    r = redis.from_url(redis_url)
+    pattern = f'starview:{location_detail_key(location_id)}:user:*'
+    keys = list(r.scan_iter(match=pattern))
+    if keys:
+        r.delete(*keys)
 
 
 # ----------------------------------------------------------------------------- #
@@ -301,6 +313,26 @@ def invalidate_user_map_geojson(user_id):
 
 
 # ----------------------------------------------------------------------------- #
+# Invalidate all popular nearby caches.                                         #
+#                                                                               #
+# Call this when: location images change (upload/delete) since popular nearby   #
+# response includes location images for display on home page.                   #
+# ----------------------------------------------------------------------------- #
+def invalidate_popular_nearby():
+    from django.conf import settings
+    import redis
+
+    redis_url = settings.CACHES['default']['LOCATION']
+    r = redis.from_url(redis_url)
+
+    # Pattern matches all popular nearby keys (with starview: prefix from settings)
+    pattern = 'starview:popular_nearby:*'
+    keys = list(r.scan_iter(match=pattern))
+    if keys:
+        r.delete(*keys)
+
+
+# ----------------------------------------------------------------------------- #
 # Invalidate all cached review pages for a location.                            #
 #                                                                               #
 # Call this when: new review added, review updated/deleted for this location.   #
@@ -322,13 +354,14 @@ def invalidate_user_favorites(user_id):
 # Invalidate ALL caches related to a specific location.                         #
 #                                                                               #
 # This is a convenience function that clears: location detail, location list,   #
-# map GeoJSON, and review list. Use this when a location is                      #
+# map GeoJSON, popular nearby, and review list. Use this when a location is     #
 # updated significantly or when you want to ensure all related caches are fresh.#
 # ----------------------------------------------------------------------------- #
 def invalidate_all_location_caches(location_id):
     invalidate_location_detail(location_id)
     invalidate_location_list()
     invalidate_map_geojson()
+    invalidate_popular_nearby()
     invalidate_review_list(location_id)
 
 
