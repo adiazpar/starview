@@ -8,7 +8,7 @@
 # Key Features:                                                                                         #
 # - User attribution: Tracks who uploaded each photo via uploaded_by field                             #
 # - Automatic image optimization: Resizes to max 1920x1920, converts to JPEG, optimizes quality        #
-# - Thumbnail generation: Creates 300x300 thumbnails automatically                                     #
+# - Thumbnail generation: Creates 720x720 thumbnails automatically                                     #
 # - Organized storage: Photos stored in location_photos/{location_id}/ hierarchy                       #
 # - Voting: Photos can receive upvotes from users via generic Vote relation                            #
 # - Auto-ordering: Automatically assigns display order if not specified                                #
@@ -192,10 +192,10 @@ class LocationPhoto(models.Model):
             )
 
     def _create_thumbnail(self, img):
-        """Creates 300x300 thumbnail version of the image."""
+        """Creates 720x720 thumbnail version of the image."""
         try:
             img_copy = img.copy()
-            img_copy.thumbnail((300, 300), Image.Resampling.LANCZOS)
+            img_copy.thumbnail((720, 720), Image.Resampling.LANCZOS)
 
             thumb_io = io.BytesIO()
             img_copy.save(thumb_io, format='JPEG', quality=85, optimize=True)

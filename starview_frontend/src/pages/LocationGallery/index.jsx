@@ -13,7 +13,7 @@ import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { usePhotoVote } from '../../hooks/usePhotoVote';
 import useRequireAuth from '../../hooks/useRequireAuth';
 import { useSEO } from '../../hooks/useSEO';
-import { PhotoLightbox } from '../../components/shared/photo';
+import { PhotoItem, PhotoLightbox } from '../../components/shared/photo';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -279,43 +279,17 @@ function LocationGalleryPage() {
           /* Simple grid for 1-2 photos to avoid oversized display */
           <div className="location-gallery__sparse-grid">
             {transformedPhotos.map((photo) => (
-              <button
+              <PhotoItem
                 key={photo.id}
-                className="location-gallery__photo location-gallery__photo--sparse"
-                onClick={() => openLightbox(photo.index)}
+                photo={photo}
+                locationName={location.name}
+                index={photo.index}
+                totalCount={totalCount}
+                onClick={openLightbox}
+                className="photo-item--sparse"
                 style={{ '--photo-index': photo.index % PAGE_SIZE }}
-                aria-label={`View photo ${photo.index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
-              >
-                <img
-                  src={photo.src}
-                  alt={`${location.name} photo ${photo.index + 1}`}
-                />
-
-                {/* Hover Overlay with User Attribution */}
-                {photo.uploaded_by && (
-                  <div className="location-gallery__photo-overlay">
-                    <div className="location-gallery__photo-attribution">
-                      <img
-                        src={photo.uploaded_by.profile_picture}
-                        alt=""
-                        className="location-gallery__photo-avatar"
-                      />
-                      <div className="location-gallery__photo-user-info">
-                        <span className="location-gallery__photo-username">@{photo.uploaded_by.username}</span>
-                        <span className="location-gallery__photo-display-name">{photo.uploaded_by.display_name}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Vote count badge */}
-                {photo.upvote_count > 0 && (
-                  <span className="location-gallery__photo-votes">
-                    <i className="fa-solid fa-heart"></i>
-                    {photo.upvote_count}
-                  </span>
-                )}
-              </button>
+                showVoteCount
+              />
             ))}
           </div>
         ) : (
@@ -326,46 +300,18 @@ function LocationGalleryPage() {
             spacing={8}
             render={{
               image: (props, { photo, width, height }) => (
-                <button
-                  className="location-gallery__photo"
-                  onClick={() => openLightbox(photo.index)}
-                  style={{
-                    '--photo-index': photo.index % PAGE_SIZE,
-                    width,
-                    height,
-                  }}
-                  aria-label={`View photo ${photo.index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
-                >
-                  <img
-                    {...props}
-                    alt={`${location.name} photo ${photo.index + 1}`}
-                  />
-
-                  {/* Hover Overlay with User Attribution */}
-                  {photo.uploaded_by && (
-                    <div className="location-gallery__photo-overlay">
-                      <div className="location-gallery__photo-attribution">
-                        <img
-                          src={photo.uploaded_by.profile_picture}
-                          alt=""
-                          className="location-gallery__photo-avatar"
-                        />
-                        <div className="location-gallery__photo-user-info">
-                          <span className="location-gallery__photo-username">@{photo.uploaded_by.username}</span>
-                          <span className="location-gallery__photo-display-name">{photo.uploaded_by.display_name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Vote count badge */}
-                  {photo.upvote_count > 0 && (
-                    <span className="location-gallery__photo-votes">
-                      <i className="fa-solid fa-heart"></i>
-                      {photo.upvote_count}
-                    </span>
-                  )}
-                </button>
+                <PhotoItem
+                  photo={photo}
+                  locationName={location.name}
+                  index={photo.index}
+                  totalCount={totalCount}
+                  onClick={openLightbox}
+                  style={{ '--photo-index': photo.index % PAGE_SIZE }}
+                  width={width}
+                  height={height}
+                  imgProps={props}
+                  showVoteCount
+                />
               ),
             }}
           />

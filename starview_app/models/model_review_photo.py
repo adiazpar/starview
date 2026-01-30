@@ -174,11 +174,11 @@ class ReviewPhoto(models.Model):
             )
 
 
-    # Creates 300x300 thumbnail version of the image:
+    # Creates 720x720 thumbnail version of the image:
     def _create_thumbnail(self, img):
         try:
             img_copy = img.copy()
-            img_copy.thumbnail((300, 300), Image.Resampling.LANCZOS)
+            img_copy.thumbnail((720, 720), Image.Resampling.LANCZOS)
 
             thumb_io = io.BytesIO()
             img_copy.save(thumb_io, format='JPEG', quality=85, optimize=True)

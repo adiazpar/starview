@@ -16,6 +16,9 @@ function PhotoItem({
   remainingCount = 0,
   showRemainingOverlay = false,
   style,
+  width,
+  height,
+  imgProps = {},
 }) {
   const handleClick = () => {
     if (onClick) onClick(index);
@@ -28,16 +31,26 @@ function PhotoItem({
     }
   };
 
+  // Determine if we're in dynamic size mode (e.g., for RowsPhotoAlbum)
+  const hasDynamicSize = width !== undefined || height !== undefined;
+  const containerClass = `photo-item ${hasDynamicSize ? 'photo-item--dynamic' : ''} ${className}`.trim();
+  const containerStyle = {
+    ...style,
+    ...(width !== undefined && { width }),
+    ...(height !== undefined && { height }),
+  };
+
   return (
     <button
-      className={`photo-item ${className}`}
+      className={containerClass}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      style={style}
+      style={containerStyle}
       aria-label={`View photo ${index + 1} of ${totalCount}${photo.uploaded_by ? ` by ${photo.uploaded_by.display_name}` : ''}`}
     >
       <img
-        src={photo.thumbnail || photo.full}
+        {...imgProps}
+        src={imgProps.src || photo.thumbnail || photo.full}
         alt={locationName ? `${locationName} photo ${index + 1}` : `Photo ${index + 1}`}
         loading="lazy"
       />
@@ -62,7 +75,7 @@ function PhotoItem({
       {/* Vote count badge */}
       {showVoteCount && photo.upvote_count > 0 && (
         <span className="photo-item__votes">
-          <i className="fa-solid fa-heart"></i>
+          <i className="fa-solid fa-thumbs-up"></i>
           {photo.upvote_count}
         </span>
       )}
