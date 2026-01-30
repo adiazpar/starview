@@ -101,6 +101,8 @@
   gap: var(--space-sm);
   text-decoration: none;
   transition: opacity var(--animation-duration) ease;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 a.photo-item__attribution:hover {
@@ -120,6 +122,7 @@ a.photo-item__attribution:hover {
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
+  overflow: hidden;
 }
 
 .photo-item__username {
@@ -128,6 +131,8 @@ a.photo-item__attribution:hover {
   font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
   color: #fff;
+  width: 100%;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -138,6 +143,8 @@ a.photo-item__attribution:hover {
   font-size: var(--text-xs);
   line-height: var(--leading-tight);
   color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
