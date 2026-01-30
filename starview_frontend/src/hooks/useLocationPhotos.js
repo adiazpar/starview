@@ -13,20 +13,22 @@ import { locationsApi } from '../services/locations';
  * @param {number|string} locationId - Location ID
  * @param {string} sort - Sort order: "newest", "oldest", "most_upvoted"
  * @param {number} limit - Number of photos per page (default: 24, max: 50)
+ * @param {boolean} mineOnly - If true, only fetch photos uploaded by current user
  * @param {Object} options - Additional React Query options
  * @returns {Object} Query result with photos data and pagination controls
  */
-export function useLocationPhotos(locationId, sort = 'newest', limit = 24, options = {}) {
+export function useLocationPhotos(locationId, sort = 'newest', limit = 24, mineOnly = false, options = {}) {
   // Normalize locationId to string for consistent query key matching with usePhotoVote
   const locationIdStr = String(locationId);
 
   const query = useInfiniteQuery({
-    queryKey: ['locationPhotos', locationIdStr, sort, limit],
+    queryKey: ['locationPhotos', locationIdStr, sort, limit, mineOnly],
     queryFn: async ({ pageParam = null }) => {
       const response = await locationsApi.getPhotos(locationId, {
         sort,
         cursor: pageParam,
         limit,
+        mine: mineOnly,
       });
       return response.data;
     },

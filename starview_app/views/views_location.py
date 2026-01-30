@@ -1237,6 +1237,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         # Parse query parameters
         sort = request.query_params.get('sort', 'newest')
         cursor_param = request.query_params.get('cursor')
+        mine_only = request.query_params.get('mine', '').lower() == 'true'
         try:
             limit = min(int(request.query_params.get('limit', 24)), 50)
         except (ValueError, TypeError):
@@ -1263,6 +1264,11 @@ class LocationViewSet(viewsets.ModelViewSet):
         ).annotate(
             upvote_count_annotated=Count('votes', filter=Q(votes__is_upvote=True))
         ).select_related('review__user', 'review__user__userprofile')
+
+        # Filter to only user's photos if mine=true
+        if mine_only and user:
+            location_photos_qs = location_photos_qs.filter(uploaded_by=user)
+            review_photos_qs = review_photos_qs.filter(review__user=user)
 
         # Get total count (both types combined)
         total_count = location_photos_qs.count() + review_photos_qs.count()

@@ -22,6 +22,7 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
   { value: 'oldest', label: 'Oldest' },
   { value: 'most_upvoted', label: 'Most Upvoted' },
+  { value: 'mine', label: 'My Photos', requiresAuth: true },
 ];
 
 const PAGE_SIZE = 24;
@@ -48,6 +49,11 @@ function LocationGalleryPage() {
   const { user } = useAuth();
   const { mutate: toggleVote, isPending: isVoting } = usePhotoVote(id);
 
+  // Determine if filtering to user's photos only
+  const mineOnly = sort === 'mine';
+  // When showing "My Photos", sort by newest; otherwise use selected sort
+  const actualSort = mineOnly ? 'newest' : sort;
+
   // Fetch photos with pagination
   const {
     photos,
@@ -56,7 +62,7 @@ function LocationGalleryPage() {
     isLoading: photosLoading,
     isFetchingNextPage,
     fetchNextPage,
-  } = useLocationPhotos(id, sort);
+  } = useLocationPhotos(id, actualSort, PAGE_SIZE, mineOnly);
 
   // Transform API response to match expected format for both lightbox and photo album
   // react-photo-album requires: src, width, height
@@ -254,17 +260,19 @@ function LocationGalleryPage() {
 
           {sortDropdownOpen && (
             <ul className="location-gallery__sort-menu" role="listbox">
-              {SORT_OPTIONS.map((option) => (
-                <li
-                  key={option.value}
-                  role="option"
-                  aria-selected={sort === option.value}
-                  className={`location-gallery__sort-option ${sort === option.value ? 'location-gallery__sort-option--active' : ''}`}
-                  onClick={() => handleSortChange(option.value)}
-                >
-                  {option.label}
-                </li>
-              ))}
+              {SORT_OPTIONS
+                .filter((option) => !option.requiresAuth || user)
+                .map((option) => (
+                  <li
+                    key={option.value}
+                    role="option"
+                    aria-selected={sort === option.value}
+                    className={`location-gallery__sort-option ${sort === option.value ? 'location-gallery__sort-option--active' : ''}`}
+                    onClick={() => handleSortChange(option.value)}
+                  >
+                    {option.label}
+                  </li>
+                ))}
             </ul>
           )}
         </div>
@@ -280,8 +288,12 @@ function LocationGalleryPage() {
         ) : transformedPhotos.length === 0 ? (
           <div className="location-gallery__empty">
             <i className="fa-regular fa-image"></i>
-            <h3>No photos yet</h3>
-            <p>Be the first to share a photo of {location.name}</p>
+            <h3>{mineOnly ? 'No photos uploaded' : 'No photos yet'}</h3>
+            <p>
+              {mineOnly
+                ? "You haven't uploaded any photos to this location yet"
+                : `Be the first to share a photo of ${location.name}`}
+            </p>
           </div>
         ) : transformedPhotos.length < 3 ? (
           /* Simple grid for 1-2 photos to avoid oversized display */
