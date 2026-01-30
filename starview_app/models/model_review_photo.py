@@ -106,8 +106,7 @@ class ReviewPhoto(models.Model):
 
             if width < MIN_IMAGE_WIDTH or height < MIN_IMAGE_HEIGHT:
                 raise ValidationError(
-                    f"This image is too small ({width}x{height}). "
-                    f"Please use a photo that's at least {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels."
+                    f"Image too small ({width}x{height}). Minimum: {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT}."
                 )
         except ValidationError:
             raise
