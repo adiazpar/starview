@@ -13,7 +13,7 @@ import { useLocationPhotos } from '../../hooks/useLocationPhotos';
 import { usePhotoVote } from '../../hooks/usePhotoVote';
 import useRequireAuth from '../../hooks/useRequireAuth';
 import { useSEO } from '../../hooks/useSEO';
-import { PhotoItem, PhotoLightbox } from '../../components/shared/photo';
+import { PhotoItem, PhotoLightbox, PhotoUploadModal } from '../../components/shared/photo';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -38,6 +38,9 @@ function LocationGalleryPage() {
   // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
+
+  // Upload modal state
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Auth and voting
   const { requireAuth } = useRequireAuth();
@@ -145,6 +148,12 @@ function LocationGalleryPage() {
     toggleVote(photoId);
   }, [requireAuth, isVoting, toggleVote]);
 
+  // Handle upload button click
+  const handleUploadClick = useCallback(() => {
+    if (!requireAuth()) return;
+    setIsUploadModalOpen(true);
+  }, [requireAuth]);
+
   // Get current sort label
   const currentSortLabel = SORT_OPTIONS.find((opt) => opt.value === sort)?.label || 'Newest';
 
@@ -164,13 +173,10 @@ function LocationGalleryPage() {
   if (isError) {
     return (
       <div className="location-gallery location-gallery--error">
-        <div className="location-gallery__error-content glass-card">
+        <div className="location-gallery__error-content">
           <i className="fa-solid fa-triangle-exclamation"></i>
-          <h2>Location Not Found</h2>
+          <h3>Location Not Found</h3>
           <p>{error?.message || 'This location may have been removed or does not exist.'}</p>
-          <button className="btn-primary" onClick={() => navigate('/explore')}>
-            Explore Locations
-          </button>
         </div>
       </div>
     );
@@ -227,7 +233,7 @@ function LocationGalleryPage() {
 
       {/* Toolbar */}
       <div className="location-gallery__toolbar">
-        <button className="location-gallery__upload">
+        <button className="location-gallery__upload" onClick={handleUploadClick}>
           Upload Photo
         </button>
 
@@ -345,6 +351,13 @@ function LocationGalleryPage() {
           isVoting={isVoting}
         />
       )}
+
+      {/* Upload Modal */}
+      <PhotoUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        locationId={id}
+      />
     </div>
   );
 }

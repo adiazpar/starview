@@ -1108,22 +1108,83 @@ class LocationViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # List photos for a location with cursor-based pagination.                      #
+    # List or upload photos for a location.                                         #
     #                                                                               #
-    # Combines photos from LocationPhoto and ReviewPhoto into a single stream.      #
-    # Supports sorting by newest, oldest, or most_upvoted.                          #
+    # GET: List photos with cursor-based pagination                                 #
+    # POST: Upload new photos (authenticated users only)                            #
     #                                                                               #
-    # HTTP Method: GET                                                              #
+    # HTTP Method: GET, POST                                                        #
     # Endpoint: /api/locations/{id}/photos/                                         #
-    # Query params:                                                                 #
-    #   - sort: "newest" (default), "oldest", "most_upvoted"                        #
-    #   - cursor: pagination cursor (optional)                                      #
-    #   - limit: page size (default 24, max 50)                                     #
-    # Authentication: None required                                                 #
-    # Returns: { results, next_cursor, has_more, total_count }                      #
     # ----------------------------------------------------------------------------- #
-    @action(detail=True, methods=['GET'], url_path='photos')
+    @action(detail=True, methods=['GET', 'POST'], url_path='photos')
     def list_photos(self, request, pk=None):
+        # Dispatch to appropriate handler based on HTTP method
+        if request.method == 'POST':
+            return self._handle_photo_upload(request, pk)
+        return self._handle_photo_list(request, pk)
+
+    def _handle_photo_upload(self, request, pk=None):
+        """Handle POST requests to upload photos to a location."""
+        from django.core.exceptions import ValidationError
+        from rest_framework import exceptions
+        from starview_app.utils import validate_file_size, validate_image_file
+
+        # Require authentication for uploads
+        if not request.user.is_authenticated:
+            raise exceptions.NotAuthenticated('Authentication required to upload photos')
+
+        location = self.get_object()
+
+        # Get uploaded images
+        uploaded_images = request.FILES.getlist('images')
+
+        if not uploaded_images:
+            raise exceptions.ValidationError('No images provided')
+
+        # Limit to 5 photos per upload session
+        if len(uploaded_images) > 5:
+            raise exceptions.ValidationError('Maximum 5 photos per upload')
+
+        # Validate all files before processing any of them
+        for image in uploaded_images:
+            try:
+                validate_file_size(image)
+                validate_image_file(image)
+            except ValidationError as e:
+                raise exceptions.ValidationError(f'Invalid file "{image.name}": {str(e)}')
+
+        # Get the next order value for photos
+        existing_photos_count = location.photos.count()
+
+        # Process each uploaded image (all validation passed)
+        created_photos = []
+        for idx, image in enumerate(uploaded_images):
+            photo = LocationPhoto.objects.create(
+                location=location,
+                image=image,
+                uploaded_by=request.user,
+                order=existing_photos_count + idx
+            )
+            created_photos.append({
+                'id': f'loc_{photo.id}',
+                'image_url': photo.image.url,
+                'thumbnail_url': photo.thumbnail.url if photo.thumbnail else photo.image.url,
+            })
+
+        # Invalidate caches since location has new photos
+        invalidate_location_detail(location.id)
+        invalidate_map_geojson()
+
+        return Response(
+            {
+                'detail': f'{len(created_photos)} photo(s) uploaded successfully',
+                'photos': created_photos
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    def _handle_photo_list(self, request, pk=None):
+        """Handle GET requests to list photos for a location."""
         from django.db.models import Count, Q
         from datetime import datetime
         from starview_app.utils.pagination import decode_cursor, encode_cursor
@@ -1379,5 +1440,3 @@ class LocationViewSet(viewsets.ModelViewSet):
             'has_more': has_more,
             'total_count': total_count,
         })
-
-

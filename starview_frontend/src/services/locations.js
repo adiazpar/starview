@@ -172,6 +172,20 @@ export const locationsApi = {
   getPhotos: (locationId, params = {}) => {
     return api.get(`/locations/${locationId}/photos/`, { params });
   },
+
+  /**
+   * Upload photos to a location's gallery
+   * @param {number} locationId - Location ID
+   * @param {File[]} files - Array of image files to upload (max 5)
+   * @returns {Promise} - { detail, photos: [{ id, image_url, thumbnail_url }] }
+   */
+  addPhotosToLocation: (locationId, files) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('images', file));
+    return api.post(`/locations/${locationId}/photos/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export default locationsApi;

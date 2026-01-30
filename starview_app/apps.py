@@ -29,3 +29,7 @@ class StarviewAppConfig(AppConfig):
     # Registers signal handlers by importing signals.py when app is ready:
     def ready(self):
         import starview_app.utils.signals
+
+        # Register HEIF/HEIC image support with Pillow
+        from pillow_heif import register_heif_opener
+        register_heif_opener()

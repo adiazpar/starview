@@ -24,30 +24,35 @@
   padding: var(--space-lg);
 }
 
-/* Error State Card */
+/* Error State - Minimal styling matching empty state */
 .location-gallery__error-content {
-  max-width: 400px;
-  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 280px;
+  padding: var(--space-2xl);
   text-align: center;
-  animation: fadeInUp var(--animation-duration) ease-out backwards;
 }
 
 .location-gallery__error-content i {
-  font-size: 48px;
-  color: var(--warning);
+  font-size: var(--text-3xl);
+  color: var(--text-muted);
   margin-bottom: var(--space-md);
 }
 
-.location-gallery__error-content h2 {
+.location-gallery__error-content h3 {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  color: var(--text-primary);
-  margin-bottom: var(--space-sm);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-xs) 0;
 }
 
 .location-gallery__error-content p {
-  color: var(--text-secondary);
-  margin-bottom: var(--space-lg);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin: 0;
 }
 
 /* ============================================
@@ -481,8 +486,7 @@
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .location-gallery__info,
-  .location-gallery__error-content {
+  .location-gallery__info {
     animation: none;
   }
 

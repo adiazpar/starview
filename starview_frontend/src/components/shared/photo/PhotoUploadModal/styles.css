@@ -1,0 +1,467 @@
+/* ========================================================================
+   PhotoUploadModal Component Styles
+   Bottom sheet on mobile, centered dialog on desktop
+   ======================================================================== */
+
+/* Overlay */
+.photo-upload-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: var(--z-modal);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  animation: photoUploadOverlayFadeIn var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes photoUploadOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.photo-upload-overlay--closing {
+  animation: photoUploadOverlayFadeOut var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes photoUploadOverlayFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Modal container */
+.photo-upload-modal {
+  position: relative;
+  width: 100%;
+  max-height: 85vh;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: photoUploadModalSlideUp var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateY(100%);
+}
+
+@keyframes photoUploadModalSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.photo-upload-modal--closing {
+  animation: photoUploadModalSlideDown var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes photoUploadModalSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+/* Header */
+.photo-upload-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.photo-upload-modal__close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  border-radius: var(--radius);
+  transition: color 0.3s ease;
+}
+
+.photo-upload-modal__close:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.photo-upload-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.photo-upload-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.photo-upload-modal__header-spacer {
+  width: 36px;
+}
+
+/* Content */
+.photo-upload-modal__content {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-lg);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+.photo-upload-modal__content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.photo-upload-modal__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.photo-upload-modal__content::-webkit-scrollbar-thumb {
+  background: var(--glass-border-hover);
+  border-radius: 4px;
+}
+
+/* Drop zone */
+.photo-upload-modal__dropzone {
+  position: relative;
+  border-radius: var(--radius);
+  padding: var(--space-xl) var(--space-lg);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: min-height var(--animation-duration) ease, background 0.2s ease;
+  background: var(--glass-bg);
+}
+
+.photo-upload-modal__dropzone--compact {
+  min-height: 200px;
+}
+
+.photo-upload-modal__dropzone:hover,
+.photo-upload-modal__dropzone--active {
+  background: var(--glass-bg-hover);
+}
+
+.photo-upload-modal__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.photo-upload-modal__dropzone-content {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.photo-upload-modal__dropzone-icon {
+  font-size: var(--text-3xl);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.photo-upload-modal__dropzone-text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.photo-upload-modal__browse-link {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  pointer-events: auto;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: inherit;
+  padding: 0;
+}
+
+.photo-upload-modal__browse-link:hover {
+  color: var(--text-primary);
+}
+
+.photo-upload-modal__dropzone-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Error message */
+.photo-upload-modal__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-md);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius);
+  color: #ef4444;
+  font-size: var(--text-sm);
+}
+
+.photo-upload-modal__error i {
+  flex-shrink: 0;
+}
+
+/* Preview section */
+.photo-upload-modal__previews {
+  overflow: hidden;
+  animation: previewsSlideIn var(--animation-duration) ease forwards;
+}
+
+@keyframes previewsSlideIn {
+  from {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 200px;
+    margin-top: var(--space-lg);
+    opacity: 1;
+  }
+}
+
+.photo-upload-modal__previews--closing {
+  animation: previewsSlideOut var(--animation-duration) ease forwards;
+}
+
+@keyframes previewsSlideOut {
+  from {
+    max-height: 200px;
+    margin-top: var(--space-lg);
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+  }
+}
+
+.photo-upload-modal__previews-header {
+  margin-bottom: var(--space-sm);
+}
+
+.photo-upload-modal__previews-count {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.photo-upload-modal__previews-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-md);
+}
+
+.photo-upload-modal__preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.photo-upload-modal__preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+}
+
+.photo-upload-modal__preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-upload-modal__preview-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+/* Matches .photo-lightbox__action style, scaled down */
+.photo-upload-modal__preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navbar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.photo-upload-modal__preview-remove:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.photo-upload-modal__preview-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.photo-upload-modal__preview-size {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Footer */
+.photo-upload-modal__footer {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Matches .btn-primary from global.css */
+.photo-upload-modal__submit {
+  position: relative;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-upload-modal__submit::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius);
+  background: var(--gradient-accent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.photo-upload-modal__submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--shadow-accent-hover);
+}
+
+.photo-upload-modal__submit:hover:not(:disabled)::before {
+  opacity: 0.3;
+}
+
+.photo-upload-modal__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+  .photo-upload-overlay {
+    align-items: center;
+  }
+
+  .photo-upload-modal {
+    max-width: 480px;
+    max-height: 80vh;
+    border-radius: calc(var(--radius) * 2);
+    border-bottom: 1px solid var(--border);
+    animation: photoUploadModalSlideUpDesktop var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  @keyframes photoUploadModalSlideUpDesktop {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .photo-upload-modal--closing {
+    animation: photoUploadModalSlideDownDesktop var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes photoUploadModalSlideDownDesktop {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+  }
+}
+
+/* Mobile: 3 columns for previews */
+@media (max-width: 480px) {
+  .photo-upload-modal__previews-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .photo-upload-overlay,
+  .photo-upload-overlay--closing,
+  .photo-upload-modal,
+  .photo-upload-modal--closing,
+  .photo-upload-modal__previews,
+  .photo-upload-modal__previews--closing {
+    animation: none;
+  }
+
+  .photo-upload-modal {
+    transform: none;
+    opacity: 1;
+  }
+
+  .photo-upload-modal__dropzone {
+    transition: none;
+  }
+}
