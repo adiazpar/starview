@@ -1,6 +1,6 @@
 /**
  * WeatherGraphic Component Styles
- * Colorful Noto emoji-style weather icons
+ * Font Awesome weather icons with condition-based coloring
  */
 
 .weather-graphic {
@@ -9,8 +9,46 @@
   justify-content: center;
 }
 
-.weather-graphic__svg {
+.weather-graphic i {
   display: block;
-  filter: drop-shadow(0 0 12px rgba(255, 200, 100, 0.25))
-          drop-shadow(0 0 24px rgba(255, 200, 100, 0.15));
+}
+
+/* Clear day - warm yellow/orange sun */
+.weather-graphic--clear i {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+}
+
+/* Partly cloudy - softer yellow with subtle glow */
+.weather-graphic--partly-cloudy i {
+  color: #fcd34d;
+  filter: drop-shadow(0 0 6px rgba(252, 211, 77, 0.3));
+}
+
+/* Mostly cloudy - muted gray */
+.weather-graphic--mostly-cloudy i {
+  color: #9ca3af;
+}
+
+/* Cloudy - darker gray */
+.weather-graphic--cloudy i {
+  color: #6b7280;
+}
+
+/* Rain - blue tones */
+.weather-graphic--rain i {
+  color: #60a5fa;
+  filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.3));
+}
+
+/* Storm - dramatic purple/blue */
+.weather-graphic--storm i {
+  color: #a78bfa;
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.4));
+}
+
+/* Snow - cool white/blue */
+.weather-graphic--snow i {
+  color: #e0f2fe;
+  filter: drop-shadow(0 0 6px rgba(224, 242, 254, 0.4));
 }
