@@ -42,13 +42,16 @@ function ExplorePage() {
   // Check if we should fly to location (clears saved viewport)
   const shouldFlyToLocation = searchParams.get('flyTo') === 'true';
 
-  // Check if we should navigate to a specific location (from location detail page)
+  // Check if we should navigate to a specific location (from location detail page) - with GPS mode
   const initialNavigateToRef = useRef(searchParams.get('navigateTo'));
 
+  // Check if we should focus on a specific location (view only, no GPS mode)
+  const initialFocusLocationRef = useRef(searchParams.get('focusLocation'));
+
   // Persist map position across navigation (survives unmount via sessionStorage)
-  // If flyTo or navigateTo param is present, clear saved viewport
+  // If flyTo, navigateTo, or focusLocation param is present, clear saved viewport
   const mapViewport = useRef((() => {
-    if (shouldFlyToLocation || initialNavigateToRef.current) {
+    if (shouldFlyToLocation || initialNavigateToRef.current || initialFocusLocationRef.current) {
       sessionStorage.removeItem(MAP_VIEWPORT_KEY);
       return null;
     }
@@ -65,7 +68,8 @@ function ExplorePage() {
     const hasLightPollution = searchParams.get('lightPollution');
     const hasFlyTo = searchParams.get('flyTo');
     const hasNavigateTo = searchParams.get('navigateTo');
-    if (hasLightPollution || hasFlyTo || hasNavigateTo) {
+    const hasFocusLocation = searchParams.get('focusLocation');
+    if (hasLightPollution || hasFlyTo || hasNavigateTo || hasFocusLocation) {
       // Replace URL to remove one-time params, keep view param if map
       const newUrl = view === 'map' ? '/explore?view=map' : '/explore';
       navigate(newUrl, { replace: true });
@@ -278,6 +282,7 @@ function ExplorePage() {
               onViewportChange={handleMapViewportChange}
               initialLightPollution={initialLightPollutionRef.current}
               initialNavigateTo={initialNavigateToRef.current}
+              initialFocusLocation={initialFocusLocationRef.current}
               filters={apiParams}
             />
           </Suspense>

@@ -261,6 +261,23 @@ function LocationDetailPage() {
         {/* Mobile-only sections */}
         <div className="location-detail__mobile-sections">
           <LocationMap location={location} />
+
+          {/* Mobile action buttons */}
+          <div className="location-detail__mobile-actions">
+            <button
+              className="location-detail__action-btn"
+              onClick={() => navigate(`/explore?view=map&focusLocation=${location.id}`)}
+            >
+              View on Map
+            </button>
+            <button
+              className="location-detail__action-btn"
+              onClick={() => navigate(`/tonight?lat=${location.latitude}&lng=${location.longitude}&name=${encodeURIComponent(location.name)}`)}
+            >
+              Tonight&apos;s Conditions
+            </button>
+          </div>
+
           <SkyQualityPanel
             bortle={location.bortle_class}
             sqm={location.bortle_sqm}

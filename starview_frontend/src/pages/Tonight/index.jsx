@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useMoonPhases } from '../../hooks/useMoonPhases';
 import { useNighttimeWeather } from '../../hooks/useNighttimeWeather';
 import { useBortle } from '../../hooks/useBortle';
@@ -159,6 +159,7 @@ const getWeatherDescription = (cloudCover) => {
 function TonightContent({
   lat,
   lng,
+  locationName,
   onRequestLocation,
   isLocationModalOpen,
   onOpenLocationModal,
@@ -278,7 +279,14 @@ function TonightContent({
           {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
         <div className="tonight-header__location">
-          <LocationChip onClick={onOpenLocationModal} />
+          {locationName ? (
+            <span className="tonight-header__location-name">
+              <i className="fa-solid fa-location-dot"></i>
+              {locationName}
+            </span>
+          ) : (
+            <LocationChip onClick={onOpenLocationModal} />
+          )}
         </div>
       </header>
 
@@ -555,9 +563,21 @@ function TonightContent({
  * Main page component - handles location loading state
  */
 function TonightPage() {
+  const [searchParams] = useSearchParams();
+
+  // Check for location override from URL (e.g., from location detail page)
+  const urlLat = searchParams.get('lat');
+  const urlLng = searchParams.get('lng');
+  const urlName = searchParams.get('name');
+  const hasLocationOverride = urlLat && urlLng;
+
   useSEO({
-    title: "Tonight's Sky Conditions | Starview",
-    description: "Should you go stargazing tonight? Check real-time sky conditions including moon phase, weather, and light pollution at your location.",
+    title: urlName
+      ? `Tonight at ${urlName} | Starview`
+      : "Tonight's Sky Conditions | Starview",
+    description: urlName
+      ? `Check tonight's stargazing conditions at ${urlName}. See moon phase, weather, and light pollution.`
+      : "Should you go stargazing tonight? Check real-time sky conditions including moon phase, weather, and light pollution at your location.",
     path: '/tonight',
   });
 
@@ -569,11 +589,12 @@ function TonightPage() {
 
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
-  const lat = location?.latitude;
-  const lng = location?.longitude;
+  // Use URL params as override, otherwise fall back to user's location
+  const lat = hasLocationOverride ? parseFloat(urlLat) : location?.latitude;
+  const lng = hasLocationOverride ? parseFloat(urlLng) : location?.longitude;
 
-  // Loading state while location resolves
-  if (locationLoading) {
+  // Loading state while location resolves (skip if we have URL override)
+  if (!hasLocationOverride && locationLoading) {
     return (
       <main className="tonight-page tonight-page--loading">
         <header className="tonight-header">
@@ -598,6 +619,7 @@ function TonightPage() {
     <TonightContent
       lat={lat}
       lng={lng}
+      locationName={urlName}
       onRequestLocation={requestCurrentLocation}
       isLocationModalOpen={isLocationModalOpen}
       onOpenLocationModal={() => setIsLocationModalOpen(true)}

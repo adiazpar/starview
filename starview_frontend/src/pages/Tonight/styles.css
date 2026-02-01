@@ -50,6 +50,22 @@
   margin-top: var(--space-md);
 }
 
+.tonight-header__location-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-technical);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.tonight-header__location-name i {
+  color: var(--accent);
+  font-size: var(--text-xs);
+}
+
 /* ============================================ */
 /* HERO: SKY SCORE */
 /* ============================================ */

@@ -124,6 +124,39 @@
 }
 
 /* ============================================
+   MOBILE ACTION BUTTONS
+   ============================================ */
+
+.location-detail__mobile-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.location-detail__action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--animation-duration) ease;
+}
+
+.location-detail__action-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+/* ============================================
    REVIEWS SECTION
    ============================================ */
 

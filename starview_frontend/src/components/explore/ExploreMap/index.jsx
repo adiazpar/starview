@@ -323,7 +323,7 @@ function loadIconImage(svgString, size = 24, fillColor = 'white') {
 }
 
 
-function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false, initialNavigateTo = null, filters = {} }) {
+function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false, initialNavigateTo = null, initialFocusLocation = null, filters = {} }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
@@ -344,6 +344,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
   const hasProcessedNavigateToRef = useRef(false); // Only process initialNavigateTo once
+  const hasProcessedFocusLocationRef = useRef(false); // Only process initialFocusLocation once
   const initialAnimationCompleteRef = useRef(false); // Track when initial animation finishes
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
   const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once on initial load
@@ -687,14 +688,45 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     const locationId = parseInt(initialNavigateTo, 10);
     const location = markerMap.get(locationId);
 
-    if (location) {
+    if (!location) return;
+
+    const executeNavigateTo = () => {
+      if (hasProcessedNavigateToRef.current) return;
       hasProcessedNavigateToRef.current = true;
 
-      // Fly to the location
+      // Set marker feature-state to show gold selection color
+      map.current.setFeatureState(
+        { source: 'locations', id: locationId },
+        { selected: true }
+      );
+
+      // Use same zoom logic as marker click handler
+      const currentZoom = map.current.getZoom();
+      const targetZoom = MARKER_ZOOM_THRESHOLD + MARKER_ZOOM_BUMP;
+      const shouldZoom = currentZoom < targetZoom;
+      const isFarOut = currentZoom < MARKER_ZOOM_THRESHOLD - 1;
+
+      // Calculate offset for mobile to keep marker visible above card
+      let offset = [0, 0];
+      if (!isPopupModeRef.current && mapContainer.current) {
+        const styles = getComputedStyle(mapContainer.current);
+        const cardMargin = parseFloat(styles.getPropertyValue('--card-margin')) || 16;
+        const cardAspectRatio = parseFloat(styles.getPropertyValue('--card-aspect-ratio')) || (7 / 16);
+        const cardContentHeight = parseFloat(styles.getPropertyValue('--card-content-height')) || 80;
+
+        const canvas = map.current.getCanvas();
+        const cardWidth = canvas.clientWidth - (cardMargin * 2);
+        const imageHeight = cardWidth * cardAspectRatio;
+        const cardHeight = imageHeight + cardContentHeight;
+        offset = [0, -(cardHeight + cardMargin) / 2];
+      }
+
+      // Use same animation timing as marker click handler
       map.current.flyTo({
         center: [location.longitude, location.latitude],
-        zoom: 14,
-        duration: FLYTO_DURATION_MS,
+        zoom: shouldZoom ? targetZoom : currentZoom,
+        duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
+        offset,
       });
 
       // Select the location and enter navigation mode
@@ -709,12 +741,56 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
       });
 
       // Prompt for location permission if not yet granted
-      // This ensures the route can be calculated once permission is given
       if (permissionState === 'prompt' || permissionState === null) {
         refreshUserLocation();
       }
+    };
+
+    // Wait for locations source to be added before we can set feature-state
+    if (map.current.getSource('locations')) {
+      executeNavigateTo();
+    } else {
+      // Source not ready yet, wait for it
+      const handleSourceData = (e) => {
+        if (e.sourceId === 'locations' && map.current.getSource('locations')) {
+          map.current.off('sourcedata', handleSourceData);
+          executeNavigateTo();
+        }
+      };
+      map.current.on('sourcedata', handleSourceData);
     }
   }, [initialNavigateTo, mapLoaded, markerMap, permissionState, refreshUserLocation]);
+
+  // Handle initialFocusLocation - fly to location without showing card (view only)
+  useEffect(() => {
+    if (!initialFocusLocation || hasProcessedFocusLocationRef.current) return;
+    if (!mapLoaded || !map.current || markerMap.size === 0) return;
+
+    // Look up location by ID (convert to number since markerMap uses numeric IDs)
+    const locationId = parseInt(initialFocusLocation, 10);
+    const location = markerMap.get(locationId);
+
+    if (location) {
+      hasProcessedFocusLocationRef.current = true;
+
+      // Wait for map to be idle before flying (ensures tiles are loaded)
+      const flyToLocation = () => {
+        // Zoom in to show the location clearly (more zoomed in than marker click)
+        map.current.flyTo({
+          center: [location.longitude, location.latitude],
+          zoom: 12,
+          duration: INITIAL_FLYTO_DURATION_MS,
+        });
+      };
+
+      // If map is already idle, fly immediately; otherwise wait
+      if (map.current.isStyleLoaded() && map.current.areTilesLoaded()) {
+        flyToLocation();
+      } else {
+        map.current.once('idle', flyToLocation);
+      }
+    }
+  }, [initialFocusLocation, mapLoaded, markerMap]);
 
   // Display route on map when routeData is available
   useEffect(() => {
@@ -1614,10 +1690,12 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
 
   // Fly to user location when it becomes available (only once, and only if no saved viewport)
   // After animation completes, enable heavy layers (protected areas) for smoother initial load
-  // Skip fly-to when initialLightPollution is true (user is exploring the light pollution map)
+  // Skip fly-to when navigating to a specific location or exploring light pollution map
   useEffect(() => {
     if (hasFlownToUserRef.current) return; // Only fly once
     if (initialLightPollution) return; // Skip when exploring light pollution map
+    if (initialNavigateTo) return; // Skip when navigating to specific location
+    if (initialFocusLocation) return; // Skip when focusing on specific location
     if (map.current && userLocation && mapLoaded && !initialViewport) {
       hasFlownToUserRef.current = true;
       initialAnimationCompleteRef.current = false;
@@ -1635,7 +1713,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
         setReadyForHeavyLayers(true);
       });
     }
-  }, [userLocation, mapLoaded, initialViewport, initialLightPollution]);
+  }, [userLocation, mapLoaded, initialViewport, initialLightPollution, initialNavigateTo, initialFocusLocation]);
 
   // Fallback: enable heavy layers if no flyTo occurs (user never grants geolocation)
   // This handles first-time users who dismiss the location prompt
