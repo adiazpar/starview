@@ -2,24 +2,18 @@
  * PopularNearby Component
  *
  * Horizontal carousel section showing locations near user's actual location.
- * Uses actualLocation (stable IP/browser location) rather than search context.
+ * Receives locations from parent (Home page handles loading state).
  */
 
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../../contexts/LocationContext';
-import { usePopularNearby } from '../../../hooks/useLocations';
 import LocationCard from '../../explore/LocationCard';
 import './styles.css';
 
-function PopularNearby({ userLocation, isLoading: isLocationLoading }) {
+function PopularNearby({ userLocation, locations = [] }) {
   const navigate = useNavigate();
   const { setLocation } = useLocation();
-
-  const { data: locations, isLoading } = usePopularNearby(
-    userLocation?.latitude,
-    userLocation?.longitude
-  );
 
   // Navigate to location detail page
   const handleLocationClick = useCallback(
@@ -44,34 +38,6 @@ function PopularNearby({ userLocation, isLoading: isLocationLoading }) {
 
   // Extract location name for header (e.g., "San Francisco" from "San Francisco, California")
   const locationName = userLocation?.name?.split(',')[0] || 'you';
-
-  // Show loading skeleton while fetching location or data
-  if (isLocationLoading || isLoading) {
-    return (
-      <section className="popular-nearby">
-        <div className="popular-nearby__container">
-          <header className="popular-nearby__header">
-            <span className="section-accent">Explore</span>
-            <h2 className="popular-nearby__title">
-              <span className="popular-nearby__title-text">Popular sites near </span>
-              <span className="popular-nearby__title-location popular-nearby__title-location--loading">your location</span>
-            </h2>
-          </header>
-          <div className="popular-nearby__carousel">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="popular-nearby__skeleton">
-                <div className="popular-nearby__skeleton-image" />
-                <div className="popular-nearby__skeleton-content">
-                  <div className="popular-nearby__skeleton-title" />
-                  <div className="popular-nearby__skeleton-meta" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   // Don't render if no locations found
   if (!locations?.length) {

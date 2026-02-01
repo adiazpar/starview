@@ -7,9 +7,12 @@ import { lazy, Suspense, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
+import { useHeroCarousel } from '../../hooks/useHeroCarousel';
+import { usePopularNearby } from '../../hooks/useLocations';
 import ProfileSetupCard from '../../components/home/ProfileSetupCard';
 import HeroCarousel from '../../components/home/HeroCarousel';
 import PopularNearby from '../../components/home/PopularNearby';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -20,30 +23,41 @@ const LocationAutocomplete = lazy(() =>
 function HomePage() {
   const { isAuthenticated, user } = useAuth();
   const { location, actualLocation, setLocation, isLoading: isLocationLoading } = useLocation();
+  const { images: heroImages, isReady: isHeroReady } = useHeroCarousel();
+  const { data: popularLocations, isLoading: isPopularLoading } = usePopularNearby(
+    actualLocation?.latitude,
+    actualLocation?.longitude
+  );
   const navigate = useNavigate();
-
-  // Navigate to profile settings, optionally scrolling to a specific section
-  const handleNavigateToSettings = (scrollTo) => {
-    if (scrollTo) {
-      navigate(`/profile?scrollTo=${scrollTo}`);
-    } else {
-      navigate('/profile');
-    }
-  };
 
   // Handle location selection from search - updates context but stays on home
   const handleLocationSelect = useCallback((data) => {
     if (data.location && data.latitude && data.longitude) {
       setLocation(data.latitude, data.longitude, data.location, 'search');
-      // Stay on home - the CTAs will take user to pages with the updated location
     }
   }, [setLocation]);
+
+  // Navigate to profile settings, optionally scrolling to a specific section
+  const handleNavigateToSettings = useCallback((scrollTo) => {
+    if (scrollTo) {
+      navigate(`/profile?scrollTo=${scrollTo}`);
+    } else {
+      navigate('/profile');
+    }
+  }, [navigate]);
+
+  // Unified loading state - wait for location, hero carousel, AND popular nearby before rendering
+  const isPageLoading = isLocationLoading || !isHeroReady || isPopularLoading;
+
+  if (isPageLoading) {
+    return <LoadingSpinner size="lg" fullPage />;
+  }
 
   return (
     <main className="home">
       {/* Hero Section */}
       <section className="hero">
-        <HeroCarousel />
+        <HeroCarousel images={heroImages} />
         <div className="hero__container">
           {/* Headline */}
           <h1 className="hero__title">
@@ -65,7 +79,7 @@ function HomePage() {
             >
               <LocationAutocomplete
                 onSelect={handleLocationSelect}
-                placeholder={isLocationLoading ? 'Finding your location' : `Search near ${location?.name?.split(',')[0] || 'you'}`}
+                placeholder={`Search near ${location?.name?.split(',')[0] || 'you'}`}
               />
             </Suspense>
             <button
@@ -89,10 +103,7 @@ function HomePage() {
       </section>
 
       {/* Popular Nearby Section */}
-      <PopularNearby
-        userLocation={actualLocation}
-        isLoading={isLocationLoading}
-      />
+      <PopularNearby userLocation={actualLocation} locations={popularLocations} />
 
       {/* Profile setup card for authenticated users */}
       {isAuthenticated && user && (

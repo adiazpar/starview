@@ -23,6 +23,43 @@ import api from '../services/api';
 
 const LocationContext = createContext(null);
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+/**
+ * Reverse geocode coordinates to get a place name using Mapbox Geocoding API
+ * @param {number} latitude
+ * @param {number} longitude
+ * @returns {Promise<string|null>} Place name (e.g., "Colorado Springs, Colorado") or null if failed
+ */
+async function reverseGeocode(latitude, longitude) {
+  if (!MAPBOX_TOKEN) return null;
+
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&types=place,locality&limit=1`
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const feature = data.features?.[0];
+
+    if (feature) {
+      // Extract city and region from context
+      const placeName = feature.text; // City name
+      const region = feature.context?.find((c) => c.id.startsWith('region'))?.text;
+
+      if (placeName && region) {
+        return `${placeName}, ${region}`;
+      }
+      return placeName || feature.place_name || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // Storage keys
 const SESSION_KEY = 'starview_active_location';
 const RECENT_KEY = 'starview_recent_locations';
@@ -137,10 +174,15 @@ export function LocationProvider({ children }) {
         });
       });
 
+      const { latitude, longitude } = position.coords;
+
+      // Reverse geocode to get actual place name
+      const placeName = await reverseGeocode(latitude, longitude);
+
       const data = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        name: 'Current location',
+        latitude,
+        longitude,
+        name: placeName || 'Current location',
       };
 
       setLocationState(data);

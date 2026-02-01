@@ -4,37 +4,35 @@
  * Background image carousel for the home page hero section.
  * Displays 5 random location images that rotate daily.
  * Auto-advances with crossfade transitions.
- * Preloads first image before showing to ensure smooth fade-in.
+ * Receives images from parent (Home page handles loading state).
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useHeroCarousel } from '../../../hooks/useHeroCarousel';
 import './styles.css';
 
 const SLIDE_DURATION = 12000; // 12 seconds per slide
 
-function HeroCarousel() {
-  const { images, isLoading, isReady } = useHeroCarousel();
+function HeroCarousel({ images = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-advance slides
   useEffect(() => {
-    if (images.length <= 1 || !isReady) return;
+    if (images.length <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
     }, SLIDE_DURATION);
 
     return () => clearInterval(interval);
-  }, [images.length, isReady]);
+  }, [images.length]);
 
   // Handle indicator click
   const goToSlide = useCallback((index) => {
     setCurrentIndex(index);
   }, []);
 
-  // Don't render if no images or not ready
-  if (isLoading || images.length === 0 || !isReady) {
+  // Don't render if no images
+  if (images.length === 0) {
     return null;
   }
 
