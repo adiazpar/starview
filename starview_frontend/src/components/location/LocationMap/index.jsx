@@ -1,18 +1,54 @@
 /* LocationMap Component
- * Mini map with coordinates display and directions link.
- * Uses static Mapbox image for performance (no interactive map).
+ * 3D terrain map with coordinates display and directions link.
+ * Uses Mapbox GL JS with terrain for immersive location visualization.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import SunCalc from 'suncalc';
 import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
-// Mapbox static image API
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+// Mapbox configuration
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+// Camera settings for 3D view
+const CAMERA_PITCH = 55; // Angle from vertical (0 = top-down, 90 = horizon)
+const CAMERA_BEARING = -20; // Rotation from north (slight west angle for dramatic shadows)
+const CAMERA_ZOOM = 15.5; // Close enough to see building detail
+const TERRAIN_EXAGGERATION = 1.5;
+
+/**
+ * Calculate light preset based on sun position at location
+ * Matches ExploreMap's lighting system for consistency
+ */
+function getLightPreset(lat, lng) {
+  const now = new Date();
+  const sunPos = SunCalc.getPosition(now, lat, lng);
+  const altitudeDeg = sunPos.altitude * (180 / Math.PI);
+
+  // Sun altitude thresholds (in degrees)
+  // > 0°: Day (sun above horizon)
+  // -6° to 0°: Civil twilight (dusk/dawn)
+  // < -6°: Night (dark enough for stargazing)
+  if (altitudeDeg > 0) {
+    return 'day';
+  } else if (altitudeDeg > -6) {
+    // Civil twilight - determine if it's dusk or dawn
+    const times = SunCalc.getTimes(now, lat, lng);
+    const solarNoon = times.solarNoon.getTime();
+    return now.getTime() < solarNoon ? 'dawn' : 'dusk';
+  } else {
+    return 'night';
+  }
+}
 
 function LocationMap({ location, compact = false }) {
   const { showToast } = useToast();
-  const [imageError, setImageError] = useState(false);
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
 
   const { latitude, longitude, name } = location;
 
@@ -24,15 +60,75 @@ function LocationMap({ location, compact = false }) {
 
   const coordsDisplay = `${formatCoordinate(latitude, true)}, ${formatCoordinate(longitude, false)}`;
 
-  // Generate static map URL
-  const mapWidth = compact ? 360 : 600;
-  const mapHeight = compact ? 200 : 300;
-  const zoom = 12;
-  const mapStyle = 'dark-v11';
+  // Initialize 3D map
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxgl.accessToken) {
+      setMapError(true);
+      return;
+    }
+    if (map.current) return; // Already initialized
 
-  const staticMapUrl = MAPBOX_TOKEN
-    ? `https://api.mapbox.com/styles/v1/mapbox/${mapStyle}/static/pin-l+00d4aa(${longitude},${latitude})/${longitude},${latitude},${zoom}/${mapWidth}x${mapHeight}@2x?access_token=${MAPBOX_TOKEN}`
-    : null;
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/standard',
+        center: [longitude, latitude],
+        zoom: CAMERA_ZOOM,
+        pitch: CAMERA_PITCH,
+        bearing: CAMERA_BEARING,
+        attributionControl: false, // Attribution shown on Explore page
+        interactive: false, // Disable all interactions for static display
+      });
+
+      // Calculate light preset for this location
+      const lightPreset = getLightPreset(latitude, longitude);
+
+      // Configure map when style loads
+      map.current.on('style.load', () => {
+        // Apply light preset based on sun position at this location
+        map.current.setConfigProperty('basemap', 'lightPreset', lightPreset);
+
+        // Configure atmosphere for clean look
+        map.current.setFog({
+          color: 'rgba(186, 210, 235, 1)',
+          'high-color': 'rgb(36, 92, 223)',
+          'horizon-blend': 0.02,
+          'space-color': 'rgba(11, 11, 25, 1)',
+          'star-intensity': 0.15,
+        });
+
+        // Enable 3D terrain
+        map.current.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        map.current.setTerrain({
+          source: 'mapbox-dem',
+          exaggeration: TERRAIN_EXAGGERATION,
+        });
+      });
+
+      map.current.on('load', () => {
+        setMapLoaded(true);
+      });
+
+      map.current.on('error', () => {
+        setMapError(true);
+      });
+    } catch {
+      setMapError(true);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [latitude, longitude]);
 
   // Copy coordinates to clipboard
   const handleCopyCoords = useCallback(async () => {
@@ -46,12 +142,10 @@ function LocationMap({ location, compact = false }) {
 
   // Open directions in maps app
   const handleGetDirections = useCallback(() => {
-    // Try to detect platform and open appropriate maps app
     const iosUrl = `maps://maps.apple.com/?daddr=${latitude},${longitude}&q=${encodeURIComponent(name)}`;
     const androidUrl = `geo:${latitude},${longitude}?q=${latitude},${longitude}(${encodeURIComponent(name)})`;
     const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 
-    // Try iOS first, then fall back to web
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
 
@@ -72,21 +166,25 @@ function LocationMap({ location, compact = false }) {
         </div>
       )}
 
-      {/* Static Map Image */}
-      <div className="location-map__image-container">
-        {staticMapUrl && !imageError ? (
-          <img
-            src={staticMapUrl}
-            alt={`Map showing ${name}`}
-            className="location-map__image"
-            onError={() => setImageError(true)}
-            loading="lazy"
-          />
-        ) : (
+      {/* 3D Map Container */}
+      <div className="location-map__map-container">
+        {mapError ? (
           <div className="location-map__placeholder">
             <i className="fa-solid fa-map"></i>
             <span>Map unavailable</span>
           </div>
+        ) : (
+          <>
+            <div
+              ref={mapContainer}
+              className="location-map__map"
+            />
+            {!mapLoaded && (
+              <div className="location-map__loading">
+                <i className="fa-solid fa-spinner fa-spin"></i>
+              </div>
+            )}
+          </>
         )}
       </div>
 
