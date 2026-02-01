@@ -704,7 +704,6 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
       const currentZoom = map.current.getZoom();
       const targetZoom = MARKER_ZOOM_THRESHOLD + MARKER_ZOOM_BUMP;
       const shouldZoom = currentZoom < targetZoom;
-      const isFarOut = currentZoom < MARKER_ZOOM_THRESHOLD - 1;
 
       // Calculate offset for mobile to keep marker visible above card
       let offset = [0, 0];
@@ -721,11 +720,11 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
         offset = [0, -(cardHeight + cardMargin) / 2];
       }
 
-      // Use same animation timing as marker click handler
+      // Always use slow, elegant animation when entering from location detail page
       map.current.flyTo({
         center: [location.longitude, location.latitude],
         zoom: shouldZoom ? targetZoom : currentZoom,
-        duration: isFarOut ? INITIAL_FLYTO_DURATION_MS : FLYTO_DURATION_MS,
+        duration: INITIAL_FLYTO_DURATION_MS,
         offset,
       });
 
