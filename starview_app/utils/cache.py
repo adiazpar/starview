@@ -260,8 +260,9 @@ def invalidate_location_list():
     redis_url = settings.CACHES['default']['LOCATION']
     r = redis.from_url(redis_url)
 
-    # Pattern matches all location list keys (with starview: prefix from settings)
-    pattern = 'starview:location_list:*'
+    # Pattern matches all location list keys
+    # Format: starview:{version}:location_list:* (Django adds version prefix)
+    pattern = 'starview:*:location_list:*'
     keys = list(r.scan_iter(match=pattern))
     if keys:
         r.delete(*keys)
@@ -276,9 +277,10 @@ def invalidate_location_detail(location_id):
     cache.delete(location_detail_key(location_id))
 
     # Also delete all user-specific caches using pattern matching
+    # Format: starview:{version}:{key}:user:* (Django adds version prefix)
     redis_url = settings.CACHES['default']['LOCATION']
     r = redis.from_url(redis_url)
-    pattern = f'starview:{location_detail_key(location_id)}:user:*'
+    pattern = f'starview:*:{location_detail_key(location_id)}:user:*'
     keys = list(r.scan_iter(match=pattern))
     if keys:
         r.delete(*keys)
@@ -325,8 +327,9 @@ def invalidate_popular_nearby():
     redis_url = settings.CACHES['default']['LOCATION']
     r = redis.from_url(redis_url)
 
-    # Pattern matches all popular nearby keys (with starview: prefix from settings)
-    pattern = 'starview:popular_nearby:*'
+    # Pattern matches all popular nearby keys
+    # Format: starview:{version}:popular_nearby:* (Django adds version prefix)
+    pattern = 'starview:*:popular_nearby:*'
     keys = list(r.scan_iter(match=pattern))
     if keys:
         r.delete(*keys)
