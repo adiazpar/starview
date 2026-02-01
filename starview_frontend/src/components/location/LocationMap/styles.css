@@ -8,26 +8,25 @@
    ============================================ */
 
 .location-map {
-  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-}
-
-.location-map--compact {
-  padding: var(--space-md);
-  gap: var(--space-sm);
 }
 
 /* ============================================
-   HEADER (Observatory Aesthetic)
+   SECTION HEADER (Observatory Aesthetic)
    ============================================ */
 
 .location-map__header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.location-map__header:hover {
+  opacity: 0.8;
 }
 
 .location-map__header span {
@@ -40,25 +39,42 @@
   white-space: nowrap;
 }
 
+.location-map__header i {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.location-map__header:hover i {
+  opacity: 1;
+}
+
 .location-map__header::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
 }
 
 /* ============================================
-   3D MAP CONTAINER
+   3D MAP CONTAINER (Clickable)
    ============================================ */
 
 .location-map__map-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-elevated);
   border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.location-map__map-container:hover {
+  border-color: var(--accent-border);
 }
 
 .location-map--compact .location-map__map-container {
@@ -112,61 +128,34 @@
 }
 
 /* ============================================
-   COORDINATES DISPLAY
-   ============================================ */
-
-.location-map__coords {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.location-map__coords:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: var(--accent-border);
-}
-
-.location-map__coords-value {
-  font-family: var(--font-technical);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  letter-spacing: 0.02em;
-}
-
-.location-map__coords i {
-  font-size: 11px;
-  color: var(--text-muted);
-  transition: color 0.2s ease;
-}
-
-.location-map__coords:hover i {
-  color: var(--accent);
-}
-
-.location-map__coords:hover .location-map__coords-value {
-  color: var(--text-primary);
-}
-
-/* ============================================
-   DIRECTIONS BUTTON
+   DIRECTIONS OVERLAY BUTTON
    ============================================ */
 
 .location-map__directions {
-  display: flex;
+  position: absolute;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-md);
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--navbar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  pointer-events: none; /* Click passes through to parent button */
 }
 
-.location-map--compact .location-map__directions {
-  padding: 10px var(--space-md);
-  font-size: var(--text-sm);
+/* Hover state activates when hovering map container */
+.location-map__map-container:hover .location-map__directions {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }

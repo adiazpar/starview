@@ -250,7 +250,7 @@ function LocationDetailPage() {
 
         {/* Right Column - Desktop Only */}
         <aside className="location-detail__sidebar">
-          {/* Content here will show on desktop, move to mobile-sections for mobile */}
+          <LocationMap location={location} />
         </aside>
 
         {/* Photo Mosaic - fetches its own photos from dedicated endpoint */}
@@ -260,12 +260,12 @@ function LocationDetailPage() {
 
         {/* Mobile-only sections */}
         <div className="location-detail__mobile-sections">
+          <LocationMap location={location} />
           <SkyQualityPanel
             bortle={location.bortle_class}
             sqm={location.bortle_sqm}
             elevation={location.elevation}
           />
-          <LocationMap location={location} />
           <CommunityStats location={location} />
         </div>
 

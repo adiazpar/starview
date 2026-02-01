@@ -323,7 +323,7 @@ function loadIconImage(svgString, size = 24, fillColor = 'white') {
 }
 
 
-function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false, filters = {} }) {
+function ExploreMap({ initialViewport, onViewportChange, initialLightPollution = false, initialNavigateTo = null, filters = {} }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markerMapRef = useRef(new Map()); // O(1) lookup map for markers
@@ -343,6 +343,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   const [isPopupClosing, setIsPopupClosing] = useState(false); // Track popup close animation
   const hoveredParkIdRef = useRef(null); // Track hovered park for feature-state
   const hasFlownToUserRef = useRef(false); // Only fly to user location once
+  const hasProcessedNavigateToRef = useRef(false); // Only process initialNavigateTo once
   const initialAnimationCompleteRef = useRef(false); // Track when initial animation finishes
   const geolocateControlRef = useRef(null); // Mapbox geolocate control
   const hasTriggeredGeolocateRef = useRef(false); // Only trigger geolocate once on initial load
@@ -676,6 +677,44 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
 
     getRoute(from, to);
   }, [isNavigationMode, selectedLocation, userLocation, userLocationSource, getRoute]);
+
+  // Handle initialNavigateTo - select location and enter navigation mode on mount
+  useEffect(() => {
+    if (!initialNavigateTo || hasProcessedNavigateToRef.current) return;
+    if (!mapLoaded || !map.current || markerMap.size === 0) return;
+
+    // Look up location by ID (convert to number since markerMap uses numeric IDs)
+    const locationId = parseInt(initialNavigateTo, 10);
+    const location = markerMap.get(locationId);
+
+    if (location) {
+      hasProcessedNavigateToRef.current = true;
+
+      // Fly to the location
+      map.current.flyTo({
+        center: [location.longitude, location.latitude],
+        zoom: 14,
+        duration: FLYTO_DURATION_MS,
+      });
+
+      // Select the location and enter navigation mode
+      setSelectedLocation(location);
+      setIsNavigationMode(true);
+
+      // Trigger card visibility after a short delay for slide-up animation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsCardVisible(true);
+        });
+      });
+
+      // Prompt for location permission if not yet granted
+      // This ensures the route can be calculated once permission is given
+      if (permissionState === 'prompt' || permissionState === null) {
+        refreshUserLocation();
+      }
+    }
+  }, [initialNavigateTo, mapLoaded, markerMap, permissionState, refreshUserLocation]);
 
   // Display route on map when routeData is available
   useEffect(() => {

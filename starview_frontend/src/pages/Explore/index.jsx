@@ -42,10 +42,13 @@ function ExplorePage() {
   // Check if we should fly to location (clears saved viewport)
   const shouldFlyToLocation = searchParams.get('flyTo') === 'true';
 
+  // Check if we should navigate to a specific location (from location detail page)
+  const initialNavigateToRef = useRef(searchParams.get('navigateTo'));
+
   // Persist map position across navigation (survives unmount via sessionStorage)
-  // If flyTo param is present, clear saved viewport to fly to current location
+  // If flyTo or navigateTo param is present, clear saved viewport
   const mapViewport = useRef((() => {
-    if (shouldFlyToLocation) {
+    if (shouldFlyToLocation || initialNavigateToRef.current) {
       sessionStorage.removeItem(MAP_VIEWPORT_KEY);
       return null;
     }
@@ -61,7 +64,8 @@ function ExplorePage() {
   useEffect(() => {
     const hasLightPollution = searchParams.get('lightPollution');
     const hasFlyTo = searchParams.get('flyTo');
-    if (hasLightPollution || hasFlyTo) {
+    const hasNavigateTo = searchParams.get('navigateTo');
+    if (hasLightPollution || hasFlyTo || hasNavigateTo) {
       // Replace URL to remove one-time params, keep view param if map
       const newUrl = view === 'map' ? '/explore?view=map' : '/explore';
       navigate(newUrl, { replace: true });
@@ -273,6 +277,7 @@ function ExplorePage() {
               initialViewport={mapViewport.current}
               onViewportChange={handleMapViewportChange}
               initialLightPollution={initialLightPollutionRef.current}
+              initialNavigateTo={initialNavigateToRef.current}
               filters={apiParams}
             />
           </Suspense>
