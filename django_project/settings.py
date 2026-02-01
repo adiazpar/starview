@@ -126,6 +126,7 @@ CONTENT_SECURITY_POLICY = {
             "https://kit.fontawesome.com",              # Font Awesome kit
             "https://www.googletagmanager.com",         # Google Tag Manager / Analytics
             "https://www.google-analytics.com",         # Google Analytics
+            "'sha256-qjQqhKaqgYQVsPTxynv3IlHpd91FC6XtnuXIMuGrkfU='",  # Google Analytics inline script
         ),
         # SECURITY NOTE: 'unsafe-inline' weakens CSP protection against style injection.
         # Currently required because:
@@ -177,6 +178,7 @@ CONTENT_SECURITY_POLICY = {
             "https://media.starview.app",               # Cloudflare R2 media storage (PMTiles, images)
             "https://www.google-analytics.com",         # Google Analytics data collection
             "https://analytics.google.com",             # Google Analytics 4
+            "https://stats.g.doubleclick.net",          # Google Analytics tracking
         ),
         'frame-ancestors': ("'none'",),                 # Prevent framing (same as X-Frame-Options: DENY)
         'base-uri': ("'self'",),                        # Restrict <base> tag URLs
