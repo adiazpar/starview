@@ -1738,12 +1738,16 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
   // Trigger geolocate control to show user location marker when browser location is available
   // This runs when: 1) initial load with browser permission, 2) user grants permission mid-session
   // Uses hasTriggeredGeolocateRef to prevent re-triggering on style changes (which toggle mapLoaded)
+  // Skip when navigating to a specific location (user clicked Directions or View on Map)
   useEffect(() => {
     // Only trigger for browser geolocation (not IP fallback)
     if (userLocationSource !== 'browser') return;
     if (!geolocateControlRef.current || !userLocation || !mapLoaded) return;
     // Only trigger once - prevents map jumping back to user location on style changes
     if (hasTriggeredGeolocateRef.current) return;
+    // Skip when navigating to a specific location - don't fly to user
+    if (initialNavigateTo) return;
+    if (initialFocusLocation) return;
 
     hasTriggeredGeolocateRef.current = true;
 
@@ -1751,7 +1755,7 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     setTimeout(() => {
       geolocateControlRef.current?.trigger();
     }, GEOLOCATE_TRIGGER_DELAY_MS);
-  }, [userLocation, userLocationSource, mapLoaded]);
+  }, [userLocation, userLocationSource, mapLoaded, initialNavigateTo, initialFocusLocation]);
 
   // Set controlsVisible to true once map loads (never resets, prevents re-animation on style changes)
   useEffect(() => {
