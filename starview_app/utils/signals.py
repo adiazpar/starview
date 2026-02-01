@@ -543,20 +543,40 @@ def check_badges_on_vote(sender, instance, created, **kwargs):
 # Check Photographer badge after user uploads a review photo.                   #
 #                                                                               #
 # Triggered when ReviewPhoto is created.                                        #
-# Awards Photographer badge when user uploads 25+ photos.                       #
+# Awards Photographer badge when user uploads 25+ photos total.                 #
 #                                                                               #
 # Signal: post_save on ReviewPhoto                                              #
 # Badge Service: check_photographer_badge()                                     #
 # Cache Invalidation: Always invalidate (photo count changed)                   #
 # ----------------------------------------------------------------------------- #
 @receiver(post_save, sender=ReviewPhoto)
-def check_badges_on_photo_upload(sender, instance, created, **kwargs):
+def check_badges_on_review_photo_upload(sender, instance, created, **kwargs):
     if created:
         from starview_app.services.badge_service import BadgeService
         # Check Photographer badge for the user who uploaded the photo
         BadgeService.check_photographer_badge(instance.review.user)
         # Invalidate cache (photo count changed, affects photographer badge)
         BadgeService.invalidate_badge_progress_cache(instance.review.user)
+
+
+# ----------------------------------------------------------------------------- #
+# Check Photographer badge after user uploads a location photo.                 #
+#                                                                               #
+# Triggered when LocationPhoto is created.                                      #
+# Awards Photographer badge when user uploads 25+ photos total.                 #
+#                                                                               #
+# Signal: post_save on LocationPhoto                                            #
+# Badge Service: check_photographer_badge()                                     #
+# Cache Invalidation: Always invalidate (photo count changed)                   #
+# ----------------------------------------------------------------------------- #
+@receiver(post_save, sender=LocationPhoto)
+def check_badges_on_location_photo_upload(sender, instance, created, **kwargs):
+    if created and instance.uploaded_by:
+        from starview_app.services.badge_service import BadgeService
+        # Check Photographer badge for the user who uploaded the photo
+        BadgeService.check_photographer_badge(instance.uploaded_by)
+        # Invalidate cache (photo count changed, affects photographer badge)
+        BadgeService.invalidate_badge_progress_cache(instance.uploaded_by)
 
 
 # ----------------------------------------------------------------------------------------------------- #
@@ -687,6 +707,22 @@ def revoke_badges_on_vote_delete(sender, instance, **kwargs):
 # Badge Service: revoke_photographer_badge_if_needed()                          #
 # ----------------------------------------------------------------------------- #
 @receiver(post_delete, sender=ReviewPhoto)
-def revoke_badges_on_photo_delete(sender, instance, **kwargs):
+def revoke_badges_on_review_photo_delete(sender, instance, **kwargs):
     from starview_app.services.badge_service import BadgeService
     BadgeService.revoke_photographer_badge_if_needed(instance.review.user)
+
+
+# ----------------------------------------------------------------------------- #
+# Revoke badges when LocationPhoto is deleted.                                  #
+#                                                                               #
+# Triggered when LocationPhoto is deleted.                                      #
+# Checks if user still qualifies for Photographer badge.                        #
+#                                                                               #
+# Signal: post_delete on LocationPhoto                                          #
+# Badge Service: revoke_photographer_badge_if_needed()                          #
+# ----------------------------------------------------------------------------- #
+@receiver(post_delete, sender=LocationPhoto)
+def revoke_badges_on_location_photo_delete(sender, instance, **kwargs):
+    if instance.uploaded_by:
+        from starview_app.services.badge_service import BadgeService
+        BadgeService.revoke_photographer_badge_if_needed(instance.uploaded_by)

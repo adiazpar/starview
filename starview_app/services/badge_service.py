@@ -404,10 +404,11 @@ class BadgeService:
 
 
     # ----------------------------------------------------------------------------- #
-    # Check Photographer badge (upload 25 review photos).                           #
+    # Check Photographer badge (upload 25 photos).                                  #
     #                                                                               #
-    # Triggered by ReviewPhoto creation signal.                                     #
-    # Awards Photographer badge when user uploads 25+ photos across all reviews.    #
+    # Triggered by ReviewPhoto or LocationPhoto creation signal.                    #
+    # Awards Photographer badge when user uploads 25+ photos total                  #
+    # (review photos + location gallery photos).                                    #
     #                                                                               #
     # Args:     user (User): The user to check Photographer badge for               #
     # Returns:  list: Badge IDs of newly awarded badges (empty or [photographer])   #
@@ -417,13 +418,15 @@ class BadgeService:
         if is_system_user(user):
             return []
 
-        from starview_app.models import ReviewPhoto
+        from starview_app.models import ReviewPhoto, LocationPhoto
 
-        # Count total photos uploaded by user across all reviews
-        photo_count = ReviewPhoto.objects.filter(review__user=user).count()
+        # Count total photos uploaded by user (review photos + location photos)
+        review_photo_count = ReviewPhoto.objects.filter(review__user=user).count()
+        location_photo_count = LocationPhoto.objects.filter(uploaded_by=user).count()
+        total_photo_count = review_photo_count + location_photo_count
 
         # Check if user qualifies for Photographer badge (25+ photos)
-        if photo_count >= 25:
+        if total_photo_count >= 25:
             # Use cached badge (no database query after first call)
             photographer_badge = get_badge_by_slug('photographer')
 
@@ -522,12 +525,18 @@ class BadgeService:
 
         # Cache miss - calculate from scratch (7 queries)
         # Get user stats (efficient single queries)
+        from starview_app.models import ReviewPhoto, LocationPhoto
+
         stats = {
             'location_visits': LocationVisit.objects.filter(user=user).count(),
             'locations_added': Location.objects.filter(added_by=user).count(),
             'reviews_written': Review.objects.filter(user=user).count(),
             'follower_count': Follow.objects.filter(following=user).count(),
             'comment_count': ReviewComment.objects.filter(user=user).count(),
+            'photo_count': (
+                ReviewPhoto.objects.filter(review__user=user).count() +
+                LocationPhoto.objects.filter(uploaded_by=user).count()
+            ),
         }
 
         # Calculate profile completion progress (for Mission Ready badge)
@@ -628,6 +637,13 @@ class BadgeService:
         # Handle PROFILE_COMPLETE specially (count completed fields out of total)
         if badge.criteria_type == 'PROFILE_COMPLETE':
             return stats.get('profile_fields_complete', 0)
+
+        # Handle SPECIAL_CONDITION badges by slug
+        if badge.criteria_type == 'SPECIAL_CONDITION':
+            if badge.slug == 'photographer':
+                return stats.get('photo_count', 0)
+            # Pioneer badge has no progress (you either qualify or don't)
+            return 0
 
         return criteria_map.get(badge.criteria_type, 0)
 
@@ -891,18 +907,20 @@ class BadgeService:
     # ----------------------------------------------------------------------------- #
     # Revoke Photographer badge if user no longer qualifies.                        #
     #                                                                               #
-    # Called when ReviewPhoto is deleted.                                           #
-    # Removes Photographer badge if user now has fewer than 25 photos.              #
+    # Called when ReviewPhoto or LocationPhoto is deleted.                          #
+    # Removes Photographer badge if user now has fewer than 25 total photos.        #
     #                                                                               #
     # Args:     user (User): The user to check                                      #
     # Returns:  list: Badge IDs that were revoked (empty or [photographer_id])      #
     # ----------------------------------------------------------------------------- #
     @staticmethod
     def revoke_photographer_badge_if_needed(user):
-        from starview_app.models import ReviewPhoto
+        from starview_app.models import ReviewPhoto, LocationPhoto
 
-        # Count total photos uploaded by user across all reviews
-        photo_count = ReviewPhoto.objects.filter(review__user=user).count()
+        # Count total photos uploaded by user (review photos + location photos)
+        review_photo_count = ReviewPhoto.objects.filter(review__user=user).count()
+        location_photo_count = LocationPhoto.objects.filter(uploaded_by=user).count()
+        total_photo_count = review_photo_count + location_photo_count
 
         # Check if user has Photographer badge (cached - no database query after first call)
         photographer_badge = get_badge_by_slug('photographer')
@@ -914,7 +932,7 @@ class BadgeService:
             ).first()
 
             # If user has badge but no longer qualifies (< 25 photos), revoke it
-            if user_badge and photo_count < 25:
+            if user_badge and total_photo_count < 25:
                 user_badge.delete()
                 return [photographer_badge.id]
 
