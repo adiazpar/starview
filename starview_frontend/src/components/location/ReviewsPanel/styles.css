@@ -553,6 +553,39 @@
   color: var(--accent);
 }
 
+/* Show All Button */
+.reviews-panel__show-all {
+  width: 100%;
+  padding: var(--space-md);
+  margin-top: var(--space-lg);
+  background: var(--text-primary);
+  color: var(--bg-base);
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.reviews-panel__show-all:hover {
+  opacity: 0.9;
+}
+
+/* Desktop: Match width of Write a Review button (metrics panel width) */
+@media (min-width: 1024px) {
+  .reviews-panel__show-all {
+    max-width: 280px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .reviews-panel__show-all {
+    max-width: 300px;
+  }
+}
+
 
 /* ============================================
    DESKTOP LAYOUT (Two-column with sticky)
@@ -597,6 +630,7 @@
 
   .reviews-panel__count,
   .reviews-panel__cta,
+  .reviews-panel__show-all,
   .reviews-panel__feedback-btn {
     transition: none;
   }

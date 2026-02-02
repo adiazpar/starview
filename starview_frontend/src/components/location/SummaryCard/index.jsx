@@ -137,9 +137,9 @@ function SummaryCard({ location }) {
         ))}
       </div>
 
-      {/* Show all reviews button */}
+      {/* See reviews link */}
       <button type="button" className="summary-card__link" onClick={handleShowReviews}>
-        Show all {reviewCount} reviews
+        See reviews
       </button>
 
       {/* Feedback Section */}

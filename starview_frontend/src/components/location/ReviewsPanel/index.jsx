@@ -357,15 +357,24 @@ function ReviewsPanel({ location }) {
               <p>Be the first to share your experience at {location.name}</p>
             </div>
           ) : (
-            <div className="reviews-panel__items">
-              {filteredReviews.map((review) => (
-                <ReviewItem
-                  key={review.id}
-                  review={review}
-                  locationId={location.id}
-                />
-              ))}
-            </div>
+            <>
+              <div className="reviews-panel__items">
+                {filteredReviews.slice(0, 4).map((review) => (
+                  <ReviewItem
+                    key={review.id}
+                    review={review}
+                    locationId={location.id}
+                  />
+                ))}
+              </div>
+
+              {/* Show all button - only if more than 4 reviews */}
+              {filteredReviews.length > 4 && (
+                <button className="reviews-panel__show-all">
+                  Show all {filteredReviews.length} reviews
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
