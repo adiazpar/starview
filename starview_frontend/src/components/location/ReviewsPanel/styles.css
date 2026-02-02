@@ -329,6 +329,230 @@
   flex-direction: column;
 }
 
+/* ============================================
+   TOOLBAR (Search, Filter, Sort)
+   All elements 40px height, pill-shaped, glass styling.
+   ============================================ */
+
+.reviews-panel__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+/* Search Input */
+.reviews-panel__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.reviews-panel__search:focus-within {
+  border-color: var(--accent);
+  background: var(--glass-bg-hover);
+}
+
+.reviews-panel__search-icon {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+.reviews-panel__search:focus-within .reviews-panel__search-icon {
+  color: var(--accent);
+}
+
+.reviews-panel__search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.reviews-panel__search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.reviews-panel__search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--glass-bg-hover);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.reviews-panel__search-clear:hover {
+  background: var(--text-muted);
+  color: var(--surface);
+}
+
+.reviews-panel__search-clear i {
+  font-size: 10px;
+}
+
+/* Filter Button */
+.reviews-panel__filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.reviews-panel__filter-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.reviews-panel__filter-btn i {
+  font-size: 15px;
+}
+
+/* Sort Dropdown */
+.reviews-panel__sort {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.reviews-panel__sort-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  height: 40px;
+  padding: 0 var(--space-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reviews-panel__sort-trigger:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.reviews-panel__sort-trigger i:first-child {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.reviews-panel__sort-chevron {
+  font-size: 10px;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.reviews-panel__sort-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Sort Dropdown Menu */
+.reviews-panel__sort-menu {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  right: 0;
+  min-width: 180px;
+  padding: var(--space-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  list-style: none;
+  margin: 0;
+  z-index: 20;
+  box-shadow: var(--shadow);
+  animation: reviewsSortFadeIn var(--animation-duration) ease-out;
+}
+
+@keyframes reviewsSortFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reviews-panel__sort-menu li {
+  margin: 0;
+  padding: 0;
+}
+
+.reviews-panel__sort-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius) / 2);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reviews-panel__sort-option:hover {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+}
+
+.reviews-panel__sort-option--active {
+  color: var(--accent);
+}
+
+.reviews-panel__sort-option--active:hover {
+  color: var(--accent-hover);
+}
+
+.reviews-panel__sort-check {
+  font-size: 10px;
+  color: var(--accent);
+}
+
 
 /* ============================================
    DESKTOP LAYOUT (Two-column with sticky)
@@ -375,5 +599,19 @@
   .reviews-panel__cta,
   .reviews-panel__feedback-btn {
     transition: none;
+  }
+
+  .reviews-panel__search,
+  .reviews-panel__search-icon,
+  .reviews-panel__search-clear,
+  .reviews-panel__filter-btn,
+  .reviews-panel__sort-trigger,
+  .reviews-panel__sort-chevron,
+  .reviews-panel__sort-option {
+    transition: none;
+  }
+
+  .reviews-panel__sort-menu {
+    animation: none;
   }
 }

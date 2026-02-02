@@ -4,13 +4,21 @@
  * Mobile-first stacked approach.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ReviewItem from '../ReviewItem';
 import useRequireAuth from '../../../hooks/useRequireAuth';
 import { locationsApi } from '../../../services/locations';
 import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
+
+// Sort options for reviews
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'highest', label: 'Highest Rated' },
+  { value: 'lowest', label: 'Lowest Rated' },
+];
 
 // Get initials from username (e.g., "test_reviewer" -> "TR")
 function getInitials(username) {
@@ -52,9 +60,78 @@ function ReviewsPanel({ location }) {
     location.user_summary_feedback || null
   ); // 'yes' | 'no' | null
 
+  // Toolbar state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortValue, setSortValue] = useState('newest');
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const sortDropdownRef = useRef(null);
+
   const rating = parseFloat(location.average_rating) || 0;
   const reviews = location.reviews || [];
   const reviewSummary = location.review_summary || null;
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setSortDropdownOpen(false);
+      }
+    }
+    if (sortDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [sortDropdownOpen]);
+
+  // Filter and sort reviews
+  const filteredReviews = useMemo(() => {
+    let result = [...reviews];
+
+    // Filter by search query (searches review text and username)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (review) =>
+          review.comment?.toLowerCase().includes(query) ||
+          review.user?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort reviews
+    result.sort((a, b) => {
+      switch (sortValue) {
+        case 'oldest':
+          return new Date(a.created_at) - new Date(b.created_at);
+        case 'highest':
+          return b.rating - a.rating;
+        case 'lowest':
+          return a.rating - b.rating;
+        case 'newest':
+        default:
+          return new Date(b.created_at) - new Date(a.created_at);
+      }
+    });
+
+    return result;
+  }, [reviews, searchQuery, sortValue]);
+
+  // Handle sort change
+  const handleSortChange = useCallback((value) => {
+    setSortValue(value);
+    setSortDropdownOpen(false);
+  }, []);
+
+  // Handle search clear
+  const handleSearchClear = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  // Handle filter button click (placeholder for future filter modal)
+  const handleFilterClick = useCallback(() => {
+    showToast('Filters coming soon', 'info');
+  }, [showToast]);
+
+  const currentSortLabel = SORT_OPTIONS.find((opt) => opt.value === sortValue)?.label || 'Newest';
 
   // Calculate rating distribution from reviews
   const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -199,6 +276,79 @@ function ReviewsPanel({ location }) {
             </div>
           )}
 
+          {/* Toolbar - Search, Filter, Sort */}
+          {reviewCount > 0 && (
+            <div className="reviews-panel__toolbar">
+              {/* Search Input */}
+              <div className="reviews-panel__search">
+                <i className="fa-solid fa-magnifying-glass reviews-panel__search-icon"></i>
+                <input
+                  type="text"
+                  className="reviews-panel__search-input"
+                  placeholder="Search reviews..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="reviews-panel__search-clear"
+                    onClick={handleSearchClear}
+                    aria-label="Clear search"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Button */}
+              <button
+                type="button"
+                className="reviews-panel__filter-btn"
+                onClick={handleFilterClick}
+                aria-label="Filter reviews"
+              >
+                <i className="fa-solid fa-sliders"></i>
+              </button>
+
+              {/* Sort Dropdown */}
+              <div className="reviews-panel__sort" ref={sortDropdownRef}>
+                <button
+                  type="button"
+                  className="reviews-panel__sort-trigger"
+                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  aria-expanded={sortDropdownOpen}
+                  aria-haspopup="listbox"
+                >
+                  <i className="fa-solid fa-arrow-down-wide-short"></i>
+                  <span>{currentSortLabel}</span>
+                  <i className={`fa-solid fa-chevron-down reviews-panel__sort-chevron ${sortDropdownOpen ? 'reviews-panel__sort-chevron--open' : ''}`}></i>
+                </button>
+
+                {sortDropdownOpen && (
+                  <ul className="reviews-panel__sort-menu" role="listbox">
+                    {SORT_OPTIONS.map((option) => (
+                      <li key={option.value}>
+                        <button
+                          type="button"
+                          className={`reviews-panel__sort-option ${sortValue === option.value ? 'reviews-panel__sort-option--active' : ''}`}
+                          onClick={() => handleSortChange(option.value)}
+                          role="option"
+                          aria-selected={sortValue === option.value}
+                        >
+                          {option.label}
+                          {sortValue === option.value && (
+                            <i className="fa-solid fa-check reviews-panel__sort-check"></i>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Reviews list or empty state */}
           {reviewCount === 0 ? (
             <div className="reviews-panel__empty">
@@ -208,7 +358,7 @@ function ReviewsPanel({ location }) {
             </div>
           ) : (
             <div className="reviews-panel__items">
-              {reviews.map((review) => (
+              {filteredReviews.map((review) => (
                 <ReviewItem
                   key={review.id}
                   review={review}
