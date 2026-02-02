@@ -38,15 +38,71 @@ function ReviewItem({ review, locationId }) {
   const [isClosing, setIsClosing] = useState(false);
   const { mutate: togglePhotoVote, isPending: isVotingPhoto } = usePhotoVote(locationId);
 
-  // Vote mutation
+  // Vote mutation with optimistic updates
   const voteMutation = useMutation({
-    mutationFn: () => locationsApi.voteOnReview(locationId, review.id),
-    onSuccess: () => {
-      // Invalidate location query to refresh reviews
-      queryClient.invalidateQueries({ queryKey: ['location', locationId] });
+    networkMode: 'always',
+    mutationFn: async () => {
+      const response = await locationsApi.voteOnReview(locationId, review.id);
+      return {
+        reviewId: review.id,
+        upvotes: response.data.upvotes,
+        user_vote: response.data.user_vote,
+      };
     },
-    onError: () => {
+
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    onMutate: async () => {
+      // Cancel outgoing refetches to prevent overwriting optimistic update
+      const locationIdStr = String(locationId);
+      await queryClient.cancelQueries({ queryKey: ['location', locationIdStr] });
+
+      // Snapshot previous location data for rollback
+      const previousLocation = queryClient.getQueryData(['location', locationIdStr]);
+
+      // Optimistically update the review in the location cache
+      if (previousLocation) {
+        queryClient.setQueryData(['location', locationIdStr], {
+          ...previousLocation,
+          reviews: previousLocation.reviews?.map((r) =>
+            r.id === review.id
+              ? {
+                  ...r,
+                  // Toggle: if already voted up, remove vote; otherwise add vote
+                  user_vote: r.user_vote === 'up' ? null : 'up',
+                  upvote_count: r.user_vote === 'up'
+                    ? (r.upvote_count || 1) - 1
+                    : (r.upvote_count || 0) + 1,
+                }
+              : r
+          ),
+        });
+      }
+
+      return { previousLocation, locationIdStr };
+    },
+
+    // ROLLBACK: Restore previous state on error
+    onError: (err, variables, context) => {
+      if (context?.previousLocation) {
+        queryClient.setQueryData(['location', context.locationIdStr], context.previousLocation);
+      }
       showToast('Failed to vote', 'error');
+    },
+
+    // VALIDATE: Ensure cache matches server state
+    onSuccess: ({ reviewId, upvotes, user_vote }) => {
+      const locationIdStr = String(locationId);
+      queryClient.setQueryData(['location', locationIdStr], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          reviews: old.reviews?.map((r) =>
+            r.id === reviewId
+              ? { ...r, upvote_count: upvotes, user_vote }
+              : r
+          ),
+        };
+      });
     },
   });
 

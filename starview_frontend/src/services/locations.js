@@ -84,13 +84,15 @@ export const locationsApi = {
   },
 
   /**
-   * Vote on a review (upvote/downvote toggle)
+   * Vote on a review (upvote toggle)
    * @param {number} locationId - Location ID
    * @param {number} reviewId - Review ID
-   * @returns {Promise} - Updated vote status
+   * @returns {Promise} - { detail, upvotes, downvotes, vote_count, user_vote }
    */
   voteOnReview: (locationId, reviewId) => {
-    return api.post(`/locations/${locationId}/reviews/${reviewId}/vote/`);
+    return api.post(`/locations/${locationId}/reviews/${reviewId}/vote/`, {
+      vote_type: 'up',
+    });
   },
 
   /**
