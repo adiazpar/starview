@@ -65,8 +65,8 @@ function PhotoItem({
               className="photo-item__avatar"
             />
             <div className="photo-item__user-info">
-              <span className="photo-item__username">@{photo.uploaded_by.username}</span>
               <span className="photo-item__display-name">{photo.uploaded_by.display_name}</span>
+              <span className="photo-item__username">@{photo.uploaded_by.username}</span>
             </div>
           </div>
         </div>

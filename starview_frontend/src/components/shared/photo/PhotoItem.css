@@ -125,7 +125,7 @@ a.photo-item__attribution:hover {
   overflow: hidden;
 }
 
-.photo-item__username {
+.photo-item__display-name {
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
@@ -138,7 +138,7 @@ a.photo-item__attribution:hover {
   text-overflow: ellipsis;
 }
 
-.photo-item__display-name {
+.photo-item__username {
   font-family: var(--font-family);
   font-size: var(--text-xs);
   line-height: var(--leading-tight);
@@ -206,7 +206,7 @@ a.photo-item__attribution:hover {
    ============================================ */
 
 @media (max-width: 768px) {
-  .photo-item__username {
+  .photo-item__display-name {
     font-size: var(--text-xs);
   }
 }

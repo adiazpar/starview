@@ -162,7 +162,7 @@ a.photo-mosaic__attribution:hover {
   min-width: 0;
 }
 
-.photo-mosaic__username {
+.photo-mosaic__display-name {
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
@@ -173,7 +173,7 @@ a.photo-mosaic__attribution:hover {
   text-overflow: ellipsis;
 }
 
-.photo-mosaic__display-name {
+.photo-mosaic__username {
   font-family: var(--font-family);
   font-size: var(--text-xs);
   line-height: var(--leading-tight);
@@ -292,7 +292,7 @@ a.photo-mosaic__attribution:hover {
     border-color: var(--glass-border-hover);
   }
 
-  .photo-mosaic__username {
+  .photo-mosaic__display-name {
     font-size: var(--text-xs);
   }
 }

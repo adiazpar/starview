@@ -131,8 +131,8 @@ function PhotoMosaic({ locationName, locationId }) {
                     className="photo-mosaic__avatar"
                   />
                   <div className="photo-mosaic__user-info">
-                    <span className="photo-mosaic__username">@{image.uploaded_by.username}</span>
                     <span className="photo-mosaic__display-name">{image.uploaded_by.display_name}</span>
+                    <span className="photo-mosaic__username">@{image.uploaded_by.username}</span>
                   </div>
                 </div>
               </div>

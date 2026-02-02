@@ -152,8 +152,8 @@ function PhotoLightbox({
                   className="photo-lightbox__avatar"
                 />
                 <div className="photo-lightbox__user-info">
-                  <span className="photo-lightbox__username">@{photo.uploaded_by.username}</span>
                   <span className="photo-lightbox__display-name">{photo.uploaded_by.display_name}</span>
+                  <span className="photo-lightbox__username">@{photo.uploaded_by.username}</span>
                 </div>
               </div>
             ) : (
@@ -168,8 +168,8 @@ function PhotoLightbox({
                   className="photo-lightbox__avatar"
                 />
                 <div className="photo-lightbox__user-info">
-                  <span className="photo-lightbox__username">@{photo.uploaded_by.username}</span>
                   <span className="photo-lightbox__display-name">{photo.uploaded_by.display_name}</span>
+                  <span className="photo-lightbox__username">@{photo.uploaded_by.username}</span>
                 </div>
               </Link>
             )
