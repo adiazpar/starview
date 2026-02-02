@@ -19,6 +19,7 @@ import PhotoMosaic from '../../components/location/PhotoMosaic';
 import CommunityStats from '../../components/location/CommunityStats';
 import LocationMap from '../../components/location/LocationMap';
 import ReviewsPanel from '../../components/location/ReviewsPanel';
+import SummaryCard from '../../components/location/SummaryCard';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -120,9 +121,25 @@ function LocationDetailPage() {
   }, [location?.name, showToast]);
 
   // Set up intersection observer for hero visibility (controls navbar extension visibility)
+  // Uses static navbar height to prevent feedback loops - extension visibility
+  // doesn't affect layout calculations (sticky elements always account for extension)
+  // NOTE: Must depend on isLoading because heroRef is only attached after loading completes
   useEffect(() => {
     const heroElement = heroRef.current;
-    if (!heroElement || !location) return;
+    if (!heroElement || isLoading) return;
+
+    // Use static navbar height (not --navbar-total-height which could change)
+    const navbarHeight = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--navbar-height') || '72',
+      10
+    );
+
+    // Helper to check hero position and update visibility
+    const checkHeroVisibility = () => {
+      const heroRect = heroElement.getBoundingClientRect();
+      const isHeroAboveNavbar = heroRect.bottom <= navbarHeight;
+      setExtensionVisible(isHeroAboveNavbar);
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -130,18 +147,33 @@ function LocationDetailPage() {
         setExtensionVisible(!entry.isIntersecting);
       },
       {
-        // Trigger when the bottom of the hero passes the top of the viewport
-        rootMargin: '-64px 0px 0px 0px', // Account for navbar height
+        // Trigger when the bottom of the hero passes below the navbar
+        rootMargin: `-${navbarHeight}px 0px 0px 0px`,
         threshold: 0,
       }
     );
 
     observer.observe(heroElement);
 
+    // Handle scroll restoration race condition: browser may restore scroll position
+    // after IntersectionObserver fires its initial callback. Use scroll listener
+    // to catch scroll restoration, then remove it after first scroll.
+    const handleScroll = () => {
+      checkHeroVisibility();
+      window.removeEventListener('scroll', handleScroll);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Also check after a short delay in case scroll restoration happens without
+    // triggering a scroll event (e.g., instant restoration)
+    const timeoutId = setTimeout(checkHeroVisibility, 100);
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId);
     };
-  }, [location, setExtensionVisible]);
+  }, [isLoading, setExtensionVisible]);
 
   // Store handlers in refs to avoid infinite update loops
   const handlersRef = useRef({ handleBack, handleFavorite, handleMarkVisited, handleShare });
@@ -253,6 +285,26 @@ function LocationDetailPage() {
         <div className="location-detail__photos">
           <PhotoMosaic locationName={location.name} locationId={location.id} />
         </div>
+
+        {/* Highlights Section - Desktop only, 3-column grid */}
+        {location.review_summary && (
+          <div className="location-detail__highlights">
+            {/* Placeholder card 1 */}
+            <div className="location-detail__highlight-placeholder glass-card">
+              <i className="fa-solid fa-map-location-dot"></i>
+              <span>Coming soon</span>
+            </div>
+
+            {/* Placeholder card 2 */}
+            <div className="location-detail__highlight-placeholder glass-card">
+              <i className="fa-solid fa-clipboard-list"></i>
+              <span>Coming soon</span>
+            </div>
+
+            {/* AI Summary Card */}
+            <SummaryCard location={location} />
+          </div>
+        )}
 
         {/* Mobile-only sections */}
         <div className="location-detail__mobile-sections">
