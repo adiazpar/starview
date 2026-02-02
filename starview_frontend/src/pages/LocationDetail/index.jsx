@@ -199,17 +199,14 @@ function LocationDetailPage() {
     return <LoadingSpinner size="lg" fullPage />;
   }
 
-  // Error state
+  // Error state - minimal style matching empty gallery
   if (isError) {
     return (
       <div className="location-detail location-detail--error">
-        <div className="location-detail__error-content glass-card">
-          <i className="fa-solid fa-triangle-exclamation"></i>
-          <h2>Location Not Found</h2>
-          <p>{error?.message || 'This location may have been removed or does not exist.'}</p>
-          <button className="btn-primary" onClick={() => navigate('/explore')}>
-            Explore Locations
-          </button>
+        <div className="location-detail__error-content">
+          <i className="fa-regular fa-map"></i>
+          <h3>Location not found</h3>
+          <p>This location may have been removed or doesn't exist</p>
         </div>
       </div>
     );

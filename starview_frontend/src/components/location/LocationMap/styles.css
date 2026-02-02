@@ -58,7 +58,7 @@
 }
 
 /* ============================================
-   3D MAP CONTAINER (Clickable)
+   3D MAP CONTAINER (Interactive)
    ============================================ */
 
 .location-map__map-container {
@@ -69,8 +69,12 @@
   overflow: hidden;
   background: var(--bg-elevated);
   border: 1px solid var(--glass-border);
-  cursor: pointer;
+  cursor: grab;
   transition: border-color 0.2s ease;
+}
+
+.location-map__map-container:active {
+  cursor: grabbing;
 }
 
 .location-map__map-container:hover {
@@ -150,12 +154,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   color: var(--text-secondary);
+  cursor: pointer;
   transition: all 0.2s ease;
-  pointer-events: none; /* Click passes through to parent button */
 }
 
-/* Hover state activates when hovering map container */
-.location-map__map-container:hover .location-map__directions {
+.location-map__directions:hover {
   color: var(--text-primary);
   border-color: var(--text-muted);
+  background: var(--bg-elevated);
 }

@@ -1,6 +1,13 @@
 /* LocationMap Component
- * 3D terrain map with coordinates display and directions link.
+ * Interactive 3D terrain map with orbit controls and directions link.
  * Uses Mapbox GL JS with terrain for immersive location visualization.
+ *
+ * Features:
+ * - Lazy loading: Map only initializes when scrolled into view
+ * - Orbit rotation: Drag to rotate around the location
+ * - Zoom controls: Scroll/pinch to zoom (with limits)
+ * - Click to navigate: Tap/click (without drag) opens directions
+ * - Dynamic lighting: Day/night based on sun position
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -16,9 +23,18 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 // Camera settings for 3D view
 const CAMERA_PITCH = 55; // Angle from vertical (0 = top-down, 90 = horizon)
-const CAMERA_BEARING = -20; // Rotation from north (slight west angle for dramatic shadows)
-const CAMERA_ZOOM = 15.5; // Close enough to see building detail
+const CAMERA_BEARING = -20; // Initial rotation from north
+const DEFAULT_ZOOM = 15.5; // Starting zoom level (also minimum - can't zoom out past this)
+const MAX_ZOOM = 20; // Maximum zoom (can zoom in close for detail)
 const TERRAIN_EXAGGERATION = 1.5;
+const TERRAIN_MAX_ZOOM = 12; // Reduced from 14 for performance
+
+// Interaction settings
+const ROTATION_SPEED = 0.3; // Degrees per pixel of mouse movement
+const CLICK_THRESHOLD = 5; // Pixels of movement before considered a drag
+
+// Intersection Observer threshold for lazy loading
+const VISIBILITY_THRESHOLD = 0.1;
 
 /**
  * Calculate light preset based on sun position at location
@@ -50,8 +66,16 @@ function LocationMap({ location, compact = false }) {
   const navigate = useNavigate();
   const mapContainer = useRef(null);
   const map = useRef(null);
+
+  // State
+  const [isVisible, setIsVisible] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+
+  // Interaction tracking refs (refs to avoid re-renders)
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const totalDragDistance = useRef(0);
 
   const { id, latitude, longitude, name } = location;
 
@@ -63,10 +87,30 @@ function LocationMap({ location, compact = false }) {
 
   const coordsDisplay = `${formatCoordinate(latitude, true)}, ${formatCoordinate(longitude, false)}`;
 
-  // Initialize 3D map
+  // Lazy loading: Observe when container becomes visible
   useEffect(() => {
-    if (!mapContainer.current || !mapboxgl.accessToken) {
-      setMapError(true);
+    if (!mapContainer.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: VISIBILITY_THRESHOLD }
+    );
+
+    observer.observe(mapContainer.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Initialize 3D map (only when visible)
+  useEffect(() => {
+    if (!isVisible || !mapContainer.current || !mapboxgl.accessToken) {
+      if (isVisible && !mapboxgl.accessToken) {
+        setMapError(true);
+      }
       return;
     }
     if (map.current) return; // Already initialized
@@ -76,22 +120,28 @@ function LocationMap({ location, compact = false }) {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/standard',
         center: [longitude, latitude],
-        zoom: CAMERA_ZOOM,
+        zoom: DEFAULT_ZOOM,
         pitch: CAMERA_PITCH,
         bearing: CAMERA_BEARING,
-        attributionControl: false, // Attribution shown on Explore page
-        interactive: false, // Disable all interactions for static display
+        minZoom: DEFAULT_ZOOM, // Can't zoom out past default view
+        maxZoom: MAX_ZOOM,     // Can zoom in for detail
+        attributionControl: false,
+        // Disable default interactions - we'll handle them custom
+        dragPan: false,
+        dragRotate: false,
+        keyboard: false,
+        doubleClickZoom: false,
+        touchZoomRotate: false,
+        scrollZoom: false, // We'll enable with custom config below
+        touchPitch: false,
       });
 
-      // Reset view after resize to prevent zoom/position shifts
-      map.current.on('resize', () => {
-        map.current.jumpTo({
-          center: [longitude, latitude],
-          zoom: CAMERA_ZOOM,
-          pitch: CAMERA_PITCH,
-          bearing: CAMERA_BEARING,
-        });
-      });
+      // Enable scroll zoom centered on location (not cursor position)
+      map.current.scrollZoom.enable({ around: 'center' });
+
+      // Enable touch zoom centered on location (not pinch center)
+      map.current.touchZoomRotate.enable({ around: 'center' });
+      map.current.touchZoomRotate.disableRotation();
 
       // Calculate light preset for this location
       const lightPreset = getLightPreset(latitude, longitude);
@@ -110,12 +160,12 @@ function LocationMap({ location, compact = false }) {
           'star-intensity': 0.15,
         });
 
-        // Enable 3D terrain
+        // Enable 3D terrain with reduced resolution for performance
         map.current.addSource('mapbox-dem', {
           type: 'raster-dem',
           url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
           tileSize: 512,
-          maxzoom: 14,
+          maxzoom: TERRAIN_MAX_ZOOM,
         });
         map.current.setTerrain({
           source: 'mapbox-dem',
@@ -151,7 +201,72 @@ function LocationMap({ location, compact = false }) {
         map.current = null;
       }
     };
-  }, [latitude, longitude]);
+  }, [isVisible, latitude, longitude]);
+
+  // Handle orbit rotation (bearing changes while center stays fixed)
+  const handlePointerDown = useCallback((e) => {
+    if (!map.current || !mapLoaded) return;
+
+    isDragging.current = true;
+    totalDragDistance.current = 0;
+    dragStart.current = {
+      x: e.clientX ?? e.touches?.[0]?.clientX ?? 0,
+      y: e.clientY ?? e.touches?.[0]?.clientY ?? 0,
+    };
+
+    // Prevent text selection while dragging
+    e.preventDefault();
+  }, [mapLoaded]);
+
+  const handlePointerMove = useCallback((e) => {
+    if (!isDragging.current || !map.current) return;
+
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
+
+    const deltaX = clientX - dragStart.current.x;
+    const deltaY = clientY - dragStart.current.y;
+
+    // Track total drag distance to differentiate click vs drag
+    totalDragDistance.current += Math.abs(deltaX) + Math.abs(deltaY);
+
+    // Update bearing (horizontal drag rotates the view)
+    const currentBearing = map.current.getBearing();
+    const newBearing = currentBearing + deltaX * ROTATION_SPEED;
+    map.current.setBearing(newBearing);
+
+    // Update starting position for next move
+    dragStart.current = { x: clientX, y: clientY };
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  // Add and remove event listeners for orbit control
+  useEffect(() => {
+    const container = mapContainer.current;
+    if (!container || !mapLoaded) return;
+
+    // Mouse events
+    container.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerUp);
+
+    // Touch events
+    container.addEventListener('touchstart', handlePointerDown, { passive: false });
+    window.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('touchend', handlePointerUp);
+
+    return () => {
+      container.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mouseup', handlePointerUp);
+      container.removeEventListener('touchstart', handlePointerDown);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('touchend', handlePointerUp);
+    };
+  }, [mapLoaded, handlePointerDown, handlePointerMove, handlePointerUp]);
 
   // Copy coordinates to clipboard
   const handleCopyCoords = useCallback(async () => {
@@ -164,7 +279,12 @@ function LocationMap({ location, compact = false }) {
   }, [latitude, longitude, showToast]);
 
   // Navigate to explore map with navigation mode activated
-  const handleGetDirections = useCallback(() => {
+  // Only triggers if user didn't drag (click/tap, not interaction)
+  const handleDirectionsClick = useCallback(() => {
+    // If user dragged more than threshold, it was an interaction, not a click
+    if (totalDragDistance.current > CLICK_THRESHOLD) {
+      return;
+    }
     navigate(`/explore?view=map&navigateTo=${id}`);
   }, [navigate, id]);
 
@@ -180,12 +300,8 @@ function LocationMap({ location, compact = false }) {
         <i className="fa-solid fa-copy"></i>
       </button>
 
-      {/* Clickable 3D Map Container */}
-      <button
-        className="location-map__map-container"
-        onClick={handleGetDirections}
-        aria-label={`Get directions to ${name}`}
-      >
+      {/* Interactive 3D Map Container */}
+      <div className="location-map__map-container">
         {mapError ? (
           <div className="location-map__placeholder">
             <i className="fa-solid fa-map"></i>
@@ -205,12 +321,16 @@ function LocationMap({ location, compact = false }) {
           </>
         )}
 
-        {/* Directions overlay button */}
-        <span className="location-map__directions">
+        {/* Directions button - only responds to clicks, not drags */}
+        <button
+          className="location-map__directions"
+          onClick={handleDirectionsClick}
+          aria-label={`Get directions to ${name}`}
+        >
           <i className="fa-solid fa-diamond-turn-right"></i>
           Directions
-        </span>
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
