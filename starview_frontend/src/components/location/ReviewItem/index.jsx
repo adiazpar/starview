@@ -10,6 +10,34 @@ import { locationsApi } from '../../../services/locations';
 import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
 
+// Get initials from username (e.g., "test_reviewer" -> "TR")
+function getInitials(username) {
+  if (!username) return '?';
+  const parts = username.replace(/[_-]/g, ' ').split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return username.slice(0, 2).toUpperCase();
+}
+
+// Generate consistent color from username
+function getAvatarColor(username) {
+  const colors = [
+    '#3b82f6', // blue
+    '#10b981', // emerald
+    '#f59e0b', // amber
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+    '#06b6d4', // cyan
+    '#f97316', // orange
+  ];
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
 // Simple relative time formatter
 function formatRelativeTime(dateString) {
   if (!dateString) return '';
@@ -75,13 +103,48 @@ function ReviewItem({ review, locationId }) {
     <article className="review-item">
       {/* Header: User info and rating */}
       <header className="review-item__header">
+        <Link
+          to={`/users/${review.user}`}
+          className="review-item__avatar"
+          style={{ backgroundColor: getAvatarColor(review.user_full_name || review.user) }}
+          title={`@${review.user}`}
+        >
+          {getInitials(review.user_full_name || review.user)}
+        </Link>
         <div className="review-item__user">
-          <Link to={`/users/${review.user}`} className="review-item__username">
-            @{review.user}
-          </Link>
-          <span className="review-item__date">{createdAt}</span>
-          {review.is_edited && (
-            <span className="review-item__edited">(edited)</span>
+          {review.user_full_name ? (
+            <>
+              <Link to={`/users/${review.user}`} className="review-item__name">
+                {review.user_full_name}
+              </Link>
+              <div className="review-item__meta">
+                <Link to={`/users/${review.user}`} className="review-item__username">
+                  @{review.user}
+                </Link>
+                <span className="review-item__separator">·</span>
+                <span className="review-item__date">{createdAt}</span>
+                {review.is_edited && (
+                  <>
+                    <span className="review-item__separator">·</span>
+                    <span className="review-item__edited">edited</span>
+                  </>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="review-item__meta">
+              <Link to={`/users/${review.user}`} className="review-item__username review-item__username--primary">
+                @{review.user}
+              </Link>
+              <span className="review-item__separator">·</span>
+              <span className="review-item__date">{createdAt}</span>
+              {review.is_edited && (
+                <>
+                  <span className="review-item__separator">·</span>
+                  <span className="review-item__edited">edited</span>
+                </>
+              )}
+            </div>
           )}
         </div>
         <div className="review-item__rating">

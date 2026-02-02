@@ -30,7 +30,29 @@ export default function CookieConsent() {
       role="dialog"
       aria-label="Cookie consent"
     >
+      {/* Mobile header with close button and title */}
+      <div className="cookie-consent__header">
+        <button
+          className="cookie-consent__close cookie-consent__close--mobile"
+          onClick={() => handleChoice(declineCookies)}
+          aria-label="Decline cookies"
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+        <span className="cookie-consent__title">Cookie Preferences</span>
+        <div className="cookie-consent__spacer"></div>
+      </div>
+
       <div className="cookie-consent__container">
+        {/* Desktop close button */}
+        <button
+          className="cookie-consent__close cookie-consent__close--desktop"
+          onClick={() => handleChoice(declineCookies)}
+          aria-label="Decline cookies"
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+
         <div className="cookie-consent__content">
           <div className="cookie-consent__icon">
             <i className="fa-solid fa-cookie-bite"></i>

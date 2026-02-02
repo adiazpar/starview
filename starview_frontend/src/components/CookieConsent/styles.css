@@ -1,6 +1,6 @@
 /* Cookie Consent Banner Styles
  * Fixed bottom banner for GDPR cookie consent.
- * Uses global CSS variables for consistency.
+ * Banner style on desktop, modal style on mobile.
  */
 
 .cookie-consent {
@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   z-index: 9999;
-  padding: var(--space-md);
+  padding: var(--space-md) 0;
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
@@ -42,13 +42,57 @@
   animation: cookie-slide-down var(--animation-duration) ease-in forwards;
 }
 
+/* Header - hidden on desktop, shown on mobile */
+.cookie-consent__header {
+  display: none;
+}
+
+/* Close button base styles */
+.cookie-consent__close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cookie-consent__close:hover {
+  color: var(--text-primary);
+}
+
+/* Desktop close button - visible on desktop */
+.cookie-consent__close--desktop {
+  display: flex;
+}
+
+/* Mobile close button - hidden on desktop */
+.cookie-consent__close--mobile {
+  display: none;
+}
+
+/* Title and spacer - hidden on desktop */
+.cookie-consent__title,
+.cookie-consent__spacer {
+  display: none;
+}
+
 .cookie-consent__container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
+  box-sizing: border-box;
 }
 
 .cookie-consent__content {
@@ -105,19 +149,65 @@
   text-transform: none;
 }
 
+.cookie-consent__btn.btn-primary,
+.cookie-consent__btn.btn-secondary {
+  border-radius: var(--radius-full);
+}
+
+.cookie-consent__btn.btn-primary::before {
+  border-radius: var(--radius-full);
+}
+
 /* ============================================ */
-/* RESPONSIVE */
+/* MOBILE - Modal Style */
 /* ============================================ */
 
 @media (max-width: 640px) {
   .cookie-consent {
-    padding: var(--space-lg) var(--space-md);
+    padding: 0;
+    border-top: none;
+    border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Header - visible on mobile */
+  .cookie-consent__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Mobile close button - visible on mobile */
+  .cookie-consent__close--mobile {
+    display: flex;
+  }
+
+  /* Desktop close button - hidden on mobile */
+  .cookie-consent__close--desktop {
+    display: none;
+  }
+
+  .cookie-consent__title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+  }
+
+  .cookie-consent__spacer {
+    display: block;
+    width: 36px;
   }
 
   .cookie-consent__container {
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-lg);
+    padding: var(--space-lg);
+    padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
   }
 
   .cookie-consent__content {
@@ -142,16 +232,16 @@
   }
 
   .cookie-consent__actions {
-    justify-content: center;
-    gap: var(--space-md);
+    flex-direction: column;
+    gap: var(--space-sm);
     width: 100%;
   }
 
   .cookie-consent .cookie-consent__btn.btn-primary,
   .cookie-consent .cookie-consent__btn.btn-secondary {
-    flex: 1;
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--text-xs);
+    width: 100%;
+    padding: var(--space-md);
+    font-size: var(--text-sm);
   }
 }
 
@@ -163,5 +253,9 @@
   .cookie-consent,
   .cookie-consent--closing {
     animation: none;
+  }
+
+  .cookie-consent__close {
+    transition: none;
   }
 }
