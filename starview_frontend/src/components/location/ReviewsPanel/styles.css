@@ -207,7 +207,19 @@
 
 .reviews-panel__summary {
   padding: var(--space-lg);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  position: relative;
+}
+
+/* Separator line between summary and reviews */
+.reviews-panel__summary::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--space-xl));
+  height: 1px;
+  background: var(--border);
 }
 
 /* Title */
