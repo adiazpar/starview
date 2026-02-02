@@ -95,6 +95,7 @@ class ReviewPhotoSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     user_full_name = serializers.SerializerMethodField()
+    user_profile_picture = serializers.SerializerMethodField()
     vote_count = serializers.ReadOnlyField()
     upvote_count = serializers.ReadOnlyField()
     downvote_count = serializers.ReadOnlyField()
@@ -107,13 +108,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['id', 'location', 'user', 'user_full_name',
+        fields = ['id', 'location', 'user', 'user_full_name', 'user_profile_picture',
                  'rating', 'comment', 'created_at', 'updated_at',
                   'vote_count', 'upvote_count', 'downvote_count', 'user_vote', 'photos', 'is_edited']
         read_only_fields = ['id', 'user', 'location', 'created_at', 'updated_at']
 
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}".strip()
+
+    def get_user_profile_picture(self, obj):
+        return obj.user.userprofile.get_profile_picture_url
 
     def get_user_vote(self, obj):
         request = self.context.get('request')

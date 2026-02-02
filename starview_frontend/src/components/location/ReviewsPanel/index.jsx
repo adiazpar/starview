@@ -20,34 +20,6 @@ const SORT_OPTIONS = [
   { value: 'lowest', label: 'Lowest Rated' },
 ];
 
-// Get initials from username (e.g., "test_reviewer" -> "TR")
-function getInitials(username) {
-  if (!username) return '?';
-  const parts = username.replace(/[_-]/g, ' ').split(' ');
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return username.slice(0, 2).toUpperCase();
-}
-
-// Generate consistent color from username
-function getAvatarColor(username) {
-  const colors = [
-    '#3b82f6', // blue
-    '#10b981', // emerald
-    '#f59e0b', // amber
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-    '#06b6d4', // cyan
-    '#f97316', // orange
-  ];
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = username.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
-
 function ReviewsPanel({ location }) {
   const { requireAuth } = useRequireAuth();
   const { showToast } = useToast();
@@ -150,8 +122,8 @@ function ReviewsPanel({ location }) {
     .slice(0, 3)
     .map((review) => ({
       username: review.user,
-      initials: getInitials(review.user),
-      color: getAvatarColor(review.user),
+      profilePicture: review.user_profile_picture,
+      fullName: review.user_full_name,
     }));
 
   // Feedback mutation
@@ -236,13 +208,14 @@ function ReviewsPanel({ location }) {
                   <div
                     key={reviewer.username}
                     className="reviews-panel__avatar"
-                    style={{
-                      backgroundColor: reviewer.color,
-                      zIndex: reviewers.length - index,
-                    }}
+                    style={{ zIndex: reviewers.length - index }}
                     title={`@${reviewer.username}`}
                   >
-                    {reviewer.initials}
+                    <img
+                      src={reviewer.profilePicture}
+                      alt={reviewer.fullName || reviewer.username}
+                      loading="lazy"
+                    />
                   </div>
                 ))}
               </div>
