@@ -15,7 +15,7 @@ const SLIDE_DURATION = 12000; // 12 seconds per slide
 function HeroCarousel({ images = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto-advance slides
+  // Auto-advance slides - resets timer when currentIndex changes (including manual clicks)
   useEffect(() => {
     if (images.length <= 1) return;
 
@@ -24,7 +24,7 @@ function HeroCarousel({ images = [] }) {
     }, SLIDE_DURATION);
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, currentIndex]);
 
   // Handle indicator click
   const goToSlide = useCallback((index) => {
