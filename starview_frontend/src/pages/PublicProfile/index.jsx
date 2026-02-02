@@ -100,10 +100,10 @@ function PublicProfilePage() {
           updatePinnedBadgeIds(pinnedBadgeIds);
         }
       } catch (err) {
-        console.error('Error fetching profile:', err);
         if (err.response?.status === 404) {
           setError('User not found');
         } else {
+          console.error('Error fetching profile:', err);
           setError('Failed to load profile');
         }
       } finally {
@@ -153,21 +153,11 @@ function PublicProfilePage() {
   // Error state
   if (error) {
     return (
-      <div className="public-profile-page">
-        <div className="public-profile-container">
-          <div className="public-profile-error glass-card">
-            <div className="public-profile-error__icon">
-              <i className="fa-solid fa-user-slash"></i>
-            </div>
-            <h2 className="public-profile-error__title">{error}</h2>
-            <p className="public-profile-error__description">
-              The profile you're looking for doesn't exist or may have been removed.
-            </p>
-            <button className="btn-primary" onClick={() => navigate('/')}>
-              <i className="fa-solid fa-home"></i>
-              Go Home
-            </button>
-          </div>
+      <div className="public-profile-page public-profile-page--error">
+        <div className="public-profile-error">
+          <i className="fa-solid fa-user-slash"></i>
+          <h3>{error}</h3>
+          <p>The profile you're looking for doesn't exist or may have been removed.</p>
         </div>
       </div>
     );
