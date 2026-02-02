@@ -338,6 +338,26 @@ function LocationDetailPage() {
         <div className="location-detail__reviews">
           <ReviewsPanel location={location} />
         </div>
+
+        {/* Last Updated Footer */}
+        {location.created_at && (
+          <footer className="location-detail__footer">
+            <p className="location-detail__updated">
+              Last updated on{' '}
+              {new Date(location.created_at).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}{' '}
+              at{' '}
+              {new Date(location.created_at).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZoneName: 'short',
+              })}
+            </p>
+          </footer>
+        )}
       </div>
     </div>
   );

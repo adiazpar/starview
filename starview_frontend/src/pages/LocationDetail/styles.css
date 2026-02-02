@@ -283,6 +283,25 @@
 
 
 /* ============================================
+   LAST UPDATED FOOTER
+   ============================================ */
+
+.location-detail__footer {
+  grid-column: 1 / -1;
+  padding: 80px 0;
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.location-detail__updated {
+  font-family: var(--font-family);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ============================================
    REDUCED MOTION
    ============================================ */
 
