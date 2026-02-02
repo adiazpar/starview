@@ -268,10 +268,18 @@
 
 /* AI Disclaimer */
 .reviews-panel__disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
   font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--text-muted);
   margin: 0 0 var(--space-md) 0;
+}
+
+.reviews-panel__ai-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 /* Feedback Section */
