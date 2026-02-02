@@ -118,6 +118,12 @@
   color: var(--star-filled);
 }
 
+/* Empty state - muted rating */
+.reviews-panel__rating--empty .reviews-panel__rating-number,
+.reviews-panel__rating--empty .reviews-panel__rating-star {
+  color: var(--text-muted);
+}
+
 /* Review Count Link */
 .reviews-panel__count {
   font-family: var(--font-family);
@@ -199,27 +205,22 @@
 }
 
 /* ============================================
-   AI SUMMARY CARD
+   AI SUMMARY CARD (Mobile only)
    "Stargazers are saying" card with avatar stack,
    AI disclaimer, and feedback buttons.
    Uses .glass-card from global.css for base styling.
+   Hidden on desktop - shown in highlights section instead.
    ============================================ */
 
 .reviews-panel__summary {
   padding: var(--space-lg);
   margin-bottom: var(--space-xl);
-  position: relative;
 }
 
-/* Separator line between summary and reviews */
-.reviews-panel__summary::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(-1 * var(--space-xl));
-  height: 1px;
-  background: var(--border);
+@media (min-width: 1024px) {
+  .reviews-panel__summary {
+    display: none;
+  }
 }
 
 /* Title */
@@ -323,37 +324,41 @@
   flex-direction: column;
 }
 
+.reviews-panel__items {
+  display: flex;
+  flex-direction: column;
+}
+
+
 /* ============================================
    DESKTOP LAYOUT (Two-column with sticky)
    ============================================ */
 
 @media (min-width: 1024px) {
+  /* Two-column grid layout */
   .reviews-panel__content {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 280px 1fr;
     gap: var(--space-xl);
-    align-items: flex-start;
+    align-items: start;
   }
 
-  /* Left: Viewport-sticky metrics */
+  /* Left column: metrics (sticky) */
   .reviews-panel__metrics {
     position: sticky;
-    top: calc(var(--navbar-total-height) + var(--space-xl));
-    flex: 0 0 280px;
-    height: fit-content;
-    align-self: flex-start;
+    top: calc(var(--navbar-total-height) * 2 + var(--space-xl));
   }
 
-  /* Right: Reviews scroll with page */
-  .reviews-panel__list {
-    flex: 1;
-    min-width: 0;
+  /* Hide mobile summary on desktop */
+  .reviews-panel__summary {
+    display: none;
   }
 }
 
 /* Large Desktop - Wider metrics panel */
 @media (min-width: 1400px) {
-  .reviews-panel__metrics {
-    flex: 0 0 300px;
+  .reviews-panel__content {
+    grid-template-columns: 300px 1fr;
   }
 }
 

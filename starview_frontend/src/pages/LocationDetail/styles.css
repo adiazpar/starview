@@ -117,6 +117,39 @@
 }
 
 /* ============================================
+   HIGHLIGHTS SECTION (Desktop only - 3 cards)
+   ============================================ */
+
+.location-detail__highlights {
+  display: none; /* Hidden on mobile */
+}
+
+.location-detail__highlight-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  min-height: 300px;
+  padding: var(--space-lg);
+  color: var(--text-muted);
+  /* Override glass-card border to dashed for placeholder state */
+  border-style: dashed;
+}
+
+.location-detail__highlight-placeholder i {
+  font-size: var(--text-2xl);
+  opacity: 0.5;
+}
+
+.location-detail__highlight-placeholder span {
+  font-family: var(--font-technical);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
    MOBILE SECTIONS (Sky Quality, Map, Community)
    ============================================ */
 
@@ -225,6 +258,15 @@
     display: none;
   }
 
+  /* Highlights - 3-column grid spanning full width */
+  .location-detail__highlights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    grid-column: 1 / -1;
+    animation: fadeInUp var(--animation-duration) ease-out 0.15s backwards;
+  }
+
   /* Reviews - span full width */
   .location-detail__reviews {
     grid-column: 1 / -1;
@@ -248,6 +290,7 @@
   .location-detail__main > *,
   .location-detail__sidebar > *,
   .location-detail__photos,
+  .location-detail__highlights,
   .location-detail__reviews > *,
   .location-detail__error-content,
   .reviews-panel__bar-fill {

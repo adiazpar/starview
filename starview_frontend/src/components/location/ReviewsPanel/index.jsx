@@ -45,13 +45,14 @@ function ReviewsPanel({ location }) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
+  const reviewCount = location.review_count || 0;
+
   // Initialize feedback state from server (persists across page refreshes)
   const [feedbackGiven, setFeedbackGiven] = useState(
     location.user_summary_feedback || null
   ); // 'yes' | 'no' | null
 
   const rating = parseFloat(location.average_rating) || 0;
-  const reviewCount = location.review_count || 0;
   const reviews = location.reviews || [];
   const reviewSummary = location.review_summary || null;
 
@@ -101,24 +102,8 @@ function ReviewsPanel({ location }) {
     [requireAuth, feedbackMutation]
   );
 
-  // Empty state - matches LocationGallery pattern
-  if (reviewCount === 0) {
-    return (
-      <section className="reviews-panel">
-        <div className="reviews-panel__section-header">
-          <span>Reviews</span>
-        </div>
-        <div className="reviews-panel__empty">
-          <i className="fa-regular fa-message"></i>
-          <h3>No reviews yet</h3>
-          <p>Be the first to share your experience at {location.name}</p>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="reviews-panel">
+    <section id="reviews-section" className="reviews-panel">
       <div className="reviews-panel__section-header">
         <span>Reviews</span>
       </div>
@@ -126,18 +111,15 @@ function ReviewsPanel({ location }) {
       <div className="reviews-panel__content">
         {/* Left: Rating Metrics (sticky on desktop) */}
         <aside className="reviews-panel__metrics">
-          {/* Large Rating Display */}
-          <div className="reviews-panel__rating">
+          <div className={`reviews-panel__rating ${reviewCount === 0 ? 'reviews-panel__rating--empty' : ''}`}>
             <span className="reviews-panel__rating-number">{rating.toFixed(1)}</span>
-            <i className="fa-solid fa-star reviews-panel__rating-star"></i>
+            <i className={`${reviewCount === 0 ? 'fa-regular' : 'fa-solid'} fa-star reviews-panel__rating-star`}></i>
           </div>
 
-          {/* Review Count */}
           <a href="#reviews-list" className="reviews-panel__count">
             {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
           </a>
 
-          {/* Distribution Bars */}
           <div className="reviews-panel__distribution">
             {[5, 4, 3, 2, 1].map((stars) => {
               const count = distribution[stars];
@@ -160,21 +142,18 @@ function ReviewsPanel({ location }) {
             })}
           </div>
 
-          {/* CTA Button (non-functional) */}
           <button className="reviews-panel__cta" disabled>
             Write a Review
           </button>
         </aside>
 
-        {/* Right: Reviews List (scrolls with page on desktop) */}
+        {/* Right: Reviews List */}
         <div id="reviews-list" className="reviews-panel__list">
-          {/* AI Summary Card */}
+          {/* AI Summary Card - mobile only */}
           {reviewSummary && (
             <div className="reviews-panel__summary glass-card">
-              {/* Header */}
               <h3 className="reviews-panel__summary-title">Stargazers are saying</h3>
 
-              {/* Avatar Stack */}
               <div className="reviews-panel__avatars">
                 {reviewers.map((reviewer, index) => (
                   <div
@@ -191,15 +170,12 @@ function ReviewsPanel({ location }) {
                 ))}
               </div>
 
-              {/* Summary Text */}
               <p className="reviews-panel__summary-text">{reviewSummary}</p>
 
-              {/* AI Disclaimer */}
               <p className="reviews-panel__disclaimer">
                 This summary is AI-generated from reviews and may not always be accurate.
               </p>
 
-              {/* Feedback Section */}
               <div className="reviews-panel__feedback">
                 <span className="reviews-panel__feedback-prompt">
                   {feedbackGiven ? 'Thanks! Change your answer?' : 'Was this helpful?'}
@@ -222,13 +198,25 @@ function ReviewsPanel({ location }) {
               </div>
             </div>
           )}
-          {reviews.map((review) => (
-            <ReviewItem
-              key={review.id}
-              review={review}
-              locationId={location.id}
-            />
-          ))}
+
+          {/* Reviews list or empty state */}
+          {reviewCount === 0 ? (
+            <div className="reviews-panel__empty">
+              <i className="fa-regular fa-message"></i>
+              <h3>No reviews yet</h3>
+              <p>Be the first to share your experience at {location.name}</p>
+            </div>
+          ) : (
+            <div className="reviews-panel__items">
+              {reviews.map((review) => (
+                <ReviewItem
+                  key={review.id}
+                  review={review}
+                  locationId={location.id}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

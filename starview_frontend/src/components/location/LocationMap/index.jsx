@@ -4,8 +4,7 @@
  *
  * Features:
  * - Lazy loading: Map only initializes when scrolled into view
- * - Orbit rotation: Drag to rotate around the location
- * - Zoom controls: Scroll/pinch to zoom (with limits)
+ * - Orbit control: Drag to orbit around location (bearing + pitch)
  * - Click to navigate: Tap/click (without drag) opens directions
  * - Dynamic lighting: Day/night based on sun position
  */
@@ -24,13 +23,15 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 // Camera settings for 3D view
 const CAMERA_PITCH = 55; // Angle from vertical (0 = top-down, 90 = horizon)
 const CAMERA_BEARING = -20; // Initial rotation from north
-const DEFAULT_ZOOM = 15.5; // Starting zoom level (also minimum - can't zoom out past this)
-const MAX_ZOOM = 20; // Maximum zoom (can zoom in close for detail)
+const DEFAULT_ZOOM = 15.5; // Fixed zoom level (zoom disabled)
 const TERRAIN_EXAGGERATION = 1.5;
 const TERRAIN_MAX_ZOOM = 12; // Reduced from 14 for performance
 
-// Interaction settings
-const ROTATION_SPEED = 0.3; // Degrees per pixel of mouse movement
+// Orbit interaction settings
+const ROTATION_SPEED = 0.3; // Bearing degrees per pixel of mouse movement
+const PITCH_SPEED = 0.2; // Pitch degrees per pixel of mouse movement
+const MIN_PITCH = 0; // Minimum pitch (looking straight down)
+const MAX_PITCH = 85; // Maximum pitch (nearly horizontal)
 const CLICK_THRESHOLD = 5; // Pixels of movement before considered a drag
 
 // Intersection Observer threshold for lazy loading
@@ -123,25 +124,16 @@ function LocationMap({ location, compact = false }) {
         zoom: DEFAULT_ZOOM,
         pitch: CAMERA_PITCH,
         bearing: CAMERA_BEARING,
-        minZoom: DEFAULT_ZOOM, // Can't zoom out past default view
-        maxZoom: MAX_ZOOM,     // Can zoom in for detail
         attributionControl: false,
-        // Disable default interactions - we'll handle them custom
+        // Disable all default interactions - we handle orbit manually via right-click
         dragPan: false,
         dragRotate: false,
         keyboard: false,
         doubleClickZoom: false,
         touchZoomRotate: false,
-        scrollZoom: false, // We'll enable with custom config below
+        scrollZoom: false,
         touchPitch: false,
       });
-
-      // Enable scroll zoom centered on location (not cursor position)
-      map.current.scrollZoom.enable({ around: 'center' });
-
-      // Enable touch zoom centered on location (not pinch center)
-      map.current.touchZoomRotate.enable({ around: 'center' });
-      map.current.touchZoomRotate.disableRotation();
 
       // Calculate light preset for this location
       const lightPreset = getLightPreset(latitude, longitude);
@@ -203,7 +195,7 @@ function LocationMap({ location, compact = false }) {
     };
   }, [isVisible, latitude, longitude]);
 
-  // Handle orbit rotation (bearing changes while center stays fixed)
+  // Handle orbit rotation (drag to rotate bearing and pitch)
   const handlePointerDown = useCallback((e) => {
     if (!map.current || !mapLoaded) return;
 
@@ -230,10 +222,15 @@ function LocationMap({ location, compact = false }) {
     // Track total drag distance to differentiate click vs drag
     totalDragDistance.current += Math.abs(deltaX) + Math.abs(deltaY);
 
-    // Update bearing (horizontal drag rotates the view)
+    // Update bearing (horizontal drag rotates the view around the location)
     const currentBearing = map.current.getBearing();
     const newBearing = currentBearing + deltaX * ROTATION_SPEED;
     map.current.setBearing(newBearing);
+
+    // Update pitch (vertical drag tilts the view up/down)
+    const currentPitch = map.current.getPitch();
+    const newPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, currentPitch - deltaY * PITCH_SPEED));
+    map.current.setPitch(newPitch);
 
     // Update starting position for next move
     dragStart.current = { x: clientX, y: clientY };

@@ -2,7 +2,7 @@
 /* Matches NotFound page design for consistency */
 
 .error-boundary {
-  min-height: 100%;
+  min-height: inherit; /* Inherit from .main-content for vertical centering */
   display: flex;
   align-items: center;
   justify-content: center;

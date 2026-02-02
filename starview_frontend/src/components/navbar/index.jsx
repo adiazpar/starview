@@ -128,6 +128,8 @@ function Navbar() {
   const { locationExtension, isExtensionVisible } = useNavbarExtension();
 
   // Dynamically measure navbar height and set CSS variable globally
+  // Only measures <nav> element - does NOT include extension to prevent jitter
+  // Sticky elements that need to account for extension should use separate calculation
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
