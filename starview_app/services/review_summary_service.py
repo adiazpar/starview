@@ -2,25 +2,27 @@
 # This review_summary_service.py file handles AI-generated review summaries for locations:             #
 #                                                                                                      #
 # Purpose:                                                                                             #
-# Generates concise AI summaries of user reviews using Google Gemini 2.0 Flash. Summaries are         #
-# generated lazily on first view with a stale flag + cooldown to prevent excessive API calls.         #
-#                                                                                                      #
-# Key Features:                                                                                        #
-# - Lazy generation: Summaries generated on first view, not on every review change                    #
-# - Stale flag: Marks summary as needing regeneration when reviews change                             #
-# - Cooldown: Prevents regeneration within 60 minutes of last generation                              #
-# - Minimum threshold: Requires 3+ reviews before generating a summary                                #
-# - Graceful degradation: Returns None if API unavailable or error occurs                             #
+# Generates concise AI summaries of user reviews using Google Gemini 2.0 Flash.                        #
 #                                                                                                      #
 # Architecture:                                                                                        #
-# - Sync execution by default (CELERY_ENABLED=False)                                                  #
-# - Async execution via Celery when CELERY_ENABLED=True                                               #
-# - Signals mark summary stale on review create/update/delete                                         #
-# - Serializer calls get_or_generate_summary() on location retrieval                                  #
+# - Page views NEVER block on API calls - always return existing summary instantly                     #
+# - Summaries are generated via scheduled cron job (batch processing)                                  #
+# - Signals mark summaries as stale when reviews change                                                #
+# - Cron job processes stale summaries in controlled batches                                           #
+#                                                                                                      #
+# Key Features:                                                                                        #
+# - Instant page loads: No API blocking on user requests                                               #
+# - Rate limit safe: Controlled batch size respects Gemini quotas                                      #
+# - Graceful degradation: Users see stale summary until next batch run                                 #
+# - Minimum threshold: Requires 3+ reviews before generating a summary                                 #
+#                                                                                                      #
+# Cron Configuration (Render):                                                                         #
+# - Command: python manage.py generate_review_summaries                                                #
+# - Schedule: Daily at 4am UTC (0 4 * * *)                                                              #
+# - Batch size: 50 summaries per run (configurable via --batch-size)                                   #
 # ----------------------------------------------------------------------------------------------------- #
 
 import logging
-from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 
@@ -28,46 +30,15 @@ logger = logging.getLogger(__name__)
 
 # Configuration constants
 MIN_REVIEWS_FOR_SUMMARY = 3  # Minimum reviews required to generate summary
-COOLDOWN_MINUTES = 60        # Minutes between regenerations
 
 
 class ReviewSummaryService:
 
     # ----------------------------------------------------------------------------- #
-    # Checks if a location should have its summary regenerated.                     #
-    #                                                                               #
-    # Returns True if:                                                              #
-    # - Location has 3+ reviews                                                     #
-    # - Summary is marked as stale (or doesn't exist)                               #
-    # - Cooldown period has passed (60 minutes since last generation)               #
-    #                                                                               #
-    # Args:   location: Location instance to check                                  #
-    # Returns: bool: True if summary should be generated                            #
-    # ----------------------------------------------------------------------------- #
-    @staticmethod
-    def should_generate_summary(location):
-        # Check minimum review threshold
-        review_count = location.reviews.count()
-        if review_count < MIN_REVIEWS_FOR_SUMMARY:
-            return False
-
-        # Check if summary is stale (needs regeneration)
-        if not location.review_summary_stale:
-            return False
-
-        # Check cooldown period
-        if location.last_summary_generated:
-            cooldown_end = location.last_summary_generated + timedelta(minutes=COOLDOWN_MINUTES)
-            if timezone.now() < cooldown_end:
-                return False
-
-        return True
-
-    # ----------------------------------------------------------------------------- #
     # Marks a location's review summary as stale (needing regeneration).            #
     #                                                                               #
     # Called by signals when reviews are created, updated, or deleted.              #
-    # Does not trigger immediate regeneration - that happens on next view.          #
+    # The stale flag is processed by the cron job, not on page view.                #
     #                                                                               #
     # Args:   location: Location instance to mark stale                             #
     # ----------------------------------------------------------------------------- #
@@ -81,6 +52,26 @@ class ReviewSummaryService:
                 location.name,
                 location.pk
             )
+
+    # ----------------------------------------------------------------------------- #
+    # Returns existing summary for a location (no generation on page view).         #
+    #                                                                               #
+    # This method is called by the serializer when a location is retrieved.         #
+    # It NEVER blocks on API calls - always returns instantly.                      #
+    #                                                                               #
+    # Args:   location: Location instance                                           #
+    # Returns: str or None: Existing summary text, or None if not yet generated     #
+    # ----------------------------------------------------------------------------- #
+    @staticmethod
+    def get_or_generate_summary(location):
+        # Check minimum review threshold
+        review_count = location.reviews.count()
+        if review_count < MIN_REVIEWS_FOR_SUMMARY:
+            return None
+
+        # Always return existing summary (even if stale)
+        # Cron job will regenerate stale summaries in background
+        return location.review_summary
 
     # ----------------------------------------------------------------------------- #
     # Builds the prompt for Gemini to generate a review summary.                    #
@@ -120,35 +111,30 @@ Write 2-3 sentences highlighting what visitors praise and critique, focusing on 
     # ----------------------------------------------------------------------------- #
     # Generates a new review summary using Gemini API.                              #
     #                                                                               #
-    # This method calls the Gemini API and saves the result to the location.        #
-    # It handles errors gracefully and returns None if generation fails.            #
+    # Called by the cron job management command, NOT on page view.                  #
+    # Handles errors gracefully and updates location state.                         #
     #                                                                               #
-    # Args:   location_id: ID of the Location to generate summary for               #
-    # Returns: str or None: Generated summary text, or None on failure              #
+    # Args:   location: Location instance to generate summary for                   #
+    # Returns: bool: True if generation succeeded, False otherwise                  #
     # ----------------------------------------------------------------------------- #
     @staticmethod
-    def generate_summary(location_id):
-        from starview_app.models import Location
-
-        try:
-            location = Location.objects.get(id=location_id)
-        except Location.DoesNotExist:
-            logger.error("Location %d not found for summary generation", location_id)
-            return None
-
-        # Check if we should generate (respects cooldown, threshold, stale flag)
-        if not ReviewSummaryService.should_generate_summary(location):
+    def generate_summary(location):
+        # Check minimum review threshold
+        review_count = location.reviews.count()
+        if review_count < MIN_REVIEWS_FOR_SUMMARY:
             logger.info(
-                "Skipping summary generation for location %d (not needed)",
-                location_id
+                "Skipping location %d - only %d reviews (need %d)",
+                location.pk,
+                review_count,
+                MIN_REVIEWS_FOR_SUMMARY
             )
-            return location.review_summary
+            return False
 
         # Check for API key
         api_key = getattr(settings, 'GEMINI_API_KEY', None)
         if not api_key:
-            logger.warning("GEMINI_API_KEY not configured, skipping summary generation")
-            return None
+            logger.error("GEMINI_API_KEY not configured")
+            return False
 
         try:
             import google.generativeai as genai
@@ -176,65 +162,23 @@ Write 2-3 sentences highlighting what visitors praise and critique, focusing on 
                 ])
 
                 logger.info(
-                    "Generated review summary for location %s (ID: %d): %s...",
+                    "Generated summary for %s (ID: %d): %s...",
                     location.name,
                     location.pk,
                     summary[:50]
                 )
+                return True
 
-            return summary
+            logger.warning(
+                "Empty response from Gemini for location %d",
+                location.pk
+            )
+            return False
 
         except Exception as e:
             logger.error(
-                "Error generating review summary for location %d: %s",
-                location_id,
-                str(e),
-                exc_info=True
+                "Error generating summary for location %d: %s",
+                location.pk,
+                str(e)
             )
-            return None
-
-    # ----------------------------------------------------------------------------- #
-    # Entry point for lazy summary generation on location view.                     #
-    #                                                                               #
-    # This method is called by the serializer when a location is retrieved.         #
-    # It returns the existing summary if valid, or triggers generation if needed.   #
-    #                                                                               #
-    # Behavior depends on CELERY_ENABLED setting:                                   #
-    # - False (default): Generates synchronously (blocks request)                   #
-    # - True: Queues async task, returns stale summary immediately                  #
-    #                                                                               #
-    # Args:   location: Location instance                                           #
-    # Returns: str or None: Summary text (existing, newly generated, or None)       #
-    # ----------------------------------------------------------------------------- #
-    @staticmethod
-    def get_or_generate_summary(location):
-        # Check minimum review threshold first
-        review_count = location.reviews.count()
-        if review_count < MIN_REVIEWS_FOR_SUMMARY:
-            return None
-
-        # If summary is not stale, return existing
-        if not location.review_summary_stale and location.review_summary:
-            return location.review_summary
-
-        # Check cooldown - if within cooldown, return existing summary
-        if location.last_summary_generated:
-            cooldown_end = location.last_summary_generated + timedelta(minutes=COOLDOWN_MINUTES)
-            if timezone.now() < cooldown_end:
-                return location.review_summary
-
-        # Check if Celery is enabled
-        use_celery = getattr(settings, 'CELERY_ENABLED', False)
-
-        if use_celery:
-            # Async generation - queue task and return existing (stale) summary
-            from starview_app.utils.tasks import generate_review_summary
-            generate_review_summary.delay(location.pk)
-            logger.info(
-                "Queued async summary generation for location %d",
-                location.pk
-            )
-            return location.review_summary
-        else:
-            # Sync generation - blocks until complete
-            return ReviewSummaryService.generate_summary(location.pk)
+            return False
