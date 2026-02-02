@@ -89,9 +89,7 @@ function ReviewItem({ review, locationId }) {
         <div className="review-item__user">
           {review.user_full_name ? (
             <>
-              <Link to={`/users/${review.user}`} className="review-item__name">
-                {review.user_full_name}
-              </Link>
+              <span className="review-item__name">{review.user_full_name}</span>
               <div className="review-item__meta">
                 <Link to={`/users/${review.user}`} className="review-item__username">
                   @{review.user}
