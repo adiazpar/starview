@@ -170,16 +170,16 @@
   --text-secondary: #475569;
   --text-muted: #64748b;
 
-  /* Accent (Deep indigo - twilight sky) */
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-light: #818cf8;
-  --accent-bg: rgba(79, 70, 229, 0.08);
-  --accent-border: rgba(79, 70, 229, 0.2);
+  /* Accent (Cyan/Sky blue - clear day sky) */
+  --accent: #0891b2;
+  --accent-hover: #0e7490;
+  --accent-light: #22d3ee;
+  --accent-bg: rgba(6, 182, 212, 0.08);
+  --accent-border: rgba(6, 182, 212, 0.2);
 
   /* Borders */
   --border: #e2e8f0;
-  --border-focus: #4f46e5;
+  --border-focus: #0891b2;
   --star-empty: #cbd5e1;
 
   /* Glass Card - Frosted panel surfaces */
@@ -188,13 +188,13 @@
   --glass-border: rgba(15, 23, 42, 0.08);
   --glass-border-hover: rgba(15, 23, 42, 0.12);
 
-  /* Decorative - Twilight glow effects */
-  --glow-primary: rgba(70, 131, 229, 0.2);
-  --glow-secondary: rgba(99, 102, 241, 0.1);
-  --gradient-accent: linear-gradient(135deg, #818cf8 0%, #46b5e5 100%);
+  /* Decorative - Sky blue glow effects */
+  --glow-primary: rgba(6, 182, 212, 0.2);
+  --glow-secondary: rgba(6, 182, 212, 0.1);
+  --gradient-accent: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-accent: 0 4px 20px rgba(79, 70, 229, 0.2);
-  --shadow-accent-hover: 0 6px 28px rgba(79, 70, 229, 0.28);
+  --shadow-accent: 0 4px 20px rgba(6, 182, 212, 0.2);
+  --shadow-accent-hover: 0 6px 28px rgba(6, 182, 212, 0.28);
 
   /* Badge Tier Glow - Softer for light mode */
   --tier-diamond-glow: hsla(191, 100%, 40%, 0.3);
