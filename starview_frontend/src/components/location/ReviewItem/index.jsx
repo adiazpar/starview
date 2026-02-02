@@ -6,8 +6,11 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useRequireAuth from '../../../hooks/useRequireAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { locationsApi } from '../../../services/locations';
 import { useToast } from '../../../contexts/ToastContext';
+import { usePhotoVote } from '../../../hooks/usePhotoVote';
+import { PhotoLightbox } from '../../shared/photo';
 import './styles.css';
 
 // Simple relative time formatter
@@ -27,9 +30,13 @@ function formatRelativeTime(dateString) {
 
 function ReviewItem({ review, locationId }) {
   const { requireAuth } = useRequireAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const { mutate: togglePhotoVote, isPending: isVotingPhoto } = usePhotoVote(locationId);
 
   // Vote mutation
   const voteMutation = useMutation({
@@ -47,6 +54,47 @@ function ReviewItem({ review, locationId }) {
     if (!requireAuth()) return;
     voteMutation.mutate();
   }, [requireAuth, voteMutation]);
+
+  // Lightbox handlers
+  const openLightbox = useCallback((index) => {
+    setLightboxIndex(index);
+    setIsClosing(false);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setLightboxIndex(null);
+      setIsClosing(false);
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }, 200);
+  }, [isClosing]);
+
+  // Handle photo vote
+  const handlePhotoVote = useCallback((photoId) => {
+    if (!requireAuth()) return;
+    if (isVotingPhoto) return;
+    togglePhotoVote(photoId);
+  }, [requireAuth, isVotingPhoto, togglePhotoVote]);
+
+  // Transform review photos to lightbox format
+  const lightboxPhotos = review.photos?.map((photo) => ({
+    id: photo.id,
+    thumbnail: photo.thumbnail_url,
+    full: photo.image_url,
+    upvote_count: photo.upvote_count,
+    user_has_upvoted: photo.user_has_upvoted,
+    uploaded_by: {
+      username: review.user,
+      display_name: review.user_full_name || review.user,
+      profile_picture: review.user_profile_picture,
+    },
+  })) || [];
+
+  const currentPhoto = lightboxIndex !== null ? lightboxPhotos[lightboxIndex] : null;
 
   // Format date
   const createdAt = formatRelativeTime(review.created_at);
@@ -143,20 +191,20 @@ function ReviewItem({ review, locationId }) {
       {/* Photos */}
       {review.photos?.length > 0 && (
         <div className="review-item__photos">
-          {review.photos.slice(0, 4).map((photo) => (
-            <div key={photo.id} className="review-item__photo">
+          {review.photos.map((photo, index) => (
+            <button
+              key={photo.id}
+              className="review-item__photo"
+              onClick={() => openLightbox(index)}
+              aria-label={`View photo ${index + 1} of ${review.photos.length}`}
+            >
               <img
                 src={photo.thumbnail_url || photo.image_url}
                 alt={photo.caption || 'Review photo'}
                 loading="lazy"
               />
-            </div>
+            </button>
           ))}
-          {review.photos.length > 4 && (
-            <div className="review-item__photo review-item__photo--more">
-              +{review.photos.length - 4}
-            </div>
-          )}
         </div>
       )}
 
@@ -172,6 +220,19 @@ function ReviewItem({ review, locationId }) {
           <span>{review.upvote_count || 0}</span>
         </button>
       </footer>
+
+      {/* Photo Lightbox */}
+      {lightboxIndex !== null && currentPhoto && (
+        <PhotoLightbox
+          photo={currentPhoto}
+          locationName=""
+          isClosing={isClosing}
+          onClose={closeLightbox}
+          onVote={handlePhotoVote}
+          isVoting={isVotingPhoto}
+          isOwnPhoto={user?.username === review.user}
+        />
+      )}
     </article>
   );
 }
