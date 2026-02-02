@@ -57,3 +57,4 @@ flatbuffers==25.12.19
 h3==4.4.1
 numpy==2.4.0
 rasterio==1.4.3
+google-generativeai==0.8.5

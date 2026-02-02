@@ -168,11 +168,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  margin-top: var(--space-lg);
+  margin-top: var(--space-xl);
 }
 
-.location-detail__reviews > *:nth-child(1) { animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards; }
-.location-detail__reviews > *:nth-child(2) { animation: fadeInUp var(--animation-duration) ease-out 0.15s backwards; }
+.location-detail__reviews > * { animation: fadeInUp var(--animation-duration) ease-out 0.1s backwards; }
 
 /* ============================================
    SIDEBAR (hidden on mobile, shown on desktop)
@@ -250,7 +249,9 @@
   .location-detail__sidebar > *,
   .location-detail__photos,
   .location-detail__reviews > *,
-  .location-detail__error-content {
+  .location-detail__error-content,
+  .reviews-panel__bar-fill {
     animation: none !important;
+    transition: none !important;
   }
 }

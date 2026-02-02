@@ -121,6 +121,12 @@ class Location(models.Model):
     last_visited = models.DateTimeField(null=True, blank=True, help_text="Last time someone reported visiting this location")
     visitor_count = models.IntegerField(default=0, help_text="Number of unique visitors who have reviewed this location")
 
+    # AI-generated review summary:
+    review_summary = models.TextField(blank=True, null=True, help_text="AI-generated summary of user reviews")
+    review_summary_stale = models.BooleanField(default=True, help_text="Whether the review summary needs regeneration")
+    last_summary_generated = models.DateTimeField(blank=True, null=True, help_text="Timestamp of last summary generation")
+    last_feedback_regenerated = models.DateTimeField(blank=True, null=True, help_text="Last time summary was regenerated due to negative feedback")
+
 
     # Delegate to LocationService for data enrichment:
     def update_address_from_coordinates(self):

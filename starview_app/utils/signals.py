@@ -726,3 +726,37 @@ def revoke_badges_on_location_photo_delete(sender, instance, **kwargs):
     if instance.uploaded_by:
         from starview_app.services.badge_service import BadgeService
         BadgeService.revoke_photographer_badge_if_needed(instance.uploaded_by)
+
+
+# ----------------------------------------------------------------------------------------------------- #
+#                                                                                                       #
+#                                  REVIEW SUMMARY STALENESS SIGNALS                                     #
+#                                                                                                       #
+# ----------------------------------------------------------------------------------------------------- #
+
+# ----------------------------------------------------------------------------- #
+# Mark location's review summary as stale when a review is saved.               #
+#                                                                               #
+# Triggered when Review is created OR updated.                                  #
+# This ensures the AI summary will be regenerated on next view.                 #
+#                                                                               #
+# Signal: post_save on Review                                                   #
+# ----------------------------------------------------------------------------- #
+@receiver(post_save, sender=Review)
+def mark_summary_stale_on_review_save(sender, instance, **kwargs):
+    from starview_app.services.review_summary_service import ReviewSummaryService
+    ReviewSummaryService.mark_stale(instance.location)
+
+
+# ----------------------------------------------------------------------------- #
+# Mark location's review summary as stale when a review is deleted.             #
+#                                                                               #
+# Triggered when Review is deleted.                                             #
+# This ensures the AI summary will be regenerated on next view.                 #
+#                                                                               #
+# Signal: post_delete on Review                                                 #
+# ----------------------------------------------------------------------------- #
+@receiver(post_delete, sender=Review)
+def mark_summary_stale_on_review_delete(sender, instance, **kwargs):
+    from starview_app.services.review_summary_service import ReviewSummaryService
+    ReviewSummaryService.mark_stale(instance.location)

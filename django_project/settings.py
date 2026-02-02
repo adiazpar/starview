@@ -540,6 +540,10 @@ MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN')
 # Used for directions/routing proxy endpoint
 OPENROUTESERVICE_API_KEY = os.getenv('OPENROUTESERVICE_API_KEY')
 
+# Google Gemini API key (server-side only, never exposed to frontend)
+# Used for AI-generated review summaries
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
 # Tile server configuration
 TILE_SERVER_URL = os.getenv('TILE_SERVER_URL', 'http://localhost:3001')
 

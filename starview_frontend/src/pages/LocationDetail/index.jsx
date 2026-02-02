@@ -18,8 +18,7 @@ import LocationAbout from '../../components/location/LocationAbout';
 import PhotoMosaic from '../../components/location/PhotoMosaic';
 import CommunityStats from '../../components/location/CommunityStats';
 import LocationMap from '../../components/location/LocationMap';
-import ReviewSection from '../../components/location/ReviewSection';
-import RatingSummary from '../../components/location/RatingSummary';
+import ReviewsPanel from '../../components/location/ReviewsPanel';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -285,8 +284,7 @@ function LocationDetailPage() {
 
         {/* Reviews - Spans full width */}
         <div className="location-detail__reviews">
-          <RatingSummary location={location} />
-          <ReviewSection locationId={location.id} reviews={location.reviews} />
+          <ReviewsPanel location={location} />
         </div>
       </div>
     </div>

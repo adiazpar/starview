@@ -42,6 +42,9 @@ from .model_review_photo import ReviewPhoto
 from .model_report import Report
 from .model_vote import Vote
 
+# Feedback models:
+from .model_summary_feedback import SummaryFeedback
+
 # Audit/Security models:
 from .model_audit_log import AuditLog
 

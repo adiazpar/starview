@@ -27,7 +27,7 @@ from .models import UserProfile, FavoriteLocation, Location, Follow
 from .models import Review, ReviewComment, ReviewPhoto, Report, Vote
 from .models import EmailBounce, EmailComplaint, EmailSuppressionList
 from .models import AuditLog, LocationVisit
-from .models import Badge, UserBadge
+from .models import Badge, UserBadge, SummaryFeedback
 
 
 
@@ -1105,6 +1105,95 @@ class LocationVisitAdmin(admin.ModelAdmin):
 
 
 # ----------------------------------------------------------------------------- #
+# Custom admin interface for SummaryFeedback model.                             #
+#                                                                               #
+# Admin interface for viewing AI summary feedback with:                         #
+# - Filter by feedback type (helpful/not helpful), location, date               #
+# - Search by username or location name                                         #
+# - View feedback details and summary hash for version tracking                 #
+# - Links to user and location detail pages                                     #
+# ----------------------------------------------------------------------------- #
+class SummaryFeedbackAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'user_link',
+        'location_link',
+        'feedback_badge',
+        'created_at',
+        'updated_at',
+    ]
+
+    list_filter = [
+        'is_helpful',
+        ('created_at', admin.DateFieldListFilter),
+    ]
+
+    search_fields = [
+        'user__username',
+        'location__name',
+    ]
+
+    readonly_fields = [
+        'user',
+        'location',
+        'is_helpful',
+        'summary_hash',
+        'created_at',
+        'updated_at',
+    ]
+
+    fieldsets = (
+        ('Feedback Information', {
+            'fields': ('user', 'location', 'is_helpful')
+        }),
+        ('Summary Version', {
+            'fields': ('summary_hash',),
+            'description': 'MD5 hash of the summary text when feedback was given'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+    ordering = ['-created_at']
+    list_per_page = 50
+
+    # Disable add permission (feedback created via app)
+    def has_add_permission(self, request):
+        return False
+
+    # Link to user admin page
+    def user_link(self, obj):
+        return format_html(
+            '<a href="/admin/auth/user/{}/change/">{}</a>',
+            obj.user.id,
+            obj.user.username
+        )
+    user_link.short_description = 'User'
+
+    # Link to location admin page
+    def location_link(self, obj):
+        return format_html(
+            '<a href="/admin/starview_app/location/{}/change/">{}</a>',
+            obj.location.id,
+            obj.location.name
+        )
+    location_link.short_description = 'Location'
+
+    # Colored badge for feedback type
+    def feedback_badge(self, obj):
+        if obj.is_helpful:
+            return format_html(
+                '<span style="background-color: #2ecc71; color: white; padding: 3px 10px; border-radius: 3px;">👍 HELPFUL</span>'
+            )
+        return format_html(
+            '<span style="background-color: #e74c3c; color: white; padding: 3px 10px; border-radius: 3px;">👎 NOT HELPFUL</span>'
+        )
+    feedback_badge.short_description = 'Feedback'
+
+
+
+# ----------------------------------------------------------------------------- #
 # Custom admin interface for Django's User model.                               #
 #                                                                               #
 # Extends Django's built-in UserAdmin to add:                                   #
@@ -1225,6 +1314,9 @@ admin.site.register(AuditLog, AuditLogAdmin)
 admin.site.register(Badge, BadgeAdmin)
 admin.site.register(UserBadge, UserBadgeAdmin)
 admin.site.register(LocationVisit, LocationVisitAdmin)
+
+# Register summary feedback model with custom admin interface
+admin.site.register(SummaryFeedback, SummaryFeedbackAdmin)
 
 # Re-register User model with custom admin (extends Django's default UserAdmin)
 # Must unregister first, then register with our custom admin

@@ -48,6 +48,7 @@ from ..serializers import LocationInfoPanelSerializer
 # Service imports:
 from ..services import ReportService
 from ..services import VoteService
+from ..services.summary_feedback_service import SummaryFeedbackService
 
 # Throttle imports:
 from starview_app.utils import ContentCreationThrottle, ReportThrottle, VoteThrottle
@@ -906,6 +907,50 @@ class LocationViewSet(viewsets.ModelViewSet):
         cache.set(cache_key, selected, timeout=seconds_until_midnight)
 
         return Response(selected)
+
+
+    # ----------------------------------------------------------------------------- #
+    # Submit feedback on AI-generated review summary.                               #
+    #                                                                               #
+    # Allows users to indicate whether the AI summary was helpful or not.           #
+    # Creates or updates feedback (users can change their vote).                    #
+    #                                                                               #
+    # HTTP Method: POST                                                             #
+    # Endpoint: /api/locations/{id}/summary-feedback/                               #
+    # Payload: {"is_helpful": true} or {"is_helpful": false}                        #
+    # Authentication: Required                                                      #
+    # Returns: { is_helpful: bool }                                                 #
+    # ----------------------------------------------------------------------------- #
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], url_path='summary-feedback')
+    def summary_feedback(self, request, pk=None):
+        location = self.get_object()
+
+        # Validate payload
+        is_helpful = request.data.get('is_helpful')
+        if is_helpful is None:
+            return Response(
+                {'detail': 'is_helpful field is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not isinstance(is_helpful, bool):
+            return Response(
+                {'detail': 'is_helpful must be a boolean'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Submit feedback via service
+        result = SummaryFeedbackService.submit_feedback(
+            user=request.user,
+            location=location,
+            is_helpful=is_helpful
+        )
+
+        # Invalidate user's cached location detail so feedback state updates
+        detail_cache_key = f'{location_detail_key(location.id)}:user:{request.user.id}'
+        cache.delete(detail_cache_key)
+
+        return Response({'is_helpful': result['is_helpful']})
 
 
     # ----------------------------------------------------------------------------- #

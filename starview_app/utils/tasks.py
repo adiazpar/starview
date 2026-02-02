@@ -154,3 +154,81 @@ def enrich_location_data(self, location_id):
 def test_celery(message):
     logger.info("Test task received message: %s", message)
     return f"Task completed successfully: {message}"
+
+
+# ----------------------------------------------------------------------------- #
+# Generates AI review summary for a location using Gemini API.                   #
+#                                                                               #
+# This task runs asynchronously in the background when CELERY_ENABLED=True.     #
+# It generates a concise AI summary of user reviews for the specified location. #
+#                                                                               #
+# Args:                                                                         #
+#   location_id (int): The ID of the Location object to generate summary for    #
+#                                                                               #
+# Returns:                                                                      #
+#   dict: Success status and generated summary                                  #
+#                                                                               #
+# Task Settings:                                                                #
+#   - bind=True: Task instance passed as first arg (enables self.retry())       #
+#   - max_retries=2: Retry up to 2 times on failure (API rate limits, etc.)     #
+#   - default_retry_delay=120: Wait 2 minutes between retries                   #
+#                                                                               #
+# Error Handling:                                                               #
+#   - If Gemini API fails, task retries up to 2 times                           #
+#   - If location not found, task fails gracefully                              #
+#   - Logs all operations for monitoring                                        #
+# ----------------------------------------------------------------------------- #
+@shared_task(bind=True, max_retries=2, default_retry_delay=120)
+def generate_review_summary(self, location_id):
+    """
+    Asynchronously generates an AI review summary for a location.
+
+    This task is triggered when CELERY_ENABLED=True and a location's
+    review summary needs regeneration (stale flag set, cooldown passed).
+    """
+    from starview_app.services.review_summary_service import ReviewSummaryService
+
+    logger.info("Starting review summary generation for location ID: %s", location_id)
+
+    try:
+        summary = ReviewSummaryService.generate_summary(location_id)
+
+        if summary:
+            logger.info(
+                "Generated review summary for location %s: %s...",
+                location_id,
+                summary[:50]
+            )
+            return {
+                'status': 'success',
+                'location_id': location_id,
+                'summary_preview': summary[:100]
+            }
+        else:
+            logger.warning(
+                "No summary generated for location %s (may not meet threshold)",
+                location_id
+            )
+            return {
+                'status': 'skipped',
+                'location_id': location_id,
+                'reason': 'No summary generated (threshold not met or API unavailable)'
+            }
+
+    except Exception as exc:
+        logger.error(
+            "Error generating review summary for location %s: %s",
+            location_id,
+            exc
+        )
+
+        # Retry the task (up to max_retries times)
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            logger.error("Max retries exceeded for location %s", location_id)
+            return {
+                'status': 'failed',
+                'location_id': location_id,
+                'error': f'Max retries exceeded: {str(exc)}'
+            }

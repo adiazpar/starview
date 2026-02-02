@@ -196,6 +196,18 @@ export const locationsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+
+  /**
+   * Submit feedback on AI-generated review summary
+   * @param {number} locationId - Location ID
+   * @param {boolean} isHelpful - True if helpful, false if not helpful
+   * @returns {Promise} - { is_helpful: boolean }
+   */
+  submitSummaryFeedback: (locationId, isHelpful) => {
+    return api.post(`/locations/${locationId}/summary-feedback/`, {
+      is_helpful: isHelpful,
+    });
+  },
 };
 
 export default locationsApi;

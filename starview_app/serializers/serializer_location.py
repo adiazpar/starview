@@ -242,6 +242,8 @@ class LocationSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)  # ⚠️ Returns ALL reviews - see warning above
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    review_summary = serializers.SerializerMethodField()  # AI-generated summary
+    user_summary_feedback = serializers.SerializerMethodField()  # User's feedback on summary
     # Note: images and photo_count removed - PhotoMosaic now fetches from /photos/ endpoint
 
     class Meta:
@@ -252,7 +254,7 @@ class LocationSerializer(serializers.ModelSerializer):
                   'formatted_address', 'administrative_area', 'locality', 'country',
                   'added_by',
                   'created_at', 'is_favorited', 'is_visited',
-                  'reviews', 'average_rating', 'review_count',
+                  'reviews', 'average_rating', 'review_count', 'review_summary', 'user_summary_feedback',
 
                   # Verification fields:
                   'is_verified', 'verification_date', 'verified_by',
@@ -333,6 +335,19 @@ class LocationSerializer(serializers.ModelSerializer):
                 'id': obj.verified_by.id,
                 'username': obj.verified_by.username
             }
+        return None
+
+    def get_review_summary(self, obj):
+        """Return AI-generated review summary (lazy generation on first view)."""
+        from starview_app.services.review_summary_service import ReviewSummaryService
+        return ReviewSummaryService.get_or_generate_summary(obj)
+
+    def get_user_summary_feedback(self, obj):
+        """Return user's feedback on the AI summary: 'yes', 'no', or None."""
+        from starview_app.services.summary_feedback_service import SummaryFeedbackService
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return SummaryFeedbackService.get_user_feedback(request.user, obj)
         return None
 
     # Note: get_images and get_photo_count removed - PhotoMosaic now fetches from /photos/ endpoint
