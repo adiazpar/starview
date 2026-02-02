@@ -106,22 +106,21 @@
 }
 
 .review-item__date {
-  font-family: var(--font-technical);
-  font-size: 11px;
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  letter-spacing: 0.02em;
 }
 
 .review-item__edited {
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   font-style: italic;
 }
 
 .review-item__separator {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   opacity: 0.6;
 }
 
@@ -245,37 +244,54 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--border);
+  padding: 6px 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
-  font-family: var(--font-technical);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--animation-duration) ease;
 }
 
 .review-item__vote:hover:not(:disabled) {
-  background: var(--accent-bg);
-  border-color: var(--accent-border);
-  color: var(--accent);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
 }
 
 .review-item__vote:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 /* Active Vote State */
 .review-item__vote--active {
-  background: var(--accent-bg);
-  border-color: var(--accent-border);
-  color: var(--accent);
+  color: var(--favorite);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.review-item__vote--active:hover:not(:disabled) {
+  color: var(--favorite-hover);
+  border-color: rgba(236, 72, 153, 0.5);
+}
+
+.review-item__vote--active i {
+  animation: reviewVotePop 0.2s ease;
 }
 
 .review-item__vote i {
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.review-item__vote span {
+  font-family: var(--font-family);
+  font-size: var(--text-xs);
+  min-width: 1ch;
+}
+
+@keyframes reviewVotePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 /* ============================================
@@ -285,5 +301,9 @@
 @media (prefers-reduced-motion: reduce) {
   .review-item__photo:hover img {
     transform: none;
+  }
+
+  .review-item__vote--active i {
+    animation: none;
   }
 }

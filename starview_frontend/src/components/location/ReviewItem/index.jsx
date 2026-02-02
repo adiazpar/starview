@@ -216,7 +216,7 @@ function ReviewItem({ review, locationId }) {
           disabled={voteMutation.isPending}
           aria-label="Upvote review"
         >
-          <i className="fa-solid fa-thumbs-up"></i>
+          <i className={`${review.user_vote === 'up' ? 'fa-solid' : 'fa-regular'} fa-thumbs-up`}></i>
           <span>{review.upvote_count || 0}</span>
         </button>
       </footer>
