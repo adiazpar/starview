@@ -127,8 +127,18 @@ function LocationMap({ location, compact = false }) {
         setMapLoaded(true);
       });
 
-      map.current.on('error', () => {
-        setMapError(true);
+      // Only catch fatal errors (WebGL context lost, authentication failures, etc.)
+      // Ignore transient tile loading errors - Mapbox handles those gracefully
+      map.current.on('error', (e) => {
+        const message = e.error?.message || '';
+        const status = e.error?.status;
+        const isFatal = message.includes('WebGL') ||
+                        message.includes('context') ||
+                        status === 401 || // Unauthorized - bad API key
+                        status === 403;   // Forbidden - domain restriction
+        if (isFatal) {
+          setMapError(true);
+        }
       });
     } catch {
       setMapError(true);
