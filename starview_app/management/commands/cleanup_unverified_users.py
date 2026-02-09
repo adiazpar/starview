@@ -71,7 +71,7 @@ class Command(BaseCommand):
         unverified_emails = EmailAddress.objects.filter(
             verified=False,
             user__date_joined__lt=cutoff_date,
-            user__profile__is_system_account=False
+            user__userprofile__is_system_account=False
         ).select_related('user')
 
         user_count = unverified_emails.count()
