@@ -7,16 +7,16 @@
 # from "squatting" on email addresses and keeping the database lean.                                    #
 #                                                                                                       #
 # What It Cleans:                                                                                       #
-# 1. Unverified user accounts older than X days (prevents email squatting)                              #
+# 1. All unverified user accounts (except system accounts)                                              #
 # 2. Expired email confirmation tokens (removes stale verification links)                               #
 # 3. Orphaned confirmations where the user was deleted but the token remains                            #
 #                                                                                                       #
 # Deployment:                                                                                           #
-# Should be run periodically via Render cron job (daily or weekly recommended).                         #
-# Use --report flag to email summaries to admins for monitoring.                                        #
+# Should be run weekly via Render cron job. The weekly schedule provides users with up to 7 days        #
+# to verify their email before their account is cleaned up.                                             #
 #                                                                                                       #
 # Usage:                                                                                                #
-#   python manage.py cleanup_unverified_users --days=7 --dry-run                                        #
+#   python manage.py cleanup_unverified_users --dry-run                                                 #
 # ----------------------------------------------------------------------------------------------------- #
 
 from django.core.management.base import BaseCommand
@@ -31,12 +31,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--days',
-            type=int,
-            default=7,
-            help='Delete unverified users older than this many days (default: 7)'
-        )
-        parser.add_argument(
             '--dry-run',
             action='store_true',
             help='Preview what would be deleted without actually deleting'
@@ -46,17 +40,15 @@ class Command(BaseCommand):
     # Execute the cleanup process for unverified users and email confirmations.     #
     #                                                                               #
     # This method runs two cleanup operations:                                      #
-    # 1. Delete users with unverified emails older than --days threshold            #
+    # 1. Delete all users with unverified emails (except system accounts)           #
     # 2. Delete expired/orphaned email confirmation tokens                          #
     #                                                                               #
     # Args:   *args: Unused positional arguments                                    #
-    #         **options: Command-line options (days, dry_run)                       #
+    #         **options: Command-line options (dry_run)                             #
     # Returns: None (outputs results to stdout)                                     #
     # ----------------------------------------------------------------------------- #
     def handle(self, *args, **options):
-        days = options['days']
         dry_run = options['dry_run']
-        cutoff_date = timezone.now() - timedelta(days=days)
 
         # ========================================
         # Part 1: Delete unverified users
@@ -66,11 +58,10 @@ class Command(BaseCommand):
         self.stdout.write('Cleaning up unverified users...')
         self.stdout.write('='*60)
 
-        # Find all unverified email addresses for users registered before cutoff date
+        # Find all unverified email addresses
         # Exclude system accounts (like the seeder user) which don't need email verification
         unverified_emails = EmailAddress.objects.filter(
             verified=False,
-            user__date_joined__lt=cutoff_date,
             user__userprofile__is_system_account=False
         ).select_related('user')
 
@@ -78,8 +69,7 @@ class Command(BaseCommand):
 
         if user_count > 0:
             # Display what will be deleted
-            self.stdout.write(f'\nFound {user_count} unverified user(s) older than {days} days:')
-            self.stdout.write(f'Cutoff date: {cutoff_date.strftime("%Y-%m-%d %H:%M:%S")}\n')
+            self.stdout.write(f'\nFound {user_count} unverified user(s):\n')
 
             for email_address in unverified_emails:
                 user = email_address.user

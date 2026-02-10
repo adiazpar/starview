@@ -19,7 +19,9 @@
 #   --email EMAIL           Email address to send digest to (required for sending)                     #
 #   --dry-run               Preview digest data without sending email                                  #
 #   --days N                Reporting period in days (default: 7)                                      #
-#   --run-cleanup           Also run email suppression cleanup before generating digest                #
+#   --run-cleanup           Run database cleanup tasks before generating digest:                       #
+#                           - Email suppression cleanup (removes recovered soft bounces)               #
+#                           - Unverified user cleanup (removes abandoned registrations)                #
 #                                                                                                       #
 # Render Cronjob Configuration:                                                                         #
 #   Build Command: ./builds/build-cron.sh                                                               #
@@ -68,7 +70,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--run-cleanup',
             action='store_true',
-            help='Run email suppression cleanup before generating digest',
+            help='Run cleanup tasks (email suppressions + unverified users) before digest',
         )
 
     def handle(self, *args, **options):
@@ -87,10 +89,10 @@ class Command(BaseCommand):
         self.stdout.write(f'\nGenerating digest for {self.start_date.strftime("%B %d")} - {self.end_date.strftime("%B %d, %Y")}')
         self.stdout.write('=' * 80)
 
-        # Run email cleanup if requested
+        # Run cleanup tasks if requested
         cleanup_results = None
         if self.run_cleanup and not self.dry_run:
-            cleanup_results = self.run_email_cleanup()
+            cleanup_results = self.run_cleanup_tasks()
 
         # Gather all metrics
         user_metrics = self.gather_user_metrics()
@@ -111,15 +113,22 @@ class Command(BaseCommand):
         elif not self.email_to:
             self.stdout.write(self.style.WARNING('\nNo email address provided. Use --email to send digest.'))
 
-    def run_email_cleanup(self):
-        """Run the email suppression cleanup command and capture results."""
+    def run_cleanup_tasks(self):
+        """Run database cleanup commands and capture results."""
         self.stdout.write('\n' + '=' * 80)
-        self.stdout.write('RUNNING EMAIL CLEANUP')
+        self.stdout.write('RUNNING CLEANUP TASKS')
         self.stdout.write('=' * 80)
 
-        # Capture cleanup output
+        # 1. Email suppression cleanup
+        self.stdout.write('\n--- Email Suppression Cleanup ---')
         out = StringIO()
         call_command('cleanup_email_suppressions', stdout=out)
+        self.stdout.write(out.getvalue())
+
+        # 2. Unverified user cleanup
+        self.stdout.write('\n--- Unverified User Cleanup ---')
+        out = StringIO()
+        call_command('cleanup_unverified_users', stdout=out)
         self.stdout.write(out.getvalue())
 
         return {'ran': True}
