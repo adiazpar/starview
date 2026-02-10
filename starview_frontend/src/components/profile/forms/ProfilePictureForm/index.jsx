@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef } from 'react';
 import profileApi from '../../../../services/profile';
 import { useToast } from '../../../../contexts/ToastContext';
+import LoadingSpinner from '../../../shared/LoadingSpinner';
 import './styles.css';
 
 function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
@@ -143,7 +144,7 @@ function ProfilePictureForm({ user, refreshAuth, scrollTo = false }) {
                 >
                   {loading ? (
                     <>
-                      <i className="fa-solid fa-spinner fa-spin"></i>
+                      <LoadingSpinner size="xs" inline />
                       Uploading...
                     </>
                   ) : (

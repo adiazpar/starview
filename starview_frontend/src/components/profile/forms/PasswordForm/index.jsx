@@ -10,6 +10,7 @@ import { useState } from 'react';
 import profileApi from '../../../../services/profile';
 import usePasswordValidation from '../../../../hooks/usePasswordValidation';
 import { useToast } from '../../../../contexts/ToastContext';
+import LoadingSpinner from '../../../shared/LoadingSpinner';
 import './styles.css';
 
 function PasswordForm({ user, refreshAuth }) {
@@ -286,7 +287,7 @@ function PasswordForm({ user, refreshAuth }) {
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     {user?.has_usable_password ? 'Changing...' : 'Setting...'}
                   </>
                 ) : (

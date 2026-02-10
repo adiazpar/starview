@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '../../../contexts/LocationContext';
+import LoadingSpinner from '../LoadingSpinner';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -125,7 +126,7 @@ function LocationModal({ isOpen, onClose }) {
           >
             {isRequestingLocation ? (
               <>
-                <i className="fa-solid fa-spinner fa-spin"></i>
+                <LoadingSpinner size="xs" inline />
                 <span>Finding your location...</span>
               </>
             ) : (
@@ -148,7 +149,7 @@ function LocationModal({ isOpen, onClose }) {
             <Suspense
               fallback={
                 <div className="location-modal__search-loading">
-                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <LoadingSpinner size="xs" inline />
                   <span>Loading search...</span>
                 </div>
               }

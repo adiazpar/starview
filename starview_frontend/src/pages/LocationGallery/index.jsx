@@ -297,7 +297,7 @@ function LocationGalleryPage() {
       <div className="location-gallery__content">
         {photosLoading ? (
           <div className="location-gallery__loading">
-            <i className="fa-solid fa-spinner fa-spin"></i>
+            <LoadingSpinner size="sm" inline />
             <span>Loading photos...</span>
           </div>
         ) : transformedPhotos.length === 0 ? (

@@ -72,7 +72,7 @@ function HomePage() {
             <Suspense
               fallback={
                 <div className="hero__search-loading">
-                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <LoadingSpinner size="xs" inline />
                   <span>Loading...</span>
                 </div>
               }

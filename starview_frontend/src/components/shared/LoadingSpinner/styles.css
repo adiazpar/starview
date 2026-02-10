@@ -13,19 +13,28 @@
   min-height: calc(100lvh - var(--navbar-total-height));
 }
 
-.loading-spinner-sm {
-  font-size: 1rem;
+.loading-spinner-svg {
   color: var(--text-primary);
+}
+
+.loading-spinner-xs {
+  width: 1rem;
+  height: 1rem;
+}
+
+.loading-spinner-sm {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .loading-spinner-md {
-  font-size: 1.5rem;
-  color: var(--text-primary);
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .loading-spinner-lg {
-  font-size: 2.5rem;
-  color: var(--text-primary);
+  width: 4rem;
+  height: 4rem;
 }
 
 .loading-spinner-message {

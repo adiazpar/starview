@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 import { safeRedirect } from '../../utils/security';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 function LoginPage() {
@@ -229,7 +230,7 @@ function LoginPage() {
             >
               {loading ? (
                 <>
-                  <i className="fa-solid fa-spinner animate-spin"></i>
+                  <LoadingSpinner size="xs" inline />
                   Signing in...
                 </>
               ) : (
