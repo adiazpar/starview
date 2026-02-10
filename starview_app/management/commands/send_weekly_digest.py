@@ -453,6 +453,10 @@ class Command(BaseCommand):
             'analytics_url': 'https://analytics.google.com/',
         }
 
+        # Debug: Log cleanup_ran value
+        self.stdout.write(f'DEBUG: cleanup_results = {cleanup_results}')
+        self.stdout.write(f'DEBUG: cleanup_ran = {cleanup_results is not None}')
+
         # Build email health warnings
         email_warnings = []
         if email_health['hard_bounces'] > 100:
