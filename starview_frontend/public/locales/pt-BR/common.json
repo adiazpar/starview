@@ -24,5 +24,17 @@
     "error": "Erro",
     "success": "Sucesso"
   },
-  "soon": "Em breve"
+  "soon": "Em breve",
+  "auth": {
+    "signInApple": "Iniciar sessão com a Apple",
+    "signInGoogle": "Entrar com o Google",
+    "connectApple": "Conectar conta Apple",
+    "connectGoogle": "Conectar conta Google",
+    "oauthError": "Não foi possível entrar. Tente novamente.",
+    "oauthCancelled": "O início de sessão foi cancelado.",
+    "existingAccountHelp": "Entre com um método que você já usa no Starview e conecte a nova conta pelo seu perfil.",
+    "signInExisting": "Entrar na conta existente",
+    "linkExplanation": "As contas ficam separadas até você confirmar que são suas. Depois de vinculadas, ambos os métodos abrem o mesmo perfil em qualquer dispositivo.",
+    "finishLink": "Você entrou. Conecte abaixo o novo método de acesso para usá-lo com este perfil."
+  }
 }

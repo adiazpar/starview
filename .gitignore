@@ -293,3 +293,7 @@ frontend/coverage/
 # frontend/pnpm-lock.yaml
 
 starview_frontend/node_modules/
+
+# OAuth signing keys must never be committed
+*.p8
+.secrets/

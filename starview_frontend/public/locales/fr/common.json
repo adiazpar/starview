@@ -24,5 +24,17 @@
     "error": "Erreur",
     "success": "Succès"
   },
-  "soon": "Bientôt"
+  "soon": "Bientôt",
+  "auth": {
+    "signInApple": "Se connecter avec Apple",
+    "signInGoogle": "Se connecter avec Google",
+    "connectApple": "Associer un compte Apple",
+    "connectGoogle": "Associer un compte Google",
+    "oauthError": "Connexion impossible. Réessayez.",
+    "oauthCancelled": "La connexion a été annulée.",
+    "existingAccountHelp": "Connectez-vous avec une méthode que vous utilisez déjà pour Starview, puis associez le nouveau compte depuis votre profil.",
+    "signInExisting": "Se connecter au compte existant",
+    "linkExplanation": "Les comptes restent séparés tant que leur propriété n’est pas vérifiée. Une fois associés, les deux méthodes ouvrent le même profil sur tous vos appareils.",
+    "finishLink": "Vous êtes connecté. Associez la nouvelle méthode de connexion ci-dessous à ce profil."
+  }
 }

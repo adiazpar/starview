@@ -182,7 +182,7 @@ CONTENT_SECURITY_POLICY = {
         ),
         'frame-ancestors': ("'none'",),                 # Prevent framing (same as X-Frame-Options: DENY)
         'base-uri': ("'self'",),                        # Restrict <base> tag URLs
-        'form-action': ("'self'",),                     # Only allow forms to submit to same origin
+        'form-action': ("'self'", 'https://appleid.apple.com'),  # Apple follows a same-origin POST with a redirect
     }
 }
 
@@ -237,6 +237,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
 ]
 
 
@@ -514,7 +515,7 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # AWS SES Configuration (Email sending)
 # Note: SES uses separate credentials from R2 storage (configured in .env)
 # django-ses will use AWS_SES_* variables instead of generic AWS_* variables
-EMAIL_BACKEND = 'django_ses.SESBackend'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django_ses.SESBackend')
 AWS_SES_ACCESS_KEY_ID = os.getenv('AWS_SES_ACCESS_KEY_ID')
 AWS_SES_SECRET_ACCESS_KEY = os.getenv('AWS_SES_SECRET_ACCESS_KEY')
 AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'us-east-1')
@@ -543,6 +544,7 @@ OPENROUTESERVICE_API_KEY = os.getenv('OPENROUTESERVICE_API_KEY')
 # Google Gemini API key (server-side only, never exposed to frontend)
 # Used for AI-generated review summaries
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.6-flash')
 
 # Tile server configuration
 TILE_SERVER_URL = os.getenv('TILE_SERVER_URL', 'http://localhost:3001')
@@ -672,6 +674,18 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     }
 }
+
+# Apple keys stay in environment variables or an external secret file.
+from .apple_oauth import apple_app_from_env
+
+_apple_app = apple_app_from_env(os.environ)
+APPLE_OAUTH_ENABLED = _apple_app is not None
+if _apple_app:
+    SOCIALACCOUNT_PROVIDERS['apple'] = {'APPS': [_apple_app]}
+
+# Enable only behind a proxy that overwrites this header (Render or a local TLS proxy).
+if os.getenv('TRUST_PROXY_HEADERS', 'False') == 'True':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # =============================================================================
 # CORS CONFIGURATION

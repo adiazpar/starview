@@ -79,6 +79,7 @@ export function useProfileData() {
   // Function to refresh social accounts (after connect/disconnect)
   const refreshSocialAccounts = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: profileQueryKeys.socialAccounts });
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.badgeCollection });
   }, [queryClient]);
 
   // Function to refresh badge data (after pin/unpin)

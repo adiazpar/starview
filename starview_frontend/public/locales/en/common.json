@@ -24,5 +24,17 @@
     "error": "Error",
     "success": "Success"
   },
-  "soon": "Soon"
+  "soon": "Soon",
+  "auth": {
+    "signInApple": "Sign in with Apple",
+    "signInGoogle": "Sign in with Google",
+    "connectApple": "Connect Apple Account",
+    "connectGoogle": "Connect Google Account",
+    "oauthError": "Unable to sign in. Please try again.",
+    "oauthCancelled": "Sign-in was cancelled.",
+    "existingAccountHelp": "Sign in with a method you already use for Starview, then connect the new account from your profile.",
+    "signInExisting": "Sign in to existing account",
+    "linkExplanation": "Accounts stay separate until you verify ownership. After linking, either sign-in method opens the same profile on any device.",
+    "finishLink": "You’re signed in. Connect the new sign-in method below to use it with this profile."
+  }
 }

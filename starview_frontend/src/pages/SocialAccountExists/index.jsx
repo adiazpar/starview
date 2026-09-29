@@ -1,7 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './styles.css';
 
 function SocialAccountExistsPage() {
+  const { t } = useTranslation();
+  const [params] = useSearchParams();
+  const provider = ['apple', 'google'].includes(params.get('provider')) ? params.get('provider') : null;
+  const next = provider ? `/profile?connect=${provider}` : '/profile';
   return (
     <div className="auth-page">
       <div className="auth-page__content">
@@ -16,15 +21,14 @@ function SocialAccountExistsPage() {
 
         {/* Message */}
         <p className="social-account-exists-message">
-          An account with this email address already exists. To use Google Sign-In with this account,
-          please log in with your password first, then connect your Google account from your Profile settings.
+          {t('auth.existingAccountHelp')}
         </p>
 
         {/* Actions */}
         <div className="social-account-exists-actions">
-          <Link to="/login" className="btn-primary btn-primary--full">
+          <Link to={`/login?next=${encodeURIComponent(next)}`} className="btn-primary btn-primary--full">
             <i className="fa-solid fa-right-to-bracket"></i>
-            Sign in with password
+            {t('auth.signInExisting')}
           </Link>
           <Link to="/password-reset" className="btn-secondary" style={{ width: '100%' }}>
             <i className="fa-solid fa-key"></i>
@@ -36,9 +40,7 @@ function SocialAccountExistsPage() {
         <div className="social-account-exists-help">
           <p className="social-account-exists-help-title">Why am I seeing this?</p>
           <p className="social-account-exists-help-text">
-            For security reasons, we don't automatically link social accounts to existing email addresses.
-            This prevents unauthorized access to your account. Once you're logged in, you can safely connect
-            your Google account from your Profile page.
+            {t('auth.linkExplanation')}
           </p>
         </div>
       </div>

@@ -13,7 +13,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import SunCalc from 'suncalc';
+import * as SunCalc from 'suncalc';
 import { useToast } from '../../../contexts/ToastContext';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
@@ -45,7 +45,7 @@ const VISIBILITY_THRESHOLD = 0.1;
 function getLightPreset(lat, lng) {
   const now = new Date();
   const sunPos = SunCalc.getPosition(now, lat, lng);
-  const altitudeDeg = sunPos.altitude * (180 / Math.PI);
+  const altitudeDeg = sunPos.altitude;
 
   // Sun altitude thresholds (in degrees)
   // > 0°: Day (sun above horizon)

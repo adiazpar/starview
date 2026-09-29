@@ -176,7 +176,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { PmTilesSource } from 'mapbox-pmtiles';
-import SunCalc from 'suncalc';
+import * as SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useLocation } from '../../../contexts/LocationContext';
 import { useMapboxDirections } from '../../../hooks/useMapboxDirections';
@@ -206,7 +206,7 @@ mapboxgl.Style.setSourceType(PmTilesSource.SOURCE_TYPE, PmTilesSource);
 function getLightPreset(lat, lng) {
   const now = new Date();
   const sunPos = SunCalc.getPosition(now, lat, lng);
-  const altitudeDeg = sunPos.altitude * (180 / Math.PI);
+  const altitudeDeg = sunPos.altitude;
 
   // Sun altitude thresholds (in degrees)
   // > 0°: Day (sun above horizon)

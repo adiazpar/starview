@@ -59,8 +59,11 @@ class BrowserLanguageMiddleware:
         if not language:
             language = self.get_language_from_request(request)
 
-            # Store in session for future requests
-            if language:
+            # Apple's cross-site POST omits the existing SameSite=Lax cookie.
+            # Creating a session here would overwrite its OAuth state cookie.
+            # Still activate the browser language, but persist it only on safe
+            # navigation or when this request already has a valid session.
+            if language and (request.session.session_key or request.method in ('GET', 'HEAD')):
                 request.session['django_language'] = language
 
         # Activate the language for this request

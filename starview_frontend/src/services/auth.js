@@ -8,6 +8,30 @@
 import api from './api';
 
 export const authApi = {
+  getProviders: () => api.get('/auth/providers/'),
+
+  async startAppleLogin({ process = 'login', next = '/' } = {}) {
+    if (!['login', 'connect'].includes(process)) throw new Error('Invalid login process');
+    const { data } = await api.get('/auth/providers/');
+    if (!data.apple) throw new Error('Apple sign-in is unavailable');
+    // A form navigation preserves Django CSRF protection and follows Apple's redirect.
+    const form = document.createElement('form');
+    form.hidden = true;
+    form.method = 'POST';
+    form.action = '/accounts/apple/login/';
+    const safeNext = next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : '/';
+    for (const [name, value] of Object.entries({ process, next: safeNext, csrfmiddlewaretoken: data.csrf_token })) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    // Chrome completes form navigation asynchronously; keep it attached until unload.
+    try { form.submit(); } catch (error) { form.remove(); throw error; }
+  },
+
   /**
    * Check authentication status
    * @returns {Promise} - { authenticated: boolean, user: Object|null }

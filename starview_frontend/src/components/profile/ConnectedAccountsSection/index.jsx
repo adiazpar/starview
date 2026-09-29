@@ -1,3 +1,7 @@
+import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuthProviders } from '../../../hooks/useAuthProviders';
+import authApi from '../../../services/auth';
 import profileApi from '../../../services/profile';
 import CollapsibleSection from '../CollapsibleSection';
 import { useToast } from '../../../contexts/ToastContext';
@@ -11,6 +15,18 @@ import './styles.css';
  */
 function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
   const { showToast } = useToast();
+  const { t } = useTranslation();
+  const [params] = useSearchParams();
+  const requestedProvider = params.get('connect');
+  const isGuidedLink = ['apple', 'google'].includes(requestedProvider);
+  const { data: providers } = useAuthProviders();
+  const connectApple = async () => {
+    try {
+      await authApi.startAppleLogin({ process: 'connect', next: '/profile?social_connected=true' });
+    } catch {
+      showToast(t('auth.oauthError'), 'error');
+    }
+  };
 
   const handleDisconnect = async (accountId, providerName) => {
     if (!window.confirm(`Are you sure you want to disconnect your ${providerName} account?`)) return;
@@ -32,6 +48,7 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
   const getProviderIcon = (provider) => {
     const iconMap = {
       'google': 'fa-brands fa-google',
+      'apple': 'fa-brands fa-apple',
       'facebook': 'fa-brands fa-facebook',
       'github': 'fa-brands fa-github',
       'twitter': 'fa-brands fa-twitter',
@@ -49,7 +66,8 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
   };
 
   return (
-    <CollapsibleSection title="Connected Accounts" defaultExpanded={false}>
+    <CollapsibleSection title="Connected Accounts" defaultExpanded={isGuidedLink}>
+      {isGuidedLink && <p>{t('auth.finishLink')}</p>}
       {socialAccounts.length > 0 ? (
         <div className="connected-accounts-list">
           {socialAccounts.map((account) => (
@@ -92,16 +110,21 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', marginBottom: '20px' }}>
             Link a social account to enable faster login options
           </p>
-          <a
-            href="/accounts/google/login/?process=connect"
-            className="btn-secondary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-          >
-            <i className="fa-brands fa-google"></i>
-            Connect Google Account
-          </a>
+
         </div>
       )}
+      <div className="connected-account-options">
+        {!socialAccounts.some(account => account.provider === 'google') && (
+          <a href="/accounts/google/login/?process=connect&next=/profile%3Fsocial_connected%3Dtrue" className="btn-secondary">
+            <i className="fa-brands fa-google" aria-hidden="true"></i> {t('auth.connectGoogle')}
+          </a>
+        )}
+        {providers?.apple && !socialAccounts.some(account => account.provider === 'apple') && (
+          <button type="button" className="btn-secondary" onClick={connectApple}>
+            <i className="fa-brands fa-apple" aria-hidden="true"></i> {t('auth.connectApple')}
+          </button>
+        )}
+      </div>
     </CollapsibleSection>
   );
 }

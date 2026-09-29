@@ -36,7 +36,8 @@ export function useHeroCarousel() {
   return {
     images: query.data || [],
     isLoading: query.isLoading,
-    isReady,
+    // An empty gallery or failed request must not block the entire home page.
+    isReady: isReady || query.isError || (query.isSuccess && query.data.length === 0),
     isError: query.isError,
   };
 }

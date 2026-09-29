@@ -27,6 +27,7 @@ from django.views.decorators.http import require_POST
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 
 # DRF imports:
@@ -662,7 +663,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Disconnect a social account from user's profile                               #
     #                                                                               #
     # Removes the link between user and a specific OAuth provider. User must have   #
-    # alternative login method (password) before disconnecting social account.      #
+    # alternative login method before disconnecting a social account.      #
     #                                                                               #
     # HTTP Method: DELETE                                                           #
     # Endpoint: /api/users/me/disconnect-social/{account_id}/                       #
@@ -671,24 +672,28 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['delete'], url_path='me/disconnect-social/(?P<account_id>[^/.]+)')
     def disconnect_social(self, request, account_id=None):
+        from allauth.account.models import EmailAddress
         from allauth.socialaccount.models import SocialAccount
 
-        try:
-            account = SocialAccount.objects.get(id=account_id, user=request.user)
-        except SocialAccount.DoesNotExist:
-            raise exceptions.NotFound('Social account not found.')
-
-        # Check if user has a password (can't disconnect if no alternative login method)
-        if not request.user.has_usable_password():
-            raise exceptions.ValidationError(
-                'Cannot disconnect social account. Please set a password first to ensure you can still login.'
-            )
-
-        # Store provider name for response
-        provider_name = account.provider.title()
-
-        # Delete the social account
-        account.delete()
+        # Serialize removals for this user so concurrent requests cannot remove
+        # both remaining providers from a passwordless account.
+        with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=request.user.pk)
+            try:
+                account = SocialAccount.objects.get(id=account_id, user=user)
+            except SocialAccount.DoesNotExist:
+                raise exceptions.NotFound('Social account not found.')
+            has_other_provider = SocialAccount.objects.filter(user=user).exclude(pk=account.pk).exists()
+            # Password login also requires a verified primary email in custom_login.
+            can_use_password = user.has_usable_password() and EmailAddress.objects.filter(
+                user=user, primary=True, verified=True
+            ).exists()
+            if not can_use_password and not has_other_provider:
+                raise exceptions.ValidationError({
+                    'detail': 'Before disconnecting your last sign-in method, connect another account or set a password and verify your profile email.'
+                })
+            provider_name = account.provider.title()
+            account.delete()
 
         return Response({
             'detail': f'{provider_name} account disconnected successfully.',

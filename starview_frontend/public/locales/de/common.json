@@ -24,5 +24,17 @@
     "error": "Fehler",
     "success": "Erfolg"
   },
-  "soon": "Bald verfügbar"
+  "soon": "Bald verfügbar",
+  "auth": {
+    "signInApple": "Mit Apple anmelden",
+    "signInGoogle": "Mit Google anmelden",
+    "connectApple": "Apple-Account verknüpfen",
+    "connectGoogle": "Google-Konto verknüpfen",
+    "oauthError": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
+    "oauthCancelled": "Die Anmeldung wurde abgebrochen.",
+    "existingAccountHelp": "Melde dich mit einer Methode an, die du bereits für Starview nutzt, und verknüpfe das neue Konto in deinem Profil.",
+    "signInExisting": "Beim bestehenden Konto anmelden",
+    "linkExplanation": "Konten bleiben getrennt, bis du bestätigst, dass sie dir gehören. Nach der Verknüpfung öffnen beide Anmeldemethoden dasselbe Profil auf jedem Gerät.",
+    "finishLink": "Du bist angemeldet. Verknüpfe unten die neue Anmeldemethode mit diesem Profil."
+  }
 }

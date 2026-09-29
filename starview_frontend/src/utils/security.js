@@ -27,8 +27,9 @@ export function isValidRedirect(url) {
     return false;
   }
 
-  // Block protocol-relative URLs (//example.com)
-  if (trimmedUrl.startsWith('//')) {
+  // Browsers normalize backslashes and control characters during navigation.
+  // eslint-disable-next-line no-control-regex -- Intentionally reject URL control characters.
+  if (/[\\\u0000-\u001F\u007F]/.test(trimmedUrl) || trimmedUrl.startsWith('//')) {
     return false;
   }
 

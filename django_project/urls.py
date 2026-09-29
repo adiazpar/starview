@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.static import serve as static_serve
 from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+from starview_app.views.views_oauth import apple_login, apple_callback
 from django.http import FileResponse
 from django.contrib.sitemaps.views import sitemap
 
@@ -111,6 +113,8 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # Allauth URLs (for OAuth callbacks and other functional endpoints)
     # -------------------------------------------------------------------------
+    path('accounts/apple/login/', apple_login),
+    path('accounts/apple/login/callback/', csrf_exempt(apple_callback)),
     path('accounts/', include('allauth.urls')),
     path('', include('starview_app.urls')),
 ]

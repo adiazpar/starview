@@ -110,3 +110,10 @@
 .connected-accounts-note p {
   margin: 0;
 }
+
+.connected-account-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}

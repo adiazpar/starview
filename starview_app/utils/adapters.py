@@ -28,6 +28,9 @@ from django.views import View as BaseView
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ----------------------------------------------------------------------------- #
@@ -39,7 +42,8 @@ from django.conf import settings
 def get_frontend_url(path, query_params=None):
     """Build a frontend URL with optional query parameters."""
     if query_params:
-        query_string = '&'.join(f'{k}={v}' for k, v in query_params.items())
+        from urllib.parse import urlencode
+        query_string = urlencode(query_params)
         path = f'{path}?{query_string}'
 
     if settings.DEBUG:
@@ -217,7 +221,8 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
         # Default to home page, but respect 'next' parameter if provided
         next_url = request.GET.get('next')
-        if next_url:
+        from django.utils.http import url_has_allowed_host_and_scheme
+        if next_url and url_has_allowed_host_and_scheme(next_url, {request.get_host()}, require_https=request.is_secure()):
             # In development, prepend Vite URL if relative path
             if settings.DEBUG and next_url.startswith('/'):
                 return f'http://localhost:5173{next_url}'
@@ -420,6 +425,27 @@ class CustomConnectionsView(View):
 # ----------------------------------------------------------------------------- #
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
 
+    def on_authentication_error(self, request, provider, error=None, exception=None, extra_context=None):
+        from allauth.core.exceptions import ImmediateHttpResponse
+        from allauth.socialaccount.providers.base import AuthError
+        code = 'oauth_cancelled' if error == AuthError.CANCELLED else 'oauth_error'
+        # Provider exceptions can include token responses. Log only known categories.
+        detail = str(exception).lower() if exception else ''
+        reason = next((value for value in (
+            'invalid_client', 'invalid_grant', 'invalid_request', 'unauthorized_client',
+            'certificate_verify_failed', 'signature verification failed', 'token has expired',
+            'audience', 'issuer',
+        ) if value in detail), 'unspecified')
+        if not exception and extra_context and 'state_id' in extra_context:
+            reason = 'state_not_found'
+        logger.warning('OAuth failed: provider=%s category=%s exception=%s reason=%s',
+                       getattr(provider, 'id', 'unknown'), code,
+                       type(exception).__name__ if exception else 'none', reason)
+        raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/login', {'error': code})))
+
+    def get_connect_redirect_url(self, request, socialaccount):
+        return get_frontend_url('/profile', {'social_connected': 'true'})
+
     def populate_user(self, request, sociallogin, data):
         """
         Populate user instance with data from social provider.
@@ -430,6 +456,12 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         This prevents any possible collision with existing password-based users.
         Users can change their username later from their profile settings.
         """
+        if sociallogin.account.provider == 'apple':
+            # allauth's Apple response also contains bearer tokens; keep only profile claims.
+            allowed = {'sub', 'email', 'email_verified', 'is_private_email', 'name'}
+            sociallogin.account.extra_data = {
+                key: value for key, value in sociallogin.account.extra_data.items() if key in allowed
+            }
         user = super().populate_user(request, sociallogin, data)
 
         # Generate unique username with UUID
@@ -497,80 +529,42 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def pre_social_login(self, request, sociallogin):
-        """
-        Invoked just after a user successfully authenticates via a social provider,
-        but before the login is actually processed (before the SocialAccount is saved).
+        """Link only after authentication to the existing profile and the provider.
 
-        This handles two scenarios:
-        1. User is logged in and trying to CONNECT a social account (from Profile page)
-        2. User is NOT logged in and trying to LOGIN with social account
+        An email match is a discovery hint, never proof to transfer an identity.
+        Apple relay addresses and different provider emails can be linked explicitly.
         """
-        from django.conf import settings
+        from allauth.core.exceptions import ImmediateHttpResponse
         from allauth.socialaccount.models import SocialAccount
+        from django.db.models import Q
 
-        # Get the provider and UID from the social account being linked
         provider = sociallogin.account.provider
-        uid = sociallogin.account.uid
+        existing_social = SocialAccount.objects.filter(
+            provider=provider, uid=sociallogin.account.uid
+        ).first()
+        email = (sociallogin.account.extra_data.get('email') or '').strip()
+        matches = User.objects.none()
+        if email:
+            matches = User.objects.filter(
+                Q(email__iexact=email)
+                | Q(emailaddress__email__iexact=email)
+                | Q(socialaccount__extra_data__email__iexact=email)
+            ).distinct()
 
-        # Check if this social account (provider + UID) is already connected to another user
-        existing_social = SocialAccount.objects.filter(provider=provider, uid=uid).first()
-
-        # SCENARIO 1: User is logged in (trying to CONNECT from Profile page)
-        if request.user.is_authenticated:
-            # Check if this exact social account is already connected to a DIFFERENT user
-            if existing_social and existing_social.user.id != request.user.id:
-                # Block the connection - this social account is already connected to another user
-                from allauth.exceptions import ImmediateHttpResponse
-
-                # Redirect to profile page with error
-                error_url = '/profile?error=social_already_connected'
-                if settings.DEBUG:
-                    error_url = f'http://localhost:5173{error_url}'
-
-                raise ImmediateHttpResponse(HttpResponseRedirect(error_url))
-
-            # Also check if the EMAIL from the social account belongs to a DIFFERENT user
-            social_email = sociallogin.account.extra_data.get('email', '').lower()
-            if social_email:
-                existing_user = User.objects.filter(email=social_email).exclude(id=request.user.id).first()
-                if existing_user:
-                    # Block the connection - this email is already registered to another user
-                    from allauth.exceptions import ImmediateHttpResponse
-
-                    # Redirect to profile page with error
-                    error_url = '/profile?error=email_conflict'
-                    if settings.DEBUG:
-                        error_url = f'http://localhost:5173{error_url}'
-
-                    raise ImmediateHttpResponse(HttpResponseRedirect(error_url))
-
-        # SCENARIO 2: User is NOT logged in (trying to LOGIN with social account)
-        else:
-            # Check if this exact social account (provider + UID) already exists
-            # If it does, django-allauth will automatically log them in
-            if existing_social:
-                # User already has this social account linked - allow login
+        if sociallogin.state.get('process') == 'connect':
+            if not request.user.is_authenticated:
+                raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/login')))
+            if existing_social and existing_social.user_id != request.user.pk:
+                error = 'social_already_connected'
+            elif matches.exclude(pk=request.user.pk).exists():
+                error = 'email_conflict'
+            else:
                 return
+            raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/profile', {'error': error})))
 
-            # Get email from social account
-            social_email = sociallogin.account.extra_data.get('email', '').lower()
-            if social_email:
-                existing_user = User.objects.filter(email=social_email).first()
-
-                # Only block if:
-                # 1. User exists with this email
-                # 2. User has a password (not OAuth-only)
-                # 3. This social account is NOT already linked to them
-                if existing_user and existing_user.has_usable_password():
-                    # User has a password-based account - they should login with password first
-                    # then connect their social account from profile settings
-                    from allauth.exceptions import ImmediateHttpResponse
-
-                    account_exists_url = '/social-account-exists'
-                    if settings.DEBUG:
-                        account_exists_url = f'http://localhost:5173{account_exists_url}'
-
-                    raise ImmediateHttpResponse(HttpResponseRedirect(account_exists_url))
-
-                # If user exists but has NO password (OAuth-only), allow login
-                # Django-allauth will automatically link the social account or log them in
+        # An established provider+subject remains the identity even if its email changes.
+        if existing_social:
+            return
+        if matches.exists():
+            params = {'provider': provider} if provider in ('apple', 'google') else None
+            raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/social-account-exists', params)))

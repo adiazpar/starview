@@ -1,0 +1,266 @@
+import json
+import time
+from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlparse
+
+import jwt
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core import mail
+from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
+from allauth.account.models import EmailAddress
+from allauth.account.signals import user_signed_up
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
+from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+
+from django_project.apple_oauth import apple_app_from_env
+from starview_app.models import UserBadge
+from starview_app.services import badge_service
+from starview_app.utils.adapters import CustomAccountAdapter, CustomSocialAccountAdapter
+from allauth.core.exceptions import ImmediateHttpResponse
+from django.contrib.auth.models import AnonymousUser
+
+
+def private_key():
+    return ec.generate_private_key(ec.SECP256R1()).private_bytes(
+        Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+    ).decode()
+
+
+def apple_app():
+    return {'client_id': 'app.starview.test', 'key': 'TESTTEAM', 'secret': 'TESTKEY',
+            'settings': {'certificate_key': private_key()}}
+
+
+class AppleConfigurationTests(SimpleTestCase):
+    def test_authentication_diagnostics_never_log_provider_token_response(self):
+        request = RequestFactory().get('/')
+        exception = OAuth2Error('invalid_client; access_token=test-secret-that-must-not-be-logged')
+        with self.assertLogs('starview_app.utils.adapters', level='WARNING') as captured:
+            with self.assertRaises(ImmediateHttpResponse):
+                CustomSocialAccountAdapter().on_authentication_error(request, Mock(id='apple'), exception=exception)
+        self.assertIn('reason=invalid_client', captured.output[0])
+        self.assertNotIn('test-secret-that-must-not-be-logged', captured.output[0])
+
+    @override_settings(DEBUG=True)
+    def test_login_redirect_rejects_external_destinations(self):
+        adapter = CustomAccountAdapter()
+        for next_url in ('https://attacker.example', '//attacker.example', '/\\attacker.example'):
+            request = RequestFactory().get('/', {'next': next_url})
+            self.assertEqual(adapter.get_login_redirect_url(request), 'http://localhost:5173/')
+        request = RequestFactory().get('/', {'next': '/profile?connect=apple'})
+        self.assertEqual(adapter.get_login_redirect_url(request), 'http://localhost:5173/profile?connect=apple')
+
+    def test_absent_and_partial_configuration(self):
+        self.assertIsNone(apple_app_from_env({}))
+        with self.assertRaises(ImproperlyConfigured):
+            apple_app_from_env({'APPLE_CLIENT_ID': 'app.starview.test'})
+
+    def test_key_validation_and_escaped_newlines(self):
+        env = {'APPLE_CLIENT_ID': 'app.starview.test', 'APPLE_TEAM_ID': 'TESTTEAM',
+               'APPLE_KEY_ID': 'TESTKEY', 'APPLE_PRIVATE_KEY': private_key().replace('\n', '\\n')}
+        self.assertIn('BEGIN PRIVATE KEY', apple_app_from_env(env)['settings']['certificate_key'])
+        env['APPLE_PRIVATE_KEY'] = 'not-a-key'
+        with self.assertRaises(ImproperlyConfigured):
+            apple_app_from_env(env)
+
+
+class AppleFlowTests(TestCase):
+    def setUp(self):
+        badge_service._BADGE_CACHE_BY_SLUG.clear()
+        cache.clear()  # test_settings uses only an isolated in-memory cache
+        self.app = apple_app()
+        self.config = override_settings(APPLE_OAUTH_ENABLED=True, SOCIALACCOUNT_PROVIDERS={
+            'apple': {'APPS': [self.app]}, 'google': {},
+        })
+        self.config.enable()
+        self.addCleanup(self.config.disable)
+        self.client = Client(enforce_csrf_checks=True, HTTP_ACCEPT_LANGUAGE='es-ES,es;q=0.9,en;q=0.8')
+        self.signing_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    def start(self, process='login', next_url='/'):
+        config = self.client.get('/api/auth/providers/')
+        self.assertEqual(config.status_code, 200)
+        self.assertEqual(set(config.json()), {'apple', 'csrf_token'})
+        self.assertIn('no-store', config['Cache-Control'])
+        response = self.client.post('/accounts/apple/login/', {
+            'csrfmiddlewaretoken': config.json()['csrf_token'], 'process': process, 'next': next_url,
+        })
+        self.assertEqual(response.status_code, 302)
+        query = parse_qs(urlparse(response.url).query)
+        self.assertEqual(query['client_id'], [self.app['client_id']])
+        self.assertEqual(query['response_mode'], ['form_post'])
+        return query['state'][0]
+
+    def finish(self, state, subject='apple-user', email='observer@example.test', name=True, overrides=None):
+        claims = {'iss': 'https://appleid.apple.com', 'aud': self.app['client_id'],
+                  'sub': subject, 'email': email, 'email_verified': 'true',
+                  'iat': int(time.time()), 'exp': int(time.time()) + 300}
+        claims.update(overrides or {})
+        token = jwt.encode(claims, self.signing_key, algorithm='RS256', headers={'kid': 'test-signing-key'})
+        jwk = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(self.signing_key.public_key()))
+        jwk.update(kid='test-signing-key', alg='RS256')
+        # Simulate Apple's cross-site POST with no regular SameSite=Lax session cookie.
+        original = self.client.cookies.pop(settings.SESSION_COOKIE_NAME)
+        response = self.client.post('/accounts/apple/login/callback/', {
+            'code': 'test-code', 'state': state, 'id_token': token,
+            'user': json.dumps({'name': {'firstName': 'Star', 'lastName': 'Observer'}}) if name else '',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.cookies['apple-login-session']['httponly'])
+        self.assertNotIn(settings.SESSION_COOKIE_NAME, response.cookies)
+        self.client.cookies[settings.SESSION_COOKIE_NAME] = original
+        key_response = Mock()
+        key_response.json.return_value = {'keys': [jwk]}
+        with patch('allauth.socialaccount.providers.apple.client.AppleOAuth2Client.get_access_token', return_value={
+            'access_token': 'test-access-token', 'refresh_token': 'test-refresh-token', 'id_token': token,
+        }), patch('requests.sessions.Session.get', return_value=key_response):
+            return self.client.get(response.url)
+
+    def test_initiation_requires_post_and_csrf(self):
+        self.assertEqual(self.client.get('/accounts/apple/login/').status_code, 405)
+        self.assertEqual(self.client.post('/accounts/apple/login/').status_code, 403)
+
+    def test_signup_profile_verified_email_badge_and_returning_login(self):
+        response = self.finish(self.start(), email='hidden@privaterelay.appleid.com')
+        self.assertEqual(response.status_code, 302)
+        account = SocialAccount.objects.get(provider='apple', uid='apple-user')
+        user = account.user
+        self.assertFalse(user.has_usable_password())
+        self.assertEqual(user.first_name, 'Star')
+        self.assertEqual(user.userprofile.user_id, user.id)
+        self.assertTrue(EmailAddress.objects.filter(user=user, verified=True).exists())
+        self.assertTrue(UserBadge.objects.filter(user=user, badge__slug='pioneer').exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertNotIn('access_token', account.extra_data)
+        self.assertNotIn('refresh_token', account.extra_data)
+        self.assertNotIn('id_token', account.extra_data)
+        self.assertTrue(self.client.get('/api/auth/status/').json()['authenticated'])
+        self.client.logout()
+        response = self.finish(self.start(), email='hidden@privaterelay.appleid.com', name=False)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Star')
+        self.assertEqual(User.objects.filter(id=user.id).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(UserBadge.objects.filter(user=user, badge__slug='pioneer').count(), 1)
+
+    def test_invalid_state_does_not_exchange_tokens(self):
+        self.start()
+        with patch('allauth.socialaccount.providers.apple.client.AppleOAuth2Client.get_access_token') as exchange:
+            response = self.client.get('/accounts/apple/login/callback/finish/?state=wrong&code=test-code')
+            self.assertEqual(response.status_code, 302)
+            self.assertIn('oauth_error', response.url)
+            exchange.assert_not_called()
+
+    def test_wrong_audience_is_rejected(self):
+        response = self.finish(self.start(), overrides={'aud': 'another-app'})
+        self.assertIn('oauth_error', response.url)
+        self.assertFalse(SocialAccount.objects.filter(provider='apple').exists())
+
+    def test_expired_or_wrong_issuer_token_is_rejected(self):
+        for claims in ({'exp': int(time.time()) - 300}, {'iss': 'https://attacker.example'}):
+            with self.subTest(claims=claims):
+                response = self.finish(self.start(), overrides=claims)
+                self.assertIn('oauth_error', response.url)
+                self.assertFalse(SocialAccount.objects.filter(provider='apple').exists())
+
+    def test_can_disconnect_one_of_two_providers_but_never_the_last(self):
+        user = User.objects.create_user(username='two-methods')
+        apple = SocialAccount.objects.create(user=user, provider='apple', uid='apple-existing')
+        google = SocialAccount.objects.create(user=user, provider='google', uid='google-existing')
+        self.client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
+        csrf = self.client.get('/api/auth/providers/').json()['csrf_token']
+        self.assertEqual(self.client.delete(f'/api/users/me/disconnect-social/{apple.id}/', HTTP_X_CSRFTOKEN=csrf).status_code, 200)
+        self.assertEqual(self.client.delete(f'/api/users/me/disconnect-social/{google.id}/', HTTP_X_CSRFTOKEN=csrf).status_code, 400)
+        self.assertTrue(SocialAccount.objects.filter(pk=google.pk).exists())
+
+    def test_password_is_an_alternative_only_with_verified_primary_email(self):
+        user = User.objects.create_user(username='pending-email', email='pending@example.test', password='test-password')
+        email = EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=False)
+        account = SocialAccount.objects.create(user=user, provider='apple', uid='pending-apple')
+        self.client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
+        csrf = self.client.get('/api/auth/providers/').json()['csrf_token']
+        url = f'/api/users/me/disconnect-social/{account.id}/'
+        self.assertEqual(self.client.delete(url, HTTP_X_CSRFTOKEN=csrf).status_code, 400)
+        self.assertTrue(SocialAccount.objects.filter(pk=account.pk).exists())
+        email.verified = True
+        email.save()
+        self.assertEqual(self.client.delete(url, HTTP_X_CSRFTOKEN=csrf).status_code, 200)
+
+    def test_linking_conflicts_and_disconnect_guard(self):
+        user = User.objects.create_user(username='existing', email='existing@example.test', password='test-password')
+        EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
+        response = self.finish(self.start(), email=user.email)
+        self.assertIn('social-account-exists', response.url)
+        self.assertFalse(SocialAccount.objects.filter(provider='apple').exists())
+        self.client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
+        response = self.finish(self.start('connect', '/profile?social_connected=true'), email=user.email)
+        self.assertIn('/profile', response.url)
+        account = SocialAccount.objects.get(provider='apple')
+        self.assertEqual(account.user_id, user.id)
+        self.assertEqual(self.client.get('/api/users/me/social-accounts/').json()['count'], 1)
+        token = self.client.get('/api/auth/providers/').json()['csrf_token']
+        user.set_unusable_password(); user.save()
+        self.client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
+        self.assertEqual(self.client.delete(f'/api/users/me/disconnect-social/{account.id}/', HTTP_X_CSRFTOKEN=token).status_code, 400)
+        user.set_password('test-password'); user.save()
+        self.client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
+        self.assertEqual(self.client.delete(f'/api/users/me/disconnect-social/{account.id}/', HTTP_X_CSRFTOKEN=token).status_code, 200)
+
+    def test_google_and_apple_share_verified_signup_badge_signal(self):
+        for provider in ('google', 'apple'):
+            with self.subTest(provider=provider):
+                user = User.objects.create_user(username=f'{provider}-signup')
+                account = SocialAccount.objects.create(user=user, provider=provider, uid=f'{provider}-subject')
+                login = SocialLogin(user=user, account=account)
+                user_signed_up.send(sender=User, request=None, user=user, sociallogin=login)
+                self.assertFalse(UserBadge.objects.filter(user=user, badge__slug='pioneer').exists())
+                EmailAddress.objects.create(user=user, email=f'{provider}@example.test', verified=True, primary=True)
+                user_signed_up.send(sender=User, request=None, user=user, sociallogin=login)
+                self.assertTrue(UserBadge.objects.filter(user=user, badge__slug='pioneer').exists())
+
+
+class AccountLinkingTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(username='owner', email='profile@example.test')
+        self.other = User.objects.create_user(username='other', email='other@example.test')
+        self.request = RequestFactory().get('/')
+        self.request.user = AnonymousUser()
+        self.adapter = CustomSocialAccountAdapter()
+
+    def social_login(self, provider, email, uid='new-subject', process='login'):
+        login = SocialLogin(user=User(), account=SocialAccount(provider=provider, uid=uid, extra_data={'email': email}))
+        login.state = {'process': process}
+        return login
+
+    def test_matches_guide_both_providers_without_silently_linking(self):
+        EmailAddress.objects.create(user=self.owner, email='pending@example.test', verified=False)
+        SocialAccount.objects.create(user=self.owner, provider='google', uid='old-google', extra_data={'email': 'provider@example.test'})
+        for provider in ('google', 'apple'):
+            for email in ('PROFILE@example.test', 'PENDING@example.test', 'PROVIDER@example.test'):
+                with self.subTest(provider=provider, email=email):
+                    with self.assertRaises(ImmediateHttpResponse) as result:
+                        self.adapter.pre_social_login(self.request, self.social_login(provider, email))
+                    self.assertIn(f'/social-account-exists?provider={provider}', result.exception.response.url)
+        self.assertEqual(User.objects.count(), 2)
+        self.assertEqual(SocialAccount.objects.count(), 1)
+
+    def test_subject_wins_over_changed_email(self):
+        SocialAccount.objects.create(user=self.owner, provider='apple', uid='existing-subject')
+        self.adapter.pre_social_login(self.request, self.social_login('apple', self.other.email, uid='existing-subject'))
+
+    def test_explicit_link_handles_different_email_and_rejects_other_owner(self):
+        self.request.user = self.owner
+        self.adapter.pre_social_login(self.request, self.social_login('apple', 'relay@privaterelay.appleid.com', process='connect'))
+        with self.assertRaises(ImmediateHttpResponse) as result:
+            self.adapter.pre_social_login(self.request, self.social_login('apple', self.other.email, process='connect'))
+        self.assertIn('email_conflict', result.exception.response.url)
+        SocialAccount.objects.create(user=self.other, provider='apple', uid='owned-subject')
+        with self.assertRaises(ImmediateHttpResponse) as result:
+            self.adapter.pre_social_login(self.request, self.social_login('apple', 'unique@example.test', uid='owned-subject', process='connect'))
+        self.assertIn('social_already_connected', result.exception.response.url)

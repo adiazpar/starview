@@ -2,7 +2,7 @@
 # This review_summary_service.py file handles AI-generated review summaries for locations:             #
 #                                                                                                      #
 # Purpose:                                                                                             #
-# Generates concise AI summaries of user reviews using Google Gemini 2.0 Flash.                        #
+# Generates concise AI summaries of user reviews using Google Gemini.                                  #
 #                                                                                                      #
 # Architecture:                                                                                        #
 # - Page views NEVER block on API calls - always return existing summary instantly                     #
@@ -137,15 +137,15 @@ Write 2-3 sentences highlighting what visitors praise and critique, focusing on 
             return False
 
         try:
-            import google.generativeai as genai
-
-            # Configure Gemini
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            from google import genai
 
             # Build prompt and generate summary
             prompt = ReviewSummaryService._build_prompt(location)
-            response = model.generate_content(prompt)
+            with genai.Client(api_key=api_key) as client:
+                response = client.models.generate_content(
+                    model=settings.GEMINI_MODEL,
+                    contents=prompt,
+                )
 
             # Extract text from response
             summary = response.text.strip() if response.text else None
