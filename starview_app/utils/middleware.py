@@ -7,11 +7,11 @@
 #                                                                                                       #
 # Key Features:                                                                                         #
 # - Browser language detection: Automatically detects user's preferred language from Accept-Language    #
-# - Session-based language persistence: Remembers language choice across requests                       #
+# - Explicit language preferences: Reads the profile or language cookie                                #
 # - Email localization: Ensures verification emails are sent in the user's preferred language           #
 #                                                                                                       #
 # Integration:                                                                                          #
-# Registered in settings.py MIDDLEWARE list after SessionMiddleware and before CommonMiddleware         #
+# Registered in settings.py MIDDLEWARE list after AuthenticationMiddleware                              #
 # ----------------------------------------------------------------------------------------------------- #
 
 from django.utils import translation
@@ -25,11 +25,11 @@ from django.conf import settings
 # This ensures that:                                                            #
 # 1. Emails are sent in the user's preferred language                           #
 # 2. API responses use the correct language                                     #
-# 3. Language preference is stored in session for consistency                   #
+# 3. Automatic detection never becomes a saved language preference             #
 #                                                                               #
 # Language detection order:                                                     #
 # 1. Authenticated user's language_preference (from UserProfile)                #
-# 2. Session language (if previously set)                                       #
+# 2. Explicit language cookie                                                  #
 # 3. Browser Accept-Language header                                             #
 # 4. Default language (settings.LANGUAGE_CODE)                                  #
 # ----------------------------------------------------------------------------- #
@@ -51,32 +51,27 @@ class BrowserLanguageMiddleware:
                 # UserProfile may not exist in some edge cases
                 pass
 
-        # 2. Fall back to session language
+        # 2. An explicit guest choice takes precedence over a legacy session cache.
+        supported = {code.lower(): code for code, _ in settings.LANGUAGES}
         if not language:
-            language = request.session.get('django_language')
-
+            cookie_language = request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME, '')
+            language = supported.get(cookie_language.lower())
         # 3. Fall back to browser Accept-Language header
         if not language:
             language = self.get_language_from_request(request)
 
-            # Apple's cross-site POST omits the existing SameSite=Lax cookie.
-            # Creating a session here would overwrite its OAuth state cookie.
-            # Still activate the browser language, but persist it only on safe
-            # navigation or when this request already has a valid session.
-            if language and (request.session.session_key or request.method in ('GET', 'HEAD')):
-                request.session['django_language'] = language
+            # Detection is not a saved preference. In particular, do not create
+            # a session on Apple's cookie-less POST and overwrite its OAuth state.
 
         # Activate the language for this request
         if language:
             translation.activate(language)
             request.LANGUAGE_CODE = language
 
-        response = self.get_response(request)
-
-        # Deactivate after request
-        translation.deactivate()
-
-        return response
+        try:
+            return self.get_response(request)
+        finally:
+            translation.deactivate()
 
 
     # ----------------------------------------------------------------------------- #
@@ -86,30 +81,8 @@ class BrowserLanguageMiddleware:
     # or None if no match is found (will fall back to default).                     #
     # ----------------------------------------------------------------------------- #
     def get_language_from_request(self, request):
-        accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', '')
-
-        if not accept_language:
-            return None
-
-        # Parse Accept-Language header
-        # Format: "en-US,en;q=0.9,es;q=0.8" -> ['en-US', 'en', 'es']
-        languages = []
-        for lang_string in accept_language.split(','):
-            lang = lang_string.split(';')[0].strip()
-            languages.append(lang)
-
-        # Get list of supported language codes
-        supported_languages = [lang_code for lang_code, lang_name in settings.LANGUAGES]
-
-        # Match browser languages with supported languages
-        for browser_lang in languages:
-            # Try exact match first (e.g., 'es-MX')
-            if browser_lang in supported_languages:
-                return browser_lang
-
-            # Try base language (e.g., 'es' from 'es-MX')
-            base_lang = browser_lang.split('-')[0]
-            if base_lang in supported_languages:
-                return base_lang
-
-        return None
+        # Django handles quality weights and regional fallbacks. Return the
+        # canonical code shared by settings, stored profiles and frontend locales.
+        detected = translation.get_language_from_request(request)
+        return next((code for code, _ in settings.LANGUAGES
+                     if code.lower() == detected.lower()), settings.LANGUAGE_CODE)

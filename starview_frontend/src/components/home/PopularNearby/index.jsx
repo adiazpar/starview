@@ -29,7 +29,7 @@ function PopularNearby({ userLocation, locations = [] }) {
       e.preventDefault();
       // Reset location context to actualLocation before navigating
       if (userLocation) {
-        setLocation(userLocation.latitude, userLocation.longitude, userLocation.name, 'ip');
+        setLocation(userLocation.latitude, userLocation.longitude, userLocation.name, userLocation.source || 'ip');
       }
       navigate('/explore?view=map&flyTo=true');
     },

@@ -3,7 +3,9 @@
  * Features location search bar and feature highlights.
  */
 
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { validCoordinates } from '../../utils/location';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
@@ -22,7 +24,9 @@ const LocationAutocomplete = lazy(() =>
 
 function HomePage() {
   const { isAuthenticated, user } = useAuth();
-  const { location, actualLocation, setLocation, isLoading: isLocationLoading } = useLocation();
+  const { location, actualLocation, setLocation, requestCurrentLocation, isLoading: isLocationLoading } = useLocation();
+  const { t } = useTranslation();
+  const [locationMessage, setLocationMessage] = useState('');
   const { images: heroImages, isReady: isHeroReady } = useHeroCarousel();
   const { data: popularLocations, isLoading: isPopularLoading } = usePopularNearby(
     actualLocation?.latitude,
@@ -32,7 +36,7 @@ function HomePage() {
 
   // Handle location selection from search - updates context but stays on home
   const handleLocationSelect = useCallback((data) => {
-    if (data.location && data.latitude && data.longitude) {
+    if (data.location && validCoordinates(data)) {
       setLocation(data.latitude, data.longitude, data.location, 'search');
     }
   }, [setLocation]);
@@ -91,6 +95,18 @@ function HomePage() {
               <i className="fa-solid fa-magnifying-glass"></i>
             </button>
           </div>
+
+          <button
+            type="button"
+            className="hero__explore-link hero__locate"
+            onClick={async () => {
+              setLocationMessage('');
+              if (!await requestCurrentLocation()) setLocationMessage(t('location.unavailable'));
+            }}
+          >
+            {t('location.useCurrent')}
+          </button>
+          {locationMessage && <p role="status" className="hero__location-message">{locationMessage}</p>}
 
           {/* Explore link */}
           <Link to="/explore" className="hero__explore-link">

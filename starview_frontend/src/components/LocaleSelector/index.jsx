@@ -66,9 +66,8 @@ export default function LocaleSelector() {
 
   // Handle language selection
   const handleSelect = async (langCode) => {
-    if (langCode !== language) {
-      await setLanguage(langCode);
-    }
+    // Selecting even the detected language makes it an explicit preference.
+    await setLanguage(langCode);
     handleClose();
   };
 
@@ -82,7 +81,7 @@ export default function LocaleSelector() {
         disabled={isUpdating}
       >
         <i className="fa-solid fa-globe" />
-        <span>{languageConfig.nativeName} ({languageConfig.region})</span>
+        <span>{languageConfig.nativeName}</span>
         <i className="fa-solid fa-caret-down locale-selector__caret" />
       </button>
 

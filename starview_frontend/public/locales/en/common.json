@@ -36,5 +36,13 @@
     "signInExisting": "Sign in to existing account",
     "linkExplanation": "Accounts stay separate until you verify ownership. After linking, either sign-in method opens the same profile on any device.",
     "finishLink": "You’re signed in. Connect the new sign-in method below to use it with this profile."
+  },
+  "location": {
+    "useCurrent": "Use my current location",
+    "unavailable": "Couldn’t get your current location. Search for a city or check your browser’s location permission."
+  },
+  "language": {
+    "title": "Choose a language",
+    "selectLanguage": "Choose a language"
   }
 }

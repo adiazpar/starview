@@ -36,5 +36,13 @@
     "signInExisting": "登录现有账户",
     "linkExplanation": "在确认账户归属之前，账户将保持独立。关联后，您可以在任何设备上使用任一登录方式访问同一个人资料。",
     "finishLink": "您已登录。请在下方将新的登录方式关联到此个人资料。"
+  },
+  "location": {
+    "useCurrent": "使用我的当前位置",
+    "unavailable": "无法获取您的当前位置。请搜索城市或检查浏览器的位置权限。"
+  },
+  "language": {
+    "title": "选择语言",
+    "selectLanguage": "选择语言"
   }
 }

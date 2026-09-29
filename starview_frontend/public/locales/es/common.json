@@ -36,5 +36,13 @@
     "signInExisting": "Acceder a la cuenta existente",
     "linkExplanation": "Las cuentas permanecen separadas hasta que verifiques que son tuyas. Tras vincularlas, ambos métodos abren el mismo perfil en cualquier dispositivo.",
     "finishLink": "Ya has iniciado sesión. Conecta el nuevo método de acceso a continuación para usarlo con este perfil."
+  },
+  "location": {
+    "useCurrent": "Usar mi ubicación actual",
+    "unavailable": "No se pudo obtener tu ubicación actual. Busca una ciudad o revisa el permiso de ubicación del navegador."
+  },
+  "language": {
+    "title": "Elige un idioma",
+    "selectLanguage": "Elige un idioma"
   }
 }

@@ -253,10 +253,10 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',                      # Debug Toolbar (development)
     'corsheaders.middleware.CorsMiddleware',                                # CORS (before CommonMiddleware)
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'starview_app.utils.middleware.BrowserLanguageMiddleware',              # Language detection (MUST be after SessionMiddleware)
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'starview_app.utils.middleware.BrowserLanguageMiddleware',              # Language preference (MUST be after AuthenticationMiddleware)
     'allauth.account.middleware.AccountMiddleware',                         # Allauth account middleware (MUST be after AuthenticationMiddleware)
     'axes.middleware.AxesMiddleware',                                       # Account lockout (MUST be after AuthenticationMiddleware)
     'starview_app.middleware.SessionIdleTimeoutMiddleware',                 # Session idle timeout (MUST be after AuthenticationMiddleware)

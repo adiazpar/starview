@@ -584,7 +584,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Update user's language preference for UI and emails.                          #
     #                                                                               #
     # Controls the language for UI text and email notifications.                    #
-    # Also updates the session language for immediate effect.                       #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-language-preference/                           #
@@ -594,10 +593,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-language-preference')
     def update_language_preference(self, request):
-        language_preference = request.data.get('language_preference', '').strip().lower()
+        requested_language = request.data.get('language_preference', '')
 
         # Get valid language codes from settings
         valid_languages = [lang_code for lang_code, lang_name in settings.LANGUAGES]
+        language_preference = next((code for code in valid_languages
+                                    if isinstance(requested_language, str)
+                                    and code.lower() == requested_language.strip().lower()), None)
 
         # Validate choice
         if language_preference not in valid_languages:
@@ -609,9 +611,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         profile = request.user.userprofile
         profile.language_preference = language_preference
         profile.save()
-
-        # Update session language for immediate effect
-        request.session['django_language'] = language_preference
 
         return Response({
             'detail': 'Language preference updated successfully.',

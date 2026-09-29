@@ -25,7 +25,7 @@ import {
  */
 export function useLanguage() {
   const { i18n } = useTranslation();
-  const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { isAuthenticated, user, loading: authLoading, refreshAuth } = useAuth();
 
   // Initialize from localStorage (immediate, no flicker)
   const [language, setLanguageState] = useState(() => {
@@ -94,7 +94,6 @@ export function useLanguage() {
   // Set language with backend sync for authenticated users
   const setLanguage = useCallback(async (newLanguage) => {
     if (!SUPPORTED_LANGUAGES.includes(newLanguage)) return;
-    if (newLanguage === language) return;
 
     // Optimistic update
     setLanguageState(newLanguage);
@@ -109,6 +108,9 @@ export function useLanguage() {
       // Ignore localStorage errors
     }
 
+    // Keep guest API responses and full-page OAuth requests in the chosen language.
+    document.cookie = `django_language=${encodeURIComponent(newLanguage)}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;
+
     // Dispatch event for same-tab sync
     window.dispatchEvent(new CustomEvent('languageChange', { detail: newLanguage }));
 
@@ -117,6 +119,7 @@ export function useLanguage() {
       setIsUpdating(true);
       try {
         await profileApi.updateLanguagePreference({ language_preference: newLanguage });
+        await refreshAuth();
       } catch (error) {
         console.error('Failed to sync language preference:', error);
         // Don't revert - localStorage is the fallback
@@ -124,7 +127,7 @@ export function useLanguage() {
         setIsUpdating(false);
       }
     }
-  }, [language, isAuthenticated, i18n]);
+  }, [isAuthenticated, i18n, refreshAuth]);
 
   // Get config for current language
   const languageConfig = useMemo(

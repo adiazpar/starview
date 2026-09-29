@@ -7,6 +7,7 @@
 
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { locationsApi } from '../services/locations';
+import { validCoordinates } from '../utils/location';
 
 /**
  * Fetch popular locations near user coordinates
@@ -22,7 +23,7 @@ export function usePopularNearby(lat, lng, options = {}) {
       const response = await locationsApi.getPopularNearby({ lat, lng });
       return response.data;
     },
-    enabled: Boolean(lat && lng),
+    enabled: validCoordinates({ latitude: lat, longitude: lng }),
     staleTime: 30 * 60 * 1000, // 30 minutes
     ...options,
   });

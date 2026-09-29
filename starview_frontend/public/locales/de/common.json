@@ -36,5 +36,13 @@
     "signInExisting": "Beim bestehenden Konto anmelden",
     "linkExplanation": "Konten bleiben getrennt, bis du bestätigst, dass sie dir gehören. Nach der Verknüpfung öffnen beide Anmeldemethoden dasselbe Profil auf jedem Gerät.",
     "finishLink": "Du bist angemeldet. Verknüpfe unten die neue Anmeldemethode mit diesem Profil."
+  },
+  "location": {
+    "useCurrent": "Meinen aktuellen Standort verwenden",
+    "unavailable": "Dein aktueller Standort konnte nicht ermittelt werden. Suche nach einer Stadt oder prüfe die Standortberechtigung deines Browsers."
+  },
+  "language": {
+    "title": "Sprache auswählen",
+    "selectLanguage": "Sprache auswählen"
   }
 }

@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '../../../contexts/LocationContext';
 import LoadingSpinner from '../LoadingSpinner';
+import { validCoordinates } from '../../../utils/location';
 import './styles.css';
 
 // Lazy load the heavy Mapbox Geocoder component
@@ -73,7 +74,7 @@ function LocationModal({ isOpen, onClose }) {
 
   // Handle location search selection
   const handleLocationSelect = useCallback((data) => {
-    if (data.location && data.latitude && data.longitude) {
+    if (data.location && validCoordinates(data)) {
       setLocation(data.latitude, data.longitude, data.location, 'search');
       handleClose();
     }

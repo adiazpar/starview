@@ -6,13 +6,12 @@
  * Used by sky pages (Tonight, Weather, Bortle) AND Explore page for consistent location context.
  *
  * Resolution order:
- * 1. sessionStorage (existing active location)
- * 2. Browser geolocation (if permission granted)
- * 3. IP geolocation (/api/geolocate/)
+ * Keep explicit search selections; refresh detected location on each visit.
+ * Browser geolocation (if permission granted), then IP, otherwise unknown.
  *
  * Two location states:
  * - location: Current active location (changes with search)
- * - actualLocation: User's real location (stable, from IP/browser only)
+ * - actualLocation: Current detected location (approximate for IP; never a search selection)
  *
  * Usage:
  *   const { location, actualLocation, source, isLoading, permissionState, setLocation, requestCurrentLocation, clearLocation } = useLocation();
@@ -20,6 +19,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import api from '../services/api';
+import { validCoordinates } from '../utils/location';
 
 const LocationContext = createContext(null);
 
@@ -36,7 +36,8 @@ async function reverseGeocode(latitude, longitude) {
 
   try {
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&types=place,locality&limit=1`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&types=place,locality&limit=1`,
+      { signal: AbortSignal.timeout(5000) }
     );
 
     if (!response.ok) return null;
@@ -60,306 +61,166 @@ async function reverseGeocode(latitude, longitude) {
   }
 }
 
-// Storage keys
+// Only a deliberate search selection persists between page visits. Detected
+// locations are refreshed so travel, permission changes and old development
+// fixtures cannot masquerade as the user's current position.
 const SESSION_KEY = 'starview_active_location';
 const RECENT_KEY = 'starview_recent_locations';
-const IP_CACHE_KEY = 'starview_ip_location'; // Session-only cache (fresh lookup each browser session)
-const IP_CACHE_DURATION = 1000 * 60 * 60; // 1 hour (within session)
 const MAX_RECENT_LOCATIONS = 5;
+
+function readStored(storage, key) {
+  try { return JSON.parse(storage.getItem(key)); } catch { return null; }
+}
+
+function writeStored(storage, key, value) {
+  try {
+    if (value === null) storage.removeItem(key);
+    else storage.setItem(key, JSON.stringify(value));
+  } catch { /* Location still works when browser storage is unavailable. */ }
+}
 
 export function LocationProvider({ children }) {
   const [location, setLocationState] = useState(null);
-  const [actualLocation, setActualLocation] = useState(null); // Stable user location (IP/browser), doesn't change on search
-  const [source, setSource] = useState(null); // 'browser' | 'ip' | 'search'
+  const [actualLocation, setActualLocation] = useState(null);
+  const [source, setSource] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [permissionState, setPermissionState] = useState(null); // 'granted' | 'denied' | 'prompt' | null
-  const [recentLocations, setRecentLocations] = useState([]);
-  const hasInitialized = useRef(false);
-  const permissionStatusRef = useRef(null);
+  const [permissionState, setPermissionState] = useState(null);
+  const [recentLocations, setRecentLocations] = useState(() => {
+    const stored = readStored(localStorage, RECENT_KEY);
+    return Array.isArray(stored) ? stored.filter(validCoordinates).slice(0, MAX_RECENT_LOCATIONS) : [];
+  });
+  const detectionVersion = useRef(0);
+  const selectionVersion = useRef(0);
+  const activeSource = useRef(null);
+  const permissionStatus = useRef(null);
+  const currentLocationRequested = useRef(false);
 
-  // Load recent locations from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(RECENT_KEY);
-      if (stored) {
-        setRecentLocations(JSON.parse(stored));
-      }
-    } catch {
-      localStorage.removeItem(RECENT_KEY);
-    }
-  }, []);
-
-  // Save recent locations to localStorage when they change
-  const saveRecentLocation = useCallback((loc) => {
-    if (!loc?.name) return;
-
-    setRecentLocations((prev) => {
-      // Remove duplicate if exists
-      const filtered = prev.filter(
-        (r) => r.latitude !== loc.latitude || r.longitude !== loc.longitude
-      );
-      // Add to front, limit to MAX_RECENT_LOCATIONS
-      const updated = [
-        { latitude: loc.latitude, longitude: loc.longitude, name: loc.name },
-        ...filtered,
-      ].slice(0, MAX_RECENT_LOCATIONS);
-
-      localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  // Fetch IP-based location as fallback
-  const fetchIPLocation = useCallback(async (skipActualUpdate = false) => {
-    // Check sessionStorage cache first (fresh lookup each browser session)
-    const cached = sessionStorage.getItem(IP_CACHE_KEY);
-    if (cached) {
+  const resolveLocation = useCallback(async (tryBrowser, preserveSearch = false) => {
+    const version = ++detectionVersion.current;
+    const selection = selectionVersion.current;
+    setIsLoading(true);
+    let detected = null;
+    if (tryBrowser && navigator.geolocation) {
       try {
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < IP_CACHE_DURATION) {
-          setLocationState(data);
-          setSource('ip');
-          // Set actualLocation if not already set and not skipped
-          if (!skipActualUpdate) {
-            setActualLocation((prev) => prev || data);
-          }
-          return true;
-        }
-      } catch {
-        sessionStorage.removeItem(IP_CACHE_KEY);
-      }
-    }
-
-    try {
-      const response = await api.get('/geolocate/');
-      if (response.data.latitude && response.data.longitude) {
-        const data = {
-          latitude: response.data.latitude,
-          longitude: response.data.longitude,
-          name: response.data.city
-            ? `${response.data.city}, ${response.data.region}`
-            : 'Your location',
-        };
-        // Cache IP location in session (fresh lookup each browser session)
-        sessionStorage.setItem(
-          IP_CACHE_KEY,
-          JSON.stringify({ data, timestamp: Date.now() })
-        );
-        setLocationState(data);
-        setSource('ip');
-        // Set actualLocation if not already set and not skipped
-        if (!skipActualUpdate) {
-          setActualLocation((prev) => prev || data);
-        }
-        return true;
-      }
-    } catch {
-      // IP geolocation failed
-    }
-    return false;
-  }, []);
-
-  // Request browser geolocation
-  const requestBrowserLocation = useCallback(async (updateActualLocation = false) => {
-    if (!navigator.geolocation) {
-      return false;
-    }
-
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 60000,
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false, timeout: 10000, maximumAge: 60000,
+          });
         });
+        const { latitude, longitude } = position.coords;
+        if (validCoordinates({ latitude, longitude })) {
+          const name = await reverseGeocode(latitude, longitude);
+          detected = { latitude, longitude, name: name || 'Current location', source: 'browser' };
+        }
+      } catch { /* Permission denial and timeouts fall back to approximate IP location. */ }
+    }
+    if (version !== detectionVersion.current) return false;
+    if (!detected) {
+      try {
+        const { data } = await api.get('/geolocate/', { timeout: 5000 });
+        if (data.source === 'ip' && validCoordinates(data)) {
+          detected = {
+            latitude: data.latitude, longitude: data.longitude,
+            name: [data.city, data.region].filter(Boolean).join(', ') || 'Approximate location',
+            source: 'ip',
+          };
+        }
+      } catch { /* Unknown location is a valid state; the user can search. */ }
+    }
+    if (version !== detectionVersion.current) return false;
+    setActualLocation(detected);
+    // A delayed detection may update nearby results, but must not replace a
+    // location the user deliberately selected while that request was in flight.
+    if (selection === selectionVersion.current && !(preserveSearch && activeSource.current === 'search')) {
+      setLocationState(detected);
+      setSource(detected?.source || null);
+      activeSource.current = detected?.source || null;
+      writeStored(sessionStorage, SESSION_KEY, null);
+    }
+    setIsLoading(false);
+    return detected?.source === 'browser';
+  }, []);
+
+  const requestCurrentLocation = useCallback(async () => {
+    currentLocationRequested.current = true;
+    try {
+      return await resolveLocation(true);
+    } finally {
+      currentLocationRequested.current = false;
+    }
+  }, [resolveLocation]);
+
+  const setLocation = useCallback((latitude, longitude, name, newSource = 'search') => {
+    const data = { latitude, longitude, name };
+    if (!validCoordinates(data)) return;
+    selectionVersion.current += 1;
+    activeSource.current = newSource;
+    setLocationState(data);
+    setSource(newSource);
+    writeStored(sessionStorage, SESSION_KEY, newSource === 'search' ? { data, source: newSource } : null);
+    if (newSource === 'search' && name) {
+      setRecentLocations(previous => {
+        const updated = [data, ...previous.filter(item => item.latitude !== latitude || item.longitude !== longitude)]
+          .slice(0, MAX_RECENT_LOCATIONS);
+        writeStored(localStorage, RECENT_KEY, updated);
+        return updated;
       });
-
-      const { latitude, longitude } = position.coords;
-
-      // Reverse geocode to get actual place name
-      const placeName = await reverseGeocode(latitude, longitude);
-
-      const data = {
-        latitude,
-        longitude,
-        name: placeName || 'Current location',
-      };
-
-      setLocationState(data);
-      setSource('browser');
-
-      // Save to session
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ data, source: 'browser' }));
-
-      // Update actualLocation if requested (during initialization)
-      if (updateActualLocation) {
-        setActualLocation((prev) => prev || data);
-      }
-
-      return true;
-    } catch {
-      return false;
     }
   }, []);
 
-  // Public method to request current location (for "Use my location" buttons)
-  const requestCurrentLocation = useCallback(async () => {
-    setIsLoading(true);
-    const success = await requestBrowserLocation();
-    if (!success) {
-      // Fall back to IP if browser fails
-      await fetchIPLocation();
-    }
-    setIsLoading(false);
-    return success;
-  }, [requestBrowserLocation, fetchIPLocation]);
+  const clearLocation = useCallback(() => {
+    selectionVersion.current += 1;
+    activeSource.current = null;
+    writeStored(sessionStorage, SESSION_KEY, null);
+    return resolveLocation(permissionStatus.current?.state === 'granted');
+  }, [resolveLocation]);
 
-  // Set location (for search results, "Check Conditions Here", etc.)
-  const setLocation = useCallback(
-    (latitude, longitude, name, newSource = 'search') => {
-      const data = { latitude, longitude, name };
-      setLocationState(data);
-      setSource(newSource);
-
-      // Save to session
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ data, source: newSource }));
-
-      // Add to recent locations for search-based locations
-      if (newSource === 'search') {
-        saveRecentLocation(data);
-      }
-    },
-    [saveRecentLocation]
-  );
-
-  // Clear location (reset to IP fallback)
-  const clearLocation = useCallback(async () => {
-    sessionStorage.removeItem(SESSION_KEY);
-    setLocationState(null);
-    setSource(null);
-    setIsLoading(true);
-    // Skip actualLocation update - it should remain stable
-    await fetchIPLocation(true);
-    setIsLoading(false);
-  }, [fetchIPLocation]);
-
-  // Initialize location on mount and monitor permission changes
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
+    let cancelled = false;
+    let status;
     const handlePermissionChange = () => {
-      const state = permissionStatusRef.current?.state;
-      setPermissionState(state || null);
-
-      // If permission just granted, try to get browser location
-      if (state === 'granted') {
-        requestBrowserLocation();
-      }
+      if (cancelled) return;
+      setPermissionState(status.state);
+      // Granting the pending prompt must not supersede that same request.
+      if (!currentLocationRequested.current) resolveLocation(status.state === 'granted', true);
     };
-
     const initialize = async () => {
-      setIsLoading(true);
-
-      // 1. Check sessionStorage first
-      let hasStoredLocation = false;
-      const stored = sessionStorage.getItem(SESSION_KEY);
-      if (stored) {
-        try {
-          const { data, source: storedSource } = JSON.parse(stored);
-          if (data?.latitude && data?.longitude) {
-            setLocationState(data);
-            setSource(storedSource);
-            // For browser/ip sources, use as actualLocation too
-            if (storedSource === 'browser' || storedSource === 'ip') {
-              setActualLocation(data);
-            }
-            setIsLoading(false);
-            hasStoredLocation = true;
-            // Continue to check permission state even if we have a stored location
-          }
-        } catch {
-          sessionStorage.removeItem(SESSION_KEY);
-        }
+      const stored = readStored(sessionStorage, SESSION_KEY);
+      if (stored?.source === 'search' && validCoordinates(stored.data)) {
+        setLocationState(stored.data);
+        setSource('search');
+        activeSource.current = 'search';
+      } else {
+        writeStored(sessionStorage, SESSION_KEY, null);
       }
-
-      // 2. Check browser geolocation permission and set up monitoring
-      let permissionGranted = false;
+      // Retire the cache that could contain the old fabricated San Francisco value.
+      writeStored(sessionStorage, 'starview_ip_location', null);
       if (navigator.permissions) {
         try {
-          const status = await navigator.permissions.query({ name: 'geolocation' });
-          permissionStatusRef.current = status;
-          permissionGranted = status.state === 'granted';
+          status = await navigator.permissions.query({ name: 'geolocation' });
+          if (cancelled) return;
+          permissionStatus.current = status;
           setPermissionState(status.state);
-
-          // Listen for permission changes
           status.addEventListener('change', handlePermissionChange);
-        } catch {
-          // Permissions API not supported
-        }
+        } catch { /* Permission API is not supported in every browser. */ }
       }
-
-      // If stored location is from search, still get actualLocation from IP/browser
-      if (hasStoredLocation) {
-        // For search-based stored locations, get actual user location in background
-        const storedData = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
-        if (storedData.source === 'search') {
-          // Get actualLocation from IP (don't update main location)
-          const cachedIP = sessionStorage.getItem(IP_CACHE_KEY);
-          if (cachedIP) {
-            try {
-              const { data, timestamp } = JSON.parse(cachedIP);
-              if (Date.now() - timestamp < IP_CACHE_DURATION) {
-                setActualLocation(data);
-              }
-            } catch {
-              // Ignore cache errors
-            }
-          }
-        }
-        return;
-      }
-
-      // 3. If permission granted, try browser geolocation
-      if (permissionGranted) {
-        const gotBrowser = await requestBrowserLocation(true); // updateActualLocation=true
-        if (gotBrowser) {
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // 4. Fall back to IP geolocation (will also set actualLocation)
-      await fetchIPLocation();
-      setIsLoading(false);
+      if (!cancelled) await resolveLocation(status?.state === 'granted', true);
     };
-
     initialize();
-
-    // Cleanup permission listener on unmount
     return () => {
-      if (permissionStatusRef.current) {
-        permissionStatusRef.current.removeEventListener('change', handlePermissionChange);
-      }
+      cancelled = true;
+      detectionVersion.current += 1;
+      status?.removeEventListener('change', handlePermissionChange);
     };
-  }, [requestBrowserLocation, fetchIPLocation]);
+  }, [resolveLocation]);
 
-  // Memoize context value to prevent unnecessary re-renders in consumers
   const value = useMemo(() => ({
-    location,
-    actualLocation, // Stable user location (IP/browser), doesn't change on search
-    source,
-    isLoading,
-    permissionState,
-    recentLocations,
-    setLocation,
-    requestCurrentLocation,
-    clearLocation,
-  }), [location, actualLocation, source, isLoading, permissionState, recentLocations, setLocation, requestCurrentLocation, clearLocation]);
+    location, actualLocation, source, isLoading, permissionState, recentLocations,
+    setLocation, requestCurrentLocation, clearLocation,
+  }), [location, actualLocation, source, isLoading, permissionState, recentLocations,
+    setLocation, requestCurrentLocation, clearLocation]);
 
-  return (
-    <LocationContext.Provider value={value}>{children}</LocationContext.Provider>
-  );
+  return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;
 }
 
 /**
