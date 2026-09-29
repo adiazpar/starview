@@ -15,6 +15,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import SunCalc from 'suncalc';
 import { useToast } from '../../../contexts/ToastContext';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
 
 // Mapbox configuration
@@ -312,7 +313,7 @@ function LocationMap({ location, compact = false }) {
             />
             {!mapLoaded && (
               <div className="location-map__loading">
-                <i className="fa-solid fa-spinner fa-spin"></i>
+                <LoadingSpinner size="sm" inline />
               </div>
             )}
           </>

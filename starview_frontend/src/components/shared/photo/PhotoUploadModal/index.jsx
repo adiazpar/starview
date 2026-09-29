@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useLocationPhotoUpload } from '../../../../hooks/useLocationPhotoUpload';
+import LoadingSpinner from '../../LoadingSpinner';
 import './styles.css';
 
 const MAX_FILES = 5;
@@ -303,7 +304,7 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
                         />
                       ) : (
                         <div className="photo-upload-modal__preview-loading">
-                          <i className="fa-solid fa-spinner fa-spin"></i>
+                          <LoadingSpinner size="xs" inline />
                         </div>
                       )}
                       <button
@@ -338,7 +339,7 @@ function PhotoUploadModal({ isOpen, onClose, locationId, onUploadSuccess }) {
           >
             {isUploading ? (
               <>
-                <i className="fa-solid fa-spinner fa-spin"></i>
+                <LoadingSpinner size="xs" inline />
                 <span>Uploading...</span>
               </>
             ) : (

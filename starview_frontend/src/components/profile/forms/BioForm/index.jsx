@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import profileApi from '../../../../services/profile';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
 import { useToast } from '../../../../contexts/ToastContext';
+import LoadingSpinner from '../../../shared/LoadingSpinner';
 import './styles.css';
 
 function BioForm({ user, refreshAuth, scrollTo = false }) {
@@ -113,7 +114,7 @@ function BioForm({ user, refreshAuth, scrollTo = false }) {
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     Saving...
                   </>
                 ) : (

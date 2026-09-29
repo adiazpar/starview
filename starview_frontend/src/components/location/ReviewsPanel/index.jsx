@@ -223,6 +223,30 @@ function ReviewsPanel({ location }) {
               <p className="reviews-panel__summary-text">{reviewSummary}</p>
 
               <p className="reviews-panel__disclaimer">
+                <svg
+                  className="reviews-panel__ai-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 375 375"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <clipPath id="ai-star-clip">
+                      <path d="M 167.78125 167.78125 L 207.53125 167.78125 L 207.53125 207.53125 L 167.78125 207.53125 Z" />
+                    </clipPath>
+                  </defs>
+                  <path
+                    fill="currentColor"
+                    d="M 375.007812 187.507812 C 243.507812 218.441406 218.433594 243.515625 187.5 375.015625 C 156.574219 243.507812 131.5 218.433594 0 187.507812 C 131.5 156.574219 156.574219 131.5 187.507812 0 C 218.433594 131.5 243.507812 156.574219 375.007812 187.507812 Z"
+                  />
+                  <g clipPath="url(#ai-star-clip)">
+                    <path
+                      fill="currentColor"
+                      d="M 207.21875 187.5 C 193.390625 190.753906 190.753906 193.390625 187.5 207.21875 C 184.246094 193.390625 181.609375 190.753906 167.78125 187.5 C 181.609375 184.246094 184.246094 181.609375 187.5 167.78125 C 190.753906 181.609375 193.390625 184.246094 207.21875 187.5 Z"
+                    />
+                  </g>
+                </svg>
                 This summary is AI-generated from reviews and may not always be accurate.
               </p>
 

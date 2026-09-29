@@ -84,7 +84,7 @@ Verified This Week: {{ verified_this_period }}
 All systems healthy. No issues detected this week.
 {% endif %}
 {% if cleanup_ran %}
-Note: Email suppression cleanup ran successfully before this digest.
+Note: Weekly cleanup tasks completed (email suppressions + unverified users).
 {% endif %}
 
 --------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 import { useCallback, useEffect } from 'react';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import LocationCard from '../LocationCard';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
 
 function VirtualizedLocationList({
@@ -74,7 +75,7 @@ function VirtualizedLocationList({
       {/* Loading indicator at bottom */}
       {isFetchingNextPage && (
         <div className="virtualized-list__loading">
-          <i className="fa-solid fa-spinner fa-spin"></i>
+          <LoadingSpinner size="xs" inline />
           <span>Loading more...</span>
         </div>
       )}

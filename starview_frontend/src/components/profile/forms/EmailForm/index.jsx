@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
 import { useToast } from '../../../../contexts/ToastContext';
+import LoadingSpinner from '../../../shared/LoadingSpinner';
 
 function EmailForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -107,7 +108,7 @@ function EmailForm({ user, refreshAuth }) {
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     Saving...
                   </>
                 ) : (

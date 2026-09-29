@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 function VerifyEmailPage() {
@@ -158,7 +159,7 @@ function VerifyEmailPage() {
               >
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner animate-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     Sending...
                   </>
                 ) : !canResend ? (

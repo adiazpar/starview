@@ -17,6 +17,7 @@ import Pagination from '../../components/explore/Pagination';
 import SortDropdown from '../../components/explore/SortDropdown';
 import LocationChip from '../../components/shared/LocationChip';
 import LocationModal from '../../components/shared/LocationModal';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 // Lazy load ExploreMap - defers loading Mapbox GL JS (~500KB) until needed
@@ -147,7 +148,7 @@ function ExplorePage() {
         isLoading ? (
           <div className="explore-page__list">
             <div className="explore-page__loading">
-              <i className="fa-solid fa-spinner fa-spin"></i>
+              <LoadingSpinner size="sm" inline />
               <p>Loading locations...</p>
             </div>
           </div>
@@ -228,7 +229,7 @@ function ExplorePage() {
 
         {isDesktop && isLoading ? (
           <div className="explore-page__loading">
-            <i className="fa-solid fa-spinner fa-spin"></i>
+            <LoadingSpinner size="sm" inline />
             <p>Loading locations...</p>
           </div>
         ) : isDesktop && isError ? (
@@ -273,7 +274,7 @@ function ExplorePage() {
         <div className="explore-page__map">
           <Suspense fallback={
             <div className="explore-page__loading">
-              <i className="fa-solid fa-spinner fa-spin"></i>
+              <LoadingSpinner size="sm" inline />
               <p>Loading map...</p>
             </div>
           }>

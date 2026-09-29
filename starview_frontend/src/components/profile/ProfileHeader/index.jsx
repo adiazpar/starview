@@ -6,6 +6,7 @@ import PinnedBadges from '../../badges/PinnedBadges';
 import BadgeModal from '../../badges/BadgeModal';
 import ProfilePictureModal from '../../shared/ProfilePictureModal';
 import { useToast } from '../../../contexts/ToastContext';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
 
 /**
@@ -204,7 +205,7 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
           >
             {isLoadingFollow ? (
               <>
-                <i className="fa-solid fa-spinner fa-spin"></i>
+                <LoadingSpinner size="xs" inline />
                 {isFollowing ? 'Unfollowing...' : 'Following...'}
               </>
             ) : (

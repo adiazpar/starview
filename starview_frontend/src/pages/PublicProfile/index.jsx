@@ -256,7 +256,7 @@ function PublicProfilePage() {
                   >
                     {reviewsLoading ? (
                       <>
-                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <LoadingSpinner size="xs" inline />
                         Loading...
                       </>
                     ) : (

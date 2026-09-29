@@ -9,6 +9,7 @@
  */
 
 import { useLocation } from '../../../contexts/LocationContext';
+import LoadingSpinner from '../LoadingSpinner';
 import './styles.css';
 
 function LocationChip({ onClick }) {
@@ -18,7 +19,7 @@ function LocationChip({ onClick }) {
   if (isLoading) {
     return (
       <button className="location-chip location-chip--loading" disabled>
-        <i className="fa-solid fa-spinner fa-spin location-chip__icon"></i>
+        <LoadingSpinner size="xs" inline />
         <span className="location-chip__text">Finding location...</span>
       </button>
     );

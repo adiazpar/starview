@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import authApi from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 import { useLanguage } from '../../hooks/useLanguage';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
 function PasswordResetRequestPage() {
@@ -93,7 +94,7 @@ function PasswordResetRequestPage() {
               >
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner animate-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     Sending...
                   </>
                 ) : (

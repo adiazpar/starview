@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
 import useFormSubmit from '../../../../hooks/useFormSubmit';
 import { useToast } from '../../../../contexts/ToastContext';
+import LoadingSpinner from '../../../shared/LoadingSpinner';
 
 function UsernameForm({ user, refreshAuth }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -98,7 +99,7 @@ function UsernameForm({ user, refreshAuth }) {
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <LoadingSpinner size="xs" inline />
                     Saving...
                   </>
                 ) : (
