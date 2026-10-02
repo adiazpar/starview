@@ -27,6 +27,11 @@ For a fresh clone, initialize it with:
 git submodule update --init .agents
 ```
 
+Codex and current Claude Code discover the root [AGENTS.md](AGENTS.md), which
+routes to the shared guide without installing global Starview instructions.
+Use the [workshop setup](.agents/README.md#setup) for Claude's skill launcher and
+optional project-scoped Google reporting connections.
+
 Start with the [project guide](.agents/AGENTS.md) for local development and the
 [documentation index](.agents/docs/index.md) for a specific area of the application.
 
