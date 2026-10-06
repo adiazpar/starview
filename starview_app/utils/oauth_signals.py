@@ -67,20 +67,8 @@ from allauth.mfa.signals import authenticator_added, authenticator_removed, auth
 
 @receiver(authenticator_added)
 def record_mfa_enrollment(request, user, authenticator, **kwargs):
-    if authenticator.type in ('totp', 'webauthn'):
-        from allauth.account.internal.flows.login import record_authentication
-        from starview_app.models import UserProfile
-        already_enabled = user.userprofile.two_factor_enabled
-        updates = {'two_factor_enabled': True}
-        if authenticator.type == 'totp':
-            updates['two_factor_method'] = UserProfile.TwoFactorMethod.AUTHENTICATOR
-            user.userprofile.two_factor_method = UserProfile.TwoFactorMethod.AUTHENTICATOR
-        UserProfile.objects.filter(user=user).update(**updates)
-        user.userprofile.two_factor_enabled = True
-        # Enrollment has just proved possession. Keep allauth's own recent-proof
-        # history in sync so showing recovery codes does not ask for proof again.
-        record_authentication(request, user, 'mfa', id=authenticator.pk, type=authenticator.type)
-        credential_changed(request, user, 'mfa_method_added' if already_enabled else 'mfa_enabled')
+    from starview_app.services.mfa_management import complete_mfa_enrollment
+    complete_mfa_enrollment(request, user, authenticator)
 
 
 @receiver(authenticator_removed)
@@ -91,7 +79,8 @@ def record_mfa_removal(request, user, authenticator, **kwargs):
 
 @receiver(authenticator_reset)
 def record_recovery_codes_reset(request, user, **kwargs):
-    credential_changed(request, user, 'mfa_recovery_reset')
+    from starview_app.services.mfa_management import complete_recovery_reset
+    complete_recovery_reset(request, user, kwargs['authenticator'])
 
 
 @receiver(social_account_added)

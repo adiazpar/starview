@@ -14,8 +14,8 @@ vi.mock('../AccountSecurityDialog', () => ({ default: () => <div role="dialog" a
 
 describe('account security entry point', () => {
   it.each([
-    [false, 'Enable two-factor authentication', 'Manage two-factor authentication'],
-    [true, 'Manage two-factor authentication', 'Enable two-factor authentication'],
+    [false, 'Enable', 'Manage'],
+    [true, 'Manage', 'Enable'],
   ])('reflects the account enabled setting (%s)', (enabled, action, absentAction) => {
     render(<MemoryRouter><SettingsTab user={{ id: 1, mfa_enabled: enabled }} /></MemoryRouter>);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

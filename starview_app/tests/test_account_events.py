@@ -56,15 +56,20 @@ class AccountEventTests(TestCase):
         session['starview_recent_auth'] = {'user_id': self.user.pk, 'at': time.time(), 'method': 'mfa', 'mfa': True}
         session.save()
 
-    def test_admin_cannot_overwrite_verified_email_rows(self):
+    def test_admin_contact_edit_synchronizes_verified_primary_and_revokes_other_sessions(self):
         self.staff_session()
         address = EmailAddress.objects.get(user=self.user)
         response = self.client.post(f'/admin/account/emailaddress/{address.pk}/change/', {
             'user': self.user.pk, 'email': 'unproven@example.test', 'verified': 'on', 'primary': 'on',
         })
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
         address.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(address.email, 'unproven@example.test')
         self.assertEqual(address.email, self.user.email)
+        self.assertTrue(address.verified)
+        self.assertTrue(address.primary)
+        self.assertEqual(self.user.userprofile.security_version, 1)
 
     def test_admin_password_change_revokes_target_sessions_and_records_actor(self):
         from django.test import Client

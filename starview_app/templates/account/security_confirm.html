@@ -4,13 +4,13 @@
 {% block content %}
 <header class="account-security-heading">
   <h1>{% if signing_in %}{% trans "Verify your sign-in" %}{% else %}{% trans "Confirm your identity" %}{% endif %}</h1>
-  <p>{% trans "Choose a verification method to continue." %}</p>
 </header>
-<div class="account-verification-methods" aria-label="{% trans 'Verification methods' %}">
+{# Hidden by CSS unless there are two or more methods to switch between. #}
+<nav class="account-verification-methods" aria-label="{% trans 'Verification methods' %}">
   {% for option in verification_methods %}
-    {% if option.available and option.id != 'recovery_codes' %}<a class="btn-secondary" href="{{ option.url }}" {% if method == option.id %}aria-current="true"{% endif %}>{{ option.label }}</a>{% endif %}
+    {% if option.available and option.id != 'recovery_codes' %}<a href="{{ option.url }}" {% if method == option.id %}aria-current="true"{% endif %}>{{ option.label }}</a>{% endif %}
   {% endfor %}
-</div>
+</nav>
 <p id="confirmation-help">
   {% if method == 'totp' %}{% trans "Enter the current code from your authenticator app." %}
   {% elif method == 'recovery_codes' %}{% trans "Enter an unused backup code. Each code works once." %}
@@ -20,7 +20,7 @@
 {% if method == 'email_code' %}
   <form method="post" class="account-security-send">{% csrf_token %}
     <input type="hidden" name="method" value="{{ method }}">
-    <button class="btn-secondary" name="action" value="send_code" type="submit">{% if sent %}{% trans "Send another code" %}{% else %}{% trans "Send a code" %}{% endif %}</button>
+    <button class="btn-secondary btn-secondary--sm" name="action" value="send_code" type="submit">{% if sent %}{% trans "Send another code" %}{% else %}{% trans "Send a code" %}{% endif %}</button>
   </form>
   {% if sent %}<p class="account-security-notice" role="status">{% trans "Check your inbox. Your code expires in 10 minutes." %}</p>{% endif %}
 {% endif %}
@@ -29,7 +29,7 @@
   <input type="hidden" name="method" value="{{ method }}">
   <div class="form-group">
     <label class="form-label" for="confirmation">{% trans "Verification code" %}</label>
-    <input class="form-input" id="confirmation" type="text" name="code" autocomplete="one-time-code" required maxlength="32" inputmode="numeric" aria-describedby="confirmation-help{% if error %} confirmation-error{% endif %}" {% if error %}aria-invalid="true"{% endif %}>
+    <input class="form-input" id="confirmation" type="text" name="code" autocomplete="one-time-code" required maxlength="32" inputmode="numeric" enterkeyhint="done" {% if method != 'email_code' or sent %}autofocus{% endif %} aria-describedby="confirmation-help{% if error %} confirmation-error{% endif %}" {% if error %}aria-invalid="true"{% endif %}>
   </div>
   <button class="btn-primary btn-primary--full" type="submit">{% trans "Confirm and continue" %}</button>
 </form>

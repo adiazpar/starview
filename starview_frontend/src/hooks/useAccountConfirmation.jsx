@@ -27,7 +27,7 @@ export default function useAccountConfirmation() {
     setPrompt(null);
   };
 
-  const confirm = async ({ password, force = false } = {}) => {
+  const confirm = async ({ password } = {}) => {
     if (!owner || !mounted.current) return false;
     const attempt = ++generation.current;
     pending.current?.resolve(false);
@@ -36,7 +36,7 @@ export default function useAccountConfirmation() {
     const isCurrent = () => mounted.current && attempt === generation.current;
     const { data } = await authApi.getSecurityStatus();
     if (!isCurrent()) return false;
-    if (data.recent && !force) return true;
+    if (data.recent) return true;
     // Reuse proof already entered in the password-change form.
     if (data.method === 'password' && password) {
       await authApi.confirmIdentity({ password });

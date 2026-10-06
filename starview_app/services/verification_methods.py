@@ -59,11 +59,16 @@ def _send_email(request, user, purpose):
 
 
 def send_email_challenge(request, user, email, purpose):
+    expected_version = user.userprofile.security_version
     if not request.session.session_key:
         request.session.save()
     now = timezone.now()
     with transaction.atomic():
         user = get_user_model().objects.select_for_update().get(pk=user.pk)
+        if expected_version != user.userprofile.security_version or (
+            purpose == 'reauth' and request.session.get('identity_version', 0) != user.userprofile.security_version
+        ):
+            raise exceptions.PermissionDenied(_('Your account changed. Please sign in again.'))
         email = email or email_destination(user)
         if not user.is_active or not verified_primary(user) or is_apple_relay_disabled(email):
             raise exceptions.PermissionDenied(_('Verify your primary email before continuing.'))
@@ -114,6 +119,21 @@ def verify_email_challenge(request, user, code, email, purpose):
     if valid:
         request.session.pop(_challenge_key(purpose), None)
     return valid
+
+
+def normalize_verification_code(code):
+    # allauth's constant-time string comparisons require ASCII. JSON values
+    # must not be coerced into strings by Django form fields either.
+    if not isinstance(code, str) or not code.strip() or len(code) > 32 or not code.isascii():
+        raise exceptions.ValidationError(_('Enter a valid verification code.'))
+    return code.strip()
+
+
+def check_proof_rate_limit(user):
+    try:
+        return check_rate_limit(user)
+    except ValidationError:
+        raise exceptions.Throttled() from None
 
 
 def _has_authenticator(user, auth_type):
@@ -175,24 +195,29 @@ def send_code(request, user, method_id='email_code', *, purpose='reauth'):
 
 def verify_code(request, user, method_id, code, *, purpose='reauth', reauthenticated=True):
     method = METHODS.get(method_id) if isinstance(method_id, str) else None
-    if not method or not isinstance(code, str) or not code or len(code) > 32:
+    if not method:
         raise exceptions.ValidationError(_('Enter a valid verification code.'))
+    code = normalize_verification_code(code)
+    expected_version = user.userprofile.security_version
     # Shared across methods and sign-in/reauthentication, so switching methods
     # does not reset the failed-proof budget.
-    try:
-        clear_limit = check_rate_limit(user)
-    except ValidationError:
-        raise exceptions.Throttled() from None
     with transaction.atomic():
         user = get_user_model().objects.select_for_update().get(pk=user.pk)
+        if expected_version != user.userprofile.security_version or (
+            reauthenticated and request.session.get('identity_version', 0) != user.userprofile.security_version
+        ):
+            raise exceptions.PermissionDenied(_('Your account changed. Please sign in again.'))
         if not user.is_active or not verified_primary(user) or not method.available(user):
             raise exceptions.PermissionDenied(_('This verification method is not available.'))
-        proof = method.verify(request, user, code.strip(), purpose)
+        clear_limit = check_proof_rate_limit(user)
+        proof = method.verify(request, user, code, purpose)
+        if proof:
+            clear_limit()
     # Failed email attempts must commit before reporting an error.
     if not proof:
         raise exceptions.ValidationError(_('The code is incorrect or has expired.'))
-    clear_limit()
     if isinstance(proof, Authenticator):
         post_authentication(request, proof, reauthenticated=reauthenticated)
     else:
         record_authentication(request, user, 'mfa', type=method_id, reauthenticated=reauthenticated)
+    return user

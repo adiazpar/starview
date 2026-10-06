@@ -35,6 +35,7 @@
 
 .profile-form-header-content {
   flex: 1;
+  min-width: 0;
 }
 
 .profile-form-title {
@@ -90,6 +91,7 @@
 .profile-view-value {
   font-size: var(--text-base);
   color: var(--text-primary);
+  overflow-wrap: anywhere;
 }
 
 .profile-view-value--empty {

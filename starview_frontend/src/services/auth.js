@@ -111,7 +111,7 @@ export const authApi = {
    * Resend email verification link
    * @param {Object} data - Email data
    * @param {string} data.email - User's email address
-   * @returns {Promise} - { detail: string, email_sent: boolean }
+   * @returns {Promise} - { detail: string, resend_after: number }
    */
   resendVerificationEmail: (data) => {
     return api.post('/auth/resend-verification/', data);

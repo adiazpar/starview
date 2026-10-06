@@ -73,6 +73,7 @@
 
 .verify-email-address {
   color: var(--text-primary);
+  overflow-wrap: anywhere;
   font-size: 15px;
   font-weight: var(--font-medium);
   padding: var(--space-md);
@@ -86,40 +87,6 @@
   text-align: left;
 }
 
-
-/* ============================================ */
-/* ALREADY VERIFIED STATE */
-/* ============================================ */
-
-.verify-email-verified {
-  text-align: center;
-  animation: fadeInUp var(--animation-duration) ease-out backwards;
-}
-
-.verify-email-verified-icon {
-  margin-bottom: var(--space-lg);
-}
-
-.verify-email-verified-icon i {
-  font-size: 56px;
-  color: var(--success);
-}
-
-.verify-email-verified-title {
-  font-size: var(--text-xl);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  margin: 0 0 var(--space-sm) 0;
-}
-
-.verify-email-verified-description {
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  line-height: var(--leading-normal);
-  margin: 0 0 var(--space-lg) 0;
-}
 
 /* ============================================ */
 /* FOOTER */
@@ -151,15 +118,4 @@
 
 .verify-email-back-link:hover {
   color: var(--text-primary);
-}
-
-/* ============================================ */
-/* REDUCED MOTION */
-/* ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  .verify-email-card,
-  .verify-email-verified {
-    animation: none;
-  }
 }

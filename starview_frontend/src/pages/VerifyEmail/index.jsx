@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import useCooldown, { retryAfterSeconds } from '../../hooks/useCooldown';
+import authApi from '../../services/auth';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './styles.css';
 
@@ -16,9 +18,7 @@ function VerifyEmailPage() {
 
   const [email, setEmail] = useState(emailFromUrl || '');
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const [canResend, setCanResend] = useState(true);
-  const [alreadyVerified, setAlreadyVerified] = useState(false);
+  const [countdown, startCountdown] = useCooldown();
 
   // Check if user is already verified (authenticated users)
   useEffect(() => {
@@ -39,18 +39,6 @@ function VerifyEmailPage() {
     }
   };
 
-  // Countdown timer effect
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [countdown]);
-
   const handleResendEmail = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -62,31 +50,13 @@ function VerifyEmailPage() {
     }
 
     try {
-      const response = await fetch('/api/auth/resend-verification/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showToast(data.detail || 'Verification email sent! Check your inbox.', 'success');
-        setCountdown(60);
-        setCanResend(false);
-      } else {
-        // Check if error is because email is already verified
-        const errorMessage = data.detail || '';
-        if (errorMessage.toLowerCase().includes('already verified')) {
-          setAlreadyVerified(true);
-        } else {
-          showToast(errorMessage || 'Failed to send verification email. Please try again.', 'error');
-        }
-      }
-    } catch (err) {
-      showToast('An error occurred. Please try again later.', 'error');
+      const { data } = await authApi.resendVerificationEmail({ email });
+      showToast(data.detail, 'success');
+      startCountdown(data.resend_after);
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      showToast(typeof detail === 'string' ? detail : 'An error occurred. Please try again later.', 'error');
+      startCountdown(retryAfterSeconds(error));
     } finally {
       setLoading(false);
     }
@@ -96,90 +66,70 @@ function VerifyEmailPage() {
     <div className="auth-page">
       <div className="auth-page__content">
         <div className="auth-page__card glass-card">
-        {alreadyVerified ? (
-          // Show success state for already verified email
-          <div className="verify-email-verified">
-            <div className="verify-email-verified-icon">
-              <i className="fa-solid fa-circle-check"></i>
-            </div>
+          {/* Icon */}
+          <div className="verify-email-icon">
+            <i className="fa-solid fa-envelope"></i>
+          </div>
 
-            <h2 className="verify-email-verified-title">Already verified</h2>
-            <p className="verify-email-verified-description">
-              Your email is already verified. You can log in now!
-            </p>
+          {/* Header */}
+          <div className="verify-email-header">
+            <h1 className="verify-email-title">Verify your email</h1>
+            <p className="verify-email-subtitle">{getMessage()}</p>
+          </div>
 
-            <Link to="/login" className="btn-primary btn-primary--full">
-              Go to login
+          {/* Email Display/Input */}
+          <div className="verify-email-form">
+            {emailFromUrl ? (
+              // Show email as read-only display
+              <div className="verify-email-display">
+                <label className="form-label">Email address</label>
+                <div className="verify-email-address">{email}</div>
+              </div>
+            ) : (
+              // Show email input field
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">Email address</label>
+                <input
+                  type="email"
+                  id="email"
+                  className="form-input"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+            )}
+
+            {/* Resend Button */}
+            <button
+              onClick={handleResendEmail}
+              className="btn-primary btn-primary--full"
+              disabled={loading || countdown > 0}
+            >
+              {loading ? (
+                <>
+                  <LoadingSpinner size="xs" inline />
+                  Sending...
+                </>
+              ) : countdown > 0 ? (
+                `Resend in ${countdown}s`
+              ) : (
+                'Resend verification email'
+              )}
+            </button>
+          </div>
+
+          {/* Helper Section */}
+          <div className="verify-email-footer">
+            <p className="verify-email-help-text">Didn't receive the email?</p>
+            <p className="verify-email-help-text">Check your spam folder or try resending.</p>
+            <Link to="/login" className="verify-email-back-link">
+              Back to login
             </Link>
           </div>
-        ) : (
-          <>
-            {/* Icon */}
-            <div className="verify-email-icon">
-              <i className="fa-solid fa-envelope"></i>
-            </div>
-
-            {/* Header */}
-            <div className="verify-email-header">
-              <h1 className="verify-email-title">Verify your email</h1>
-              <p className="verify-email-subtitle">{getMessage()}</p>
-            </div>
-
-            {/* Email Display/Input */}
-            <div className="verify-email-form">
-              {emailFromUrl ? (
-                // Show email as read-only display
-                <div className="verify-email-display">
-                  <label className="form-label">Email address</label>
-                  <div className="verify-email-address">{email}</div>
-                </div>
-              ) : (
-                // Show email input field
-                <div className="form-group">
-                  <label htmlFor="email" className="form-label">Email address</label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="form-input"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-              )}
-
-              {/* Resend Button */}
-              <button
-                onClick={handleResendEmail}
-                className="btn-primary btn-primary--full"
-                disabled={loading || !canResend}
-              >
-                {loading ? (
-                  <>
-                    <LoadingSpinner size="xs" inline />
-                    Sending...
-                  </>
-                ) : !canResend ? (
-                  `Resend in ${countdown}s`
-                ) : (
-                  'Resend verification email'
-                )}
-              </button>
-            </div>
-
-            {/* Helper Section */}
-            <div className="verify-email-footer">
-              <p className="verify-email-help-text">Didn't receive the email?</p>
-              <p className="verify-email-help-text">Check your spam folder or try resending.</p>
-              <Link to="/login" className="verify-email-back-link">
-                Back to login
-              </Link>
-            </div>
-          </>
-        )}
         </div>
       </div>
     </div>

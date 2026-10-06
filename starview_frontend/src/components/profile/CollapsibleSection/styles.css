@@ -72,3 +72,13 @@
 .collapsible-section-content-padded {
   padding: var(--space-lg);
 }
+
+@media (max-width: 480px) {
+  .collapsible-section-header {
+    padding: var(--space-md);
+  }
+
+  .collapsible-section-content-padded {
+    padding: var(--space-md) var(--space-sm);
+  }
+}

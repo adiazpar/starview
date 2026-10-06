@@ -16,6 +16,8 @@
 
 # Import tools:
 from django.contrib import admin
+from django import forms
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -30,6 +32,110 @@ from .models import Review, ReviewComment, ReviewPhoto, Report, Vote
 from .models import EmailBounce, EmailComplaint, EmailSuppressionList
 from .models import AuditLog, LocationVisit
 from .models import Badge, UserBadge, SummaryFeedback
+
+
+class EditableDomainAdmin(admin.ModelAdmin):
+    """Keep display helpers read-only while exposing editable model fields."""
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+        for field in super().get_readonly_fields(request, obj):
+            try:
+                editable = self.model._meta.get_field(field).editable
+            except FieldDoesNotExist:
+                editable = False
+            if not editable:
+                fields.append(field)
+        return fields
+
+
+class AdminUserChangeForm(BaseUserAdmin.form):
+    def clean_email(self):
+        from starview_app.services.email_identity import email_owners
+        email = self.cleaned_data['email'].strip().lower()
+        if email and email_owners(email).exclude(pk=self.instance.pk).exists():
+            raise ValidationError('This email address is already registered.')
+        return email
+
+
+class AdminEmailAddressForm(forms.ModelForm):
+    class Meta:
+        from allauth.account.models import EmailAddress
+        model = EmailAddress
+        fields = '__all__'
+
+    def clean(self):
+        from starview_app.services.email_identity import email_owners
+        cleaned = super().clean()
+        email, user = cleaned.get('email'), cleaned.get('user')
+        if email and user and email_owners(email).exclude(pk=user.pk).exists():
+            self.add_error('email', 'This email address is already registered.')
+        return cleaned
+
+    def _get_validation_exclusions(self):
+        excluded = super()._get_validation_exclusions()
+        # The save service demotes the existing primary under an account lock.
+        # Keep the model's unique-primary constraint in force at the write.
+        excluded.add('primary')
+        return excluded
+
+
+class EmailOwnershipAdminMixin:
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        from django.db import IntegrityError
+        from starview_app.services.email_identity import is_email_conflict
+        try:
+            return super().changeform_view(request, object_id, form_url, extra_context)
+        except IntegrityError as exc:
+            if not is_email_conflict(exc):
+                raise
+            # A concurrent claimant can win after ordinary form validation.
+            # The admin's atomic write has rolled back; render the same bound
+            # form with an ownership error rather than retrying the mutation.
+            request._starview_admin_email_conflict = True
+            return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def get_form(self, request, obj=None, **kwargs):
+        Form = super().get_form(request, obj, **kwargs)
+        if not getattr(request, '_starview_admin_email_conflict', False):
+            return Form
+
+        class ConflictForm(Form):
+            def clean(self):
+                cleaned = super().clean()
+                self.add_error('email', 'This email address is already registered.')
+                return cleaned
+
+        return ConflictForm
+
+
+class IdentityMutationAdminMixin(EditableDomainAdmin):
+    def save_model(self, request, obj, form, change):
+        from starview_app.services.admin_identity import (
+            admin_account_changes, identity_owner_ids, prepare_provider_change, save_admin_email_address,
+        )
+        previous = self.model.objects.filter(pk=obj.pk).first() if change else None
+        owners = identity_owner_ids(self.model, self.model.objects.filter(pk=obj.pk)) if previous else set()
+        owners.add(obj.account.user_id if self.model is SocialToken else obj.user_id)
+        with admin_account_changes(request, owners):
+            if self.model is SocialAccount:
+                prepare_provider_change(previous, obj)
+            if self.model._meta.label_lower == 'account.emailaddress':
+                save_admin_email_address(obj)
+            else:
+                super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        from starview_app.services.admin_identity import admin_account_changes, prepare_provider_change
+        user_id = obj.account.user_id if self.model is SocialToken else obj.user_id
+        with admin_account_changes(request, [user_id]):
+            if self.model is SocialAccount:
+                prepare_provider_change(obj)
+            super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            self.delete_model(request, obj)
 
 
 
@@ -50,7 +156,7 @@ from .models import Badge, UserBadge, SummaryFeedback
 # - See what object is being voted on                                           #
 # - Track voting patterns across different content types                        #
 # ----------------------------------------------------------------------------- #
-class VoteAdmin(admin.ModelAdmin):
+class VoteAdmin(EditableDomainAdmin):
     list_display = [
         'id',
         'get_voted_object_type',    # Shows the model type (review, reviewcomment, etc.)
@@ -132,7 +238,7 @@ class VoteAdmin(admin.ModelAdmin):
 # - Update report status and add review notes                                   #
 # - Track who reported and who reviewed each report                             #
 # ----------------------------------------------------------------------------- #
-class ReportAdmin(admin.ModelAdmin):
+class ReportAdmin(EditableDomainAdmin):
     list_display = [
         'id',
         'get_reported_object_type',   # Shows the model type (location, review, reviewcomment, etc.)
@@ -234,7 +340,7 @@ class ReportAdmin(admin.ModelAdmin):
 # - View detailed bounce information                                            #
 # - Bulk actions for suppression management                                     #
 # ----------------------------------------------------------------------------- #
-class EmailBounceAdmin(admin.ModelAdmin):
+class EmailBounceAdmin(EditableDomainAdmin):
     list_display = [
         'email',
         'user_link',
@@ -406,7 +512,7 @@ class EmailBounceAdmin(admin.ModelAdmin):
 # - View detailed complaint information                                         #
 # - Mark complaints as reviewed                                                 #
 # ----------------------------------------------------------------------------- #
-class EmailComplaintAdmin(admin.ModelAdmin):
+class EmailComplaintAdmin(EditableDomainAdmin):
     list_display = [
         'email',
         'user_link',
@@ -548,7 +654,7 @@ class EmailComplaintAdmin(admin.ModelAdmin):
 # - Bulk activate/deactivate suppressions                                       #
 # - View linked bounce/complaint records                                        #
 # ----------------------------------------------------------------------------- #
-class EmailSuppressionListAdmin(admin.ModelAdmin):
+class EmailSuppressionListAdmin(EditableDomainAdmin):
     list_display = [
         'email',
         'user_link',
@@ -685,12 +791,12 @@ class EmailSuppressionListAdmin(admin.ModelAdmin):
 # Custom admin interface for AuditLog model.                                    #
 #                                                                               #
 # Admin interface for viewing security audit logs with:                         #
-# - Read-only access (audit logs are immutable)                                 #
+# - Administrative correction/removal with normal Django permissions            #
 # - Filter by event type, timestamp, success status                             #
 # - Search by username and IP address                                           #
 # - View metadata and user agent details                                        #
 # ----------------------------------------------------------------------------- #
-class AuditLogAdmin(admin.ModelAdmin):
+class AuditLogAdmin(EditableDomainAdmin):
     list_display = [
         'timestamp',
         'event_type_badge',
@@ -735,17 +841,24 @@ class AuditLogAdmin(admin.ModelAdmin):
             'fields': ('ip_address', 'user_agent')
         }),
         ('Metadata', {
-            'fields': ('metadata_display',),
+            'fields': ('metadata', 'metadata_display'),
             'classes': ('collapse',)
         }),
     )
 
-    # Disable add and delete permissions (audit logs are append-only)
-    def has_add_permission(self, request):
-        return False
+    def save_model(self, request, obj, form, change):
+        if change:
+            # The regular model remains append-only; explicitly authorized
+            # administrator edits use a database update instead of its guard.
+            values = {field.attname: getattr(obj, field.attname) for field in obj._meta.concrete_fields if not field.primary_key}
+            AuditLog.objects.filter(pk=obj.pk).update(**values)
+        else:
+            super().save_model(request, obj, form, change)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    def delete_model(self, request, obj):
+        AuditLog.objects.filter(pk=obj.pk).delete()
+
+
 
     # Badge for event type
     def event_type_badge(self, obj):
@@ -813,7 +926,7 @@ class AuditLogAdmin(admin.ModelAdmin):
 # - View follower/following relationships                                       #
 # - Bulk delete actions                                                         #
 # ----------------------------------------------------------------------------- #
-class FollowAdmin(admin.ModelAdmin):
+class FollowAdmin(EditableDomainAdmin):
     list_display = [
         'id',
         'follower_link',
@@ -846,10 +959,6 @@ class FollowAdmin(admin.ModelAdmin):
 
     ordering = ['-created_at']
     list_per_page = 50
-
-    # Disable add permission (users create follows through the app)
-    def has_add_permission(self, request):
-        return False
 
     # Link to follower user admin page
     def follower_link(self, obj):
@@ -885,7 +994,7 @@ class FollowAdmin(admin.ModelAdmin):
 # - View badge details and award counts                                         #
 # - Color-coded badges by category                                              #
 # ----------------------------------------------------------------------------- #
-class BadgeAdmin(admin.ModelAdmin):
+class BadgeAdmin(EditableDomainAdmin):
     list_display = [
         'name',
         'category_badge',
@@ -980,7 +1089,7 @@ class BadgeAdmin(admin.ModelAdmin):
 # - View badge details and earn date                                            #
 # - Links to user and badge detail pages                                        #
 # ----------------------------------------------------------------------------- #
-class UserBadgeAdmin(admin.ModelAdmin):
+class UserBadgeAdmin(EditableDomainAdmin):
     list_display = [
         'user_link',
         'badge_link',
@@ -1013,9 +1122,6 @@ class UserBadgeAdmin(admin.ModelAdmin):
     ordering = ['-earned_at']
     list_per_page = 50
 
-    # Disable add permission (badges awarded via BadgeService)
-    def has_add_permission(self, request):
-        return False
 
     # Link to user admin page
     def user_link(self, obj):
@@ -1051,7 +1157,7 @@ class UserBadgeAdmin(admin.ModelAdmin):
 # - View visit details                                                          #
 # - Links to user and location detail pages                                     #
 # ----------------------------------------------------------------------------- #
-class LocationVisitAdmin(admin.ModelAdmin):
+class LocationVisitAdmin(EditableDomainAdmin):
     list_display = [
         'user_link',
         'location_link',
@@ -1082,9 +1188,6 @@ class LocationVisitAdmin(admin.ModelAdmin):
     ordering = ['-visited_at']
     list_per_page = 50
 
-    # Disable add permission (visits created via app)
-    def has_add_permission(self, request):
-        return False
 
     # Link to user admin page
     def user_link(self, obj):
@@ -1115,7 +1218,7 @@ class LocationVisitAdmin(admin.ModelAdmin):
 # - View feedback details and summary hash for version tracking                 #
 # - Links to user and location detail pages                                     #
 # ----------------------------------------------------------------------------- #
-class SummaryFeedbackAdmin(admin.ModelAdmin):
+class SummaryFeedbackAdmin(EditableDomainAdmin):
     list_display = [
         'id',
         'user_link',
@@ -1160,9 +1263,6 @@ class SummaryFeedbackAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
     list_per_page = 50
 
-    # Disable add permission (feedback created via app)
-    def has_add_permission(self, request):
-        return False
 
     # Link to user admin page
     def user_link(self, obj):
@@ -1205,35 +1305,18 @@ class SummaryFeedbackAdmin(admin.ModelAdmin):
 # ----------------------------------------------------------------------------- #
 class ConnectedIdentityInline(admin.TabularInline):
     model = SocialAccount
-    fields = ('provider', 'uid', 'date_joined', 'last_login')
-    readonly_fields = fields
+    fields = ('provider', 'uid', 'extra_data', 'date_joined', 'last_login')
+    readonly_fields = ('date_joined', 'last_login')
     extra = 0
-    can_delete = False
     show_change_link = True
 
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
-class ReadOnlyIdentityAdminMixin:
-    """Identity records are inspected here and changed through account services."""
-    actions = None
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-
-class ConnectedIdentityAdmin(ReadOnlyIdentityAdminMixin, AllauthSocialAccountAdmin):
+class ConnectedIdentityAdmin(IdentityMutationAdminMixin, AllauthSocialAccountAdmin):
     list_display = ('user', 'provider', 'uid', 'provider_email', 'last_login')
     list_select_related = ('user',)
-    fields = ('user', 'provider', 'uid', 'date_joined', 'last_login', 'profile_claims')
-    readonly_fields = fields
+    fields = ('user', 'provider', 'uid', 'date_joined', 'last_login', 'extra_data', 'profile_claims')
+    readonly_fields = ('date_joined', 'last_login', 'profile_claims')
 
     @admin.display(description='Provider email')
     def provider_email(self, obj):
@@ -1247,11 +1330,11 @@ class ConnectedIdentityAdmin(ReadOnlyIdentityAdminMixin, AllauthSocialAccountAdm
         return json.dumps({key: value for key, value in obj.extra_data.items() if key in allowed}, indent=2)
 
 
-class ProtectedSocialTokenAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+class SocialTokenAdmin(IdentityMutationAdminMixin):
     list_display = ('account', 'credential_status')
     list_select_related = ('account', 'account__user')
-    fields = ('account', 'app', 'credential_status', 'expires_at')
-    readonly_fields = fields
+    fields = ('account', 'app', 'token', 'token_secret', 'credential_status', 'expires_at')
+    readonly_fields = ('credential_status',)
 
     @admin.display(description='Credential status')
     def credential_status(self, obj):
@@ -1261,21 +1344,38 @@ class ProtectedSocialTokenAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
         return 'Credential hidden'
 
 
-class CustomUserAdmin(BaseUserAdmin):
+class CustomUserAdmin(EmailOwnershipAdminMixin, BaseUserAdmin):
     inlines = (*BaseUserAdmin.inlines, ConnectedIdentityInline)
 
-    def get_readonly_fields(self, request, obj=None):
-        fields = super().get_readonly_fields(request, obj)
-        # Account owners change their verified contact through the guarded flow.
-        return (*fields, 'email') if obj else fields
+    form = AdminUserChangeForm
 
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        if change and {'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'} & set(form.changed_data):
-            from starview_app.services.account_security import revoke_account_sessions
-            from starview_app.services.account_events import record_account_event
-            revoke_account_sessions(obj)
-            record_account_event(request, obj, 'account_admin_changed', method='admin')
+        from django.db import transaction
+        from starview_app.services.admin_identity import admin_account_changes, synchronize_user_contact
+        from contextlib import nullcontext
+        identity_fields = {'email', 'username', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'}
+        changes_identity = change and identity_fields & set(form.changed_data)
+        with transaction.atomic(), (admin_account_changes(request, [obj.pk]) if changes_identity else nullcontext()):
+            super().save_model(request, obj, form, change)
+            if not change or 'email' in form.changed_data:
+                synchronize_user_contact(obj)
+
+    def save_formset(self, request, form, formset, change):
+        from starview_app.services.admin_identity import admin_account_changes, prepare_provider_change
+        if formset.model is not SocialAccount:
+            return super().save_formset(request, form, formset, change)
+        instances = formset.save(commit=False)
+        previous = {obj.pk: obj for obj in SocialAccount.objects.filter(pk__in=[obj.pk for obj in instances])}
+        deleted = formset.deleted_objects
+        owners = {obj.user_id for obj in [*instances, *deleted, *previous.values()]}
+        with admin_account_changes(request, owners):
+            for obj in deleted:
+                prepare_provider_change(obj)
+                obj.delete()
+            for obj in instances:
+                prepare_provider_change(previous.get(obj.pk), obj)
+                obj.save()
+            formset.save_m2m()
 
     def user_change_password(self, request, id, form_url=''):
         from django.db import transaction
@@ -1402,15 +1502,66 @@ class CustomUserAdmin(BaseUserAdmin):
 
 # Register models with basic admin interface
 admin.site.register(Location)
-class UserProfileAdmin(admin.ModelAdmin):
-    readonly_fields = ('user', 'welcome_email_queued_at', 'security_version', 'two_factor_enabled')
+class UserProfileAdmin(IdentityMutationAdminMixin):
+    readonly_fields = ('welcome_email_queued_at', 'security_version', 'two_factor_enabled')
+    change_form_template = 'admin/starview_app/userprofile/change_form.html'
+    actions = ['reset_profiles']
 
-    def has_add_permission(self, request):
-        return False
+    def save_model(self, request, obj, form, change):
+        if change and 'user' not in form.changed_data:
+            # Ordinary display/preference edits retain existing sessions, just
+            # like the self-service profile endpoint.
+            return EditableDomainAdmin.save_model(self, request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
-    def has_delete_permission(self, request, obj=None):
-        # Profiles are created and deleted with their owning account.
-        return False
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        return super().change_view(request, object_id, form_url, {**(extra_context or {}), 'show_delete': False})
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop('delete_selected', None)
+        return actions
+
+    def delete_model(self, request, obj):
+        from starview_app.services.admin_identity import reset_admin_profile
+        reset_admin_profile(request, obj)
+        self.log_change(request, obj, 'Reset profile data and two-factor authentication.')
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            self.delete_model(request, obj)
+
+    def reset_confirmation(self, request, queryset, *, bulk):
+        from django.template.response import TemplateResponse
+        from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+        return TemplateResponse(request, 'admin/starview_app/userprofile/reset_confirmation.html', {
+            **self.admin_site.each_context(request), 'title': 'Reset profile data',
+            'opts': self.model._meta, 'profiles': queryset, 'bulk': bulk,
+            'action_checkbox_name': ACTION_CHECKBOX_NAME,
+        })
+
+    def delete_view(self, request, object_id, extra_context=None):
+        from django.shortcuts import get_object_or_404
+        from django.core.exceptions import PermissionDenied
+        from django.http import HttpResponseRedirect, HttpResponseNotAllowed
+        if request.method not in ('GET', 'POST'):
+            return HttpResponseNotAllowed(['GET', 'POST'])
+        obj = get_object_or_404(self.get_queryset(request), pk=object_id)
+        if not self.has_delete_permission(request, obj):
+            raise PermissionDenied
+        if request.method == 'POST' and request.POST.get('reset_confirm') == 'yes':
+            self.delete_model(request, obj)
+            self.message_user(request, 'Profile data and two-factor authentication reset. The account was retained.')
+            return HttpResponseRedirect(reverse('admin:starview_app_userprofile_changelist'))
+        return self.reset_confirmation(request, [obj], bulk=False)
+
+    @admin.action(permissions=['change'], description='Reset selected profiles and two-factor authentication')
+    def reset_profiles(self, request, queryset):
+        if request.POST.get('reset_confirm') == 'yes':
+            self.delete_queryset(request, queryset)
+            self.message_user(request, 'Selected profile data and two-factor authentication reset. Accounts were retained.')
+            return None
+        return self.reset_confirmation(request, queryset, bulk=True)
 
 
 admin.site.register(UserProfile, UserProfileAdmin)
@@ -1431,7 +1582,7 @@ admin.site.register(EmailBounce, EmailBounceAdmin)
 admin.site.register(EmailComplaint, EmailComplaintAdmin)
 admin.site.register(EmailSuppressionList, EmailSuppressionListAdmin)
 
-# Register audit log model with custom admin interface (read-only)
+# Register audit log model with custom admin interface
 admin.site.register(AuditLog, AuditLogAdmin)
 
 # Register badge models with custom admin interfaces
@@ -1450,7 +1601,7 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.unregister(SocialAccount)
 admin.site.register(SocialAccount, ConnectedIdentityAdmin)
 admin.site.unregister(SocialToken)
-admin.site.register(SocialToken, ProtectedSocialTokenAdmin)
+admin.site.register(SocialToken, SocialTokenAdmin)
 
 
 # Account mail is an operational receipt, never an admin-readable token archive.
@@ -1459,30 +1610,69 @@ from allauth.mfa.models import Authenticator
 from allauth.mfa import admin as _mfa_admin  # Register the upstream admin first.
 from allauth.account.models import EmailAddress
 from allauth.account import admin as _account_admin
+from allauth.account.models import EmailConfirmation
 
 
 @admin.register(AccountEmail)
-class AccountEmailAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+class AccountEmailAdmin(EditableDomainAdmin):
     list_display = ('id', 'user', 'outcome', 'attempts', 'created_at', 'completed_at', 'last_error')
     list_filter = ('outcome', 'created_at')
-    fields = ('id', 'user', 'outcome', 'attempts', 'created_at', 'next_attempt_at', 'completed_at', 'last_error')
-    readonly_fields = fields
-    actions = None
+    readonly_fields = ('id',)
 
 
-class ProtectedAuthenticatorAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+class AuthenticatorAdmin(IdentityMutationAdminMixin):
     list_display = ('user', 'type', 'created_at', 'last_used_at')
-    fields = readonly_fields = ('user', 'type', 'created_at', 'last_used_at')
-    actions = None
+    fields = ('user', 'type', 'data', 'created_at', 'last_used_at')
 
 
-class ProtectedEmailAddressAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
-    list_display = fields = readonly_fields = ('user', 'email', 'verified', 'primary')
+class EmailAddressAdmin(EmailOwnershipAdminMixin, IdentityMutationAdminMixin):
+    form = AdminEmailAddressForm
+    list_display = fields = ('user', 'email', 'verified', 'primary')
     search_fields = ('email', 'user__username')
     list_filter = ('verified', 'primary')
 
 
 admin.site.unregister(Authenticator)
-admin.site.register(Authenticator, ProtectedAuthenticatorAdmin)
+admin.site.register(Authenticator, AuthenticatorAdmin)
 admin.site.unregister(EmailAddress)
-admin.site.register(EmailAddress, ProtectedEmailAddressAdmin)
+admin.site.register(EmailAddress, EmailAddressAdmin)
+
+
+class EmailConfirmationAdmin(_account_admin.EmailConfirmationAdmin):
+    # Confirmation keys are editable by administrators but never shown in lists.
+    list_display = ('email_address', 'created', 'sent')
+
+
+if admin.site.is_registered(EmailConfirmation):
+    admin.site.unregister(EmailConfirmation)
+admin.site.register(EmailConfirmation, EmailConfirmationAdmin)
+
+
+# Keep Axes' diagnostics and cleanup actions while granting administrators the
+# same ordinary model permissions as the rest of the dashboard.
+from axes import admin as _axes_admin
+from axes.models import AccessAttempt, AccessLog, AccessFailureLog
+
+
+class AccessAttemptAdmin(EditableDomainAdmin, _axes_admin.AccessAttemptAdmin):
+    has_add_permission = admin.ModelAdmin.has_add_permission
+    fieldsets = None
+
+
+class AccessLogAdmin(EditableDomainAdmin, _axes_admin.AccessLogAdmin):
+    has_add_permission = admin.ModelAdmin.has_add_permission
+    fieldsets = None
+
+
+class AccessFailureLogAdmin(EditableDomainAdmin, _axes_admin.AccessFailureLogAdmin):
+    has_add_permission = admin.ModelAdmin.has_add_permission
+    fieldsets = None
+
+
+for _model, _model_admin in (
+    (AccessAttempt, AccessAttemptAdmin), (AccessLog, AccessLogAdmin),
+    (AccessFailureLog, AccessFailureLogAdmin),
+):
+    if admin.site.is_registered(_model):
+        admin.site.unregister(_model)
+    admin.site.register(_model, _model_admin)

@@ -64,10 +64,6 @@ export function AuthProvider({ children }) {
       const data = response.data;
 
       if (version !== statusVersion.current) return;
-      if (data.verification_url) {
-        safeRedirect(data.verification_url, '/accounts/reauthenticate/');
-        return;
-      }
       setIdentity(data.authenticated ? data.user : null);
       if (version !== statusVersion.current) return;
       setIsAuthenticated(data.authenticated);

@@ -22,7 +22,6 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponseNotAllowed
 from django.http import Http404
-from django.views.generic import View
 from django.views import View as BaseView
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
@@ -100,6 +99,20 @@ def get_frontend_redirect_url(request, destination, fallback='/'):
     return get_frontend_url(urlunsplit(('', '', path, parsed.query, parsed.fragment)))
 
 
+def get_frontend_login_url(request, *, fallback_next=None):
+    """Carry a validated return path into the application's shared login flow."""
+    from urllib.parse import urlsplit, urlunsplit
+
+    destination = request.GET.get('next') or fallback_next
+    params = None
+    if destination:
+        validated = urlsplit(get_frontend_redirect_url(request, destination, fallback=fallback_next or '/'))
+        # Password login accepts local paths. Keep `next` relative even while the
+        # login page itself runs on Vite's development origin.
+        params = {'next': urlunsplit(('', '', validated.path, validated.query, validated.fragment))}
+    return get_frontend_url('/login', params)
+
+
 # ----------------------------------------------------------------------------- #
 # Redirect views for django-allauth HTML pages.                                 #
 #                                                                               #
@@ -115,24 +128,12 @@ class AllAuthRedirectView(BaseView):
         return HttpResponseRedirect(get_frontend_url(self.redirect_path, self.query_params))
 
 
-class EmailManagementRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/email/ to /profile (Settings tab)."""
-    redirect_path = '/profile'
-
-
-class PasswordChangeRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/password/change/ to /profile (Settings tab)."""
-    redirect_path = '/profile'
-
-
-class PasswordSetRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/password/set/ to /profile (Settings tab)."""
-    redirect_path = '/profile'
-
-
 class LoginRedirectView(AllAuthRedirectView):
     """Redirect /accounts/login/ to /login."""
     redirect_path = '/login'
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponseRedirect(get_frontend_login_url(request))
 
 
 class SignupRedirectView(AllAuthRedirectView):
@@ -150,23 +151,6 @@ class LogoutRedirectView(BaseView):
         return HttpResponseRedirect(get_frontend_url('/'))
 
 
-class PasswordResetRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/password/reset/ to /password-reset."""
-    redirect_path = '/password-reset'
-
-
-class PasswordResetDoneRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/password/reset/done/ to /password-reset with sent indicator."""
-    redirect_path = '/password-reset'
-    query_params = {'sent': 'true'}
-
-
-class PasswordResetKeyDoneRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/password/reset/key/done/ to /login with success message."""
-    redirect_path = '/login'
-    query_params = {'password_reset': 'success'}
-
-
 class EmailVerificationSentRedirectView(AllAuthRedirectView):
     """Redirect /accounts/confirm-email/ (no key) to /verify-email."""
     redirect_path = '/verify-email'
@@ -176,11 +160,6 @@ class InactiveAccountRedirectView(AllAuthRedirectView):
     """Redirect /accounts/inactive/ to /login with inactive message."""
     redirect_path = '/login'
     query_params = {'error': 'inactive'}
-
-
-class LoginCodeConfirmRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/login/code/confirm/ to /login."""
-    redirect_path = '/login'
 
 
 class SocialLoginCancelledRedirectView(AllAuthRedirectView):
@@ -208,6 +187,15 @@ class SocialSignupRedirectView(AllAuthRedirectView):
 # templates.                                                                    #
 # ----------------------------------------------------------------------------- #
 class CustomAccountAdapter(DefaultAccountAdapter):
+
+    def get_reauthentication_methods(self, user):
+        # allauth must enter Starview's shared code-confirmation controller;
+        # its default method list points to standalone MFA pages we do not expose.
+        if not user.is_authenticated:
+            return []
+        from django.utils.translation import gettext as _
+        return [{'id': 'reauthenticate', 'description': _('Confirm your identity'),
+                 'url': reverse('account_reauthenticate')}]
 
     def get_login_stages(self):
         return [
@@ -333,24 +321,6 @@ class CustomConfirmEmailView(ConfirmEmailView):
 
 
 # ----------------------------------------------------------------------------- #
-# Custom social account connections view that redirects to React profile page.  #
-#                                                                               #
-# This view intercepts the social account connections success page              #
-# (accounts/3rdparty/) and redirects to the React profile page instead of       #
-# showing the Django template.                                                  #
-# ----------------------------------------------------------------------------- #
-class CustomConnectionsView(View):
-
-    def get(self, request, *args, **kwargs):
-        return HttpResponseRedirect(get_frontend_url('/profile', {'social_connected': 'true'}))
-
-    def post(self, request, *args, **kwargs):
-        # The API endpoint serializes disconnections and protects the last method.
-        # Do not expose a second mutation path with different safeguards.
-        return HttpResponseNotAllowed(['GET'])
-
-
-# ----------------------------------------------------------------------------- #
 # Custom social account adapter for additional validation.                     #
 #                                                                               #
 # This adapter adds extra security checks to prevent email conflicts when      #
@@ -360,7 +330,10 @@ class CustomConnectionsView(View):
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def generate_state_param(self, state):
         from starview_app.services.login_session import REMEMBER_KEY
-        if state.get('process') != 'connect':
+        if state.get('process') == 'connect':
+            state['starview_connect_user'] = self.request.user.pk
+            state['starview_connect_version'] = self.request.session.get('identity_version', 0)
+        else:
             state[REMEMBER_KEY] = self.request.POST.get('remember_me') == 'true'
         return super().generate_state_param(state)
 
@@ -528,7 +501,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             if not request.user.is_authenticated:
                 raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/login')))
             from starview_app.services.account_security import is_recent
-            if not is_recent(request):
+            if (
+                not is_recent(request)
+                or sociallogin.state.get('starview_connect_user') != request.user.pk
+                or sociallogin.state.get('starview_connect_version') != request.session.get('identity_version', 0)
+            ):
                 raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/profile', {'error': 'reauthentication_required'})))
             if existing_social and existing_social.user_id != request.user.pk:
                 error = 'social_already_connected'

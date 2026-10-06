@@ -21,6 +21,8 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 # Import tools:
+from collections.abc import Mapping
+
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -53,6 +55,23 @@ from starview_app.services.email_identity import email_owners, email_change_tran
 from starview_app.utils import LoginRateThrottle, PasswordResetThrottle, log_auth_event
 
 
+def _auth_payload(data):
+    if not isinstance(data, Mapping):
+        raise exceptions.ValidationError('Provide an object with authentication fields.')
+    return data
+
+
+def _auth_text(data, field, *, strip=True, max_length=None):
+    value = data.get(field, '')
+    if not isinstance(value, str):
+        raise exceptions.ValidationError({field: 'Enter a text value.'})
+    if strip:
+        value = value.strip()
+    if max_length is not None and len(value) > max_length:
+        raise exceptions.ValidationError({field: f'Use {max_length} characters or fewer.'})
+    return value
+
+
 
 # ----------------------------------------------------------------------------------------------------- #
 #                                                                                                       #
@@ -78,12 +97,13 @@ from starview_app.utils import LoginRateThrottle, PasswordResetThrottle, log_aut
 @csrf_protect
 def register(request):
         # Get form data
-        username = request.data.get('username', '').strip()
-        email = request.data.get('email', '').strip()
-        first_name = request.data.get('first_name', '').strip()
-        last_name = request.data.get('last_name', '').strip()
-        pass1 = request.data.get('password1', '')
-        pass2 = request.data.get('password2', '')
+        data = _auth_payload(request.data)
+        username = _auth_text(data, 'username')
+        email = _auth_text(data, 'email', max_length=User._meta.get_field('email').max_length)
+        first_name = _auth_text(data, 'first_name', max_length=User._meta.get_field('first_name').max_length)
+        last_name = _auth_text(data, 'last_name', max_length=User._meta.get_field('last_name').max_length)
+        pass1 = _auth_text(data, 'password1', strip=False)
+        pass2 = _auth_text(data, 'password2', strip=False)
 
         # Validate required fields (username is now optional)
         if not all([email, first_name, last_name, pass1, pass2]):
@@ -203,9 +223,13 @@ def register(request):
 @csrf_protect
 def custom_login(request):
         # Get form data
-        username_or_email = request.data.get('username', '').strip().lower()
-        password = request.data.get('password', '')
-        next_url = request.data.get('next', '').strip()
+        data = _auth_payload(request.data)
+        username_or_email = _auth_text(data, 'username').lower()
+        password = _auth_text(data, 'password', strip=False)
+        next_url = _auth_text(data, 'next')
+        remember_me = data.get('remember_me', False)
+        if not isinstance(remember_me, bool):
+            raise exceptions.ValidationError({'remember_me': 'Use true or false.'})
 
         # Validate required fields
         if not username_or_email or not password:
@@ -317,7 +341,7 @@ def custom_login(request):
             result = perform_password_login(
                 request._request, {'username': authenticated_user.username},
                 Login(user=authenticated_user, redirect_url=get_frontend_url(redirect_url),
-                      signal_kwargs={REMEMBER_KEY: request.data.get('remember_me') is True}),
+                      signal_kwargs={REMEMBER_KEY: remember_me}),
             )
 
             return Response({
@@ -420,7 +444,9 @@ password_reset_token_generator = PasswordResetTokenGenerator()
 @permission_classes([AllowAny])
 @throttle_classes([PasswordResetThrottle])
 def request_password_reset(request):
-    email = request.data.get('email', '').strip().lower()
+    data = _auth_payload(request.data)
+    email = _auth_text(data, 'email').lower()
+    request_lang = _auth_text(data, 'language').lower()
 
     # Validate email provided
     if not email:
@@ -480,8 +506,6 @@ def request_password_reset(request):
             # Prefer request-provided language (for unauthenticated users with UI language set)
             # Fall back to user's stored preference
             valid_languages = [code for code, name in settings.LANGUAGES]
-            request_lang = request.data.get('language', '').strip().lower()
-
             if request_lang and request_lang in valid_languages:
                 user_lang = request_lang
             else:
@@ -573,8 +597,9 @@ def request_password_reset(request):
 @throttle_classes([PasswordResetThrottle])
 def confirm_password_reset(request, uidb64, token):
     # Get passwords from request
-    password1 = request.data.get('password1', '')
-    password2 = request.data.get('password2', '')
+    data = _auth_payload(request.data)
+    password1 = _auth_text(data, 'password1', strip=False)
+    password2 = _auth_text(data, 'password2', strip=False)
 
     # Validate required fields
     if not password1 or not password2:
@@ -625,7 +650,7 @@ def confirm_password_reset(request, uidb64, token):
 # Resend email verification link to user.                                       #
 #                                                                               #
 # DRF API endpoint that sends a new verification email to unverified users.     #
-# Rate-limited to prevent email spam (max 1 per minute per email).              #
+# Uses the configured IP throttle and allauth mailbox confirmation limit.       #
 #                                                                               #
 # Args:     request: HTTP request object with email in request body             #
 # Returns:  DRF Response with success/error message                             #
@@ -634,7 +659,8 @@ def confirm_password_reset(request, uidb64, token):
 @permission_classes([AllowAny])
 @throttle_classes([LoginRateThrottle])
 def resend_verification_email(request):
-    email = request.data.get('email', '').strip().lower()
+    data = _auth_payload(request.data)
+    email = _auth_text(data, 'email').lower()
 
     # Validate email provided
     if not email:
@@ -646,65 +672,21 @@ def resend_verification_email(request):
     except ValidationError:
         raise exceptions.ValidationError('Please enter a valid email address.')
 
-    # Check if user with this email exists
+    from starview_app.services.email_identity import resend_primary_confirmation
     try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        # Don't reveal if email exists or not (prevent user enumeration)
-        # Return success message regardless
-        return Response({
-            'detail': 'If an account with that email exists and is unverified, a verification email has been sent.'
-        }, status=status.HTTP_200_OK)
-
-    # Check if email is already verified
-    from allauth.account.models import EmailAddress, EmailConfirmation
-    try:
-        email_address = EmailAddress.objects.get(user=user, email=email)
-        if email_address.verified:
-            # Email already verified
-            raise exceptions.ValidationError('This email address is already verified. You can log in now.')
-    except EmailAddress.DoesNotExist:
-        # No EmailAddress entry - shouldn't happen, but handle gracefully
-        raise exceptions.ValidationError('No account found with this email address.')
-
-    # Send new verification email
-    try:
-        # Delete all existing confirmations for this email address
-        # This ensures only the latest verification link works
-        old_confirmations = EmailConfirmation.objects.filter(email_address=email_address)
-        deleted_count = old_confirmations.count()
-        old_confirmations.delete()
-
-        # Create new confirmation and send email
-        confirmation = EmailConfirmation.create(email_address)
-        confirmation.send(request)
-
-        # Audit log: Verification email resent
-        log_auth_event(
-            request=request,
-            event_type='verification_email_resent',
-            user=user,
-            success=True,
-            message=f'Verification email resent to: {email}',
-            metadata={'email': email, 'old_confirmations_deleted': deleted_count}
+        resend_primary_confirmation(request, email)
+    except Exception as exc:
+        # Enqueue failures preserve the old link. Keep the public result generic
+        # and never log message bodies, link keys, or upstream exception text.
+        import logging
+        logging.getLogger(__name__).error(
+            'Verification resend failed: exception=%s', type(exc).__name__,
         )
-
-        return Response({
-            'detail': 'Verification email sent! Please check your inbox.',
-            'email_sent': True
-        }, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        # Audit log: Failed to send verification email
-        log_auth_event(
-            request=request,
-            event_type='verification_email_failed',
-            user=user,
-            success=False,
-            message=f'Failed to send verification email to: {email}',
-            metadata={'email': email, 'error': str(e)}
-        )
-        raise exceptions.APIException('Failed to send verification email. Please try again later.')
+    return Response({
+        'detail': 'If an account with that email exists and is unverified, a verification email has been sent.',
+        'email_sent': True,
+        'resend_after': settings.ACCOUNT_EMAIL_RESEND_COOLDOWN,
+    }, status=status.HTTP_200_OK)
 
 
 # ----------------------------------------------------------------------------------------------------- #
@@ -733,10 +715,9 @@ def resend_verification_email(request):
 @ensure_csrf_cookie
 def auth_status(request):
     if request.user.is_authenticated:
-        from starview_app.services.account_security import staff_verification_url, has_mfa
+        from starview_app.services.account_security import has_mfa
         return Response({
             'authenticated': True,
-            'verification_url': staff_verification_url(request),
             'user': {
                 'id': request.user.id,
                 'username': request.user.username,

@@ -1,4 +1,4 @@
-"""Server-rendered confirmation for the existing allauth/admin security screens."""
+"""Shared verification context and allauth's resumable confirmation bridge."""
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages import get_messages
@@ -6,18 +6,11 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_http_methods
 from rest_framework.exceptions import APIException
 
 from starview_app.services.account_security import send_verification_code, confirm_identity
 from starview_app.services.verification_methods import verification_methods, preferred_method
-
-
-@login_required(login_url='/login')
-@require_GET
-def manage_security(request):
-    from starview_app.utils.adapters import get_frontend_url
-    return HttpResponseRedirect(get_frontend_url('/profile?security=1'))
 
 
 def describe_error(exc):
@@ -46,6 +39,7 @@ def verification_context(request, user):
 
 @login_required(login_url='/login')
 @csrf_protect
+@require_http_methods(['GET', 'POST'])
 def reauthenticate(request):
     # A previous sign-in toast does not belong above a new security challenge.
     list(get_messages(request))
@@ -53,6 +47,7 @@ def reauthenticate(request):
     if not url_has_allowed_host_and_scheme(target, {request.get_host()}, require_https=request.is_secure()):
         target = '/profile'
     context = verification_context(request, request.user)
+    context['messages'] = []
     if request.method == 'POST':
         try:
             if request.POST.get('action') == 'send_code':

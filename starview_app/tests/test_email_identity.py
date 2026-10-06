@@ -9,6 +9,7 @@ from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal.auth import TOTP, generate_totp_secret
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.conf import settings
 from django.core import mail
 from django.core.cache import caches
 from django.db import IntegrityError, close_old_connections, connection, transaction
@@ -136,8 +137,120 @@ class EmailIdentityTests(TestCase):
         self.assertFalse(AccountEmail.objects.filter(user=self.user).exists())
 
 
+class VerificationResendTests(TestCase):
+    def setUp(self):
+        caches['default'].clear()
+        caches['security'].clear()
+        self.user = User.objects.create_user(username='resend-owner', email='resend@example.test')
+        self.address = EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True)
+        self.old = EmailConfirmation.create(self.address)
+        EmailConfirmation.objects.filter(pk=self.old.pk).update(sent=timezone.now())
+
+    def resend(self, email=None, client=None):
+        with self.captureOnCommitCallbacks(execute=True):
+            return (client or self.client).post('/api/auth/resend-verification/', {'email': email or self.user.email})
+
+    def test_public_result_does_not_disclose_eligibility(self):
+        expected = self.resend().json()
+        self.assertEqual(self.resend('missing@example.test').json(), expected)
+        self.address.verified = True
+        self.address.save()
+        self.assertEqual(self.resend().json(), expected)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_generic_cooldown_matches_mailbox_policy_for_every_eligibility_result(self):
+        from allauth.core.internal.ratelimit import parse_rate
+
+        policy = parse_rate(settings.ACCOUNT_RATE_LIMITS['confirm_email'])
+        self.assertEqual(policy.per, 'key')
+        self.assertEqual(policy.duration, settings.ACCOUNT_EMAIL_RESEND_COOLDOWN)
+        for username, verified, active in (('verified-resend', True, True), ('inactive-resend', False, False)):
+            user = User.objects.create_user(username=username, email=f'{username}@example.test', is_active=active)
+            EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=verified)
+        # The repeated pending contact is mailbox-rate-limited; every case still
+        # advertises the same policy without revealing account eligibility.
+        for email in (self.user.email, self.user.email, 'missing@example.test',
+                      'verified-resend@example.test', 'inactive-resend@example.test'):
+            with self.subTest(email=email):
+                response = self.resend(email, client=Client(REMOTE_ADDR='192.0.2.4'))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json()['resend_after'], settings.ACCOUNT_EMAIL_RESEND_COOLDOWN)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_success_replaces_old_confirmation_once_per_mailbox(self):
+        self.assertEqual(self.resend().status_code, 200)
+        replacement = EmailConfirmation.objects.get(email_address=self.address)
+        self.assertNotEqual(replacement.key, self.old.key)
+        # A different caller cannot bypass allauth's destination limit.
+        self.assertEqual(self.resend(client=Client(REMOTE_ADDR='192.0.2.2')).status_code, 200)
+        self.assertEqual(EmailConfirmation.objects.get(email_address=self.address).key, replacement.key)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_failed_enqueue_preserves_old_confirmation(self):
+        with patch('starview_app.services.account_mail.enqueue_account_email', side_effect=OSError('test-only outage')):
+            self.assertEqual(self.resend().status_code, 200)
+        self.assertTrue(EmailConfirmation.objects.filter(pk=self.old.pk, sent__isnull=False).exists())
+        self.assertEqual(EmailConfirmation.objects.filter(email_address=self.address).count(), 1)
+        self.assertFalse(AccountEmail.objects.exists())
+
+    def test_verified_or_inactive_contacts_are_not_resent(self):
+        self.user.is_active = False
+        self.user.save(update_fields=['is_active'])
+        self.assertEqual(self.resend().status_code, 200)
+        self.assertEqual(EmailConfirmation.objects.get(email_address=self.address).key, self.old.key)
+        self.assertEqual(len(mail.outbox), 0)
+
+
 class EmailOwnershipRaceTests(TransactionTestCase):
-    serialized_rollback = True
+    def setUp(self):
+        caches['default'].clear()
+        caches['security'].clear()
+        from starview_app.services import badge_service
+        badge_service._BADGE_CACHE_BY_SLUG.clear()
+        badge_service._BADGE_CACHE_BY_CATEGORY.clear()
+
+    def test_resend_rechecks_contact_after_waiting_for_confirmation(self):
+        from starview_app.services.email_identity import resend_primary_confirmation
+        from django.test import RequestFactory
+
+        caches['default'].clear()
+        user = User.objects.create_user(username='resend-race', email='resend-race@example.test')
+        address = EmailAddress.objects.create(user=user, email=user.email, primary=True)
+        started = Event()
+        waiter_pid = []
+
+        def resend():
+            close_old_connections()
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT pg_backend_pid()')
+                    waiter_pid.append(cursor.fetchone()[0])
+                started.set()
+                request = RequestFactory().post('/', REMOTE_ADDR='192.0.2.3')
+                return resend_primary_confirmation(request, user.email)
+            finally:
+                connection.close()
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with transaction.atomic():
+                User.objects.select_for_update().get(pk=user.pk)
+                future = pool.submit(resend)
+                self.assertTrue(started.wait(5))
+                blocked = False
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    with connection.cursor() as cursor:
+                        cursor.execute('SELECT wait_event FROM pg_stat_activity WHERE pid = %s', [waiter_pid[0]])
+                        row = cursor.fetchone()
+                    if row and row[0] == 'transactionid':
+                        blocked = True
+                        break
+                    time.sleep(.01)
+                self.assertTrue(blocked, 'Resend never waited on the shared account lock')
+                EmailAddress.objects.filter(pk=address.pk).update(verified=True)
+            self.assertFalse(future.result(timeout=5))
+        self.assertFalse(EmailConfirmation.objects.filter(email_address=address).exists())
+        self.assertFalse(AccountEmail.objects.exists())
 
     def test_contact_claim_blocks_concurrent_signup_across_tables(self):
         owner = User.objects.create_user(username='first-owner', email='owner@example.test')

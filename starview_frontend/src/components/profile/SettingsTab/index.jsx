@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProfileSettings from '../ProfileSettings';
 import PreferencesSection from '../PreferencesSection';
@@ -21,6 +21,7 @@ function SettingsTab({ user, refreshAuth, socialAccounts, onRefreshSocialAccount
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const [securityOpen, setSecurityOpen] = useState(false);
+  const securityTitleId = useId();
   const closeSecurity = () => {
     setSecurityOpen(false);
     if (params.has('security')) {
@@ -44,10 +45,10 @@ function SettingsTab({ user, refreshAuth, socialAccounts, onRefreshSocialAccount
         <PreferencesSection />
         <CollapsibleSection title={t('accountSecurity.title')} icon="fa-lock" defaultExpanded={false}>
           <div className="profile-form-section">
-            <h3 className="profile-form-title">{t('accountSecurity.twoFactor')}</h3>
+            <h3 className="profile-form-title" id={securityTitleId}>{t('accountSecurity.twoFactor')}</h3>
             <p className="profile-form-description">{t(user.mfa_enabled ? 'accountSecurity.enabled' : 'accountSecurity.description')}</p>
             <div className="profile-form-controls">
-              <button type="button" className="btn-secondary" onClick={() => setSecurityOpen(true)}>
+              <button type="button" className="btn-secondary btn-secondary--sm" aria-describedby={securityTitleId} onClick={() => setSecurityOpen(true)}>
                 {t(user.mfa_enabled ? 'accountSecurity.manage' : 'accountSecurity.setUp')}
               </button>
             </div>

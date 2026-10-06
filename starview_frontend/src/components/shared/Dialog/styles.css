@@ -1,7 +1,10 @@
-/* Account dialogs share the header/body/footer proportions of the photo and filter modals. */
+/* Shared dialog: a rounded bottom sheet on phones, a compact centered dialog on desktop.
+   Motion reuses the Explore modal's duration token and easings. The owner adds .app-dialog--closing
+   to play the exit; --dialog-viewport-height/-top (visual viewport, only while open) lift the sheet
+   above an on-screen keyboard and fall back to the layout viewport. */
 .app-dialog {
   margin: auto;
-  width: min(480px, calc(100vw - 32px));
+  width: min(440px, calc(100vw - 32px));
   max-height: 80dvh;
   padding: 0;
   overflow: hidden;
@@ -12,13 +15,30 @@
 }
 .app-dialog[open] { display: flex; flex-direction: column; }
 .app-dialog::backdrop { background: var(--overlay-bg); }
+
+/* Enter and exit */
+.app-dialog[open] { animation: app-dialog-pop-in var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) both; }
+.app-dialog[open]::backdrop { animation: app-dialog-fade-in var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) both; }
+.app-dialog[open].app-dialog--closing {
+  animation: app-dialog-pop-out var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+  pointer-events: none;
+}
+.app-dialog[open].app-dialog--closing::backdrop { animation: app-dialog-fade-out var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes app-dialog-pop-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes app-dialog-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(12px); } }
+@keyframes app-dialog-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes app-dialog-sheet-out { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes app-dialog-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes app-dialog-fade-out { from { opacity: 1; } to { opacity: 0; } }
+/* Content that appears with a step (or after an action) rises in gently. Nothing remounts to do it. */
+@keyframes app-dialog-content-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
 .app-dialog-header {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
   flex-shrink: 0;
 }
 .app-dialog-header h2 {
@@ -27,30 +47,40 @@
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
 }
+/* 44px circular touch target; the glyph stays small. */
 .app-dialog-close {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
-  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
   font-size: var(--text-lg);
 }
-.app-dialog-close:hover:not(:disabled) { color: var(--text-primary); }
+.app-dialog-close:hover:not(:disabled) { color: var(--text-primary); background: var(--glass-bg-hover); border-color: var(--glass-border-hover); }
 .app-dialog-close:disabled { opacity: .5; cursor: not-allowed; }
+/* Accent ring instead of the browser default; the title takes focus programmatically without one. */
+.app-dialog :is(button, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app-dialog-header h2:focus { outline: none; }
 .app-dialog-body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-lg);
+  padding: var(--space-sm) var(--space-lg) var(--space-lg);
+  /* A focused field scrolls into view with room around it, above the keyboard. */
+  scroll-padding-block: var(--space-lg);
   font-size: var(--text-sm);
   scrollbar-width: thin;
   scrollbar-color: var(--glass-border-hover) transparent;
 }
 .app-dialog-body::-webkit-scrollbar { width: 4px; }
 .app-dialog-body::-webkit-scrollbar-thumb { background: var(--glass-border-hover); border-radius: 4px; }
+.app-dialog-body > * { animation: app-dialog-content-in var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 .app-dialog-body p { color: var(--text-secondary); margin-bottom: var(--space-md); font-size: var(--text-sm); }
 .app-dialog-body > :last-child { margin-bottom: 0; }
 .app-dialog form { margin-top: var(--space-lg); }
@@ -60,21 +90,49 @@
 .app-dialog-actions--spread { justify-content: space-between; }
 .app-dialog-actions--spread > :only-child { margin-left: auto; }
 .app-dialog-footer {
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-lg) var(--space-md);
   padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 .app-dialog-footer .app-dialog-actions { margin-top: 0; }
 .app-dialog-footer:empty { display: none; }
-.app-dialog .app-dialog-error { color: var(--error); margin-top: var(--space-sm); }
+
 @media (max-width: 768px) {
+  /* 16px keeps iOS from zooming into focused fields. */
+  .app-dialog .form-input, .app-dialog select { min-height: 52px; font-size: 16px; }
   .app-dialog {
     width: 100%;
     max-width: none;
-    max-height: 90dvh;
-    margin: auto 0 0;
-    border-bottom: none;
-    border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0;
+    margin: auto 0 max(0px, calc(100dvh - var(--dialog-viewport-top, 0px) - var(--dialog-viewport-height, 100dvh)));
+    /* Keep the sheet steady between steps; only the visible viewport (keyboard)
+       changes its height. The body scrolls while the header/footer stay put. */
+    height: min(94dvh, calc(var(--dialog-viewport-height, 100dvh) - var(--space-md)));
+    max-height: none;
+    border-width: 1px 0 0;
+    border-radius: calc(var(--radius) * 3) calc(var(--radius) * 3) 0 0;
+    transition: margin-bottom var(--transition) ease-out;
   }
+  .app-dialog[open] { animation-name: app-dialog-sheet-in; }
+  .app-dialog[open].app-dialog--closing { animation-name: app-dialog-sheet-out; }
+  .app-dialog-body { flex: 1; padding-bottom: var(--space-md); }
+  .app-dialog-footer { padding: var(--space-sm) var(--space-md) calc(var(--space-md) + env(safe-area-inset-bottom, 0px)); }
+  /* The primary action spans the sheet above the secondary one; DOM order stays secondary, primary. */
+  .app-dialog-footer .app-dialog-actions { flex-direction: column-reverse; flex-wrap: nowrap; align-items: stretch; gap: var(--space-xs); }
+  .app-dialog-footer .app-dialog-actions > * { width: 100%; margin: 0; }
+  .app-dialog .app-dialog-footer .btn-primary,
+  .app-dialog .app-dialog-footer .btn-danger { min-height: 52px; font-size: 14px; }
+  .app-dialog .app-dialog-footer .btn-secondary {
+    min-height: 44px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: transparent;
+    border-color: transparent;
+  }
+  .app-dialog .app-dialog-footer .btn-secondary:hover:not(:disabled) { color: var(--text-primary); background: var(--glass-bg); border-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-dialog, .app-dialog[open], .app-dialog[open].app-dialog--closing,
+  .app-dialog[open]::backdrop, .app-dialog[open].app-dialog--closing::backdrop,
+  .app-dialog-body > * { animation: none !important; transition: none !important; }
 }

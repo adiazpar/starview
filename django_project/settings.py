@@ -262,7 +262,6 @@ MIDDLEWARE = [
     'starview_app.middleware.oauth_session.OAuthSessionMiddleware',
     'starview_app.utils.middleware.BrowserLanguageMiddleware',              # Language preference (MUST be after AuthenticationMiddleware)
     'allauth.account.middleware.AccountMiddleware',                         # Allauth account middleware (MUST be after AuthenticationMiddleware)
-    'starview_app.middleware.account_security.AccountSecurityMiddleware',
     'axes.middleware.AxesMiddleware',                                       # Account lockout (MUST be after AuthenticationMiddleware)
     'starview_app.middleware.SessionIdleTimeoutMiddleware',                 # Session idle timeout (MUST be after AuthenticationMiddleware)
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -677,8 +676,9 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Starview] '  # Email subject prefix
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Verification link expires in 3 days
 
 # Rate limiting for email confirmation (new format in django-allauth 65.x+)
+ACCOUNT_EMAIL_RESEND_COOLDOWN = 180
 ACCOUNT_RATE_LIMITS = {
-    'confirm_email': '1/3m',  # 1 confirmation email per 3 minutes
+    'confirm_email': f'1/{ACCOUNT_EMAIL_RESEND_COOLDOWN}s/key',
 }
 
 # Protocol for email verification links

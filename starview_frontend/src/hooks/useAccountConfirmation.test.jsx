@@ -48,15 +48,43 @@ describe('account confirmation', () => {
     expect(authApi.confirmIdentity).toHaveBeenCalledWith({ password: 'test-password' });
   });
 
+  it('puts the cursor in the password field when the prompt opens', async () => {
+    authApi.getSecurityStatus.mockResolvedValue({ data: { recent: false, method: 'password' } });
+    render(<Example onChange={vi.fn()} />);
+    fireEvent.click(screen.getByText('Change email'));
+    expect(await screen.findByLabelText('accountConfirmation.passwordLabel')).toHaveFocus();
+  });
+
   it('cancellation leaves the account unchanged and sends no email', async () => {
     authApi.getSecurityStatus.mockResolvedValue({ data: { recent: false, method: 'email_code' } });
     const onChange = vi.fn();
     render(<Example onChange={onChange} />);
     fireEvent.click(screen.getByText('Change email'));
-    fireEvent.click(await screen.findByText('accountConfirmation.cancel'));
+    // The header arrow is the way out (labelled Close: it dismisses); the form has no Cancel of its own.
+    const arrow = await screen.findByRole('button', { name: 'buttons.close' });
+    expect(screen.queryByText('accountConfirmation.cancel')).not.toBeInTheDocument();
+    fireEvent.click(arrow);
     await act(async () => {});
     expect(onChange).not.toHaveBeenCalled();
     expect(authApi.sendConfirmationCode).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('cannot be left while the check is in flight, then completes the pending action once', async () => {
+    authApi.getSecurityStatus.mockResolvedValue({ data: { recent: false, method: 'password' } });
+    let finish;
+    authApi.confirmIdentity.mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    const onChange = vi.fn();
+    render(<Example onChange={onChange} />);
+    fireEvent.click(screen.getByText('Change email'));
+    fireEvent.change(await screen.findByLabelText('accountConfirmation.passwordLabel'), { target: { value: 'test-password' } });
+    fireEvent.click(screen.getByText('accountConfirmation.confirm'));
+    const arrow = screen.getByRole('button', { name: 'buttons.close' });
+    await waitFor(() => expect(arrow).toBeDisabled());
+    fireEvent.click(arrow);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await act(async () => finish({ data: { recent: true } }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledOnce());
   });
 
   it('reuses the current-password input from the password-change form', async () => {
@@ -79,6 +107,19 @@ describe('account confirmation', () => {
     fireEvent.click(screen.getByText('accountConfirmation.confirm'));
     expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect code');
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('waits for a complete code before offering confirmation', async () => {
+    authApi.getSecurityStatus.mockResolvedValue({ data: { recent: false, method: 'mfa' } });
+    render(<Example onChange={vi.fn()} />);
+    fireEvent.click(screen.getByText('Change email'));
+    const field = await screen.findByLabelText('accountConfirmation.codeLabel');
+    fireEvent.change(field, { target: { value: '123' } });
+    expect(screen.getByText('accountConfirmation.confirm')).toBeDisabled();
+    expect(authApi.confirmIdentity).not.toHaveBeenCalled();
+    fireEvent.change(field, { target: { value: '123 456' } });
+    expect(field).toHaveValue('123456');
+    expect(screen.getByText('accountConfirmation.confirm')).toBeEnabled();
   });
   it('does not authorize an action if its status request finishes after unmount', async () => {
     let finish;

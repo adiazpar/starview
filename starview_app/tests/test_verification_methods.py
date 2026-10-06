@@ -99,9 +99,11 @@ class VerificationMethodTests(TransactionTestCase):
         self.assertContains(response, 'incorrect or has expired')
         self.assertFalse(self.client.get('/api/auth/status/').json()['authenticated'])
 
-    def test_setup_requires_recent_proof_and_does_not_activate_until_valid_code(self):
-        self.assertEqual(self.change('begin_totp').status_code, 403)
-        self.confirm_email()
+    def test_setup_without_recent_proof_does_not_activate_until_valid_code(self):
+        # Also exercise allauth's password-account guard with no auth history.
+        self.user.set_password('Valid-Password123!')
+        self.user.save()
+        self.client.force_login(self.user, backend='django.contrib.auth.backends.ModelBackend')
         response = self.change('begin_totp')
         self.assertEqual(response.status_code, 200, response.content)
         self.assertTrue(response.json()['qr_code'].startswith('data:image/svg+xml;base64,'))
@@ -109,7 +111,10 @@ class VerificationMethodTests(TransactionTestCase):
         self.assertFalse(Authenticator.objects.filter(user=self.user).exists())
         self.user.refresh_from_db()
         self.assertFalse(self.user.userprofile.two_factor_enabled)
+        self.assertFalse(self.client.get('/api/auth/security/').json()['recent'])
+        self.assertEqual(len(mail.outbox), 0)
         self.assertEqual(self.change('activate_totp', code='wrong').status_code, 400)
+        self.assertFalse(self.client.get('/api/auth/security/').json()['recent'])
         self.assertFalse(self.client.get('/api/auth/status/').json()['user']['mfa_enabled'])
         secret = self.client.session[SECRET_SESSION_KEY]
         code = format_hotp_value(hotp_value(secret, int(time.time()) // 30))
@@ -201,7 +206,7 @@ class VerificationMethodTests(TransactionTestCase):
         session.save()
         self.assertEqual(self.client.get('/api/auth/security/recovery-codes/').status_code, 403)
 
-    def test_overview_needs_no_recent_proof_but_secrets_and_changes_do(self):
+    def test_overview_and_off_state_setup_need_no_recent_proof_but_existing_credentials_do(self):
         for enabled in (False, True):
             with self.subTest(enabled=enabled):
                 UserProfile.objects.filter(user=self.user).update(two_factor_enabled=enabled)
@@ -211,11 +216,43 @@ class VerificationMethodTests(TransactionTestCase):
                 self.assertEqual(set(response.json()), {'enabled', 'required', 'methods', 'recovery_count', 'preferred_method', 'email', 'email_choices'})
                 self.assertIn('no-store', response['Cache-Control'])
                 self.assertEqual(self.client.get('/api/auth/security/recovery-codes/').status_code, 403)
-                self.assertEqual(self.change('begin_totp').status_code, 403)
+                self.assertEqual(self.change('begin_totp').status_code, 403 if enabled else 200)
                 self.assertEqual(self.change('enable').status_code, 403)
-                self.assertEqual(self.change('disable').status_code, 403)
         self.assertEqual(len(mail.outbox), 0)
         self.assertEqual(Client().get('/api/auth/security/methods/').status_code, 401)
+
+    def test_disable_and_reenable_repeatedly_without_identity_confirmation(self):
+        # Covers a passwordless/OAuth-style session as well as repeat enrollment.
+        for _ in range(2):
+            self.assertEqual(self.change('begin_totp').status_code, 200)
+            secret = self.client.session[SECRET_SESSION_KEY]
+            code = format_hotp_value(hotp_value(secret, int(time.time()) // 30))
+            response = self.change('activate_totp', code=code)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertTrue(response.json()['enabled'])
+            self.assertEqual(len(self.client.get('/api/auth/security/recovery-codes/').json()['codes']), 10)
+            session = self.client.session
+            session.pop('starview_recent_auth', None)
+            session.pop('account_authentication_methods', None)
+            session.save()
+            response = self.change('disable')
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertFalse(response.json()['enabled'])
+            self.assertFalse(Authenticator.objects.filter(user=self.user).exists())
+            self.assertFalse(self.client.get('/api/auth/security/').json()['recent'])
+            self.assertTrue(self.client.get('/api/auth/status/').json()['authenticated'])
+        self.assertFalse(AccountVerification.objects.filter(user=self.user).exists())
+
+    def test_setup_and_disable_still_require_signed_in_session_and_csrf(self):
+        anonymous = Client()
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user, backend='django.contrib.auth.backends.ModelBackend')
+        for action in ('begin_totp', 'activate_totp', 'disable'):
+            with self.subTest(action=action):
+                data = {'action': action, 'code': '123456'}
+                self.assertEqual(anonymous.post('/api/auth/security/methods/', data).status_code, 401)
+                self.assertEqual(csrf_client.post('/api/auth/security/methods/', data).status_code, 403)
+        self.assertFalse(Authenticator.objects.filter(user=self.user).exists())
 
     def test_switching_default_preserves_credentials_sessions_and_recent_proof(self):
         TOTP.activate(self.user, generate_totp_secret())
@@ -330,13 +367,12 @@ class VerificationMethodTests(TransactionTestCase):
         self.assertIn('no-store', response['Cache-Control'])
         self.assertIn('Cookie', response['Vary'])
 
-    def test_legacy_overview_opens_profile_modal_without_confirmation_page(self):
+    def test_retired_mfa_routes_are_not_registered(self):
         for suffix in ('', 'totp/activate/', 'totp/deactivate/', 'recovery-codes/', 'recovery-codes/generate/', 'recovery-codes/download/'):
             path = '/accounts/2fa/' + suffix
             response = self.client.get(path)
-            self.assertEqual(response.status_code, 302)
-            self.assertTrue(response.url.endswith('/profile?security=1'))
-            self.assertEqual(self.client.post(path).status_code, 405)
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(self.client.post(path).status_code, 404)
 
     def test_legacy_app_removal_cannot_discard_last_working_verification_method(self):
         TOTP.activate(self.user, generate_totp_secret())
@@ -345,7 +381,7 @@ class VerificationMethodTests(TransactionTestCase):
         self.confirm_email()
         with patch('starview_app.services.verification_methods.is_apple_relay_disabled', return_value=True):
             response = self.client.post('/accounts/2fa/totp/deactivate/')
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 404)
         self.assertTrue(Authenticator.objects.filter(user=self.user, type='totp').exists())
         self.assertTrue(Authenticator.objects.filter(user=self.user, type='recovery_codes').exists())
 
@@ -419,7 +455,7 @@ class VerificationMethodTests(TransactionTestCase):
                 status = self.client.get('/api/auth/status/').json()
                 self.assertTrue(status['authenticated'])
                 self.assertFalse(status['user']['mfa_enabled'])
-                self.assertIsNone(status['verification_url'])
+                self.assertNotIn('verification_url', status)
 
     def test_abandoned_setup_does_not_add_a_login_challenge(self):
         self.confirm_email()
@@ -534,6 +570,10 @@ class VerificationMethodTests(TransactionTestCase):
         challenge = AccountVerification.objects.get(user=self.user)
         self.assertEqual(challenge.attempts, 5)
         self.assertIsNotNone(challenge.used_at)
+        self.assertEqual(self.change('set_email_destination', email='codes@example.test', code=code).status_code, 429)
+        from django.core.cache import caches
+        caches['default'].clear()
+        caches['security'].clear()
         self.assertEqual(self.change('set_email_destination', email='codes@example.test', code=code).status_code, 400)
 
     def test_email_destination_is_protected_and_disabled_mfa_resets_it(self):

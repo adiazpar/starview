@@ -10,7 +10,6 @@
 
 import axios from 'axios';
 import { getIdentityEpoch } from './identityEpoch';
-import { safeRedirect } from '../utils/security';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -72,11 +71,6 @@ api.interceptors.response.use(
 
         return Promise.reject(new axios.CanceledError('Session expired'));
       }
-    }
-
-    if (error.response?.status === 403 && error.response.data?.code === 'staff_mfa_required') {
-      safeRedirect(error.response.data.verification_url, '/accounts/reauthenticate/');
-      return Promise.reject(new axios.CanceledError('Staff verification required'));
     }
 
     // Handle 403 Forbidden

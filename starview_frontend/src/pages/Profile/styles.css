@@ -115,6 +115,13 @@
   }
 }
 
+/* Narrow phones: nested padding left only ~190px for fields at 320px. */
+@media (max-width: 480px) {
+  .profile-content {
+    padding: var(--space-md);
+  }
+}
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   .profile-content {

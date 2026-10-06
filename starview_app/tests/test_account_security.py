@@ -177,17 +177,11 @@ class AccountSecurityTests(TestCase):
         self.assertEqual(caches['security'].get('test-counter'), 4)
         self.assertTrue(self.client.get('/api/auth/status/').json()['authenticated'])
 
-    def test_admin_requires_verification_when_staff_opted_into_two_factor(self):
+    def test_admin_does_not_repeat_verification_for_an_authenticated_staff_session(self):
         self.user.is_staff = True
         self.user.is_superuser = True
         self.user.save()
         UserProfile.objects.filter(user=self.user).update(two_factor_enabled=True)
-        response = self.client.get('/admin/')
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/accounts/reauthenticate/?next=/admin/')
-        self.assertContains(self.client.get(response.url), 'Email code')
-        code = self.send_code()
-        self.assertEqual(self.client.post('/api/auth/security/', {'method': 'email_code', 'code': code}).status_code, 200)
         self.assertEqual(self.client.get('/admin/').status_code, 200)
 
     def test_password_settings_preserve_current_session_revoke_others_and_notify_once(self):
@@ -207,7 +201,7 @@ class AccountSecurityTests(TestCase):
         self.assertTrue(self.user.check_password('New-Password123!'))
         self.assertEqual(self.user.userprofile.security_version, 1)
 
-    def test_stale_staff_proof_requires_confirmation_before_admin_edits(self):
+    def test_stale_staff_proof_does_not_block_standard_admin_management(self):
         self.user.is_staff = self.user.is_superuser = True
         self.user.save()
         TOTP.activate(self.user, generate_totp_secret())
@@ -218,9 +212,8 @@ class AccountSecurityTests(TestCase):
         self.assertEqual(self.client.get('/admin/').status_code, 200)
         for path in (f'/admin/auth/user/{self.user.pk}/change/', f'/admin/auth/user/{self.user.pk}/delete/'):
             response = self.client.get(path)
-            self.assertEqual(response.status_code, 302)
-            self.assertTrue(response.url.startswith('/accounts/reauthenticate/'))
-        self.assertEqual(self.client.post('/admin/auth/user/', {'action': 'delete_selected'}).status_code, 302)
+            self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.post('/admin/auth/user/', {'action': 'delete_selected'}).status_code, 200)
 
     def test_staff_without_two_factor_has_no_mandatory_verification_route(self):
         self.user.is_staff = True
@@ -244,12 +237,12 @@ class AccountSecurityTests(TestCase):
         self.assertFalse(Authenticator.objects.filter(user=self.user, type='totp').exists())
         response = self.client.get('/admin/')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.client.get('/accounts/2fa/totp/activate/').status_code, 302)
+        self.assertEqual(self.client.get('/accounts/2fa/totp/activate/').status_code, 404)
 
     def test_unverified_primary_cannot_enroll_mfa_even_with_verified_secondary(self):
         EmailAddress.objects.filter(user=self.user).update(verified=False)
         EmailAddress.objects.create(user=self.user, email='secondary@example.test', primary=False, verified=True)
-        self.assertEqual(self.client.get('/accounts/2fa/totp/activate/').status_code, 403)
+        self.assertEqual(self.client.post('/api/auth/security/methods/', {'action': 'begin_totp'}).status_code, 403)
 
     def test_production_axes_handler_aggregates_account_failures_across_clients(self):
         from axes.handlers.database import AxesDatabaseHandler

@@ -21,9 +21,9 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from starview_app.views.views_oauth import (
     apple_login, apple_callback, apple_notifications, google_login,
-    apple_finish_callback, google_callback, unsupported_google_token_login,
+    apple_finish_callback, google_callback,
 )
-from starview_app.views.views_reauthentication import reauthenticate, manage_security
+from starview_app.views.views_reauthentication import reauthenticate
 from starview_app.views.views_verification_login import verify_login
 from django.http import FileResponse
 from django.contrib.sitemaps.views import sitemap
@@ -33,29 +33,25 @@ from django.conf.urls.static import static
 
 import os
 
-from .views import ReactAppView, robots_txt, llms_txt
+from .views import ReactAppView, robots_txt, llms_txt, admin_login
 from starview_app.sitemaps import sitemaps
 from starview_app.utils.adapters import (
     CustomConfirmEmailView,
-    CustomConnectionsView,
     # Redirect views for allauth HTML pages
-    EmailManagementRedirectView,
-    PasswordChangeRedirectView,
-    PasswordSetRedirectView,
     LoginRedirectView,
     SignupRedirectView,
     LogoutRedirectView,
-    PasswordResetRedirectView,
-    PasswordResetDoneRedirectView,
-    PasswordResetKeyDoneRedirectView,
     EmailVerificationSentRedirectView,
     InactiveAccountRedirectView,
-    LoginCodeConfirmRedirectView,
     SocialLoginCancelledRedirectView,
     SocialLoginErrorRedirectView,
     SocialSignupRedirectView,
 )
 from starview_app.views.views_webhooks import ses_bounce_webhook, ses_complaint_webhook
+
+# Admin uses the application's sign-in flow, including each user's chosen MFA
+# policy. Once signed in, Django's normal superuser/model permissions apply.
+admin.site.login = admin_login
 
 
 # Custom static file serving with cache headers
@@ -75,66 +71,25 @@ urlpatterns = [
     path('api/webhooks/ses-bounce/', ses_bounce_webhook, name='ses_bounce_webhook'),
     path('api/webhooks/ses-complaint/', ses_complaint_webhook, name='ses_complaint_webhook'),
 
-    # -------------------------------------------------------------------------
-    # Allauth HTML page redirects (must be BEFORE allauth.urls to override)
-    # These redirect users to React frontend pages instead of Django templates
-    # -------------------------------------------------------------------------
-    # Custom views (already existed)
+    # Explicit allauth integration: expose only the flows Starview uses. Do not
+    # include allauth.urls, which also installs unused account/MFA management UIs.
     path('accounts/confirm-email/<str:key>/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
-    path('accounts/3rdparty/', CustomConnectionsView.as_view(), name='socialaccount_connections'),
-
-    # Account management redirects → /profile
-    path('accounts/email/', EmailManagementRedirectView.as_view(), name='account_email'),
-    path('accounts/password/change/', PasswordChangeRedirectView.as_view(), name='account_change_password'),
-    path('accounts/password/set/', PasswordSetRedirectView.as_view(), name='account_set_password'),
-
-    # Auth page redirects → React equivalents
     path('accounts/login/', LoginRedirectView.as_view(), name='account_login'),
     path('accounts/signup/', SignupRedirectView.as_view(), name='account_signup'),
     path('accounts/logout/', LogoutRedirectView.as_view(), name='account_logout'),
-
-    # Password reset redirects
-    path('accounts/password/reset/', PasswordResetRedirectView.as_view(), name='account_reset_password'),
-    path('accounts/password/reset/done/', PasswordResetDoneRedirectView.as_view(), name='account_reset_password_done'),
-    path('accounts/password/reset/key/done/', PasswordResetKeyDoneRedirectView.as_view(), name='account_reset_password_from_key_done'),
-
-    # Email verification redirect
     path('accounts/confirm-email/', EmailVerificationSentRedirectView.as_view(), name='account_email_verification_sent'),
-
-    # Misc account redirects
     path('accounts/inactive/', InactiveAccountRedirectView.as_view(), name='account_inactive'),
     path('accounts/reauthenticate/', reauthenticate, name='account_reauthenticate'),
     path('accounts/2fa/authenticate/', verify_login, name='mfa_authenticate'),
-    path('accounts/2fa/reauthenticate/', reauthenticate, name='mfa_reauthenticate'),
-    path('accounts/2fa/', manage_security, name='mfa_index'),
-    # Legacy bookmarks open the single settings modal. Old forms cannot mutate
-    # authenticators or reveal backup codes through a second set of controllers.
-    path('accounts/2fa/totp/activate/', manage_security, name='mfa_activate_totp'),
-    path('accounts/2fa/totp/deactivate/', manage_security, name='mfa_deactivate_totp'),
-    path('accounts/2fa/recovery-codes/', manage_security, name='mfa_view_recovery_codes'),
-    path('accounts/2fa/recovery-codes/generate/', manage_security, name='mfa_generate_recovery_codes'),
-    path('accounts/2fa/recovery-codes/download/', manage_security, name='mfa_download_recovery_codes'),
-    path('accounts/login/code/confirm/', LoginCodeConfirmRedirectView.as_view(), name='account_confirm_login_code'),
-
-    # Social account redirects
     path('accounts/3rdparty/login/cancelled/', SocialLoginCancelledRedirectView.as_view(), name='socialaccount_login_cancelled'),
     path('accounts/3rdparty/login/error/', SocialLoginErrorRedirectView.as_view(), name='socialaccount_login_error'),
     path('accounts/3rdparty/signup/', SocialSignupRedirectView.as_view(), name='socialaccount_signup'),
-    path('accounts/social/login/cancelled/', SocialLoginCancelledRedirectView.as_view()),
-    path('accounts/social/login/error/', SocialLoginErrorRedirectView.as_view()),
-    path('accounts/social/signup/', SocialSignupRedirectView.as_view()),
-
-    # -------------------------------------------------------------------------
-    # Allauth URLs (for OAuth callbacks and other functional endpoints)
-    # -------------------------------------------------------------------------
-    path('accounts/google/login/', google_login),
-    path('accounts/google/login/callback/', google_callback),
-    path('accounts/google/login/token/', unsupported_google_token_login),
-    path('accounts/apple/login/', apple_login),
-    path('accounts/apple/login/callback/', csrf_exempt(apple_callback)),
-    path('accounts/apple/login/callback/finish/', apple_finish_callback),
-    path('accounts/apple/notifications/', apple_notifications),
-    path('accounts/', include('allauth.urls')),
+    path('accounts/google/login/', google_login, name='google_login'),
+    path('accounts/google/login/callback/', google_callback, name='google_callback'),
+    path('accounts/apple/login/', apple_login, name='apple_login'),
+    path('accounts/apple/login/callback/', csrf_exempt(apple_callback), name='apple_callback'),
+    path('accounts/apple/login/callback/finish/', apple_finish_callback, name='apple_finish_callback'),
+    path('accounts/apple/notifications/', apple_notifications, name='apple_notifications'),
     path('', include('starview_app.urls')),
 ]
 

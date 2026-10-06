@@ -22,16 +22,15 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 # Django imports:
+from collections.abc import Mapping
+
 from django.contrib.auth import update_session_auth_hash
-from django.views.decorators.http import require_POST
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 
 # DRF imports:
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import action
 from starview_app.utils.throttles import EmailChangeThrottle
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, exceptions
@@ -39,7 +38,7 @@ from rest_framework.response import Response
 
 # Model imports:
 from django.contrib.auth.models import User
-from ..models import UserProfile, Review, FavoriteLocation
+from ..models import UserProfile, Review
 
 # Serializer imports:
 from ..serializers import PublicUserSerializer, PrivateProfileSerializer, ReviewSerializer
@@ -50,6 +49,18 @@ from starview_app.services import PasswordService
 # Signal utility imports:
 from starview_app.utils.signals import safe_delete_file
 
+
+def _profile_payload(data):
+    if not isinstance(data, Mapping):
+        raise exceptions.ValidationError('Provide an object with profile fields.')
+    return data
+
+
+def _profile_text(data, field):
+    value = _profile_payload(data).get(field, '')
+    if not isinstance(value, str):
+        raise exceptions.ValidationError(f'{field.replace("_", " ").capitalize()} must be text.')
+    return value.strip()
 
 
 # ----------------------------------------------------------------------------------------------------- #
@@ -148,7 +159,9 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         # Hide system accounts from public access
         if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
             raise exceptions.NotFound('User not found.')
-        reviews = Review.objects.filter(user=user).select_related('location', 'user__userprofile').order_by('-created_at')
+        reviews = Review.objects.filter(user=user).select_related(
+            'location', 'user__userprofile',
+        ).prefetch_related('votes', 'photos').order_by('-created_at')
 
         # Pagination
         from rest_framework.pagination import PageNumberPagination
@@ -182,8 +195,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Upload new profile picture. Automatically deletes old custom images           #
-    # (preserves default images) before saving the new one.                         #
+    # Upload new profile picture. Delete the old custom image after saving.          #
     #                                                                               #
     # Security: Validates file size (5MB max), MIME type, and extension before      #
     # processing to prevent malicious file uploads and DOS attacks.                 #
@@ -213,14 +225,13 @@ class UserProfileViewSet(viewsets.GenericViewSet):
 
         user_profile = request.user.userprofile
 
-        # Delete old profile picture if it exists (None means using default, so nothing to delete)
-        # Pass the FileField object directly (works with both local and R2/S3 storage)
-        if user_profile.profile_picture:
-            safe_delete_file(user_profile.profile_picture)
+        old_picture = user_profile.profile_picture
 
         # Save the new profile picture
         user_profile.profile_picture = profile_picture
-        user_profile.save()
+        user_profile.save(update_fields=['profile_picture', 'updated_at'])
+        if old_picture:
+            transaction.on_commit(lambda: safe_delete_file(old_picture))
 
         # Check profile completion badge (may award Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -244,14 +255,13 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     def remove_picture(self, request):
         user_profile = request.user.userprofile
 
-        # Delete the current profile picture if it exists (None means using default)
-        # Pass the FileField object directly (works with both local and R2/S3 storage)
-        if user_profile.profile_picture:
-            safe_delete_file(user_profile.profile_picture)
+        old_picture = user_profile.profile_picture
 
         # Reset to default (model returns default URL when profile_picture is None)
         user_profile.profile_picture = None
-        user_profile.save()
+        user_profile.save(update_fields=['profile_picture', 'updated_at'])
+        if old_picture:
+            transaction.on_commit(lambda: safe_delete_file(old_picture))
 
         # Check profile completion badge (may revoke Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -274,17 +284,22 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-name')
     def update_name(self, request):
-        first_name = request.data.get('first_name', '').strip()
-        last_name = request.data.get('last_name', '').strip()
+        first_name = _profile_text(request.data, 'first_name')
+        last_name = _profile_text(request.data, 'last_name')
 
         # Validate required fields
         if not first_name or not last_name:
             raise exceptions.ValidationError('Both first and last name are required.')
+        for field, value in [('first_name', first_name), ('last_name', last_name)]:
+            limit = User._meta.get_field(field).max_length
+            if len(value) > limit:
+                raise exceptions.ValidationError(f'{field.replace("_", " ").capitalize()} must be {limit} characters or less.')
 
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
-        user.save()
+        # The request user may predate a concurrent password/security change.
+        user.save(update_fields=['first_name', 'last_name'])
 
         return Response({
             'detail': 'Name updated successfully.',
@@ -311,7 +326,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['patch'], url_path='me/update-username')
     def update_username(self, request):
         import re
-        new_username = request.data.get('new_username', '').strip().lower()
+        new_username = _profile_text(request.data, 'new_username').lower()
 
         # Validate required field
         if not new_username:
@@ -334,7 +349,12 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         # Update username
         user = request.user
         user.username = new_username
-        user.save()
+        try:
+            with transaction.atomic():
+                user.save(update_fields=['username'])
+        except IntegrityError:
+            # A competing account may claim the name after the availability check.
+            raise exceptions.ValidationError('This username is already taken.') from None
 
         return Response({
             'detail': 'Username updated successfully.',
@@ -362,7 +382,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['patch'], url_path='me/update-email', throttle_classes=[EmailChangeThrottle])
     def update_email(self, request):
         from starview_app.services.email_identity import request_email_change
-        new_email = request.data.get('new_email', '')
+        new_email = _profile_payload(request.data).get('new_email', '')
         if not isinstance(new_email, str):
             raise exceptions.ValidationError('Please enter a valid email address.')
         request_email_change(request, new_email.strip().lower())
@@ -390,12 +410,13 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     def update_password(self, request):
         from starview_app.services.account_security import locked_account, revoke_account_sessions
         from starview_app.services.account_events import record_account_event
-        new_password = request.data.get('new_password')
+        data = _profile_payload(request.data)
+        new_password = data.get('new_password')
         if not isinstance(new_password, str) or not new_password:
             raise exceptions.ValidationError('New password is required.')
         with locked_account(request) as user:
             if user.has_usable_password():
-                current_password = request.data.get('current_password')
+                current_password = data.get('current_password')
                 if not isinstance(current_password, str) or not current_password:
                     raise exceptions.ValidationError('Current password is required.')
                 success, error_message = PasswordService.change_password(user, current_password, new_password)
@@ -417,26 +438,27 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     # ----------------------------------------------------------------------------- #
     # Update user's bio text.                                                       #
     #                                                                               #
-    # Bio appears on public profile and is limited to 500 characters.               #
+    # Bio appears on public profile and uses the model's length limit.              #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-bio/                                           #
     # Authentication: Required                                                      #
-    # Body: JSON with bio (max 500 characters)                                      #
+    # Body: JSON with bio (max 150 characters)                                      #
     # Returns: DRF Response with success status and updated bio                     #
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-bio')
     def update_bio(self, request):
-        bio = request.data.get('bio', '').strip()
+        bio = _profile_text(request.data, 'bio')
 
         # Validate length
-        if len(bio) > 500:
-            raise exceptions.ValidationError('Bio must be 500 characters or less.')
+        limit = UserProfile._meta.get_field('bio').max_length
+        if len(bio) > limit:
+            raise exceptions.ValidationError(f'Bio must be {limit} characters or less.')
 
         # Update bio
         profile = request.user.userprofile
         profile.bio = bio
-        profile.save()
+        profile.save(update_fields=['bio', 'updated_at'])
 
         # Check profile completion badge (may award/revoke Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -461,7 +483,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-unit-preference')
     def update_unit_preference(self, request):
-        unit_preference = request.data.get('unit_preference', '').strip().lower()
+        unit_preference = _profile_text(request.data, 'unit_preference').lower()
 
         # Validate choice
         valid_choices = ['metric', 'imperial']
@@ -473,7 +495,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         # Update preference
         profile = request.user.userprofile
         profile.unit_preference = unit_preference
-        profile.save()
+        profile.save(update_fields=['unit_preference', 'updated_at'])
 
         return Response({
             'detail': 'Unit preference updated successfully.',
@@ -494,13 +516,12 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-language-preference')
     def update_language_preference(self, request):
-        requested_language = request.data.get('language_preference', '')
+        requested_language = _profile_text(request.data, 'language_preference')
 
         # Get valid language codes from settings
         valid_languages = [lang_code for lang_code, lang_name in settings.LANGUAGES]
         language_preference = next((code for code in valid_languages
-                                    if isinstance(requested_language, str)
-                                    and code.lower() == requested_language.strip().lower()), None)
+                                    if code.lower() == requested_language.lower()), None)
 
         # Validate choice
         if language_preference not in valid_languages:
@@ -511,7 +532,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         # Update preference
         profile = request.user.userprofile
         profile.language_preference = language_preference
-        profile.save()
+        profile.save(update_fields=['language_preference', 'updated_at'])
 
         return Response({
             'detail': 'Language preference updated successfully.',
@@ -574,7 +595,6 @@ class UserProfileViewSet(viewsets.GenericViewSet):
     def disconnect_social(self, request, account_id=None):
         from starview_app.services.account_security import require_recent
         require_recent(request)
-        from allauth.account.models import EmailAddress
         from allauth.socialaccount.models import SocialAccount
         from allauth.socialaccount.signals import social_account_removed
         from starview_app.services.apple_oauth import AppleRevocationError, revoke_apple_credential
@@ -582,6 +602,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         # Serialize removals for this user so concurrent requests cannot remove
         # both remaining providers from a passwordless account.
         from starview_app.services.account_security import locked_account
+        from starview_app.services.email_identity import verified_primary
         with locked_account(request) as user:
             try:
                 account = SocialAccount.objects.get(id=account_id, user=user)
@@ -589,9 +610,7 @@ class UserProfileViewSet(viewsets.GenericViewSet):
                 raise exceptions.NotFound('Social account not found.')
             has_other_provider = SocialAccount.objects.filter(user=user).exclude(pk=account.pk).exists()
             # Password login also requires a verified primary email in custom_login.
-            can_use_password = user.has_usable_password() and EmailAddress.objects.filter(
-                user=user, primary=True, verified=True
-            ).exists()
+            can_use_password = user.has_usable_password() and verified_primary(user)
             if not can_use_password and not has_other_provider:
                 raise exceptions.ValidationError({
                     'detail': 'Before disconnecting your last sign-in method, connect another account or set a password and verify your profile email.'

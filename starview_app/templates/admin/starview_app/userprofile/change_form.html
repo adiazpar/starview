@@ -1,0 +1,9 @@
+{% extends "admin/change_form.html" %}
+{% load admin_urls %}
+{% block submit_buttons_bottom %}
+  {{ block.super }}
+  {% if has_delete_permission and original %}
+    {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as reset_url %}
+    <div class="submit-row"><a href="{{ reset_url }}" class="deletelink">Reset profile data</a></div>
+  {% endif %}
+{% endblock %}

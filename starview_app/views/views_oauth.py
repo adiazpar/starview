@@ -32,12 +32,6 @@ def apple_finish_callback(request):
     return _complete_callback(request, oauth2_finish_login)
 
 
-def unsupported_google_token_login(request):
-    # Starview supports the CSRF-protected authorization-code flow, not One Tap.
-    from django.http import HttpResponseNotAllowed
-    return HttpResponseNotAllowed([])
-
-
 @never_cache
 @api_view(['GET'])
 @permission_classes([AllowAny])

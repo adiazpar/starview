@@ -8,37 +8,55 @@
 # Key Features:                                                                                         #
 # - PublicUserSerializer: Public profile data (no email/sensitive fields) for public viewing           #
 # - PrivateProfileSerializer: Full profile data including email for authenticated user                  #
-# - UserProfileSerializer: Profile picture with URL generation (legacy)                                 #
-# - UserSerializer: Core Django User model with nested profile data (legacy)                            #
 # - Profile picture URLs: Provides absolute URLs for image display                                      #
 # ----------------------------------------------------------------------------------------------------- #
 
 # Import tools:
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from starview_app.models.model_user_profile import UserProfile
 
 
+def _public_stats(user_ids):
+    """Aggregate one public profile or a page without per-profile queries."""
+    from django.db.models import Count
+    from starview_app.models import Review, FavoriteLocation, Follow, Vote
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
-    profile_picture_url = serializers.ReadOnlyField(source='get_profile_picture_url')
+    stats = {user_id: {
+        'review_count': 0, 'locations_reviewed': 0, 'favorite_count': 0,
+        'helpful_votes_received': 0, 'follower_count': 0, 'following_count': 0,
+    } for user_id in user_ids}
+    if not stats:
+        return stats
+    reviews = Review.objects.filter(user_id__in=user_ids).values('user_id').annotate(
+        review_count=Count('id'), locations_reviewed=Count('location_id', distinct=True),
+    )
+    for row in reviews:
+        stats[row['user_id']].update({key: row[key] for key in ('review_count', 'locations_reviewed')})
+    counts = (
+        (FavoriteLocation.objects.filter(user_id__in=user_ids), 'user_id', 'favorite_count'),
+        (Vote.objects.filter(review__user_id__in=user_ids, is_upvote=True), 'review__user_id', 'helpful_votes_received'),
+        (Follow.objects.filter(following_id__in=user_ids), 'following_id', 'follower_count'),
+        (Follow.objects.filter(follower_id__in=user_ids), 'follower_id', 'following_count'),
+    )
+    for queryset, owner, field in counts:
+        for row in queryset.order_by().values(owner).annotate(total=Count('id')):
+            stats[row[owner]][field] = row['total']
+    return stats
 
-    class Meta:
-        model = UserProfile
-        fields = ['id', 'user', 'profile_picture', 'profile_picture_url',
-                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
+class PublicUserListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        users = list(data.all() if hasattr(data, 'all') else data)
+        user_ids = [user.pk for user in users]
+        self.context['public_user_stats'] = _public_stats(user_ids)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            from starview_app.models import Follow
+            self.context['public_following_ids'] = set(Follow.objects.filter(
+                follower=request.user, following_id__in=user_ids,
+            ).values_list('following_id', flat=True))
+        return super().to_representation(users)
 
-
-class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer(source='userprofile', read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'profile']
-        read_only_fields = ['id', 'username', 'date_joined']
 
 
 # ----------------------------------------------------------------------------- #
@@ -57,6 +75,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+        list_serializer_class = PublicUserListSerializer
         fields = ['id', 'username', 'first_name', 'last_name', 'date_joined',
                   'profile_picture_url', 'bio', 'is_verified', 'stats', 'is_following',
                   'pinned_badge_ids']
@@ -77,6 +96,8 @@ class PublicUserSerializer(serializers.ModelSerializer):
         # Don't check for own profile
         if request.user == obj:
             return None
+        if 'public_following_ids' in self.context:
+            return obj.pk in self.context['public_following_ids']
 
         from starview_app.models import Follow
         return Follow.objects.filter(
@@ -86,39 +107,8 @@ class PublicUserSerializer(serializers.ModelSerializer):
 
     def get_stats(self, obj):
         """Get user's public statistics"""
-        from starview_app.models import Review, FavoriteLocation, Follow
-        from django.db.models import Count, Sum
-        from django.contrib.contenttypes.models import ContentType
-
-        # Get review count and locations reviewed count
-        review_count = Review.objects.filter(user=obj).count()
-        locations_reviewed = Review.objects.filter(user=obj).values('location').distinct().count()
-
-        # Get favorite count
-        favorite_count = FavoriteLocation.objects.filter(user=obj).count()
-
-        # Get helpful votes received (upvotes on user's reviews)
-        from starview_app.models import Vote
-        review_ct = ContentType.objects.get_for_model(Review)
-        user_review_ids = Review.objects.filter(user=obj).values_list('id', flat=True)
-        helpful_votes = Vote.objects.filter(
-            content_type=review_ct,
-            object_id__in=user_review_ids,
-            is_upvote=True  # Upvotes only
-        ).count()
-
-        # Get follower/following counts
-        follower_count = Follow.objects.filter(following=obj).count()
-        following_count = Follow.objects.filter(follower=obj).count()
-
-        return {
-            'review_count': review_count,
-            'locations_reviewed': locations_reviewed,
-            'favorite_count': favorite_count,
-            'helpful_votes_received': helpful_votes,
-            'follower_count': follower_count,
-            'following_count': following_count
-        }
+        stats = self.context.get('public_user_stats')
+        return stats[obj.pk] if stats is not None else _public_stats([obj.pk])[obj.pk]
 
 
 # ----------------------------------------------------------------------------- #

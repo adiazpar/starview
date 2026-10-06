@@ -1,10 +1,16 @@
-.app-dialog .account-confirmation-form { margin-top: var(--space-md); }
+/* The lead above the form already carries the spacing. */
+.app-dialog .account-confirmation-form { margin-top: 0; }
+/* Buttons do not inherit the page font, so name it: these links sit in Karla body text. */
 .account-confirmation-link {
-  color: var(--accent); font-size: var(--text-sm); text-align: left;
-  text-decoration: underline; text-underline-offset: 3px; padding: var(--space-xs) 0;
+  color: var(--accent); font-family: var(--font-family); font-size: var(--text-sm); line-height: var(--leading-normal); text-align: left;
+  text-decoration: underline; text-underline-offset: 3px; padding: var(--space-sm) 0;
 }
 .account-confirmation-link:hover:not(:disabled) { color: var(--text-primary); }
 .account-confirmation-link:disabled { opacity: .5; cursor: not-allowed; }
 .account-confirmation-form > .account-confirmation-link { margin-top: var(--space-sm); }
-.account-confirmation-backup { border-top: 1px solid var(--glass-border); margin-top: var(--space-lg); padding-top: var(--space-md); }
-.account-confirmation-notice { padding: var(--space-sm) var(--space-md); border-radius: var(--radius); background: var(--glass-bg-hover); }
+/* Sent: calm status and the resend control, centered under the field. */
+.verification-meta { display: grid; justify-items: center; gap: var(--space-xs); margin-top: var(--space-md); }
+.verification-meta .verification-status { margin-top: 0; }
+.verification-meta .account-confirmation-link, .account-confirmation-backup .account-confirmation-link { text-align: center; }
+.account-confirmation-backup { display: flex; justify-content: center; margin-top: var(--space-md); }
+.app-dialog .account-confirmation-form > .form-label { text-align: left; }

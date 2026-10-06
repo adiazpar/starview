@@ -19,7 +19,7 @@ from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 
 from django_project.apple_oauth import apple_app_from_env
-from starview_app.models import UserBadge, UserProfile
+from starview_app.models import Badge, UserBadge, UserProfile
 from starview_app.services import badge_service
 from starview_app.utils.adapters import CustomAccountAdapter, CustomSocialAccountAdapter
 from allauth.core.exceptions import ImmediateHttpResponse
@@ -72,6 +72,16 @@ class AppleConfigurationTests(SimpleTestCase):
 
 
 class AppleFlowTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Transaction tests flush seed data when an isolated database is reused.
+        # These profile-continuity assertions own the badge fixture they require.
+        Badge.objects.get_or_create(slug='pioneer', defaults={
+            'name': 'Pioneer', 'description': 'First 100 users', 'category': 'SPECIAL',
+            'criteria_type': 'SPECIAL_CONDITION', 'criteria_value': 100,
+            'icon_path': '/badges/pioneer.png', 'is_rare': True,
+        })
+
     def setUp(self):
         badge_service._BADGE_CACHE_BY_SLUG.clear()
         cache.clear()  # test_settings uses only an isolated in-memory cache
@@ -283,6 +293,29 @@ class AppleFlowTests(TestCase):
         self.sign_in_fixture(user)
         self.assertEqual(self.client.delete(url, HTTP_X_CSRFTOKEN=csrf).status_code, 200)
 
+    def test_mismatched_verified_address_is_not_a_last_provider_fallback(self):
+        user = User.objects.create_user(username='mismatched-contact', email='active@example.test', password='test-password')
+        EmailAddress.objects.create(user=user, email='legacy@example.test', primary=True, verified=True)
+        account = SocialAccount.objects.create(user=user, provider='apple', uid='mismatched-apple')
+        self.sign_in_fixture(user)
+        csrf = self.client.get('/api/auth/providers/').json()['csrf_token']
+        response = self.client.delete(f'/api/users/me/disconnect-social/{account.pk}/', HTTP_X_CSRFTOKEN=csrf)
+        self.assertIn(response.status_code, (400, 403))
+        self.assertTrue(SocialAccount.objects.filter(pk=account.pk).exists())
+
+    def test_connect_rejects_security_version_changed_since_initiation(self):
+        user = User.objects.create_user(username='stale-apple-connect', email='connect@example.test')
+        EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=True)
+        self.sign_in_fixture(user)
+        state = self.start('connect')
+        UserProfile.objects.filter(user=user).update(security_version=1)
+        session = self.client.session
+        session['identity_version'] = 1
+        session.save()
+        response = self.finish(state)
+        self.assertIn('reauthentication_required', response.url)
+        self.assertFalse(SocialAccount.objects.filter(provider='apple').exists())
+
     def test_linking_conflicts_and_disconnect_guard(self):
         user = User.objects.create_user(username='existing', email='existing@example.test', password='test-password')
         EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
@@ -348,6 +381,9 @@ class AccountLinkingTests(TestCase):
     def social_login(self, provider, email, uid='new-subject', process='login'):
         login = SocialLogin(user=User(), account=SocialAccount(provider=provider, uid=uid, extra_data={'email': email}))
         login.state = {'process': process}
+        if process == 'connect':
+            login.state.update(starview_connect_user=self.request.user.pk,
+                               starview_connect_version=self.request.session.get('identity_version', 0))
         return login
 
     def test_matches_guide_both_providers_without_silently_linking(self):

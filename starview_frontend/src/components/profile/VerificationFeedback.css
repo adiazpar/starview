@@ -1,0 +1,36 @@
+/* One vertical rhythm for the verification steps: generous on a tall sheet, tighter above a software keyboard.
+   The Dialog keeps --dialog-viewport-height at the visible height (100dvh until it reports). */
+.app-dialog { --verify-gap: clamp(var(--space-md), calc(var(--dialog-viewport-height, 100dvh) * 0.04), var(--space-xl)); }
+
+/* Centered lead and quiet status shared by every verification step. Type, not ornament, carries the step. */
+.app-dialog .verification-lead {
+  max-width: 34ch;
+  margin: 0 auto var(--verify-gap);
+  text-align: center;
+  text-wrap: balance;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+}
+.verification-lead strong { color: var(--text-primary); font-weight: var(--font-semibold); }
+/* A lead or status that ends a step leaves the spacing to the body padding. */
+.app-dialog .verification-lead:last-child, .app-dialog .verification-status:last-child { margin-bottom: 0; }
+
+.app-dialog .verification-status {
+  margin: var(--space-md) 0 0;
+  text-align: center;
+  text-wrap: balance;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  animation: app-dialog-content-in var(--animation-duration) cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+/* The mark leads the first line, so a message that wraps stays centered with its icon beside it. */
+.verification-status > i { margin-right: var(--space-sm); color: var(--accent); }
+.app-dialog .verification-status--error { color: var(--error); }
+.verification-status--error > i { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-dialog .verification-status { animation: none; }
+}

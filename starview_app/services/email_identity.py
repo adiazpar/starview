@@ -51,6 +51,42 @@ def verified_primary(user):
     ).exists()
 
 
+def resend_primary_confirmation(request, email):
+    """Replace signup links only while their primary contact is still current.
+
+    Share allauth's mailbox limiter, and serialize with contact confirmation and
+    replacement. A failed enqueue rolls back invalidation of the previous link.
+    Callers deliberately return the same response for every eligibility result.
+    """
+    from allauth.account.models import EmailConfirmation
+    from allauth.account.internal.flows.email_verification import consume_email_verification_rate_limit
+
+    if not consume_email_verification_rate_limit(request, email):
+        return False
+    with transaction.atomic():
+        user = get_user_model().objects.select_for_update().filter(
+            email__iexact=email, is_active=True,
+        ).first()
+        if user is None:
+            return False
+        address = EmailAddress.objects.filter(
+            user=user, email__iexact=user.email, primary=True, verified=False,
+        ).first()
+        if address is None:
+            return False
+        EmailConfirmation.objects.filter(email_address=address).delete()
+        address.send_confirmation(request)
+        from starview_app.utils.audit_logger import log_auth_event
+        import logging
+        try:
+            with transaction.atomic():
+                log_auth_event(request, 'verification_email_resent', user=user,
+                               message='Primary email verification requested.')
+        except Exception as exc:
+            logging.getLogger(__name__).error('Verification resend audit failed: exception=%s', type(exc).__name__)
+        return True
+
+
 def request_email_change(request, new_email):
     from django.conf import settings
     from django.core.exceptions import ValidationError as DjangoValidationError

@@ -124,7 +124,33 @@ class GoogleFlowTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         self.assertEqual(client.get('/accounts/google/login/').status_code, 405)
         self.assertEqual(client.post('/accounts/google/login/').status_code, 403)
-        self.assertEqual(client.get('/accounts/google/login/token/').status_code, 405)
+        self.assertEqual(client.get('/accounts/google/login/token/').status_code, 404)
+
+    def test_connect_binds_to_account_version_at_initiation(self):
+        self.finish(self.start())
+        user = SocialAccount.objects.get(provider='google').user
+        state = self.start('connect')
+        # Credential changes keep the current session but invalidate the old
+        # authorization attempt even if fresh recent proof remains available.
+        UserProfile.objects.filter(user=user).update(security_version=1)
+        session = self.client.session
+        session['identity_version'] = 1
+        session.save()
+        response = self.finish(state, email='second@example.test', subject='second-subject')
+        self.assertIn('reauthentication_required', response.url)
+        self.assertFalse(SocialAccount.objects.filter(uid='second-subject').exists())
+
+    def test_connect_rejects_state_for_another_initiating_account(self):
+        self.finish(self.start())
+        state = self.start('connect')
+        session = self.client.session
+        states = session['socialaccount_states']
+        states[state][0]['starview_connect_user'] = -1
+        session['socialaccount_states'] = states
+        session.save()
+        response = self.finish(state, email='second@example.test', subject='second-subject')
+        self.assertIn('reauthentication_required', response.url)
+        self.assertFalse(SocialAccount.objects.filter(uid='second-subject').exists())
 
     @override_settings(DEBUG=True, INTERNAL_IPS=[])
     def test_login_and_connect_return_to_frontend_after_backend_callback(self):
@@ -145,18 +171,73 @@ class GoogleFlowTests(TestCase):
 
 
 from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier
-from django.db import close_old_connections
+from threading import Barrier, Event
+from django.db import close_old_connections, connection, transaction
 from django.test import TransactionTestCase
 
 
 @override_settings(SOCIALACCOUNT_PROVIDERS={'google': {'APPS': [{'client_id': 'google-test', 'secret': 'test-only'}]}})
 class ConcurrentGoogleTests(TransactionTestCase):
-    serialized_rollback = True
-
-    def test_simultaneous_callbacks_create_one_identity_and_one_welcome(self):
+    def setUp(self):
         caches['default'].clear()
         caches['security'].clear()
+        from starview_app.services import badge_service
+        badge_service._BADGE_CACHE_BY_SLUG.clear()
+        badge_service._BADGE_CACHE_BY_CATEGORY.clear()
+
+    def test_disconnect_while_callback_waits_does_not_create_new_profile(self):
+        user = User.objects.create_user(username='revoking-google', email='original@example.test')
+        EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=True)
+        account = SocialAccount.objects.create(user=user, provider='google', uid='revoking-subject')
+        claims = {'iss': 'https://accounts.google.com', 'aud': 'google-test', 'sub': account.uid,
+                  'email': 'changed-provider@example.test', 'email_verified': True,
+                  'iat': int(time.time()), 'exp': int(time.time()) + 300}
+        token = jwt.encode(claims, 'fixture-signing-key-at-least-32-bytes', algorithm='HS256')
+        client = Client()
+        csrf = client.get('/api/auth/providers/').json()['csrf_token']
+        response = client.post('/accounts/google/login/', {'csrfmiddlewaretoken': csrf, 'process': 'login'})
+        state = parse_qs(urlparse(response.url).query)['state'][0]
+        started = Event()
+        callback_pid = []
+
+        def callback():
+            close_old_connections()
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT pg_backend_pid()')
+                    callback_pid.append(cursor.fetchone()[0])
+                started.set()
+                return client.get('/accounts/google/login/callback/', {'state': state, 'code': 'test-code'})
+            finally:
+                connection.close()
+
+        with patch('allauth.socialaccount.providers.oauth2.client.OAuth2Client.get_access_token', return_value={
+            'access_token': 'test-access', 'id_token': token,
+        }), ThreadPoolExecutor(max_workers=1) as executor:
+            with transaction.atomic():
+                User.objects.select_for_update().get(pk=user.pk)
+                future = executor.submit(callback)
+                self.assertTrue(started.wait(5))
+                blocked = False
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    with connection.cursor() as cursor:
+                        cursor.execute('SELECT wait_event FROM pg_stat_activity WHERE pid = %s', [callback_pid[0]])
+                        row = cursor.fetchone()
+                    if row and row[0] == 'transactionid':
+                        blocked = True
+                        break
+                    time.sleep(.01)
+                self.assertTrue(blocked, 'Callback never waited for the disconnect account lock')
+                account.delete()
+                UserProfile.objects.filter(user=user).update(security_version=1)
+            response = future.result(timeout=5)
+        self.assertIn('oauth_error', response.url)
+        self.assertFalse(client.get('/api/auth/status/').json()['authenticated'])
+        self.assertEqual(User.objects.count(), 1)
+        self.assertFalse(SocialAccount.objects.exists())
+
+    def test_simultaneous_callbacks_create_one_identity_and_one_welcome(self):
         ready = Barrier(2)
         claims = {'iss': 'https://accounts.google.com', 'aud': 'google-test', 'sub': 'concurrent-subject',
                   'email': 'concurrent-google@example.test', 'email_verified': True,
