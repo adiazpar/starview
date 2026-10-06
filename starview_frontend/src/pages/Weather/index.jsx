@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import SunCalc from 'suncalc';
+import * as SunCalc from 'suncalc';
 import { useSEO } from '../../hooks/useSEO';
 import { useLocation } from '../../contexts/LocationContext';
 import { useWeather } from '../../hooks/useWeather';

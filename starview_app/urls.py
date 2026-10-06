@@ -22,6 +22,7 @@
 
 # Import tools:
 from django.urls import path, include
+from starview_app.views.views_account_security import account_security, account_security_code, account_security_methods, account_recovery_codes
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers
 
@@ -47,6 +48,7 @@ from .views import (
     custom_login,
     custom_logout,
     auth_status,
+    auth_providers,
     resend_verification_email,
     request_password_reset,
     confirm_password_reset,
@@ -107,6 +109,11 @@ urlpatterns = [
     path('api/auth/login/', custom_login, name='login'),
     path('api/auth/logout/', custom_logout, name='logout'),
     path('api/auth/status/', auth_status, name='auth_status'),
+    path('api/auth/security/', account_security, name='account_security'),
+    path('api/auth/security/code/', account_security_code, name='account_security_code'),
+    path('api/auth/security/methods/', account_security_methods, name='account_security_methods'),
+    path('api/auth/security/recovery-codes/', account_recovery_codes, name='account_recovery_codes'),
+    path('api/auth/providers/', auth_providers, name='auth_providers'),
     path('api/auth/resend-verification/', resend_verification_email, name='resend_verification'),
     path('api/auth/password-reset/', request_password_reset, name='password_reset_request'),
     path('api/auth/password-reset-confirm/<uidb64>/<token>/', confirm_password_reset, name='password_reset_confirm'),

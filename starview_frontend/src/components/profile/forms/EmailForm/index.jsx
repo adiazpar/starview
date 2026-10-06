@@ -10,8 +10,10 @@ import { useState, useEffect } from 'react';
 import profileApi from '../../../../services/profile';
 import { useToast } from '../../../../contexts/ToastContext';
 import LoadingSpinner from '../../../shared/LoadingSpinner';
+import useAccountConfirmation from '../../../../hooks/useAccountConfirmation';
 
 function EmailForm({ user, refreshAuth }) {
+  const confirmation = useAccountConfirmation();
   const [isEditing, setIsEditing] = useState(false);
   const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,7 @@ function EmailForm({ user, refreshAuth }) {
 
     setLoading(true);
     try {
+      if (!await confirmation.confirm()) return;
       const response = await profileApi.updateEmail({
         new_email: email,
       });
@@ -56,6 +59,7 @@ function EmailForm({ user, refreshAuth }) {
 
   return (
     <div className="profile-form-section">
+      {confirmation.dialog}
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">

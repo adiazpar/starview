@@ -1,5 +1,8 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import authApi from '../services/auth';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createQueryClient } from '../services/queryClient';
+import { advanceIdentityEpoch } from '../services/identityEpoch';
 import { safeRedirect } from '../utils/security';
 
 /**
@@ -31,27 +34,51 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasInitialized = useRef(false);
+  const [queryClient, setQueryClient] = useState(createQueryClient);
+  const currentClient = useRef(queryClient);
+  const identity = useRef(undefined);
+  const statusVersion = useRef(0);
+
+  const setIdentity = useCallback((nextUser) => {
+    const nextId = nextUser?.id ?? null;
+    if (identity.current !== nextId) {
+      identity.current = nextId;
+      advanceIdentityEpoch();
+      // Late mutation callbacks retain the old client. They cannot repopulate
+      // the next account's cache, even if an optimistic rollback runs later.
+      void currentClient.current.cancelQueries();
+      currentClient.current.clear();
+      currentClient.current = createQueryClient();
+      setQueryClient(currentClient.current);
+    }
+  }, []);
 
   /**
    * Check authentication status
    * Called on initial mount and when explicitly refreshed
    */
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
+    const version = ++statusVersion.current;
     try {
       const response = await authApi.checkStatus();
       const data = response.data;
 
+      if (version !== statusVersion.current) return;
+      setIdentity(data.authenticated ? data.user : null);
+      if (version !== statusVersion.current) return;
       setIsAuthenticated(data.authenticated);
       setUser(data.user);
-    } catch (error) {
-      console.error('Error checking auth status:', error);
+    } catch {
+      if (version !== statusVersion.current) return;
+      setIdentity(null);
+      if (version !== statusVersion.current) return;
       // If request fails, assume not authenticated
       setIsAuthenticated(false);
       setUser(null);
     } finally {
-      setLoading(false);
+      if (version === statusVersion.current) setLoading(false);
     }
-  };
+  }, [setIdentity]);
 
   /**
    * Refresh auth state
@@ -69,6 +96,9 @@ export function AuthProvider({ children }) {
       const response = await authApi.logout();
       const data = response.data;
 
+      ++statusVersion.current;
+      setIdentity(null);
+      try { localStorage.setItem('starview:auth-change', String(Date.now())); } catch { /* Storage can be disabled. */ }
       // Update local state
       setIsAuthenticated(false);
       setUser(null);
@@ -88,18 +118,32 @@ export function AuthProvider({ children }) {
       hasInitialized.current = true;
       checkAuthStatus();
     }
-  }, []);
+  }, [checkAuthStatus]);
+
+  // Recheck the shared session when returning to a tab or another tab logs out.
+  useEffect(() => {
+    const onFocus = () => { checkAuthStatus(); };
+    const onStorage = (event) => { if (event.key === 'starview:auth-change') checkAuthStatus(); };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [checkAuthStatus]);
 
   // Listen for 401 unauthorized events from API interceptor
   useEffect(() => {
     const handleUnauthorized = () => {
+      ++statusVersion.current;
+      setIdentity(null);
       setIsAuthenticated(false);
       setUser(null);
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
-  }, []);
+  }, [setIdentity]);
 
   const value = {
     isAuthenticated,
@@ -109,7 +153,11 @@ export function AuthProvider({ children }) {
     refreshAuth,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>
+    <QueryClientProvider client={queryClient} key={user?.id ?? 'anonymous'}>
+      {children}
+    </QueryClientProvider>
+  </AuthContext.Provider>;
 }
 
 /**
@@ -120,6 +168,8 @@ export function AuthProvider({ children }) {
  * Usage:
  *   const { isAuthenticated, user, loading, logout, refreshAuth } = useAuth();
  */
+// Preserve the existing shared provider/hook API used throughout the app.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
 

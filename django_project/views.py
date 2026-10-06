@@ -31,6 +31,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET
+
+
+@never_cache
+@require_GET
+def admin_login(request, extra_context=None):
+    """Enter shared sign-in without exposing Django's password-only login POST."""
+    from django.core.exceptions import PermissionDenied
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
+    from starview_app.utils.adapters import get_frontend_login_url
+
+    if request.user.is_authenticated:
+        if not request.user.is_staff or not request.user.is_active:
+            raise PermissionDenied
+        return HttpResponseRedirect(reverse('admin:index'))
+    return HttpResponseRedirect(get_frontend_login_url(request, fallback_next=reverse('admin:index')))
+
+
 # ----------------------------------------------------------------------------- #
 # SEO Meta Tags - Server-side injection for social media crawlers              #
 #                                                                               #

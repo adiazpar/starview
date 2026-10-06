@@ -24,5 +24,25 @@
     "error": "错误",
     "success": "成功"
   },
-  "soon": "即将推出"
+  "soon": "即将推出",
+  "auth": {
+    "signInApple": "通过 Apple 登录",
+    "signInGoogle": "使用 Google 登录",
+    "connectApple": "关联 Apple 账户",
+    "connectGoogle": "关联 Google 账户",
+    "oauthError": "无法登录，请重试。",
+    "oauthCancelled": "登录已取消。",
+    "existingAccountHelp": "请使用您在 Starview 中已有的登录方式登录，然后在个人资料中关联新账户。",
+    "signInExisting": "登录现有账户",
+    "linkExplanation": "在确认账户归属之前，账户将保持独立。关联后，您可以在任何设备上使用任一登录方式访问同一个人资料。",
+    "finishLink": "您已登录。请在下方将新的登录方式关联到此个人资料。"
+  },
+  "location": {
+    "useCurrent": "使用我的当前位置",
+    "unavailable": "无法获取您的当前位置。请搜索城市或检查浏览器的位置权限。"
+  },
+  "language": {
+    "title": "选择语言",
+    "selectLanguage": "选择语言"
+  }
 }

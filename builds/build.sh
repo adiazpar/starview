@@ -45,9 +45,14 @@ python3 manage.py compilemessages --ignore=djvenv
 echo "Collecting static files..."
 python3 manage.py collectstatic --no-input
 
+# Fail the build if a model change was committed without its migration.
+echo "Checking for missing database migrations..."
+python3 manage.py makemigrations --check --dry-run --noinput
+
 # Run database migrations
 echo "Running database migrations..."
 python3 manage.py migrate --no-input
+python3 manage.py migrate --check --no-input
 
 # Pre-warm caches to eliminate cold-start latency
 echo "Pre-warming application caches..."

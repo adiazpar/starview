@@ -1,0 +1,11 @@
+{% extends "account/email/base_account.html" %}
+{% load i18n %}
+{% block email_title %}{% trans "Your Starview account security changed" %}{% endblock %}
+{% block email_content %}
+  <div class="message">{{ security_message }}</div>
+  {% if provider %}<div class="security-details"><p><strong>{% trans "Sign-in provider:" %}</strong> {{ provider|title }}</p></div>{% endif %}
+  <div class="warning-box">
+    <div class="warning-box-title">{% trans "Didn't make this change?" %}</div>
+    <p class="warning-box-text">{% trans "If you did not make this change, reset your password and contact Starview support. A password reset does not remove two-factor authentication." %}</p>
+  </div>
+{% endblock %}

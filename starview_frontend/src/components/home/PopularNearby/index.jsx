@@ -2,17 +2,21 @@
  * PopularNearby Component
  *
  * Horizontal carousel section showing locations near user's actual location.
- * Receives locations from parent (Home page handles loading state).
+ * Receives the nearby query state from Home.
  */
 
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../../contexts/LocationContext';
+import { validCoordinates } from '../../../utils/location';
 import LocationCard from '../../explore/LocationCard';
+import LoadingSpinner from '../../shared/LoadingSpinner';
 import './styles.css';
 
-function PopularNearby({ userLocation, locations = [] }) {
+function PopularNearby({ userLocation, locations = [], isLoading = false, isError = false, onRetry }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { setLocation } = useLocation();
 
   // Navigate to location detail page
@@ -29,7 +33,7 @@ function PopularNearby({ userLocation, locations = [] }) {
       e.preventDefault();
       // Reset location context to actualLocation before navigating
       if (userLocation) {
-        setLocation(userLocation.latitude, userLocation.longitude, userLocation.name, 'ip');
+        setLocation(userLocation.latitude, userLocation.longitude, userLocation.name, userLocation.source || 'ip');
       }
       navigate('/explore?view=map&flyTo=true');
     },
@@ -39,8 +43,9 @@ function PopularNearby({ userLocation, locations = [] }) {
   // Extract location name for header (e.g., "San Francisco" from "San Francisco, California")
   const locationName = userLocation?.name?.split(',')[0] || 'you';
 
-  // Don't render if no locations found
-  if (!locations?.length) {
+  // Unknown coordinates cannot produce a nearby query. A known location with
+  // no results is different and should explain why the carousel is empty.
+  if (!validCoordinates(userLocation)) {
     return null;
   }
 
@@ -61,7 +66,20 @@ function PopularNearby({ userLocation, locations = [] }) {
             </a>
           </h2>
         </header>
-        <div className="popular-nearby__carousel">
+        {isLoading ? (
+          <div role="status">
+            <LoadingSpinner size="sm" message={t('location.nearbyLoading')} />
+          </div>
+        ) : isError ? (
+          <div className="popular-nearby__status" role="status">
+            <p>{t('location.nearbyError')}</p>
+            <button type="button" className="btn-secondary" onClick={onRetry}>{t('location.nearbyRetry')}</button>
+          </div>
+        ) : !locations?.length ? (
+          <div className="popular-nearby__status" role="status">
+            <p>{t('location.nearbyEmpty')}</p>
+          </div>
+        ) : <div className="popular-nearby__carousel">
           {locations.map((location) => (
             <div key={location.id} className="popular-nearby__card">
               <LocationCard
@@ -80,7 +98,7 @@ function PopularNearby({ userLocation, locations = [] }) {
             <span className="popular-nearby__see-more-text">See more</span>
             <i className="fa-solid fa-arrow-right"></i>
           </a>
-        </div>
+        </div>}
       </div>
     </section>
   );

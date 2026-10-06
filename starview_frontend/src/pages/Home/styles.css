@@ -120,6 +120,20 @@
   color: var(--accent-light);
 }
 
+.hero__locate {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hero__location-message {
+  color: white;
+  font-size: var(--text-sm);
+  text-align: center;
+  margin: 0;
+}
+
 
 /* Search Container - groups search bar and explore link */
 .hero__search-container {

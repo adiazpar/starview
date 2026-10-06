@@ -314,6 +314,18 @@ def invalidate_user_map_geojson(user_id):
     cache.delete(f'{map_geojson_key()}:user:{user_id}')
 
 
+def invalidate_user_location_lists(user_id):
+    """Favorites appear in every sort/page and popular-nearby response."""
+    from django.conf import settings
+    import redis
+
+    r = redis.from_url(settings.CACHES['default']['LOCATION'])
+    for prefix in ('location_list', 'popular_nearby'):
+        keys = list(r.scan_iter(match=f'starview:*:{prefix}:*:user:{user_id}'))
+        if keys:
+            r.delete(*keys)
+
+
 # ----------------------------------------------------------------------------- #
 # Invalidate all popular nearby caches.                                         #
 #                                                                               #
@@ -403,8 +415,8 @@ def get_or_set_cache(key, callable_func, timeout=900):
 # ----------------------------------------------------------------------------- #
 # Clear ALL caches in the system.                                               #
 #                                                                               #
-# WARNING: This clears EVERYTHING including rate limiting throttle data.        #
-# Only use in development or when absolutely necessary. For production,         #
+# Security counters and database sessions are preserved by our cache backend.  #
+# For production,                                                             #
 # prefer targeted invalidation functions (invalidate_location_detail, etc).     #
 # ----------------------------------------------------------------------------- #
 def clear_all_caches():
@@ -421,5 +433,5 @@ def clear_all_caches():
 def get_cache_stats():
     return {
         'message': 'Use Redis CLI to inspect keys: redis-cli KEYS "starview:*"',
-        'clear_command': 'redis-cli FLUSHDB  # WARNING: Clears ALL data in current DB',
+        'clear_command': 'Use targeted invalidation; never FLUSHDB or FLUSHALL.',
     }

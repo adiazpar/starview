@@ -21,9 +21,23 @@ from django.contrib.postgres.fields import ArrayField
 
 
 class UserProfile(models.Model):
+    class TwoFactorMethod(models.TextChoices):
+        EMAIL = 'email_code', 'Email code'
+        AUTHENTICATOR = 'totp', 'Authenticator app'
+
     # Timestamps:
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    welcome_email_queued_at = models.DateTimeField(null=True, blank=True, editable=False)
+    security_version = models.PositiveIntegerField(default=0, db_default=0, editable=False)
+    two_factor_enabled = models.BooleanField(default=False, db_default=False, editable=False)
+    two_factor_method = models.CharField(
+        max_length=32, choices=TwoFactorMethod.choices,
+        default=TwoFactorMethod.EMAIL, db_default=TwoFactorMethod.EMAIL, editable=False,
+    )
+    # Empty means use the verified main contact. A separate destination is saved
+    # only after fresh mailbox proof; it is never an additional login identity.
+    two_factor_email = models.EmailField(blank=True, default='', db_default='', editable=False)
 
     # User relationship:
     user = models.OneToOneField(User, on_delete=models.CASCADE)

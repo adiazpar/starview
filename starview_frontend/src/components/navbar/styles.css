@@ -1,3 +1,5 @@
+@import "../../styles/navigation-brand.css";
+
 /* Navbar Component Styles
  * Minimal inline navigation with glass-morphic effect.
  * Uses BEM naming convention.
@@ -16,52 +18,6 @@
 
 .navbar {
   border-bottom: 1px solid var(--glass-border);
-}
-
-
-.navbar__container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 var(--space-lg);
-  height: var(--navbar-height);
-  box-sizing: border-box;
-}
-
-/* Logo */
-.navbar__logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-/* Logo crop container - clips to show only icon on explore page */
-.navbar__logo-crop {
-  overflow: hidden;
-  height: 36px;
-  /* Full logo aspect ratio is 4:1 (2000x500), so width = height * 4 */
-  width: 144px;
-  transition: width 0.3s ease;
-}
-
-.navbar__logo-img {
-  height: 36px;
-  width: auto;
-  /* Prevent image from shrinking with container */
-  min-width: 144px;
-  display: block;
-  margin: 0;
-  padding: 0;
-}
-
-/* Explore page: crop to show only the icon (black hole) */
-.navbar__logo-crop--explore {
-  width: 40px;
 }
 
 
@@ -546,26 +502,6 @@
   .navbar__hamburger {
     display: flex;
   }
-
-  .navbar__container {
-    height: var(--navbar-height-mobile);
-    padding: 0 var(--space-lg);
-  }
-
-  .navbar__logo-crop {
-    height: 32px;
-    /* Mobile: 32px height * 4 aspect ratio = 128px */
-    width: 128px;
-  }
-
-  .navbar__logo-img {
-    height: 32px;
-    min-width: 128px;
-  }
-
-  .navbar__logo-crop--explore {
-    width: 36px;
-  }
 }
 
 /* ============================================ */
@@ -573,7 +509,6 @@
 /* ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .navbar__logo-crop,
   .navbar__search,
   .navbar__explore-controls,
   .navbar__search-icon,

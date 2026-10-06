@@ -1,0 +1,69 @@
+/* Native allauth forms reuse Starview's auth-page, glass-card, and form utilities. */
+.account-security-header {
+  height: var(--navbar-height);
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.account-security-header a {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.account-security-logo-light { display: none; }
+[data-theme="light"] .account-security-logo-dark { display: none; }
+[data-theme="light"] .account-security-logo-light { display: block; }
+.account-security { text-align: left; }
+
+.account-security h1 {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--space-sm);
+}
+
+.account-security h2, .account-security h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin: var(--space-lg) 0 var(--space-md);
+}
+.account-security-panel + .account-security-panel { border-top: 1px solid var(--glass-border); margin-top: var(--space-xl); }
+.account-security-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.account-security p { color: var(--text-secondary); font-size: var(--text-sm); line-height: var(--leading-normal); margin-bottom: var(--space-md); overflow-wrap: anywhere; }
+.account-security-heading { text-align: center; margin-bottom: var(--space-lg); }
+.account-security-heading h1 { margin: 0; }
+.account-security-heading p { margin: 0; }
+.account-security a:not(.btn-primary, .btn-secondary, .btn-danger) { color: var(--accent); text-decoration: none; }
+.account-security a:not(.btn-primary, .btn-secondary, .btn-danger):hover,
+.account-security-header a:hover { color: var(--text-primary); }
+.account-security :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.account-security form { margin: 0 0 var(--space-md); }
+.account-security-form { display: flex; flex-direction: column; gap: var(--space-md); }
+.account-security-form .form-group { margin: 0; }
+.account-security-form .form-input { width: 100%; font-family: var(--font-technical); font-size: 16px; letter-spacing: .12em; }
+
+/* Compact segmented method chooser, same look as the profile dialog's picker.
+   Hidden when there is nothing to switch between. */
+.account-verification-methods { display: flex; gap: var(--space-xs); margin-bottom: var(--space-md); padding: var(--space-xs); background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); }
+.account-verification-methods:not(:has(a + a)) { display: none; }
+.account-security .account-verification-methods a { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--space-sm); text-align: center; font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-secondary); border: 1px solid transparent; border-radius: calc(var(--radius) - 2px); }
+.account-security .account-verification-methods a:hover { color: var(--text-primary); background: var(--glass-bg-hover); }
+.account-security .account-verification-methods a[aria-current="true"] { color: var(--text-primary); background: var(--accent-bg); border-color: var(--accent); }
+
+.account-security-send { margin-bottom: var(--space-md); }
+.account-security-footer { text-align: center; border-top: 1px solid var(--glass-border); padding-top: var(--space-md); font-size: var(--text-sm); }
+.account-security-backup { margin-bottom: var(--space-md); }
+.account-security .errorlist, .account-security-error { color: var(--error); list-style: none; }
+.account-security p.account-security-error { color: var(--error); background: var(--error-bg); border: 1px solid var(--error-border); padding: var(--space-sm) var(--space-md); border-radius: var(--radius); }
+.account-security-notice { padding: var(--space-sm) var(--space-md); background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: var(--radius); margin-bottom: var(--space-md); }
+.account-security-notice p { margin: 0; }
+.account-security img { max-width: 100%; height: auto; }
+.account-security > a:is(.btn-primary, .btn-secondary, .btn-danger) { margin: var(--space-xs) var(--space-xs) var(--space-xs) 0; }
+.account-security pre, .account-security code { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+@media (max-width: 768px) {
+  .account-security-header { height: var(--navbar-height-mobile); }
+  .account-security { padding: var(--space-lg); }
+}

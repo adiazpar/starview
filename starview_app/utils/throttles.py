@@ -29,6 +29,7 @@
 
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django.conf import settings
+from django.core.cache import caches
 
 
 # ----------------------------------------------------------------------------- #
@@ -45,12 +46,35 @@ from django.conf import settings
 # ----------------------------------------------------------------------------- #
 class LoginRateThrottle(AnonRateThrottle):
     scope = 'login'
+    cache = caches['security']
+
+    def get_cache_key(self, request, view):
+        # These public endpoints must remain throttled when a session is present.
+        return self.cache_format % {'scope': self.scope, 'ident': self.get_ident(request)}
 
     def allow_request(self, request, view):
         # Disable throttling during tests (single, controlled flag)
         if getattr(settings, 'TESTING', False):
             return True
         return super().allow_request(request, view)
+
+
+class AccountConfirmationThrottle(LoginRateThrottle):
+    """Bound proof attempts without spending the sign-in budget on status reads."""
+    scope = 'account_confirmation'
+
+    def get_cache_key(self, request, view):
+        ident = request.user.pk if request.user.is_authenticated else self.get_ident(request)
+        return self.cache_format % {'scope': self.scope, 'ident': ident}
+
+    def allow_request(self, request, view):
+        if request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return True
+        return super().allow_request(request, view)
+
+
+class EmailChangeThrottle(AccountConfirmationThrottle):
+    scope = 'email_change'
 
 
 # ----------------------------------------------------------------------------- #
@@ -73,6 +97,10 @@ class LoginRateThrottle(AnonRateThrottle):
 # ----------------------------------------------------------------------------- #
 class PasswordResetThrottle(AnonRateThrottle):
     scope = 'password_reset'
+    cache = caches['security']
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {'scope': self.scope, 'ident': self.get_ident(request)}
 
     def allow_request(self, request, view):
         # Disable throttling during tests (single, controlled flag)

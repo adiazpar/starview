@@ -47,6 +47,8 @@ from .model_summary_feedback import SummaryFeedback
 
 # Audit/Security models:
 from .model_audit_log import AuditLog
+from .model_account_email import AccountEmail
+from .model_account_verification import AccountVerification
 
 # Email event models:
 from .email_events import EmailBounce, EmailComplaint, EmailSuppressionList

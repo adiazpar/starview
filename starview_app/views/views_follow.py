@@ -142,13 +142,10 @@ def get_followers(request, username):
         raise exceptions.NotFound("User not found.")
 
     # Get all users who follow this user (excluding system accounts)
-    followers = Follow.objects.filter(
-        following=user,
-        follower__userprofile__is_system_account=False
-    ).select_related('follower__userprofile')
-
-    # Extract the follower users
-    follower_users = [follow.follower for follow in followers]
+    follower_users = User.objects.filter(
+        following__following=user,
+        userprofile__is_system_account=False,
+    ).select_related('userprofile').order_by('-following__created_at', '-following__id')
 
     # Pagination
     from rest_framework.pagination import PageNumberPagination
@@ -179,13 +176,10 @@ def get_following(request, username):
         raise exceptions.NotFound("User not found.")
 
     # Get all users that this user follows (excluding system accounts)
-    following = Follow.objects.filter(
-        follower=user,
-        following__userprofile__is_system_account=False
-    ).select_related('following__userprofile')
-
-    # Extract the following users
-    following_users = [follow.following for follow in following]
+    following_users = User.objects.filter(
+        followers__follower=user,
+        userprofile__is_system_account=False,
+    ).select_related('userprofile').order_by('-followers__created_at', '-followers__id')
 
     # Pagination
     from rest_framework.pagination import PageNumberPagination

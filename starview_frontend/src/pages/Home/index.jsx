@@ -3,7 +3,9 @@
  * Features location search bar and feature highlights.
  */
 
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { validCoordinates } from '../../utils/location';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocation } from '../../contexts/LocationContext';
@@ -22,17 +24,27 @@ const LocationAutocomplete = lazy(() =>
 
 function HomePage() {
   const { isAuthenticated, user } = useAuth();
-  const { location, actualLocation, setLocation, isLoading: isLocationLoading } = useLocation();
+  const { location, actualLocation, source, setLocation, requestCurrentLocation, isLoading: isLocationLoading } = useLocation();
+  const { t } = useTranslation();
+  const [locationMessage, setLocationMessage] = useState('');
+  const [hasShownContent, setHasShownContent] = useState(false);
   const { images: heroImages, isReady: isHeroReady } = useHeroCarousel();
-  const { data: popularLocations, isLoading: isPopularLoading } = usePopularNearby(
+  const { data: popularLocations, isLoading: isPopularLoading, isError: isPopularError, refetch: refetchPopular } = usePopularNearby(
     actualLocation?.latitude,
     actualLocation?.longitude
   );
   const navigate = useNavigate();
+  const isPageLoading = isLocationLoading || !isHeroReady || isPopularLoading;
+
+  // Reveal the first view together. Later location changes update in place so
+  // a manual request does not unmount the search controls or restart the hero.
+  useEffect(() => {
+    if (!isPageLoading) setHasShownContent(true);
+  }, [isPageLoading]);
 
   // Handle location selection from search - updates context but stays on home
   const handleLocationSelect = useCallback((data) => {
-    if (data.location && data.latitude && data.longitude) {
+    if (data.location && validCoordinates(data)) {
       setLocation(data.latitude, data.longitude, data.location, 'search');
     }
   }, [setLocation]);
@@ -46,10 +58,9 @@ function HomePage() {
     }
   }, [navigate]);
 
-  // Unified loading state - wait for location, hero carousel, AND popular nearby before rendering
-  const isPageLoading = isLocationLoading || !isHeroReady || isPopularLoading;
+  const isUsingCurrentLocation = source === 'browser' && validCoordinates(location);
 
-  if (isPageLoading) {
+  if (!hasShownContent && isPageLoading) {
     return <LoadingSpinner size="lg" fullPage />;
   }
 
@@ -92,6 +103,19 @@ function HomePage() {
             </button>
           </div>
 
+          {!isUsingCurrentLocation && <button
+            type="button"
+            className="hero__explore-link hero__locate"
+            disabled={isLocationLoading}
+            onClick={async () => {
+              setLocationMessage('');
+              if (!await requestCurrentLocation()) setLocationMessage(t('location.unavailable'));
+            }}
+          >
+            {isLocationLoading ? t('location.locating') : t('location.useCurrent')}
+          </button>}
+          {!isUsingCurrentLocation && locationMessage && <p role="status" className="hero__location-message">{locationMessage}</p>}
+
           {/* Explore link */}
           <Link to="/explore" className="hero__explore-link">
             Explore nearby locations
@@ -103,7 +127,13 @@ function HomePage() {
       </section>
 
       {/* Popular Nearby Section */}
-      <PopularNearby userLocation={actualLocation} locations={popularLocations} />
+      <PopularNearby
+        userLocation={actualLocation}
+        locations={popularLocations}
+        isLoading={isPopularLoading}
+        isError={isPopularError}
+        onRetry={refetchPopular}
+      />
 
       {/* Profile setup card for authenticated users */}
       {isAuthenticated && user && (

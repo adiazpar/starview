@@ -10,6 +10,7 @@
  */
 
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import CollapsibleSection from '../CollapsibleSection';
 import ProfilePictureForm from '../forms/ProfilePictureForm';
 import PersonalInfoForm from '../forms/PersonalInfoForm';
@@ -20,6 +21,7 @@ import BioForm from '../forms/BioForm';
 import './styles.css';
 
 function ProfileSettings({ user, refreshAuth }) {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const scrollToParam = searchParams.get('scrollTo');
 
@@ -32,7 +34,8 @@ function ProfileSettings({ user, refreshAuth }) {
 
   return (
     <CollapsibleSection
-      title="Profile Settings"
+      title={t('profileSettings.general')}
+      icon="fa-user"
       defaultExpanded={shouldExpand}
       resetOnCollapse
     >

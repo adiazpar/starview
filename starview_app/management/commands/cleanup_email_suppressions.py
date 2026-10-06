@@ -15,16 +15,17 @@
 #                                                                                                       #
 # Options:                                                                                              #
 #   --soft-bounce-days N    Days to keep soft bounce suppressions (default: 30)                         #
-#   --stale-days N          Days of inactivity before marking bounce as stale (default: 90)             #
+#   --stale-days N          Days to retain bounce and complaint event receipts (default: 90)             #
 #   --dry-run               Show what would be cleaned without making changes                           #
 #   --report                Generate email health report (stdout only)                                  #
 #                                                                                                       #
 # Note: For email reports, use send_weekly_digest with --run-cleanup flag instead.                      #
 # ----------------------------------------------------------------------------------------------------- #
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.db.models import Count
+from django.db import transaction
 from datetime import timedelta
 from starview_app.models import EmailBounce, EmailComplaint, EmailSuppressionList
 from starview_app.utils.email_utils import get_email_statistics
@@ -44,7 +45,7 @@ class Command(BaseCommand):
             '--stale-days',
             type=int,
             default=90,
-            help='Days of inactivity before marking bounce as stale (default: 90)',
+            help='Days to retain bounce and complaint event receipts (default: 90)',
         )
         parser.add_argument(
             '--dry-run',
@@ -62,6 +63,8 @@ class Command(BaseCommand):
         self.dry_run = options['dry_run']
         self.soft_bounce_days = options['soft_bounce_days']
         self.stale_days = options['stale_days']
+        if self.stale_days < 31:
+            raise CommandError('Event retention must exceed the 30-day SNS acceptance window.')
 
         if self.dry_run:
             self.stdout.write(self.style.WARNING('DRY RUN MODE - No changes will be made'))
@@ -73,111 +76,46 @@ class Command(BaseCommand):
         # Run cleanup tasks
         self.cleanup_soft_bounces()
         self.cleanup_stale_bounces()
-        self.cleanup_transient_bounces()
+        self.cleanup_old_complaints()
 
         self.stdout.write(self.style.SUCCESS('\nCleanup completed successfully'))
 
 
-    # Deactivate soft bounce suppressions after recovery period.
-    # Soft bounces are temporary (mailbox full, server down, etc.).
-    # After N days without new bounces, give the address another chance.
     def cleanup_soft_bounces(self):
-        self.stdout.write('\n' + '=' * 80)
-        self.stdout.write('SOFT BOUNCE CLEANUP')
-        self.stdout.write('=' * 80)
-
-        cutoff_date = timezone.now() - timedelta(days=self.soft_bounce_days)
-
-        # Find soft bounces that haven't bounced recently
-        old_soft_bounces = EmailBounce.objects.filter(
-            bounce_type='soft',
-            suppressed=True,
-            last_bounce_date__lt=cutoff_date
-        )
-
-        count = old_soft_bounces.count()
-        self.stdout.write(f'\nFound {count} soft bounce suppressions older than {self.soft_bounce_days} days')
-
-        if count > 0:
-            for bounce in old_soft_bounces:
-                self.stdout.write(f'  - {bounce.email}: Last bounce {bounce.last_bounce_date.strftime("%Y-%m-%d")} ({bounce.bounce_count}x)')
-
+        cutoff = timezone.now() - timedelta(days=self.soft_bounce_days)
+        released = 0
+        # Decisions use the latest event for the address, not an older event row.
+        for pk in EmailSuppressionList.objects.filter(reason='soft_bounce', is_active=True).values_list('pk', flat=True):
+            with transaction.atomic():
+                suppression = EmailSuppressionList.objects.select_for_update().get(pk=pk)
+                if suppression.reason != 'soft_bounce' or not suppression.is_active:
+                    continue
+                if EmailBounce.objects.filter(email=suppression.email, last_bounce_date__gte=cutoff).exists():
+                    continue
                 if not self.dry_run:
-                    # Deactivate suppression
-                    EmailSuppressionList.objects.filter(
-                        email=bounce.email,
-                        reason='soft_bounce',
-                        is_active=True
-                    ).update(is_active=False)
+                    suppression.is_active = False
+                    suppression.save(update_fields=['is_active'])
+                    EmailBounce.objects.filter(email=suppression.email).update(suppressed=False)
+                released += 1
+        self.stdout.write(f'Soft bounce suppressions eligible for release: {released}')
 
-                    # Reset bounce record
-                    bounce.suppressed = False
-                    bounce.bounce_count = 0
-                    bounce.save()
-
-            if not self.dry_run:
-                self.stdout.write(self.style.SUCCESS(f'\nDeactivated {count} soft bounce suppressions'))
-            else:
-                self.stdout.write(self.style.WARNING(f'\n[DRY RUN] Would deactivate {count} soft bounce suppressions'))
-
-
-    # Remove bounce records with no recent activity.
-    # After 90+ days of no bounces, consider the record stale and clean it up.
-    # Keep hard bounces and complaints indefinitely.
     def cleanup_stale_bounces(self):
-        self.stdout.write('\n' + '=' * 80)
-        self.stdout.write('STALE BOUNCE CLEANUP')
-        self.stdout.write('=' * 80)
+        cutoff = timezone.now() - timedelta(days=self.stale_days)
+        records = EmailBounce.objects.filter(last_bounce_date__lt=cutoff)
+        count = records.count()
+        if not self.dry_run:
+            records.delete()
+        self.stdout.write(f'Bounce event receipts eligible for deletion: {count}')
 
-        cutoff_date = timezone.now() - timedelta(days=self.stale_days)
-
-        # Find soft/transient bounces with no recent activity
-        stale_bounces = EmailBounce.objects.filter(
-            bounce_type__in=['soft', 'transient'],
-            suppressed=False,
-            last_bounce_date__lt=cutoff_date
-        )
-
-        count = stale_bounces.count()
-        self.stdout.write(f'\nFound {count} stale bounce records (inactive for {self.stale_days}+ days)')
-
-        if count > 0:
-            for bounce in stale_bounces[:10]:  # Show first 10
-                self.stdout.write(f'  - {bounce.email}: Last bounce {bounce.last_bounce_date.strftime("%Y-%m-%d")}')
-
-            if count > 10:
-                self.stdout.write(f'  ... and {count - 10} more')
-
-            if not self.dry_run:
-                stale_bounces.delete()
-                self.stdout.write(self.style.SUCCESS(f'\nDeleted {count} stale bounce records'))
-            else:
-                self.stdout.write(self.style.WARNING(f'\n[DRY RUN] Would delete {count} stale bounce records'))
-
-
-    # Remove transient bounce records older than 7 days.
-    # Transient bounces are temporary connection issues, not worth keeping.
-    def cleanup_transient_bounces(self):
-        self.stdout.write('\n' + '=' * 80)
-        self.stdout.write('TRANSIENT BOUNCE CLEANUP')
-        self.stdout.write('=' * 80)
-
-        cutoff_date = timezone.now() - timedelta(days=7)
-
-        transient_bounces = EmailBounce.objects.filter(
-            bounce_type='transient',
-            last_bounce_date__lt=cutoff_date
-        )
-
-        count = transient_bounces.count()
-        self.stdout.write(f'\nFound {count} transient bounce records older than 7 days')
-
-        if count > 0:
-            if not self.dry_run:
-                transient_bounces.delete()
-                self.stdout.write(self.style.SUCCESS(f'Deleted {count} transient bounce records'))
-            else:
-                self.stdout.write(self.style.WARNING(f'[DRY RUN] Would delete {count} transient bounce records'))
+    def cleanup_old_complaints(self):
+        cutoff = timezone.now() - timedelta(days=self.stale_days)
+        records = EmailComplaint.objects.filter(complaint_date__lt=cutoff)
+        count = records.count()
+        if not self.dry_run:
+            records.delete()
+        # Suppression records survive via SET_NULL; review is optional, never a
+        # prerequisite for cleanup or for stopping promotional mail.
+        self.stdout.write(f'Complaint event receipts eligible for deletion: {count}')
 
 
     # Generate email health report with statistics

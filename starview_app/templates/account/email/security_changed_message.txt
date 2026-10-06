@@ -1,0 +1,6 @@
+{% extends "account/email/base_notification.txt" %}
+{% load i18n %}
+{% block notification_message %}{{ security_message }}{% if provider %}
+{% trans "Sign-in provider:" %} {{ provider|title }}{% endif %}
+
+{% trans "If you did not make this change, reset your password and contact Starview support. A password reset does not remove two-factor authentication." %}{% endblock notification_message %}

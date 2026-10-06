@@ -71,34 +71,22 @@ function ProfilePage() {
 
         {/* Tab Navigation */}
         <div className="profile-tabs glass-card animate-fade-in-up animate-delay-1">
-          <button
-            className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
+          {[
+            { id: 'settings', label: 'Settings', icon: 'fa-gear' },
+            { id: 'badges', label: 'Badges', icon: 'fa-award' },
+            { id: 'reviews', label: 'My Reviews', icon: 'fa-star' },
+            { id: 'favorites', label: 'Favorites', icon: 'fa-location-dot' },
+          ].map(tab => <button
+            key={tab.id}
+            type="button"
+            className={`profile-tab ${activeTab === tab.id ? 'active' : ''}`}
+            aria-label={tab.label}
+            aria-pressed={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
           >
-            <i className="fa-solid fa-gear"></i>
-            <span className="profile-tab-text">Settings</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'badges' ? 'active' : ''}`}
-            onClick={() => setActiveTab('badges')}
-          >
-            <i className="fa-solid fa-award"></i>
-            <span className="profile-tab-text">Badges</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'reviews' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reviews')}
-          >
-            <i className="fa-solid fa-star"></i>
-            <span className="profile-tab-text">My Reviews</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'favorites' ? 'active' : ''}`}
-            onClick={() => setActiveTab('favorites')}
-          >
-            <i className="fa-solid fa-location-dot"></i>
-            <span className="profile-tab-text">Favorites</span>
-          </button>
+            <i className={`fa-solid ${tab.icon}`} aria-hidden="true" />
+            <span className="profile-tab-text">{tab.label}</span>
+          </button>)}
         </div>
 
         {/* Tab Content */}

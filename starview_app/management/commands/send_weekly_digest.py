@@ -26,7 +26,7 @@
 # Render Cronjob Configuration:                                                                         #
 #   Build Command: ./builds/build-cron.sh                                                               #
 #   Start Command: python manage.py send_weekly_digest --email admin@starview.app --run-cleanup        #
-#   Schedule: 0 3 * * 1 (Every Monday at 3 AM)                                                          #
+#   Schedule: 0 3 * * 0 (Every Sunday at 3 AM UTC)                                                          #
 # ----------------------------------------------------------------------------------------------------- #
 
 from django.core.management.base import BaseCommand
@@ -131,6 +131,10 @@ class Command(BaseCommand):
         call_command('cleanup_unverified_users', stdout=out)
         self.stdout.write(out.getvalue())
 
+        from starview_app.services.account_maintenance import maintain_accounts, retry_account_emails
+        retry_account_emails()
+        counts = maintain_accounts()
+        self.stdout.write(f'Account housekeeping: {counts}')
         return {'ran': True}
 
     def gather_user_metrics(self):

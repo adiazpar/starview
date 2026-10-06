@@ -479,7 +479,9 @@ html.webview-browser .main-content {
 }
 
 /* Primary Button - Small variant for navbars and compact UI */
-.btn-primary--sm {
+.btn-primary--sm,
+.btn-secondary.btn-secondary--sm,
+.btn-danger.btn-danger--sm {
   padding: 8px 20px;
   font-size: 13px;
 }
@@ -1171,4 +1173,3 @@ html.webview-browser .main-content {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-

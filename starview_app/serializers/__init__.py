@@ -33,8 +33,6 @@ from .serializer_location import (
 
 # User serializers:
 from .serializer_user import (
-    UserSerializer,
-    UserProfileSerializer,
     PublicUserSerializer,
     PrivateProfileSerializer,
 )
@@ -68,8 +66,6 @@ __all__ = [
     'LocationInfoPanelSerializer',
 
     # User serializers
-    'UserSerializer',
-    'UserProfileSerializer',
     'PublicUserSerializer',
     'PrivateProfileSerializer',
 

@@ -11,9 +11,11 @@ import profileApi from '../../../../services/profile';
 import usePasswordValidation from '../../../../hooks/usePasswordValidation';
 import { useToast } from '../../../../contexts/ToastContext';
 import LoadingSpinner from '../../../shared/LoadingSpinner';
+import useAccountConfirmation from '../../../../hooks/useAccountConfirmation';
 import './styles.css';
 
 function PasswordForm({ user, refreshAuth }) {
+  const confirmation = useAccountConfirmation();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
@@ -56,6 +58,7 @@ function PasswordForm({ user, refreshAuth }) {
 
     setLoading(true);
     try {
+      if (!await confirmation.confirm({ password: passwordData.current_password })) return;
       await profileApi.updatePassword({
         current_password: passwordData.current_password,
         new_password: passwordData.new_password,
@@ -94,6 +97,7 @@ function PasswordForm({ user, refreshAuth }) {
 
   return (
     <div className="profile-form-section">
+      {confirmation.dialog}
       {/* Header with Edit button */}
       <div className="profile-form-header">
         <div className="profile-form-header-content">

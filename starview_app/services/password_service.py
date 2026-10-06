@@ -81,10 +81,10 @@ class PasswordService:
         # Set and save the password
         try:
             user.set_password(new_password)
-            user.save()
+            user.save(update_fields=['password'])
             return True, None
-        except Exception as e:
-            return False, f"Error saving password: {str(e)}"
+        except Exception:
+            return False, 'The password could not be saved. Please try again.'
 
 
     # ----------------------------------------------------------------------------- #

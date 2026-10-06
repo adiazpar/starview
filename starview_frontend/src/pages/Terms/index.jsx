@@ -414,6 +414,7 @@ function TermsPage() {
                 <li><strong>Mapbox</strong> — Maps and geocoding</li>
                 <li><strong>Cloudflare</strong> — Content delivery and media storage</li>
                 <li><strong>Google</strong> — OAuth authentication and analytics</li>
+                <li><strong>Apple</strong> — Optional account authentication</li>
                 <li><strong>Amazon Web Services</strong> — Email delivery</li>
               </ul>
 

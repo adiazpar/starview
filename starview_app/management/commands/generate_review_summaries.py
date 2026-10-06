@@ -2,7 +2,7 @@
 # This generate_review_summaries.py management command handles AI summary generation in batches:       #
 #                                                                                                      #
 # Purpose:                                                                                             #
-# Processes stale review summaries using Google Gemini 2.0 Flash API in controlled batches.            #
+# Processes stale review summaries using Google configured Gemini model API in controlled batches.            #
 # This approach prevents rate limiting and ensures page views are never blocked by API calls.          #
 #                                                                                                      #
 # Architecture:                                                                                        #

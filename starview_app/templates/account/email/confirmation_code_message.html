@@ -1,0 +1,12 @@
+{% extends "account/email/base_account.html" %}
+{% load i18n %}
+{% block email_title %}{% if is_sign_in %}{% trans "Your Starview sign-in code" %}{% else %}{% trans "Confirm your Starview account change" %}{% endif %}{% endblock %}
+{% block email_subtitle %}{% trans "Confirm your identity" %}{% endblock %}
+{% block email_content %}
+  <p class="message">{% if is_email_setup %}{% trans "Enter this code in Starview to use this address for verification codes. Your main account email will stay the same." %}{% elif is_sign_in %}{% trans "Enter this code in Starview to finish signing in." %}{% else %}{% trans "Enter this code in Starview to confirm your account change." %}{% endif %}</p>
+  <div class="security-details" style="text-align: center;">
+    <p style="font-family: monospace; font-size: 32px; font-weight: 600; letter-spacing: 6px; color: #111827;">{{ code }}</p>
+    <p>{% trans "This code expires in 10 minutes." %}</p>
+  </div>
+  <p class="message">{% trans "If you did not request this, do not share the code. You can ignore this email." %}</p>
+{% endblock %}

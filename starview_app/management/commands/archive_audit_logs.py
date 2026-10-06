@@ -22,8 +22,9 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 import json
+import uuid
 from datetime import timedelta
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.conf import settings
 from starview_app.models import AuditLog
@@ -116,11 +117,17 @@ class Command(BaseCommand):
 
     # Archive logs to files and delete from database
     def archive_logs(self, logs, cutoff_date):
+        # Materialize the exact snapshot once. Rows arriving during upload must
+        # not be deleted unless they were included in the archive.
+        logs = list(logs.select_related('user'))
+        if not logs:
+            return 0
         # Generate filename with date range
-        oldest = logs.first()
-        newest = logs.last()
+        oldest = min(logs, key=lambda log: log.timestamp)
+        newest = max(logs, key=lambda log: log.timestamp)
         date_range = f"{oldest.timestamp.strftime('%Y%m%d')}_to_{newest.timestamp.strftime('%Y%m%d')}"
         timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        archive_id = uuid.uuid4().hex
 
         # Prepare data for archival
         log_data = []
@@ -141,7 +148,7 @@ class Command(BaseCommand):
 
         # Export to JSON
         if self.format in ['json', 'both']:
-            json_filename = f'audit_logs_{date_range}_{timestamp}.json'
+            json_filename = f'audit_logs_{date_range}_{archive_id}_{timestamp}.json'
             json_content = json.dumps({
                 'archive_date': timezone.now().isoformat(),
                 'retention_days': self.days,
@@ -162,12 +169,12 @@ class Command(BaseCommand):
                     ContentType='application/json'
                 )
                 self.stdout.write(f'JSON archive uploaded to R2: {json_filename}')
-            except ClientError as e:
-                self.stdout.write(self.style.ERROR(f'Failed to upload JSON to R2: {e}'))
+            except ClientError as exc:
+                raise CommandError('JSON audit upload failed; database records were retained.') from exc
 
         # Export to TXT (human-readable)
         if self.format in ['txt', 'both']:
-            txt_filename = f'audit_logs_{date_range}_{timestamp}.txt'
+            txt_filename = f'audit_logs_{date_range}_{archive_id}_{timestamp}.txt'
             txt_content = []
             txt_content.append('=' * 100)
             txt_content.append('AUDIT LOG ARCHIVE')
@@ -206,11 +213,12 @@ class Command(BaseCommand):
                     ContentType='text/plain'
                 )
                 self.stdout.write(f'TXT archive uploaded to R2: {txt_filename}')
-            except ClientError as e:
-                self.stdout.write(self.style.ERROR(f'Failed to upload TXT to R2: {e}'))
+            except ClientError as exc:
+                raise CommandError('TXT audit upload failed; database records were retained.') from exc
 
         # Delete archived logs from database (bypass delete protection)
         # We need to use queryset.delete() instead of model.delete() to bypass protection
-        deleted_count = logs._raw_delete(logs.db)
+        archived = AuditLog.objects.filter(pk__in=[log.pk for log in logs])
+        deleted_count = archived._raw_delete(archived.db)
 
         return deleted_count

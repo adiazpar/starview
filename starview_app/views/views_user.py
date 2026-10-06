@@ -13,7 +13,7 @@
 # - Error Handling: Uses DRF exceptions caught by the global exception handler                          #
 #                                                                                                       #
 # Architecture:                                                                                         #
-# - ModelViewSet with action-level permissions (public vs authenticated)                                #
+# - GenericViewSet with explicit public reads and authenticated self-service actions                    #
 # - Uses PasswordService for all password operations (single source of truth)                           #
 # - Uses DRF exceptions for consistent error responses via exception handler                            #
 # - Uses safe_delete_file from signals for secure file deletion with MEDIA_ROOT validation              #
@@ -22,22 +22,23 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 # Django imports:
+from collections.abc import Mapping
+
 from django.contrib.auth import update_session_auth_hash
-from django.views.decorators.http import require_POST
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 
 # DRF imports:
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import action
+from starview_app.utils.throttles import EmailChangeThrottle
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, exceptions
 from rest_framework.response import Response
 
 # Model imports:
 from django.contrib.auth.models import User
-from ..models import UserProfile, Review, FavoriteLocation
+from ..models import UserProfile, Review
 
 # Serializer imports:
 from ..serializers import PublicUserSerializer, PrivateProfileSerializer, ReviewSerializer
@@ -48,6 +49,18 @@ from starview_app.services import PasswordService
 # Signal utility imports:
 from starview_app.utils.signals import safe_delete_file
 
+
+def _profile_payload(data):
+    if not isinstance(data, Mapping):
+        raise exceptions.ValidationError('Provide an object with profile fields.')
+    return data
+
+
+def _profile_text(data, field):
+    value = _profile_payload(data).get(field, '')
+    if not isinstance(value, str):
+        raise exceptions.ValidationError(f'{field.replace("_", " ").capitalize()} must be text.')
+    return value.strip()
 
 
 # ----------------------------------------------------------------------------------------------------- #
@@ -79,7 +92,9 @@ from starview_app.utils.signals import safe_delete_file
 # - Password operations use PasswordService for validation                      #
 # - File deletion uses safe_delete_file from signals module                     #
 # ----------------------------------------------------------------------------- #
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(viewsets.GenericViewSet):
+    # Do not inherit generic list/create/update/destroy: private mutations below
+    # are deliberately scoped to request.user, while username routes are public.
     lookup_field = 'username'
     lookup_value_regex = '[^/]+'  # Allow any characters except forward slash
     queryset = User.objects.select_related('userprofile').all()
@@ -144,7 +159,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Hide system accounts from public access
         if hasattr(user, 'userprofile') and user.userprofile.is_system_account:
             raise exceptions.NotFound('User not found.')
-        reviews = Review.objects.filter(user=user).select_related('location', 'user__userprofile').order_by('-created_at')
+        reviews = Review.objects.filter(user=user).select_related(
+            'location', 'user__userprofile',
+        ).prefetch_related('votes', 'photos').order_by('-created_at')
 
         # Pagination
         from rest_framework.pagination import PageNumberPagination
@@ -178,8 +195,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
     # ----------------------------------------------------------------------------- #
-    # Upload new profile picture. Automatically deletes old custom images           #
-    # (preserves default images) before saving the new one.                         #
+    # Upload new profile picture. Delete the old custom image after saving.          #
     #                                                                               #
     # Security: Validates file size (5MB max), MIME type, and extension before      #
     # processing to prevent malicious file uploads and DOS attacks.                 #
@@ -209,14 +225,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         user_profile = request.user.userprofile
 
-        # Delete old profile picture if it exists (None means using default, so nothing to delete)
-        # Pass the FileField object directly (works with both local and R2/S3 storage)
-        if user_profile.profile_picture:
-            safe_delete_file(user_profile.profile_picture)
+        old_picture = user_profile.profile_picture
 
         # Save the new profile picture
         user_profile.profile_picture = profile_picture
-        user_profile.save()
+        user_profile.save(update_fields=['profile_picture', 'updated_at'])
+        if old_picture:
+            transaction.on_commit(lambda: safe_delete_file(old_picture))
 
         # Check profile completion badge (may award Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -240,14 +255,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     def remove_picture(self, request):
         user_profile = request.user.userprofile
 
-        # Delete the current profile picture if it exists (None means using default)
-        # Pass the FileField object directly (works with both local and R2/S3 storage)
-        if user_profile.profile_picture:
-            safe_delete_file(user_profile.profile_picture)
+        old_picture = user_profile.profile_picture
 
         # Reset to default (model returns default URL when profile_picture is None)
         user_profile.profile_picture = None
-        user_profile.save()
+        user_profile.save(update_fields=['profile_picture', 'updated_at'])
+        if old_picture:
+            transaction.on_commit(lambda: safe_delete_file(old_picture))
 
         # Check profile completion badge (may revoke Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -270,17 +284,22 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-name')
     def update_name(self, request):
-        first_name = request.data.get('first_name', '').strip()
-        last_name = request.data.get('last_name', '').strip()
+        first_name = _profile_text(request.data, 'first_name')
+        last_name = _profile_text(request.data, 'last_name')
 
         # Validate required fields
         if not first_name or not last_name:
             raise exceptions.ValidationError('Both first and last name are required.')
+        for field, value in [('first_name', first_name), ('last_name', last_name)]:
+            limit = User._meta.get_field(field).max_length
+            if len(value) > limit:
+                raise exceptions.ValidationError(f'{field.replace("_", " ").capitalize()} must be {limit} characters or less.')
 
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
-        user.save()
+        # The request user may predate a concurrent password/security change.
+        user.save(update_fields=['first_name', 'last_name'])
 
         return Response({
             'detail': 'Name updated successfully.',
@@ -307,7 +326,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['patch'], url_path='me/update-username')
     def update_username(self, request):
         import re
-        new_username = request.data.get('new_username', '').strip().lower()
+        new_username = _profile_text(request.data, 'new_username').lower()
 
         # Validate required field
         if not new_username:
@@ -330,7 +349,12 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Update username
         user = request.user
         user.username = new_username
-        user.save()
+        try:
+            with transaction.atomic():
+                user.save(update_fields=['username'])
+        except IntegrityError:
+            # A competing account may claim the name after the availability check.
+            raise exceptions.ValidationError('This username is already taken.') from None
 
         return Response({
             'detail': 'Username updated successfully.',
@@ -355,109 +379,18 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Body: JSON with new_email                                                     #
     # Returns: DRF Response with verification instructions                          #
     # ----------------------------------------------------------------------------- #
-    @action(detail=False, methods=['patch'], url_path='me/update-email')
+    @action(detail=False, methods=['patch'], url_path='me/update-email', throttle_classes=[EmailChangeThrottle])
     def update_email(self, request):
-        from allauth.account.models import EmailAddress
-        from django.core.mail import EmailMultiAlternatives
-        from django.template.loader import render_to_string
-
-        new_email = request.data.get('new_email', '').strip()
-
-        # Validate the new email
-        if not new_email:
-            raise exceptions.ValidationError('Email address is required.')
-
-        # Validate email format using Django's built-in validator
-        try:
-            validate_email(new_email)
-        except ValidationError:
+        from starview_app.services.email_identity import request_email_change
+        new_email = _profile_payload(request.data).get('new_email', '')
+        if not isinstance(new_email, str):
             raise exceptions.ValidationError('Please enter a valid email address.')
-
-        # Check if this is the same as current email
-        if request.user.email.lower() == new_email.lower():
-            raise exceptions.ValidationError('This is already your current email address.')
-
-        # Check if email is already taken by another user
-        if User.objects.filter(email=new_email.lower()).exclude(id=request.user.id).exists():
-            raise exceptions.ValidationError('This email address is already registered.')
-
-        # Check if email is already in use by a social account (from ANY user including self)
-        from allauth.socialaccount.models import SocialAccount
-        for social_account in SocialAccount.objects.all():
-            social_email = social_account.extra_data.get('email', '').lower()
-            if social_email == new_email.lower():
-                # Block the change - this email is used by a social account
-                raise exceptions.ValidationError('This email address is already registered.')
-
-        # Check if email has a pending verification (unverified EmailAddress record)
-        # This prevents race conditions where multiple users try to claim the same email
-        pending_email = EmailAddress.objects.filter(
-            email=new_email.lower(),
-            verified=False
-        ).exclude(user=request.user).first()
-
-        if pending_email:
-            raise exceptions.ValidationError('This email address is already registered.')
-
-        # Send notification to old email address
-        old_email = request.user.email
-        if old_email:
-            from django.contrib.sites.shortcuts import get_current_site
-            from django.utils import translation
-
-            current_site = get_current_site(request)
-            context = {
-                'user': request.user,
-                'old_email': old_email,
-                'new_email': new_email,
-                'site_name': current_site.name,
-            }
-
-            # Get user's language preference for email localization
-            user_lang = getattr(request.user.userprofile, 'language_preference', 'en')
-
-            # Render email templates in user's preferred language
-            with translation.override(user_lang):
-                subject = render_to_string('account/email/email_change_subject.txt', context).strip()
-                html_content = render_to_string('account/email/email_change_message.html', context)
-                text_content = render_to_string('account/email/email_change_message.txt', context)
-
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[old_email]
-            )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=True)
-
-        # Get or create EmailAddress record for new email (unverified)
-        email_address, created = EmailAddress.objects.get_or_create(
-            user=request.user,
-            email=new_email.lower(),
-            defaults={'verified': False, 'primary': False}
-        )
-
-        # If email already exists and is verified, make it primary immediately
-        if not created and email_address.verified:
-            email_address.set_as_primary()
-            # Update User model email
-            request.user.email = new_email.lower()
-            request.user.save()
-            return Response({
-                'detail': 'Email updated successfully.',
-                'new_email': new_email,
-                'verification_required': False
-            }, status=status.HTTP_200_OK)
-
-        # Email is unverified, send verification email
-        email_address.send_confirmation(request)
-
+        request_email_change(request, new_email.strip().lower())
         return Response({
-            'detail': f'Verification email sent to {new_email}. Please check your inbox and click the verification link to complete the email change.',
+            'detail': 'Check your new email for a verification link. Your current email stays active until you confirm it.',
             'verification_required': True,
-            'new_email': new_email
-        }, status=status.HTTP_200_OK)
+            'new_email': new_email.strip().lower(),
+        })
 
 
     # ----------------------------------------------------------------------------- #
@@ -475,37 +408,27 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-password')
     def update_password(self, request):
-        current_password = request.data.get('current_password')
-        new_password = request.data.get('new_password')
-
-        # Validate new password is provided
-        if not new_password:
+        from starview_app.services.account_security import locked_account, revoke_account_sessions
+        from starview_app.services.account_events import record_account_event
+        data = _profile_payload(request.data)
+        new_password = data.get('new_password')
+        if not isinstance(new_password, str) or not new_password:
             raise exceptions.ValidationError('New password is required.')
-
-        # Check if user has a usable password (not OAuth-only account)
-        if request.user.has_usable_password():
-            # User has existing password - require current password for verification
-            if not current_password:
-                raise exceptions.ValidationError('Current password is required.')
-
-            # Use PasswordService to validate and change password
-            success, error_message = PasswordService.change_password(
-                user=request.user,
-                current_password=current_password,
-                new_password=new_password
-            )
-        else:
-            # User has no password (OAuth signup) - set first password
-            success, error_message = PasswordService.set_password(
-                user=request.user,
-                new_password=new_password
-            )
-
-        if not success:
-            raise exceptions.ValidationError(error_message)
-
-        # Update session to prevent logout after password change
-        update_session_auth_hash(request, request.user)
+        with locked_account(request) as user:
+            if user.has_usable_password():
+                current_password = data.get('current_password')
+                if not isinstance(current_password, str) or not current_password:
+                    raise exceptions.ValidationError('Current password is required.')
+                success, error_message = PasswordService.change_password(user, current_password, new_password)
+            else:
+                success, error_message = PasswordService.set_password(user, new_password)
+            if not success:
+                raise exceptions.ValidationError(error_message)
+            record_account_event(request, user, 'password_changed', method='account_settings')
+            revoke_account_sessions(user, keep_request=request)
+            # Refresh the request's password hash as well as the durable version.
+            request.user = user
+            update_session_auth_hash(request, user)
 
         return Response({
             'detail': 'Password updated successfully.'
@@ -515,26 +438,27 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     # Update user's bio text.                                                       #
     #                                                                               #
-    # Bio appears on public profile and is limited to 500 characters.               #
+    # Bio appears on public profile and uses the model's length limit.              #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-bio/                                           #
     # Authentication: Required                                                      #
-    # Body: JSON with bio (max 500 characters)                                      #
+    # Body: JSON with bio (max 150 characters)                                      #
     # Returns: DRF Response with success status and updated bio                     #
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-bio')
     def update_bio(self, request):
-        bio = request.data.get('bio', '').strip()
+        bio = _profile_text(request.data, 'bio')
 
         # Validate length
-        if len(bio) > 500:
-            raise exceptions.ValidationError('Bio must be 500 characters or less.')
+        limit = UserProfile._meta.get_field('bio').max_length
+        if len(bio) > limit:
+            raise exceptions.ValidationError(f'Bio must be {limit} characters or less.')
 
         # Update bio
         profile = request.user.userprofile
         profile.bio = bio
-        profile.save()
+        profile.save(update_fields=['bio', 'updated_at'])
 
         # Check profile completion badge (may award/revoke Mission Ready)
         from starview_app.services.badge_service import BadgeService
@@ -559,7 +483,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-unit-preference')
     def update_unit_preference(self, request):
-        unit_preference = request.data.get('unit_preference', '').strip().lower()
+        unit_preference = _profile_text(request.data, 'unit_preference').lower()
 
         # Validate choice
         valid_choices = ['metric', 'imperial']
@@ -571,7 +495,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Update preference
         profile = request.user.userprofile
         profile.unit_preference = unit_preference
-        profile.save()
+        profile.save(update_fields=['unit_preference', 'updated_at'])
 
         return Response({
             'detail': 'Unit preference updated successfully.',
@@ -583,7 +507,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Update user's language preference for UI and emails.                          #
     #                                                                               #
     # Controls the language for UI text and email notifications.                    #
-    # Also updates the session language for immediate effect.                       #
     #                                                                               #
     # HTTP Method: PATCH                                                            #
     # Endpoint: /api/users/me/update-language-preference/                           #
@@ -593,10 +516,12 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-language-preference')
     def update_language_preference(self, request):
-        language_preference = request.data.get('language_preference', '').strip().lower()
+        requested_language = _profile_text(request.data, 'language_preference')
 
         # Get valid language codes from settings
         valid_languages = [lang_code for lang_code, lang_name in settings.LANGUAGES]
+        language_preference = next((code for code in valid_languages
+                                    if code.lower() == requested_language.lower()), None)
 
         # Validate choice
         if language_preference not in valid_languages:
@@ -607,10 +532,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Update preference
         profile = request.user.userprofile
         profile.language_preference = language_preference
-        profile.save()
-
-        # Update session language for immediate effect
-        request.session['django_language'] = language_preference
+        profile.save(update_fields=['language_preference', 'updated_at'])
 
         return Response({
             'detail': 'Language preference updated successfully.',
@@ -662,7 +584,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Disconnect a social account from user's profile                               #
     #                                                                               #
     # Removes the link between user and a specific OAuth provider. User must have   #
-    # alternative login method (password) before disconnecting social account.      #
+    # alternative login method before disconnecting a social account.      #
     #                                                                               #
     # HTTP Method: DELETE                                                           #
     # Endpoint: /api/users/me/disconnect-social/{account_id}/                       #
@@ -671,26 +593,46 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['delete'], url_path='me/disconnect-social/(?P<account_id>[^/.]+)')
     def disconnect_social(self, request, account_id=None):
+        from starview_app.services.account_security import require_recent
+        require_recent(request)
         from allauth.socialaccount.models import SocialAccount
+        from allauth.socialaccount.signals import social_account_removed
+        from starview_app.services.apple_oauth import AppleRevocationError, revoke_apple_credential
 
-        try:
-            account = SocialAccount.objects.get(id=account_id, user=request.user)
-        except SocialAccount.DoesNotExist:
-            raise exceptions.NotFound('Social account not found.')
+        # Serialize removals for this user so concurrent requests cannot remove
+        # both remaining providers from a passwordless account.
+        from starview_app.services.account_security import locked_account
+        from starview_app.services.email_identity import verified_primary
+        with locked_account(request) as user:
+            try:
+                account = SocialAccount.objects.get(id=account_id, user=user)
+            except (SocialAccount.DoesNotExist, ValueError, TypeError):
+                raise exceptions.NotFound('Social account not found.')
+            has_other_provider = SocialAccount.objects.filter(user=user).exclude(pk=account.pk).exists()
+            # Password login also requires a verified primary email in custom_login.
+            can_use_password = user.has_usable_password() and verified_primary(user)
+            if not can_use_password and not has_other_provider:
+                raise exceptions.ValidationError({
+                    'detail': 'Before disconnecting your last sign-in method, connect another account or set a password and verify your profile email.'
+                })
+            provider_name = account.provider.title()
+            revoked = None
+            try:
+                if account.provider == 'apple':
+                    revoked = revoke_apple_credential(account)
+                account.delete()
+            except AppleRevocationError as exc:
+                error = exceptions.APIException(str(exc))
+                error.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                raise error from None
 
-        # Check if user has a password (can't disconnect if no alternative login method)
-        if not request.user.has_usable_password():
-            raise exceptions.ValidationError(
-                'Cannot disconnect social account. Please set a password first to ensure you can still login.'
-            )
-
-        # Store provider name for response
-        provider_name = account.provider.title()
-
-        # Delete the social account
-        account.delete()
+            social_account_removed.send(sender=SocialAccount, request=request, socialaccount=account)
+        detail = f'{provider_name} account disconnected successfully.'
+        if account.provider == 'apple' and revoked is False:
+            detail += ' Also remove Starview under Sign in with Apple in your Apple Account settings; this older connection had no saved revocation credential.'
 
         return Response({
-            'detail': f'{provider_name} account disconnected successfully.',
-            'provider': account.provider
+            'detail': detail,
+            'provider': account.provider,
+            'authorization_revoked': revoked,
         }, status=status.HTTP_200_OK)

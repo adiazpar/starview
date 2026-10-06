@@ -127,6 +127,7 @@ __all__ = [
     'custom_login',
     'custom_logout',
     'auth_status',
+    'auth_providers',
     'resend_verification_email',
     'request_password_reset',
     'confirm_password_reset',
@@ -152,3 +153,5 @@ __all__ = [
     # Routing views
     'get_directions',
 ]
+
+from .views_oauth import auth_providers

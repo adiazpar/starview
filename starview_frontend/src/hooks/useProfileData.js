@@ -10,20 +10,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useMemo, useCallback } from 'react';
 import { profileApi } from '../services/profile';
+import { useAuth } from '../contexts/AuthContext';
 import { mapBadgeIdsToBadges } from '../utils/badges';
 
 // Query keys for cache management
 export const profileQueryKeys = {
-  badgeCollection: ['profile', 'badges', 'collection'],
-  socialAccounts: ['profile', 'socialAccounts'],
+  badgeCollection: (userId) => ['profile', userId, 'badges', 'collection'],
+  socialAccounts: (userId) => ['profile', userId, 'socialAccounts'],
 };
 
 /**
  * Fetch badge collection data
  */
-function useBadgeCollection() {
+function useBadgeCollection(userId) {
   return useQuery({
-    queryKey: profileQueryKeys.badgeCollection,
+    queryKey: profileQueryKeys.badgeCollection(userId),
+    enabled: !!userId,
     queryFn: async () => {
       const response = await profileApi.getMyBadgeCollection();
       return response.data;
@@ -34,9 +36,10 @@ function useBadgeCollection() {
 /**
  * Fetch social accounts data
  */
-function useSocialAccounts() {
+function useSocialAccounts(userId) {
   return useQuery({
-    queryKey: profileQueryKeys.socialAccounts,
+    queryKey: profileQueryKeys.socialAccounts(userId),
+    enabled: !!userId,
     queryFn: async () => {
       const response = await profileApi.getSocialAccounts();
       return response.data.social_accounts || [];
@@ -50,9 +53,11 @@ function useSocialAccounts() {
  */
 export function useProfileData() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  const badgeQuery = useBadgeCollection();
-  const socialQuery = useSocialAccounts();
+  const badgeQuery = useBadgeCollection(userId);
+  const socialQuery = useSocialAccounts(userId);
 
   // Pin operation state
   const [isPinning, setIsPinning] = useState(false);
@@ -78,24 +83,25 @@ export function useProfileData() {
 
   // Function to refresh social accounts (after connect/disconnect)
   const refreshSocialAccounts = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: profileQueryKeys.socialAccounts });
-  }, [queryClient]);
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.socialAccounts(userId) });
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.badgeCollection(userId) });
+  }, [queryClient, userId]);
 
   // Function to refresh badge data (after pin/unpin)
   const refreshBadges = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: profileQueryKeys.badgeCollection });
-  }, [queryClient]);
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.badgeCollection(userId) });
+  }, [queryClient, userId]);
 
   // Function to update pinned badge IDs in cache (optimistic update)
   const updatePinnedBadgeIds = useCallback((newPinnedIds) => {
-    queryClient.setQueryData(profileQueryKeys.badgeCollection, (oldData) => {
+    queryClient.setQueryData(profileQueryKeys.badgeCollection(userId), (oldData) => {
       if (!oldData) return oldData;
       return {
         ...oldData,
         pinned_badge_ids: newPinnedIds,
       };
     });
-  }, [queryClient]);
+  }, [queryClient, userId]);
 
   // Clear pin messages
   const clearMessages = useCallback(() => {

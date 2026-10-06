@@ -100,8 +100,8 @@ i18n
       order: ['localStorage', 'navigator'],
       // Storage key for localStorage
       lookupLocalStorage: LANGUAGE_STORAGE_KEY,
-      // Cache user language in localStorage
-      caches: ['localStorage'],
+      // Persist explicit choices in useLanguage, not automatic browser detection.
+      caches: [],
     },
 
     // Backend options for loading translations

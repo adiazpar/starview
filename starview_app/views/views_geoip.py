@@ -4,12 +4,14 @@
 #
 # Privacy: Location data is NOT stored. It's only used in-memory to respond to the request.
 
-from django.conf import settings
+import math
+from django.views.decorators.cache import never_cache
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 
+@never_cache
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def geolocate_ip(request):
@@ -35,9 +37,13 @@ def geolocate_ip(request):
 
     if lat and lng:
         try:
+            latitude, longitude = float(lat), float(lng)
+            if not (math.isfinite(latitude) and math.isfinite(longitude)
+                    and -90 <= latitude <= 90 and -180 <= longitude <= 180):
+                raise ValueError
             return Response({
-                'latitude': float(lat),
-                'longitude': float(lng),
+                'latitude': latitude,
+                'longitude': longitude,
                 'city': request.META.get('HTTP_CF_IPCITY') or None,
                 'region': request.META.get('HTTP_CF_REGION') or None,
                 'country': request.META.get('HTTP_CF_IPCOUNTRY') or None,
@@ -46,19 +52,10 @@ def geolocate_ip(request):
         except (ValueError, TypeError):
             pass
 
-    # Development fallback (when not going through Cloudflare)
-    if settings.DEBUG:
-        return Response({
-            'latitude': 37.7749,
-            'longitude': -122.4194,
-            'city': 'San Francisco',
-            'region': 'California',
-            'country': 'US',
-            'source': 'ip',
-        })
-
-    # Production without Cloudflare headers
+    # No location evidence is available on ordinary localhost requests.
+    # Let the user share browser location or search instead of inventing a city.
     return Response({
         'latitude': None,
         'longitude': None,
+        'source': 'unavailable',
     })

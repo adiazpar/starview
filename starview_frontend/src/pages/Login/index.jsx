@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuthProviders } from '../../hooks/useAuthProviders';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
@@ -8,6 +10,8 @@ import './styles.css';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { data: providers } = useAuthProviders();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
@@ -26,6 +30,13 @@ function LoginPage() {
   const nextUrl = searchParams.get('next') || '/';
 
   // Check if redirected due to session expiry
+  const oauthError = searchParams.get('error');
+  useEffect(() => {
+    if (['oauth_error', 'oauth_cancelled', 'oauth_unavailable'].includes(oauthError)) {
+      showToast(t(oauthError === 'oauth_cancelled' ? 'auth.oauthCancelled' : 'auth.oauthError'), 'error');
+    }
+  }, [oauthError, showToast, t]);
+
   const sessionExpired = searchParams.get('expired') === 'true';
 
   // Show session expired toast on mount
@@ -84,15 +95,11 @@ function LoginPage() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    if (provider === 'Google') {
-      // Redirect to Django allauth Google OAuth endpoint
-      // Use relative URL to go through Vite proxy in development
-      // In production, this will be handled by the backend directly
-      window.location.href = '/accounts/google/login/?process=login';
-    } else {
-      // Other social logins coming soon
-      alert(`${provider} login coming soon!`);
+  const handleSocialLogin = async (provider) => {
+    try {
+      await authApi.startSocialLogin(provider.toLowerCase(), { next: nextUrl, rememberMe });
+    } catch {
+      showToast(t('auth.oauthError'), 'error');
     }
   };
 
@@ -252,6 +259,7 @@ function LoginPage() {
               type="button"
               className="btn-social btn-social--google"
               onClick={() => handleSocialLogin('Google')}
+              aria-label={t('auth.signInGoogle')}
             >
               <i className="btn-social__icon fa-brands fa-google"></i>
             </button>
@@ -260,7 +268,9 @@ function LoginPage() {
               type="button"
               className="btn-social btn-social--apple"
               onClick={() => handleSocialLogin('Apple')}
-              disabled
+              aria-label={t('auth.signInApple')}
+              title={t('auth.signInApple')}
+              disabled={!providers?.apple}
             >
               <i className="btn-social__icon fa-brands fa-apple"></i>
             </button>
