@@ -278,6 +278,19 @@ function PrivacyPage() {
 
                 <div className="privacy-service">
                   <div className="privacy-service__header">
+                    <span className="privacy-service__name">Sign in with Apple</span>
+                    <span className="privacy-service__purpose">Authentication</span>
+                  </div>
+                  <p className="privacy-service__desc">
+                    Optional sign-in method. Apple shares an account identifier, your name when first authorized, and your email or a private relay address if you choose Hide My Email. We keep an encrypted credential to revoke access when you disconnect Apple.
+                  </p>
+                  <a href="https://www.apple.com/legal/privacy/data/en/sign-in-with-apple/" target="_blank" rel="noopener noreferrer" className="privacy-service__link">
+                    View Privacy Policy <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                  </a>
+                </div>
+
+                <div className="privacy-service">
+                  <div className="privacy-service__header">
                     <span className="privacy-service__name">Google Analytics</span>
                     <span className="privacy-service__purpose">Usage Analytics</span>
                   </div>

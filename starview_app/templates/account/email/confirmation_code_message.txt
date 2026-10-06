@@ -1,0 +1,2 @@
+{% load i18n %}{% if is_email_setup %}{% trans "Use this code to verify your new two-factor email. Your main account email will stay the same." %}
+{% endif %}{% blocktrans %}Your confirmation code is {{ code }}. It expires in 10 minutes. If you did not request this, do not share the code.{% endblocktrans %}

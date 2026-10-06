@@ -49,6 +49,17 @@ class AuditLog(models.Model):
         ('registration_failed', 'Registration Failed'),
         ('password_reset_requested', 'Password Reset Requested'),
         ('password_changed', 'Password Changed'),
+        ('email_change_requested', 'Email Change Requested'),
+        ('email_changed', 'Email Changed'),
+        ('provider_connected', 'Sign-in Provider Connected'),
+        ('provider_disconnected', 'Sign-in Provider Disconnected'),
+        ('mfa_enabled', 'Two-factor Authentication Enabled'),
+        ('mfa_disabled', 'Two-factor Authentication Disabled'),
+        ('mfa_method_added', 'Authenticator Added'),
+        ('mfa_method_removed', 'Authenticator Removed'),
+        ('mfa_email_changed', 'Two-factor Email Changed'),
+        ('mfa_recovery_reset', 'Two-factor Recovery Codes Regenerated'),
+        ('account_admin_changed', 'Account Access Changed by Administrator'),
 
         # Admin actions:
         ('location_verified', 'Location Verified'),

@@ -14,7 +14,6 @@
   gap: var(--space-sm);
   width: 100%;
   max-width: 500px;
-  margin-top: var(--space-md);
 }
 
 .theme-option {
@@ -56,7 +55,6 @@
   gap: var(--space-sm);
   width: 100%;
   max-width: calc(500px * 2 / 3);
-  margin-top: var(--space-md);
 }
 
 .units-option {

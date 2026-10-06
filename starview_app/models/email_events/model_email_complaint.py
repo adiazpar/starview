@@ -77,8 +77,8 @@ class EmailComplaint(models.Model):
     # AWS metadata
     sns_message_id = models.CharField(
         max_length=255,
-        unique=True,
-        help_text="AWS SNS message ID for deduplication"
+        db_index=True,
+        help_text="AWS SNS message ID; unique with the recipient email"
     )
     feedback_id = models.CharField(
         max_length=255,
@@ -101,6 +101,7 @@ class EmailComplaint(models.Model):
     )
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['sns_message_id', 'email'], name='unique_complaint_recipient_event')]
         db_table = 'starview_email_complaint'
         ordering = ['-complaint_date']
         indexes = [

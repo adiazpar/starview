@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useId } from 'react';
 import './styles.css';
 
 /**
@@ -9,7 +9,8 @@ import './styles.css';
  *
  * resetOnCollapse: When true, remounts children on collapse to reset their state
  */
-function CollapsibleSection({ title, defaultExpanded = true, resetOnCollapse = false, children }) {
+function CollapsibleSection({ title, icon, defaultExpanded = true, resetOnCollapse = false, children }) {
+  const contentId = useId();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [resetKey, setResetKey] = useState(0);
 
@@ -27,11 +28,16 @@ function CollapsibleSection({ title, defaultExpanded = true, resetOnCollapse = f
         className="collapsible-section-header glass-card"
         onClick={handleToggle}
         type="button"
+        aria-expanded={isExpanded}
+        aria-controls={contentId}
       >
-        <h3>{title}</h3>
-        <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
+        <span className="collapsible-section-label">
+          {icon && <i className={`fa-solid ${icon} collapsible-section-icon`} aria-hidden="true" />}
+          <span>{title}</span>
+        </span>
+        <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`} aria-hidden="true" />
       </button>
-      <div className={`collapsible-section-content ${!isExpanded ? 'collapsing' : ''}`}>
+      <div id={contentId} inert={!isExpanded} className={`collapsible-section-content ${!isExpanded ? 'collapsing' : ''}`}>
         <div className="collapsible-section-content-inner">
           <div className="collapsible-section-content-padded" key={resetOnCollapse ? resetKey : undefined}>
             {children}

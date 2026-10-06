@@ -21,6 +21,7 @@
 # ----------------------------------------------------------------------------------------------------- #
 
 # Import tools:
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -47,6 +48,8 @@ from axes.handlers.proxy import AxesProxyHandler
 
 # Service imports:
 from starview_app.services import PasswordService
+from starview_app.services.account_mail import enqueue_account_email
+from starview_app.services.email_identity import email_owners, email_change_transaction, verified_primary
 from starview_app.utils import LoginRateThrottle, PasswordResetThrottle, log_auth_event
 
 
@@ -72,6 +75,7 @@ from starview_app.utils import LoginRateThrottle, PasswordResetThrottle, log_aut
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([LoginRateThrottle])
+@csrf_protect
 def register(request):
         # Get form data
         username = request.data.get('username', '').strip()
@@ -119,21 +123,8 @@ def register(request):
         except ValidationError:
             raise exceptions.ValidationError({'email': 'Please enter a valid email address.'})
 
-        # Validate email uniqueness
-        if User.objects.filter(email=email.lower()).exists():
+        if email_owners(email).exists():
             raise exceptions.ValidationError({'email': 'This email address is already registered.'})
-
-        # Check if email is associated with a social account on another user
-        # This prevents hijacking social accounts by creating regular accounts with the same email
-        from allauth.socialaccount.models import SocialAccount
-
-        # Check if this email is used in any social account's extra_data
-        # Social providers (Google, etc.) store the email in extra_data['email']
-        # Use generic error message to prevent revealing whether it's a social or regular account
-        for social_account in SocialAccount.objects.all():
-            social_email = social_account.extra_data.get('email', '').lower()
-            if social_email == email.lower():
-                raise exceptions.ValidationError({'email': 'This email address is already registered.'})
 
         # Validate that passwords match
         passwords_match, match_error = PasswordService.validate_passwords_match(pass1, pass2)
@@ -156,11 +147,10 @@ def register(request):
         if not password_valid:
             raise exceptions.ValidationError({'password1': validation_error})
 
-        # Wrap user creation and email sending in a transaction
-        # If email sending fails, user creation will be rolled back
+        # Save account, confirmation, and queued mail together; send after commit.
         from allauth.account.models import EmailAddress, EmailConfirmation
 
-        with transaction.atomic():
+        with email_change_transaction():
             # Create user after all validation passes
             user = User.objects.create_user(
                 **user_data,
@@ -210,6 +200,7 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([LoginRateThrottle])
+@csrf_protect
 def custom_login(request):
         # Get form data
         username_or_email = request.data.get('username', '').strip().lower()
@@ -237,10 +228,9 @@ def custom_login(request):
             )
 
         # Try to get user by username or email
-        user_obj = User.objects.filter(
-            Q(username=username_or_email) |
-            Q(email=username_or_email)
-        ).first()
+        lookup = {'email__iexact': username_or_email} if '@' in username_or_email else {'username__iexact': username_or_email}
+        candidates = list(User.objects.filter(**lookup)[:2])
+        user_obj = candidates[0] if len(candidates) == 1 else None
 
         # Use generic error message to prevent user enumeration
         # Don't reveal whether the username/email exists or password is wrong
@@ -248,6 +238,9 @@ def custom_login(request):
 
         # If user doesn't exist, return generic error (prevents user enumeration)
         if not user_obj:
+            # Match the expensive hash work done for a real account's wrong
+            # password; the response must not expose existence through timing.
+            User().set_password(password)
             # Audit log: Failed login - user not found
             log_auth_event(
                 request=request,
@@ -276,7 +269,7 @@ def custom_login(request):
             from allauth.account.models import EmailAddress
             try:
                 email_address = EmailAddress.objects.get(user=authenticated_user, primary=True)
-                if not email_address.verified:
+                if not email_address.verified or email_address.email.lower() != authenticated_user.email.lower():
                     # Audit log: Login blocked - email not verified
                     log_auth_event(
                         request=request,
@@ -306,37 +299,30 @@ def custom_login(request):
                     'Please verify your email address before logging in.'
                 )
 
-            login(request, authenticated_user)
+            # Use allauth's login stages so password login cannot bypass MFA.
+            from allauth.account.models import Login
+            from allauth.account.internal.flows.login import perform_password_login
+            from starview_app.utils.adapters import get_frontend_url
+            from django.utils.http import url_has_allowed_host_and_scheme
+            request.session.pop('account_authentication_methods', None)
 
-            # Handle "Remember Me" functionality
-            remember_me = request.data.get('remember_me', False)
-            # Store in session so middleware can skip idle timeout for remember_me users
-            request.session['remember_me'] = remember_me
-            if remember_me:
-                # Keep session for 30 days (2,592,000 seconds)
-                request.session.set_expiry(2592000)
-            else:
-                # Session expires when browser closes (default behavior)
-                request.session.set_expiry(0)
-
-            # Audit log: Successful login
-            log_auth_event(
-                request=request,
-                event_type='login_success',
-                user=authenticated_user,
-                success=True,
-                message=f'User logged in successfully: {authenticated_user.username}',
-                metadata={'auth_method': 'password', 'remember_me': remember_me}
-            )
+            from starview_app.services.login_session import REMEMBER_KEY
 
             # Determine redirect URL
             redirect_url = '/'
-            if next_url and not next_url.startswith('/login'):
+            if (next_url and next_url.startswith('/') and not next_url.startswith('/login')
+                    and url_has_allowed_host_and_scheme(next_url, {request.get_host()}, require_https=request.is_secure())):
                 redirect_url = next_url
 
+            result = perform_password_login(
+                request._request, {'username': authenticated_user.username},
+                Login(user=authenticated_user, redirect_url=get_frontend_url(redirect_url),
+                      signal_kwargs={REMEMBER_KEY: request.data.get('remember_me') is True}),
+            )
+
             return Response({
-                'detail': 'Login successful! Redirecting...',
-                'redirect_url': redirect_url
+                'detail': 'Continue signing in.' if not request._request.user.is_authenticated else 'Login successful!',
+                'redirect_url': result.get('Location', get_frontend_url('/')),
             }, status=status.HTTP_200_OK)
 
         # Authentication failed - check if this failure triggered a lockout
@@ -446,15 +432,17 @@ def request_password_reset(request):
     except ValidationError:
         raise exceptions.ValidationError('Please enter a valid email address.')
 
-    # Try to find user with this email
-    try:
-        user = User.objects.get(email=email)
-        user_found = True
-    except User.DoesNotExist:
-        user_found = False
-        user = None
+    # Recovery uses a verified primary contact, not an arbitrary provider email.
+    # Fail closed if legacy duplicate data makes the owner ambiguous.
+    from allauth.account.models import EmailAddress
+    owners = list(EmailAddress.objects.select_related('user').filter(
+        email__iexact=email, primary=True, verified=True,
+        user__email__iexact=email, user__is_active=True,
+    )[:2])
+    user = owners[0].user if len(owners) == 1 else None
+    user_found = user is not None
 
-    # Always process the request to prevent timing attacks
+    # Return the same response for unknown and ineligible addresses.
     if user_found:
         # Generate password reset token (stateless, expires in 1 hour)
         token = password_reset_token_generator.make_token(user)
@@ -513,7 +501,9 @@ def request_password_reset(request):
                 to=[user.email]
             )
             email_msg.attach_alternative(html_message, "text/html")
-            email_msg.send(fail_silently=False)
+            from django.utils import timezone
+            from datetime import timedelta
+            enqueue_account_email(email_msg, user=user, expires_at=timezone.now() + timedelta(seconds=settings.PASSWORD_RESET_TIMEOUT))
 
             # Audit log: Password reset email sent
             log_auth_event(
@@ -595,109 +585,28 @@ def confirm_password_reset(request, uidb64, token):
     if not passwords_match:
         raise exceptions.ValidationError({'password2': match_error})
 
-    # Decode user ID from base64
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
+        # Re-read and consume under one lock. Two requests using the same reset
+        # token cannot both replace the password, even across different workers.
+        with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=uid)
+            if not verified_primary(user) or not password_reset_token_generator.check_token(user, token):
+                raise exceptions.ValidationError('Invalid or expired password reset link. Please request a new one.')
+            success, error = PasswordService.set_password(user, password1)
+            if not success:
+                raise exceptions.ValidationError({'password1': error})
+            from starview_app.services.account_security import revoke_account_sessions
+            revoke_account_sessions(user)
+            from starview_app.services.account_events import record_account_event
+            record_account_event(request, user, 'password_changed', method='password_reset_link')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        # Audit log: Invalid uidb64
-        log_auth_event(
-            request=request,
-            event_type='password_reset_failed',
-            username='',
-            success=False,
-            message='Password reset failed - invalid user ID',
-            metadata={'uidb64': uidb64, 'reason': 'invalid_uid'}
-        )
-        raise exceptions.ValidationError('Invalid or expired password reset link.')
-
-    # Validate token (checks signature and expiration)
-    if not password_reset_token_generator.check_token(user, token):
-        # Audit log: Invalid or expired token
-        log_auth_event(
-            request=request,
-            event_type='password_reset_failed',
-            user=user,
-            success=False,
-            message=f'Password reset failed - invalid/expired token: {user.username}',
-            metadata={'reason': 'invalid_token'}
-        )
-        raise exceptions.ValidationError('Invalid or expired password reset link. Please request a new one.')
-
-    # Validate password strength (context-aware)
-    password_valid, validation_error = PasswordService.validate_password_strength(password1, user=user)
-    if not password_valid:
-        raise exceptions.ValidationError({'password1': validation_error})
-
-    # Set new password using PasswordService
-    success, error = PasswordService.set_password(user, password1)
-    if not success:
-        raise exceptions.APIException(error)
+        raise exceptions.ValidationError('Invalid or expired password reset link.') from None
 
     # Clear account lockout (if any) - user successfully reset their password
     # This allows them to log in immediately after password reset
     from axes.utils import reset as axes_reset
     axes_reset(username=user.username)
-
-    # Send password change notification email
-    try:
-        from django.contrib.sites.shortcuts import get_current_site
-
-        # Get client IP for security notification
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            client_ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            client_ip = request.META.get('REMOTE_ADDR', 'Unknown')
-
-        current_site = get_current_site(request)
-
-        # Email context
-        context = {
-            'user': user,
-            'site_name': current_site.name,
-            'client_ip': client_ip,
-        }
-
-        # Get user's language preference for email localization
-        user_lang = getattr(user.userprofile, 'language_preference', 'en')
-
-        # Render email subject and body from templates in user's preferred language
-        with translation.override(user_lang):
-            subject = render_to_string('account/email/password_changed_subject.txt', context).strip()
-            html_message = render_to_string('account/email/password_changed_message.html', context)
-            text_message = render_to_string('account/email/password_changed_message.txt', context)
-
-        # Create email message
-        email_msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
-        )
-        email_msg.attach_alternative(html_message, "text/html")
-        email_msg.send(fail_silently=True)  # Don't fail if email fails
-
-    except Exception as e:
-        # Log error but don't fail the password reset
-        log_auth_event(
-            request=request,
-            event_type='password_changed_notification_failed',
-            user=user,
-            success=False,
-            message=f'Failed to send password change notification to: {user.email}',
-            metadata={'error': str(e)}
-        )
-
-    # Audit log: Password successfully changed via reset
-    log_auth_event(
-        request=request,
-        event_type='password_changed',
-        user=user,
-        success=True,
-        message=f'Password successfully reset: {user.username}',
-        metadata={'method': 'password_reset_link', 'lockout_cleared': True}
-    )
 
     return Response({
         'detail': 'Password reset successful! You can now log in with your new password.',
@@ -821,10 +730,13 @@ def resend_verification_email(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @throttle_classes([])  # Disable throttling for auth status checks
+@ensure_csrf_cookie
 def auth_status(request):
     if request.user.is_authenticated:
+        from starview_app.services.account_security import staff_verification_url, has_mfa
         return Response({
             'authenticated': True,
+            'verification_url': staff_verification_url(request),
             'user': {
                 'id': request.user.id,
                 'username': request.user.username,
@@ -835,7 +747,9 @@ def auth_status(request):
                 'profile_picture_url': request.user.userprofile.get_profile_picture_url,
                 'bio': request.user.userprofile.bio,
                 'is_verified': request.user.userprofile.is_verified,
-                'has_usable_password': request.user.has_usable_password()
+                'has_usable_password': request.user.has_usable_password(),
+                'mfa_enabled': has_mfa(request.user),
+                'is_staff': request.user.is_staff,
             }
         }, status=status.HTTP_200_OK)
     else:

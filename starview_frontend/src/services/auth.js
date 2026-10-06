@@ -8,19 +8,26 @@
 import api from './api';
 
 export const authApi = {
+  getSecurityStatus: () => api.get('/auth/security/'),
+  confirmIdentity: (data) => api.post('/auth/security/', data),
+  sendConfirmationCode: (method = 'email_code') => api.post('/auth/security/code/', { method }),
+  getSecurityMethods: () => api.get('/auth/security/methods/'),
+  updateSecurityMethods: (data) => api.post('/auth/security/methods/', data),
+  getRecoveryCodes: () => api.get('/auth/security/recovery-codes/'),
   getProviders: () => api.get('/auth/providers/'),
 
-  async startAppleLogin({ process = 'login', next = '/' } = {}) {
+  async startSocialLogin(provider, { process = 'login', next = '/', rememberMe = false } = {}) {
+    if (!['apple', 'google'].includes(provider)) throw new Error('Invalid login provider');
     if (!['login', 'connect'].includes(process)) throw new Error('Invalid login process');
     const { data } = await api.get('/auth/providers/');
-    if (!data.apple) throw new Error('Apple sign-in is unavailable');
-    // A form navigation preserves Django CSRF protection and follows Apple's redirect.
+    if (provider === 'apple' && !data.apple) throw new Error('Apple sign-in is unavailable');
+    // A form navigation preserves Django CSRF protection and follows the provider redirect.
     const form = document.createElement('form');
     form.hidden = true;
     form.method = 'POST';
-    form.action = '/accounts/apple/login/';
-    const safeNext = next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : '/';
-    for (const [name, value] of Object.entries({ process, next: safeNext, csrfmiddlewaretoken: data.csrf_token })) {
+    form.action = `/accounts/${provider}/login/`;
+    const safeNext = typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : '/';
+    for (const [name, value] of Object.entries({ process, next: safeNext, remember_me: rememberMe === true ? 'true' : 'false', csrfmiddlewaretoken: data.csrf_token })) {
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = name;

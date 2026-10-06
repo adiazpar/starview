@@ -41,6 +41,7 @@ from django.http import Http404
 from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
+from django_project.log_redaction import redact_account_urls
 
 # Configure logger:
 logger = logging.getLogger(__name__)
@@ -267,7 +268,7 @@ def log_security_exception(exc, request, status_code):
         # Log permission denials
         if status_code == 403 or isinstance(exc, (exceptions.PermissionDenied, DjangoPermissionDenied)):
             user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
-            resource = f"{request.method} {request.path}"
+            resource = f"{request.method} {redact_account_urls(request.path)}"
 
             log_permission_denied(
                 request=request,
@@ -286,7 +287,7 @@ def log_security_exception(exc, request, status_code):
                 message=str(exc) or 'Authentication failed',
                 metadata={
                     'reason': 'invalid_credentials',
-                    'endpoint': request.path,
+                    'endpoint': redact_account_urls(request.path),
                     'status_code': status_code
                 }
             )
@@ -321,7 +322,7 @@ def log_suspicious_error(exc, request, view):
         log_permission_denied(
             request=request,
             user=user,
-            resource=f"{request.method} {request.path}",
+            resource=f"{request.method} {redact_account_urls(request.path)}",
             message=f"Unexpected exception in {view_name}: {type(exc).__name__}",
             metadata={
                 'exception_type': type(exc).__name__,
@@ -353,7 +354,7 @@ def log_exception(exc, request, view, status_code, include_traceback=False):
     if request and hasattr(request, 'user') and request.user.is_authenticated:
         user = request.user.username
 
-    path = request.path if request else 'Unknown'
+    path = redact_account_urls(request.path) if request else 'Unknown'
     method = request.method if request else 'Unknown'
     view_name = view.__class__.__name__ if view else 'Unknown'
 

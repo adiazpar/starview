@@ -1,0 +1,10 @@
+.app-dialog .account-confirmation-form { margin-top: var(--space-md); }
+.account-confirmation-link {
+  color: var(--accent); font-size: var(--text-sm); text-align: left;
+  text-decoration: underline; text-underline-offset: 3px; padding: var(--space-xs) 0;
+}
+.account-confirmation-link:hover:not(:disabled) { color: var(--text-primary); }
+.account-confirmation-link:disabled { opacity: .5; cursor: not-allowed; }
+.account-confirmation-form > .account-confirmation-link { margin-top: var(--space-sm); }
+.account-confirmation-backup { border-top: 1px solid var(--glass-border); margin-top: var(--space-lg); padding-top: var(--space-md); }
+.account-confirmation-notice { padding: var(--space-sm) var(--space-md); border-radius: var(--radius); background: var(--glass-bg-hover); }

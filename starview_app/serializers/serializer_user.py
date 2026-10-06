@@ -141,7 +141,8 @@ class PrivateProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined',
                   'profile_picture_url', 'bio', 'is_verified', 'has_usable_password',
                   'pinned_badge_ids', 'unit_preference', 'language_preference']
-        read_only_fields = ['id', 'username', 'date_joined', 'has_usable_password']
+        # This serializer is output-only. Profile changes use validated /me actions.
+        read_only_fields = fields
 
     def get_profile_picture_url(self, obj):
         """Get user's profile picture URL"""

@@ -48,6 +48,7 @@ from .throttles import (
 
 # Import cache utilities
 from .cache import (
+    invalidate_user_location_lists,
     location_list_key,
     location_detail_key,
     map_geojson_key,

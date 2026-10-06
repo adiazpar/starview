@@ -32,6 +32,7 @@
 
 .connected-account-info {
   flex: 1;
+  min-width: 0;
 }
 
 .connected-account-info h4 {
@@ -42,6 +43,7 @@
 }
 
 .connected-account-email {
+  overflow-wrap: anywhere;
   font-size: var(--text-sm);
   color: var(--text-secondary);
   margin: 0 0 var(--space-xs) 0;
@@ -91,7 +93,7 @@
 .connected-accounts-note {
   display: flex;
   gap: var(--space-sm);
-  margin-top: var(--space-md);
+  margin-bottom: var(--space-sm);
   padding: var(--space-md);
   background: rgba(59, 130, 246, 0.08);
   border: 1px solid rgba(59, 130, 246, 0.2);
@@ -116,4 +118,25 @@
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-md);
+}
+
+.connected-account-options > .btn-secondary {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+}
+
+@media (max-width: 767px) {
+  .connected-account-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .connected-account-icon {
+    display: none;
+  }
+
+  .connected-account-actions > .btn-secondary {
+    width: 100%;
+  }
 }

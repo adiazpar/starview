@@ -4,7 +4,10 @@ from .settings import *  # noqa: F403
 if DATABASES['default'].get('HOST') not in ('localhost', '127.0.0.1', '::1'):
     raise RuntimeError('Tests require a local PostgreSQL database')
 DATABASES['default']['TEST'] = {'NAME': 'test_starview_oauth'}
-CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'starview-tests'}}
+CACHES = {
+    alias: {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': f'starview-tests-{alias}'}
+    for alias in ('default', 'security')
+}
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},

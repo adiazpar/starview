@@ -9,6 +9,8 @@
  */
 
 import axios from 'axios';
+import { getIdentityEpoch } from './identityEpoch';
+import { safeRedirect } from '../utils/security';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -25,6 +27,7 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
+    config.identityEpoch = getIdentityEpoch();
     // Django requires CSRF token for POST, PUT, PATCH, DELETE
     if (['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
       // Production uses '__Secure-csrftoken', dev uses 'csrftoken'
@@ -45,8 +48,16 @@ api.interceptors.request.use(
  * Handles common error scenarios
  */
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.identityEpoch !== getIdentityEpoch()) {
+      return Promise.reject(new axios.CanceledError('Account changed'));
+    }
+    return response;
+  },
   (error) => {
+    if (error.config && error.config.identityEpoch !== getIdentityEpoch()) {
+      return Promise.reject(new axios.CanceledError('Account changed'));
+    }
     // Handle 401 Unauthorized - clear auth state and redirect to login
     if (error.response?.status === 401) {
       // Skip redirect for auth-check endpoints (prevents redirect loops)
@@ -59,9 +70,13 @@ api.interceptors.response.use(
         // Redirect to login with expired flag
         window.location.href = '/login?expired=true';
 
-        // Return a rejected promise that won't trigger component error handling
-        return new Promise(() => {});
+        return Promise.reject(new axios.CanceledError('Session expired'));
       }
+    }
+
+    if (error.response?.status === 403 && error.response.data?.code === 'staff_mfa_required') {
+      safeRedirect(error.response.data.verification_url, '/accounts/reauthenticate/');
+      return Promise.reject(new axios.CanceledError('Staff verification required'));
     }
 
     // Handle 403 Forbidden

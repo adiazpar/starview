@@ -19,9 +19,8 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.views import ConfirmEmailView
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.socialaccount.views import ConnectionsView
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotAllowed
 from django.http import Http404
 from django.views.generic import View
 from django.views import View as BaseView
@@ -31,6 +30,35 @@ from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def send_welcome_email(request, user):
+    """Shared by standard verification and verified OAuth signup."""
+    try:
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMultiAlternatives
+        from django.contrib.sites.shortcuts import get_current_site
+        from django.utils import translation
+        context = {'user': user, 'site_name': get_current_site(request).name}
+        with translation.override(getattr(user.userprofile, 'language_preference', 'en')):
+            subject = render_to_string('account/email/welcome_subject.txt', context).strip()
+            text_content = render_to_string('account/email/welcome_message.txt', context)
+            html_content = render_to_string('account/email/welcome_message.html', context)
+        msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+        msg.attach_alternative(html_content, 'text/html')
+        from starview_app.services.account_mail import enqueue_account_email
+        from django.db import transaction
+        from django.utils import timezone
+        from starview_app.models import UserProfile
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=user)
+            if profile.welcome_email_queued_at is None:
+                enqueue_account_email(msg, user=user, deduplication_key=f'welcome:{user.pk}')
+                profile.welcome_email_queued_at = timezone.now()
+                profile.save(update_fields=['welcome_email_queued_at'])
+    except Exception as exc:
+        # Mail failure must not abort completed verification or OAuth signup.
+        logger.error('Welcome email failed: exception=%s', type(exc).__name__)
 
 
 # ----------------------------------------------------------------------------- #
@@ -49,6 +77,27 @@ def get_frontend_url(path, query_params=None):
     if settings.DEBUG:
         return f'http://localhost:5173{path}'
     return path
+
+
+def get_frontend_redirect_url(request, destination, fallback='/'):
+    """Resolve a safe return path on the UI origin, including OAuth state URLs."""
+    from urllib.parse import urlsplit, urlunsplit
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    allowed_hosts = {request.get_host()}
+    if settings.DEBUG:
+        allowed_hosts.add(urlsplit(get_frontend_url('/')).netloc)
+    if not destination or not url_has_allowed_host_and_scheme(
+        destination, allowed_hosts, require_https=request.is_secure(),
+    ):
+        return get_frontend_url(fallback)
+    parsed = urlsplit(destination)
+    path = parsed.path or '/'
+    if not path.startswith('/'):
+        path = f'/{path}'
+    if not url_has_allowed_host_and_scheme(path, set()):
+        return get_frontend_url(fallback)
+    return get_frontend_url(urlunsplit(('', '', path, parsed.query, parsed.fragment)))
 
 
 # ----------------------------------------------------------------------------- #
@@ -94,8 +143,7 @@ class SignupRedirectView(AllAuthRedirectView):
 class LogoutRedirectView(BaseView):
     """Handle /accounts/logout/ - perform logout and redirect to home."""
     def get(self, request, *args, **kwargs):
-        logout(request)
-        return HttpResponseRedirect(get_frontend_url('/'))
+        return HttpResponseNotAllowed(['POST'])
 
     def post(self, request, *args, **kwargs):
         logout(request)
@@ -130,12 +178,6 @@ class InactiveAccountRedirectView(AllAuthRedirectView):
     query_params = {'error': 'inactive'}
 
 
-class ReauthenticateRedirectView(AllAuthRedirectView):
-    """Redirect /accounts/reauthenticate/ to /login."""
-    redirect_path = '/login'
-    query_params = {'reauth': 'required'}
-
-
 class LoginCodeConfirmRedirectView(AllAuthRedirectView):
     """Redirect /accounts/login/code/confirm/ to /login."""
     redirect_path = '/login'
@@ -167,6 +209,23 @@ class SocialSignupRedirectView(AllAuthRedirectView):
 # ----------------------------------------------------------------------------- #
 class CustomAccountAdapter(DefaultAccountAdapter):
 
+    def get_login_stages(self):
+        return [
+            'starview_app.utils.verification_stage.VerificationStage'
+            if stage == 'allauth.mfa.stages.AuthenticateStage' else stage
+            for stage in super().get_login_stages()
+        ]
+
+    def send_mail(self, template_prefix, email, context):
+        from starview_app.services.account_mail import enqueue_account_email
+        from django.utils import timezone
+        from datetime import timedelta
+        message = self.render_mail(template_prefix, email, context)
+        deadline = None
+        if 'email_confirmation' in template_prefix:
+            deadline = timezone.now() + timedelta(days=settings.ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS)
+        enqueue_account_email(message, user=context.get('user'), expires_at=deadline)
+
     # ----------------------------------------------------------------------------- #
     # Redirect to React email verified page after successful email verification.    #
     #                                                                               #
@@ -183,17 +242,11 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     # ----------------------------------------------------------------------------- #
     def get_email_verification_redirect_url(self, email_address):
         import secrets
-        from django.conf import settings
 
         # Generate a one-time success token
         success_token = secrets.token_urlsafe(16)
 
-        # In development, redirect to React dev server
-        # In production, use relative URL (Django serves React build)
-        if settings.DEBUG:
-            return f'http://localhost:5173/email-verified?success={success_token}'
-        else:
-            return f'/email-verified?success={success_token}'
+        return get_frontend_url('/email-verified', {'success': success_token})
 
 
     # ----------------------------------------------------------------------------- #
@@ -208,31 +261,11 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     #   - str: URL to redirect to after login                                       #
     # ----------------------------------------------------------------------------- #
     def get_login_redirect_url(self, request):
-        from django.conf import settings
-
         # Check if this is a social account connection (not initial login)
         process = request.GET.get('process')
         if process == 'connect':
-            # After connecting social account, redirect to profile
-            if settings.DEBUG:
-                return 'http://localhost:5173/profile'
-            else:
-                return '/profile'
-
-        # Default to home page, but respect 'next' parameter if provided
-        next_url = request.GET.get('next')
-        from django.utils.http import url_has_allowed_host_and_scheme
-        if next_url and url_has_allowed_host_and_scheme(next_url, {request.get_host()}, require_https=request.is_secure()):
-            # In development, prepend Vite URL if relative path
-            if settings.DEBUG and next_url.startswith('/'):
-                return f'http://localhost:5173{next_url}'
-            return next_url
-
-        # Default redirect to home
-        if settings.DEBUG:
-            return 'http://localhost:5173/'
-        else:
-            return '/'
+            return get_frontend_url('/profile')
+        return get_frontend_redirect_url(request, request.GET.get('next'))
 
 
     # ----------------------------------------------------------------------------- #
@@ -247,10 +280,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     #   - str: URL to redirect to after logout                                      #
     # ----------------------------------------------------------------------------- #
     def get_logout_redirect_url(self, request):
-        from django.conf import settings
-        if settings.DEBUG:
-            return 'http://localhost:5173/'
-        return '/'
+        return get_frontend_url('/')
 
 
     # ----------------------------------------------------------------------------- #
@@ -265,10 +295,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     #   - str: URL to redirect to after signup                                      #
     # ----------------------------------------------------------------------------- #
     def get_signup_redirect_url(self, request):
-        from django.conf import settings
-        if settings.DEBUG:
-            return 'http://localhost:5173/'
-        return '/'
+        return get_frontend_url('/')
 
 
 # ----------------------------------------------------------------------------- #
@@ -290,94 +317,19 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 # ----------------------------------------------------------------------------- #
 class CustomConfirmEmailView(ConfirmEmailView):
 
-    def get(self, *args, **kwargs):
-        from django.conf import settings
-        from allauth.account.models import EmailAddress
-
+    def get(self, request, key, *args, **kwargs):
+        from rest_framework.exceptions import ValidationError
+        from starview_app.services.email_identity import confirm_email_change
         try:
-            self.object = self.get_object()
-
-            # Check if email can be confirmed
-            if not self.object or not self.object.email_address.can_set_verified():
-                # Email already confirmed by this or another account
-                error_url = '/email-confirm-error?error=already_confirmed'
-                if settings.DEBUG:
-                    error_url = f'http://localhost:5173{error_url}'
-                return HttpResponseRedirect(error_url)
-
-            # Get the email address being confirmed
-            email_address = self.object.email_address
-            user = email_address.user
-
-            # Check if this is an email change (user already has other verified emails)
-            is_email_change = EmailAddress.objects.filter(
-                user=user,
-                verified=True
-            ).exclude(id=email_address.id).exists()
-
-            # Valid confirmation - continue with normal flow
-            # This will auto-confirm if ACCOUNT_CONFIRM_EMAIL_ON_GET is True
-            # and then redirect via get_email_verification_redirect_url
-            response = super().get(*args, **kwargs)
-
-            # After confirmation completes, handle email change logic or send welcome email
-            # Refresh the email_address object to get updated verified status
-            email_address.refresh_from_db()
-
-            if is_email_change:
-                if email_address.verified:
-                    # Set new email as primary
-                    email_address.set_as_primary()
-
-                    # Update the User model's email field
-                    user.email = email_address.email
-                    user.save()
-
-                    # Remove all other email addresses for this user
-                    EmailAddress.objects.filter(
-                        user=user
-                    ).exclude(id=email_address.id).delete()
-            else:
-                # This is a new user completing email verification for the first time
-                # Send welcome email
-                if email_address.verified:
-                    from django.template.loader import render_to_string
-                    from django.core.mail import EmailMultiAlternatives
-                    from django.contrib.sites.shortcuts import get_current_site
-                    from django.utils import translation
-
-                    # Get site information
-                    current_site = get_current_site(self.request)
-
-                    # Build email context
-                    context = {
-                        'user': user,
-                        'site_name': current_site.name,
-                    }
-
-                    # Get user's language preference for email localization
-                    user_lang = getattr(user.userprofile, 'language_preference', 'en')
-
-                    # Render email templates in user's preferred language
-                    with translation.override(user_lang):
-                        subject = render_to_string('account/email/welcome_subject.txt', context).strip()
-                        text_content = render_to_string('account/email/welcome_message.txt', context)
-                        html_content = render_to_string('account/email/welcome_message.html', context)
-
-                    # Send email
-                    from_email = settings.DEFAULT_FROM_EMAIL
-                    msg = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-                    msg.attach_alternative(html_content, "text/html")
-                    msg.send()
-
-            return response
-
+            address = confirm_email_change(request, key)
         except Http404:
-            # Expired or invalid confirmation key
-            error_url = '/email-confirm-error?error=expired'
-            if settings.DEBUG:
-                error_url = f'http://localhost:5173{error_url}'
-            return HttpResponseRedirect(error_url)
+            return HttpResponseRedirect(get_frontend_url('/email-confirm-error', {'error': 'expired'}))
+        except ValidationError:
+            return HttpResponseRedirect(get_frontend_url('/email-confirm-error', {'error': 'already_confirmed'}))
+        return HttpResponseRedirect(CustomAccountAdapter().get_email_verification_redirect_url(address))
+
+    def post(self, request, key, *args, **kwargs):
+        return self.get(request, key, *args, **kwargs)
 
 
 # ----------------------------------------------------------------------------- #
@@ -390,30 +342,12 @@ class CustomConfirmEmailView(ConfirmEmailView):
 class CustomConnectionsView(View):
 
     def get(self, request, *args, **kwargs):
-        from django.conf import settings
-
-        # Redirect to React profile page with success message
-        profile_url = '/profile?social_connected=true'
-        if settings.DEBUG:
-            profile_url = f'http://localhost:5173{profile_url}'
-
-        return HttpResponseRedirect(profile_url)
+        return HttpResponseRedirect(get_frontend_url('/profile', {'social_connected': 'true'}))
 
     def post(self, request, *args, **kwargs):
-        # Handle disconnect POST requests by delegating to default view
-        # then redirecting back to profile
-        from django.conf import settings
-
-        # Process the disconnect
-        view = ConnectionsView.as_view()
-        response = view(request, *args, **kwargs)
-
-        # After disconnect, redirect to profile
-        profile_url = '/profile?social_disconnected=true'
-        if settings.DEBUG:
-            profile_url = f'http://localhost:5173{profile_url}'
-
-        return HttpResponseRedirect(profile_url)
+        # The API endpoint serializes disconnections and protects the last method.
+        # Do not expose a second mutation path with different safeguards.
+        return HttpResponseNotAllowed(['GET'])
 
 
 # ----------------------------------------------------------------------------- #
@@ -424,6 +358,43 @@ class CustomConnectionsView(View):
 # email addresses for OAuth signups.                                            #
 # ----------------------------------------------------------------------------- #
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
+    def generate_state_param(self, state):
+        from starview_app.services.login_session import REMEMBER_KEY
+        if state.get('process') != 'connect':
+            state[REMEMBER_KEY] = self.request.POST.get('remember_me') == 'true'
+        return super().generate_state_param(state)
+
+
+    def serialize_instance(self, instance):
+        from allauth.socialaccount.models import SocialToken
+        from starview_app.services.secret_storage import secret_cipher
+        import json
+
+        data = super().serialize_instance(instance)
+        if isinstance(instance, SocialToken):
+            # allauth stashes tokens while MFA/signup/reauthentication is pending.
+            # Database sessions are signed, not encrypted; protect this payload
+            # just like the long-lived Apple revocation credential.
+            data = {'starview_oauth_token_v1': secret_cipher('oauth.pending-token.v1').encrypt(
+                json.dumps(data).encode(),
+            ).decode()}
+        return data
+
+    def deserialize_instance(self, model, data):
+        from allauth.socialaccount.models import SocialToken
+        from cryptography.fernet import InvalidToken
+        from starview_app.services.secret_storage import secret_cipher
+        import json
+
+        if model is SocialToken:
+            try:
+                data = json.loads(secret_cipher('oauth.pending-token.v1').decrypt(
+                    data['starview_oauth_token_v1'].encode(),
+                ))
+            except (InvalidToken, KeyError, TypeError, AttributeError, ValueError):
+                # Invalid or pre-encryption pending logins must restart safely.
+                raise ValueError('Invalid pending OAuth credential') from None
+        return super().deserialize_instance(model, data)
 
     def on_authentication_error(self, request, provider, error=None, exception=None, extra_context=None):
         from allauth.core.exceptions import ImmediateHttpResponse
@@ -441,6 +412,8 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         logger.warning('OAuth failed: provider=%s category=%s exception=%s reason=%s',
                        getattr(provider, 'id', 'unknown'), code,
                        type(exception).__name__ if exception else 'none', reason)
+        from starview_app.utils.oauth_signals import audit_oauth
+        audit_oauth(request, 'login_failed', provider=getattr(provider, 'id', 'unknown'), success=False, reason=reason)
         raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/login', {'error': code})))
 
     def get_connect_redirect_url(self, request, socialaccount):
@@ -456,12 +429,29 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         This prevents any possible collision with existing password-based users.
         Users can change their username later from their profile settings.
         """
+        from starview_app.services.oauth_identity import lock_callback_identity
+        lock_callback_identity(request, sociallogin)
         if sociallogin.account.provider == 'apple':
+            issued_at = sociallogin.account.extra_data.get('iat')
+            if not isinstance(issued_at, (int, float)) or isinstance(issued_at, bool):
+                from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+                raise OAuth2Error('Missing Apple authorization timestamp')
             # allauth's Apple response also contains bearer tokens; keep only profile claims.
             allowed = {'sub', 'email', 'email_verified', 'is_private_email', 'name'}
             sociallogin.account.extra_data = {
                 key: value for key, value in sociallogin.account.extra_data.items() if key in allowed
             }
+            # allauth replaces extra_data on returning login. Relay preferences
+            # come only from our signed notification handler, never profile input.
+            from allauth.socialaccount.models import SocialAccount
+            existing = SocialAccount.objects.filter(provider='apple', uid=sociallogin.account.uid).first()
+            if existing:
+                for key in ('apple_relay_enabled', 'apple_relay_event_time'):
+                    if key in existing.extra_data:
+                        sociallogin.account.extra_data[key] = existing.extra_data[key]
+            sociallogin.account.extra_data['apple_authorized_at'] = max(
+                issued_at, existing.extra_data.get('apple_authorized_at', 0) if existing else 0,
+            )
         user = super().populate_user(request, sociallogin, data)
 
         # Generate unique username with UUID
@@ -488,45 +478,23 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         This is called after a user signs up via social auth.
         We check if the user is new and send a welcome email.
         """
-        # Check if this is a new user (not yet saved)
+        from django.db import IntegrityError, transaction
+        from allauth.core.exceptions import ImmediateHttpResponse
+        from allauth.account.models import EmailAddress
+        from starview_app.services.email_identity import is_email_conflict
         is_new_user = not sociallogin.user.pk
-
-        # Call parent to save the user
-        user = super().save_user(request, sociallogin, form)
-
-        # Send welcome email for new users only
-        if is_new_user:
-            from django.template.loader import render_to_string
-            from django.core.mail import EmailMultiAlternatives
-            from django.contrib.sites.shortcuts import get_current_site
-            from django.conf import settings
-            from django.utils import translation
-
-            # Get site information
-            current_site = get_current_site(request)
-
-            # Build email context
-            context = {
-                'user': user,
-                'site_name': current_site.name,
-            }
-
-            # Get user's language preference for email localization
-            user_lang = getattr(user.userprofile, 'language_preference', 'en')
-
-            # Render email templates in user's preferred language
-            with translation.override(user_lang):
-                subject = render_to_string('account/email/welcome_subject.txt', context).strip()
-                text_content = render_to_string('account/email/welcome_message.txt', context)
-                html_content = render_to_string('account/email/welcome_message.html', context)
-
-            # Send email
-            from_email = settings.DEFAULT_FROM_EMAIL
-            msg = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
-
-        return user
+        try:
+            with transaction.atomic():
+                user = super().save_user(request, sociallogin, form)
+                if is_new_user and EmailAddress.objects.filter(user=user, verified=True).exists():
+                    send_welcome_email(request, user)
+                return user
+        except IntegrityError as exc:
+            if is_email_conflict(exc):
+                raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url(
+                    '/social-account-exists', {'provider': sociallogin.account.provider},
+                ))) from None
+            raise
 
     def pre_social_login(self, request, sociallogin):
         """Link only after authentication to the existing profile and the provider.
@@ -536,7 +504,16 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         from allauth.core.exceptions import ImmediateHttpResponse
         from allauth.socialaccount.models import SocialAccount
-        from django.db.models import Q
+        from starview_app.services.email_identity import email_owners
+
+        # allauth gives the state-carried `next` precedence over both redirect
+        # adapters. Normalize it before login/connect (and later MFA stages), so
+        # a callback on Django's development port returns to the Vite UI.
+        if sociallogin.state.get('next'):
+            fallback = '/profile?social_connected=true' if sociallogin.state.get('process') == 'connect' else '/'
+            sociallogin.state['next'] = get_frontend_redirect_url(
+                request, sociallogin.state['next'], fallback=fallback,
+            )
 
         provider = sociallogin.account.provider
         existing_social = SocialAccount.objects.filter(
@@ -545,15 +522,14 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         email = (sociallogin.account.extra_data.get('email') or '').strip()
         matches = User.objects.none()
         if email:
-            matches = User.objects.filter(
-                Q(email__iexact=email)
-                | Q(emailaddress__email__iexact=email)
-                | Q(socialaccount__extra_data__email__iexact=email)
-            ).distinct()
+            matches = email_owners(email)
 
         if sociallogin.state.get('process') == 'connect':
             if not request.user.is_authenticated:
                 raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/login')))
+            from starview_app.services.account_security import is_recent
+            if not is_recent(request):
+                raise ImmediateHttpResponse(HttpResponseRedirect(get_frontend_url('/profile', {'error': 'reauthentication_required'})))
             if existing_social and existing_social.user_id != request.user.pk:
                 error = 'social_already_connected'
             elif matches.exclude(pk=request.user.pk).exists():

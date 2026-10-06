@@ -30,6 +30,7 @@ from django.contrib.gis.measure import D
 # REST Framework imports:
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
+from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -63,6 +64,7 @@ from starview_app.utils import (
     invalidate_map_geojson,
     invalidate_user_map_geojson,
     invalidate_all_location_caches,
+    invalidate_user_location_lists,
 )
 from django.core.cache import cache
 
@@ -412,6 +414,8 @@ class LocationViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     def perform_update(self, serializer):
         location = self.get_object()
+        if location.added_by_id != self.request.user.pk and not self.request.user.is_staff:
+            raise exceptions.PermissionDenied('Only the contributor or staff can edit this location.')
         serializer.save()
 
         # Invalidate caches since location was updated
@@ -427,6 +431,8 @@ class LocationViewSet(viewsets.ModelViewSet):
     # still appear in cached responses.                                             #
     # ----------------------------------------------------------------------------- #
     def perform_destroy(self, instance):
+        if instance.added_by_id != self.request.user.pk and not self.request.user.is_staff:
+            raise exceptions.PermissionDenied('Only the contributor or staff can delete this location.')
         location_id = instance.id
         instance.delete()
 
@@ -491,10 +497,8 @@ class LocationViewSet(viewsets.ModelViewSet):
             )
             is_favorited = True
 
-        # Invalidate user's cached location lists (all pages)
-        for page in range(1, 100):  # Clear first 100 pages
-            cache_key = f'{location_list_key(page)}:user:{request.user.id}'
-            cache.delete(cache_key)
+        # Include the sort suffix used when writing list entries, and nearby cards.
+        invalidate_user_location_lists(request.user.id)
 
         # Also invalidate the detail cache for this location
         detail_cache_key = f'{location_detail_key(location.id)}:user:{request.user.id}'

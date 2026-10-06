@@ -21,14 +21,14 @@ function PreferencesSection() {
   };
 
   return (
-    <CollapsibleSection title="Preferences" defaultExpanded={false}>
+    <CollapsibleSection title="Preferences" icon="fa-sliders" defaultExpanded={false}>
       <div className="preferences-grid">
         {/* Theme Section */}
         <div className="profile-form-section">
           <h3 className="profile-form-title">Theme</h3>
           <p className="profile-form-description">Choose how Starview looks to you. Select a theme or sync with your system preferences.</p>
 
-          <div className="theme-selector">
+          <div className="theme-selector profile-form-controls">
             <button
               className={`theme-option ${theme === 'light' ? 'active' : ''}`}
               onClick={() => handleThemeChange('light')}
@@ -61,7 +61,7 @@ function PreferencesSection() {
           <h3 className="profile-form-title">Units</h3>
           <p className="profile-form-description">Choose how distances and elevations are displayed.</p>
 
-          <div className="units-selector">
+          <div className="units-selector profile-form-controls">
             <button
               className={`units-option ${units === 'metric' ? 'active' : ''}`}
               onClick={() => handleUnitsChange('metric')}

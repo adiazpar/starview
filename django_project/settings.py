@@ -15,6 +15,7 @@ import certifi
 from dotenv import load_dotenv
 import logging
 from django.core.exceptions import ImproperlyConfigured
+from botocore.config import Config
 
 # Configure module logger for settings
 logger = logging.getLogger(__name__)
@@ -58,12 +59,13 @@ SITE_NAME = "Starview"
 # SESSION CONFIGURATION
 # =============================================================================
 
-# Use Redis for session storage (better performance than database sessions)
-# Sessions are cached in Redis and expire automatically
-# Note: Flushing Redis db 1 will log out all users (clear cache.clear() with caution)
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+# Sessions are durable and independent of content-cache eviction. Run Django's
+# clearsessions command regularly to remove expired rows.
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+REMEMBERED_SESSION_AGE = 30 * 24 * 60 * 60
+SESSION_IDLE_TIMEOUT = 2 * 60 * 60
 
 # Cookie security flags (always enabled for both dev and production)
 SESSION_COOKIE_HTTPONLY = True      # Prevent JavaScript access to session cookie
@@ -182,7 +184,7 @@ CONTENT_SECURITY_POLICY = {
         ),
         'frame-ancestors': ("'none'",),                 # Prevent framing (same as X-Frame-Options: DENY)
         'base-uri': ("'self'",),                        # Restrict <base> tag URLs
-        'form-action': ("'self'", 'https://appleid.apple.com'),  # Apple follows a same-origin POST with a redirect
+        'form-action': ("'self'", 'https://appleid.apple.com', 'https://accounts.google.com'),
     }
 }
 
@@ -235,6 +237,7 @@ INSTALLED_APPS = [
     # django-allauth for social authentication
     'allauth',
     'allauth.account',
+    'allauth.mfa',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.apple',
@@ -256,8 +259,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'starview_app.middleware.oauth_session.OAuthSessionMiddleware',
     'starview_app.utils.middleware.BrowserLanguageMiddleware',              # Language preference (MUST be after AuthenticationMiddleware)
     'allauth.account.middleware.AccountMiddleware',                         # Allauth account middleware (MUST be after AuthenticationMiddleware)
+    'starview_app.middleware.account_security.AccountSecurityMiddleware',
     'axes.middleware.AxesMiddleware',                                       # Account lockout (MUST be after AuthenticationMiddleware)
     'starview_app.middleware.SessionIdleTimeoutMiddleware',                 # Session idle timeout (MUST be after AuthenticationMiddleware)
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -366,7 +371,7 @@ if DEBUG:
     AXES_HANDLER = 'axes.handlers.dummy.AxesDummyHandler'  # No logging in development
 else:
     AXES_HANDLER = 'axes.handlers.database.AxesDatabaseHandler'  # Full logging in production
-    AXES_CACHE = 'default'  # Use Redis cache for performance
+    AXES_CACHE = 'security'
 
 # Customize lockout response
 AXES_COOLOFF_MESSAGE = "Account temporarily locked due to too many failed login attempts. Please try again later."
@@ -409,6 +414,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Include React production build as static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'starview_frontend/dist'),    # React production build
+    ('starview-ui', os.path.join(BASE_DIR, 'starview_frontend/src/styles')),
 ]
 
 # Whitenoise configuration for serving static files in production
@@ -515,11 +521,15 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # AWS SES Configuration (Email sending)
 # Note: SES uses separate credentials from R2 storage (configured in .env)
 # django-ses will use AWS_SES_* variables instead of generic AWS_* variables
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django_ses.SESBackend')
+EMAIL_DELIVERY_BACKEND = os.getenv('EMAIL_BACKEND', 'django_ses.SESBackend')
+EMAIL_BACKEND = 'starview_app.services.email_backend.EmailBackend'
 AWS_SES_ACCESS_KEY_ID = os.getenv('AWS_SES_ACCESS_KEY_ID')
 AWS_SES_SECRET_ACCESS_KEY = os.getenv('AWS_SES_SECRET_ACCESS_KEY')
 AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'us-east-1')
 AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+# Existing bounce/complaint topics only. Fail closed when deployment has not
+# supplied their exact ARNs; an arbitrary AWS topic is not a trusted publisher.
+SES_SNS_TOPIC_ARNS = tuple(value.strip() for value in os.getenv('SES_SNS_TOPIC_ARNS', '').split(',') if value.strip())
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@starview.app')
 
 # Password Reset Configuration
@@ -529,6 +539,10 @@ PASSWORD_RESET_TIMEOUT = 3600
 # AWS SES optimization settings
 USE_SES_V2 = True                   # Use newer SESv2 API
 AWS_SES_AUTO_THROTTLE = 0.5         # Send at 50% of rate limit (safety factor)
+# Immediate account mail must not wait through SDK retry backoff. The durable
+# outbox owns later retries; these are per-operation socket timeouts.
+AWS_SES_CONFIG = Config(connect_timeout=3, read_timeout=5, retries={'total_max_attempts': 1})
+EMAIL_TIMEOUT = 5
 
 # =============================================================================
 # EXTERNAL API CONFIGURATION
@@ -563,8 +577,7 @@ REST_FRAMEWORK = {
 
     # Authentication
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'starview_app.utils.authentication.VerifiedSessionAuthentication',
     ],
 
     # Permissions
@@ -589,6 +602,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [],  # No global throttling - apply per-endpoint
     'DEFAULT_THROTTLE_RATES': {
         'login': '5/minute',            # Login/register attempts (brute force prevention)
+        'account_confirmation': '5/minute',
+        'email_change': '3/hour',
         'password_reset': '3/hour',     # Password reset requests (prevents email bombing)
         'content_creation': '30/hour',  # Create locations/reviews/comments
         'vote': '120/hour',             # Upvotes/downvotes (2 per minute)
@@ -615,6 +630,14 @@ AUTHENTICATION_BACKENDS = [
 # django-allauth settings:
 # Custom adapters for React frontend integration and validation
 ACCOUNT_ADAPTER = 'starview_app.utils.adapters.CustomAccountAdapter'
+MFA_ADAPTER = 'starview_app.utils.mfa_adapter.StarviewMFAAdapter'
+MFA_SUPPORTED_TYPES = ['totp', 'recovery_codes']
+MFA_TOTP_ISSUER = 'Starview'
+MFA_TRUST_ENABLED = False
+# AccountSecurityMiddleware requires our authoritative, verified primary contact.
+# A secondary pending email change must not block authenticator replacement.
+MFA_ALLOW_UNVERIFIED_EMAIL = True
+ACCOUNT_REAUTHENTICATION_TIMEOUT = 1200
 SOCIALACCOUNT_ADAPTER = 'starview_app.utils.adapters.CustomSocialAccountAdapter'
 
 # Email verification is always mandatory (even in development)
@@ -623,8 +646,9 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Confirm email on GET request (one-click v
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = False  # Use database-based confirmations (easier to debug)
 
 SOCIALACCOUNT_AUTO_SIGNUP = True        # Automatically create account on social login
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'optional'  # Email verification for social accounts (already verified by OAuth provider)
-SOCIALACCOUNT_LOGIN_ON_GET = True       # Skip confirmation page and go directly to OAuth provider
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Provider-verified addresses satisfy this; others must verify
+SOCIALACCOUNT_LOGIN_ON_GET = False      # Initiate every provider via POST with CSRF protection
+SOCIALACCOUNT_STORE_TOKENS = False      # Apple revocation credentials are encrypted separately
 
 # Login methods:
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}  # Allow login with username or email
@@ -682,6 +706,11 @@ _apple_app = apple_app_from_env(os.environ)
 APPLE_OAUTH_ENABLED = _apple_app is not None
 if _apple_app:
     SOCIALACCOUNT_PROVIDERS['apple'] = {'APPS': [_apple_app]}
+APPLE_NOTIFICATION_AUDIENCES = [
+    value.strip() for value in os.getenv('APPLE_NOTIFICATION_AUDIENCES', '').split(',') if value.strip()
+]
+if _apple_app:
+    APPLE_NOTIFICATION_AUDIENCES.extend(_apple_app['client_id'].split(','))
 
 # Enable only behind a proxy that overwrites this header (Render or a local TLS proxy).
 if os.getenv('TRUST_PROXY_HEADERS', 'False') == 'True':
@@ -729,15 +758,21 @@ CORS_ALLOW_HEADERS = [
 #
 # Redis database allocation:
 # - db 0: Celery broker/results (task queue)
-# - db 1: API cache + sessions + rate limiting
-# Note: Flushing db 1 will log out all users and reset rate limits
+# - db 1: disposable content and rate limiting in separate namespaces
+# Sessions are stored in PostgreSQL. Never issue Redis FLUSHDB/FLUSHALL.
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'BACKEND': 'starview_app.utils.cache_backend.NamespacedRedisCache',
         'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
         'KEY_PREFIX': 'starview',  # Prefix all cache keys with app name
         'TIMEOUT': 900,  # Default timeout: 15 minutes (in seconds)
-    }
+    },
+    'security': {
+        'BACKEND': 'starview_app.utils.cache_backend.NamespacedRedisCache',
+        'LOCATION': os.getenv('SECURITY_REDIS_URL') or os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'KEY_PREFIX': 'starview-security',
+        'TIMEOUT': 3600,
+    },
 }
 
 # =============================================================================
@@ -790,6 +825,9 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Restart worker after 1000 tasks (pre
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'account_secrets': {'()': 'django_project.log_redaction.AccountSecretFilter'},
+    },
 
     # Log formatting
     'formatters': {
@@ -804,11 +842,14 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['account_secrets'],
         },
     },
 
     # Loggers (what to log)
     'loggers': {
+        'django.server': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'django.request': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
         # Application logger for general events
         'starview_app': {
             'handlers': ['console'],

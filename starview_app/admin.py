@@ -20,6 +20,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.html import format_html
+from allauth.socialaccount.admin import SocialAccountAdmin as AllauthSocialAccountAdmin
+from allauth.socialaccount.models import SocialAccount, SocialToken
 
 # Import models:
 # Separated model imports for package organization (Review system, Location system, etc.):
@@ -1201,7 +1203,118 @@ class SummaryFeedbackAdmin(admin.ModelAdmin):
 # - Pioneer badge eligibility indicator                                         #
 # - Link to user's badges                                                       #
 # ----------------------------------------------------------------------------- #
+class ConnectedIdentityInline(admin.TabularInline):
+    model = SocialAccount
+    fields = ('provider', 'uid', 'date_joined', 'last_login')
+    readonly_fields = fields
+    extra = 0
+    can_delete = False
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class ReadOnlyIdentityAdminMixin:
+    """Identity records are inspected here and changed through account services."""
+    actions = None
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ConnectedIdentityAdmin(ReadOnlyIdentityAdminMixin, AllauthSocialAccountAdmin):
+    list_display = ('user', 'provider', 'uid', 'provider_email', 'last_login')
+    list_select_related = ('user',)
+    fields = ('user', 'provider', 'uid', 'date_joined', 'last_login', 'profile_claims')
+    readonly_fields = fields
+
+    @admin.display(description='Provider email')
+    def provider_email(self, obj):
+        return obj.extra_data.get('email', '')
+
+    @admin.display(description='Profile claims')
+    def profile_claims(self, obj):
+        import json
+        allowed = {'sub', 'email', 'email_verified', 'is_private_email', 'name',
+                   'given_name', 'family_name', 'picture', 'apple_relay_enabled'}
+        return json.dumps({key: value for key, value in obj.extra_data.items() if key in allowed}, indent=2)
+
+
+class ProtectedSocialTokenAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+    list_display = ('account', 'credential_status')
+    list_select_related = ('account', 'account__user')
+    fields = ('account', 'app', 'credential_status', 'expires_at')
+    readonly_fields = fields
+
+    @admin.display(description='Credential status')
+    def credential_status(self, obj):
+        from starview_app.services.apple_oauth import TOKEN_PREFIX
+        if obj.account.provider == 'apple' and obj.token_secret.startswith(TOKEN_PREFIX):
+            return 'Encrypted Apple revocation credential (hidden)'
+        return 'Credential hidden'
+
+
 class CustomUserAdmin(BaseUserAdmin):
+    inlines = (*BaseUserAdmin.inlines, ConnectedIdentityInline)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        # Account owners change their verified contact through the guarded flow.
+        return (*fields, 'email') if obj else fields
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if change and {'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'} & set(form.changed_data):
+            from starview_app.services.account_security import revoke_account_sessions
+            from starview_app.services.account_events import record_account_event
+            revoke_account_sessions(obj)
+            record_account_event(request, obj, 'account_admin_changed', method='admin')
+
+    def user_change_password(self, request, id, form_url=''):
+        from django.db import transaction
+        from django.shortcuts import get_object_or_404
+        from starview_app.services.account_security import revoke_account_sessions
+        from starview_app.services.account_events import record_account_event
+        if request.method != 'POST':
+            return super().user_change_password(request, id, form_url)
+        with transaction.atomic():
+            user = get_object_or_404(User.objects.select_for_update(), pk=id)
+            previous = user.password
+            response = super().user_change_password(request, id, form_url)
+            user.refresh_from_db()
+            if user.password != previous:
+                revoke_account_sessions(user)
+                record_account_event(request, user, 'password_changed', method='admin')
+            return response
+
+    def revoke_apple_accounts(self, users):
+        from starview_app.services.apple_oauth import revoke_apple_credential
+        ids = [user.pk for user in users]
+        # Same user-before-provider-row lock order as callbacks/disconnection.
+        list(User.objects.select_for_update().filter(pk__in=ids).order_by('pk'))
+        # Finish external revocation before cascading user deletion can remove files.
+        for account in SocialAccount.objects.filter(user_id__in=ids, provider='apple'):
+            revoke_apple_credential(account)
+
+    def delete_model(self, request, obj):
+        from django.db import transaction
+        with transaction.atomic():
+            self.revoke_apple_accounts([obj])
+            super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        from django.db import transaction
+        with transaction.atomic():
+            self.revoke_apple_accounts(queryset)
+            super().delete_queryset(request, queryset)
+
     # Add registration rank to list display
     list_display = BaseUserAdmin.list_display + ('registration_rank', 'pioneer_eligible')
 
@@ -1289,7 +1402,18 @@ class CustomUserAdmin(BaseUserAdmin):
 
 # Register models with basic admin interface
 admin.site.register(Location)
-admin.site.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    readonly_fields = ('user', 'welcome_email_queued_at', 'security_version', 'two_factor_enabled')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Profiles are created and deleted with their owning account.
+        return False
+
+
+admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(FavoriteLocation)
 admin.site.register(Review)
 admin.site.register(ReviewComment)
@@ -1322,3 +1446,43 @@ admin.site.register(SummaryFeedback, SummaryFeedbackAdmin)
 # Must unregister first, then register with our custom admin
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+
+admin.site.unregister(SocialAccount)
+admin.site.register(SocialAccount, ConnectedIdentityAdmin)
+admin.site.unregister(SocialToken)
+admin.site.register(SocialToken, ProtectedSocialTokenAdmin)
+
+
+# Account mail is an operational receipt, never an admin-readable token archive.
+from starview_app.models import AccountEmail
+from allauth.mfa.models import Authenticator
+from allauth.mfa import admin as _mfa_admin  # Register the upstream admin first.
+from allauth.account.models import EmailAddress
+from allauth.account import admin as _account_admin
+
+
+@admin.register(AccountEmail)
+class AccountEmailAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+    list_display = ('id', 'user', 'outcome', 'attempts', 'created_at', 'completed_at', 'last_error')
+    list_filter = ('outcome', 'created_at')
+    fields = ('id', 'user', 'outcome', 'attempts', 'created_at', 'next_attempt_at', 'completed_at', 'last_error')
+    readonly_fields = fields
+    actions = None
+
+
+class ProtectedAuthenticatorAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+    list_display = ('user', 'type', 'created_at', 'last_used_at')
+    fields = readonly_fields = ('user', 'type', 'created_at', 'last_used_at')
+    actions = None
+
+
+class ProtectedEmailAddressAdmin(ReadOnlyIdentityAdminMixin, admin.ModelAdmin):
+    list_display = fields = readonly_fields = ('user', 'email', 'verified', 'primary')
+    search_fields = ('email', 'user__username')
+    list_filter = ('verified', 'primary')
+
+
+admin.site.unregister(Authenticator)
+admin.site.register(Authenticator, ProtectedAuthenticatorAdmin)
+admin.site.unregister(EmailAddress)
+admin.site.register(EmailAddress, ProtectedEmailAddressAdmin)

@@ -23,7 +23,7 @@
 # - Legal issues from sending to unwanted recipients                                                    #
 # ----------------------------------------------------------------------------------------------------- #
 
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -136,6 +136,7 @@ class EmailSuppressionList(models.Model):
     # Returns:
     #   EmailSuppressionList: Created or existing suppression record
     @classmethod
+    @transaction.atomic
     def add_to_suppression(cls, email, reason, bounce=None, complaint=None, notes=''):
         # Find user if exists
         user = None
@@ -145,7 +146,7 @@ class EmailSuppressionList(models.Model):
             pass
 
         # Create or update suppression
-        suppression, created = cls.objects.get_or_create(
+        suppression, created = cls.objects.select_for_update().get_or_create(
             email=email.lower(),
             defaults={
                 'user': user,
@@ -157,11 +158,15 @@ class EmailSuppressionList(models.Model):
             }
         )
 
-        if not created and not suppression.is_active:
-            # Reactivate if it was previously deactivated
+        priority = {'soft_bounce': 1, 'unsubscribe': 2, 'hard_bounce': 3, 'complaint': 3, 'manual': 4}
+        if not created and (not suppression.is_active or priority.get(reason, 0) > priority.get(suppression.reason, 0)):
+            # A later soft bounce must never downgrade a permanent/manual block
+            # into one the scheduled soft-bounce cleanup can release.
             suppression.is_active = True
             suppression.reason = reason
             suppression.notes = notes
-            suppression.save()
+            suppression.bounce = bounce
+            suppression.complaint = complaint
+            suppression.save(update_fields=['is_active', 'reason', 'notes', 'bounce', 'complaint'])
 
         return suppression

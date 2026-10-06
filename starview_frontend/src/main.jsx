@@ -1,7 +1,6 @@
 import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { LocationProvider } from './contexts/LocationContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -18,25 +17,10 @@ import './i18n/config'
 import './index.css'
 import App from './App.jsx'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      // Don't retry rate-limited requests (429) - retrying just makes throttling worse
-      retry: (failureCount, error) => {
-        if (error?.response?.status === 429) return false;
-        return failureCount < 1;
-      },
-      refetchOnWindowFocus: false,
-    },
-  },
-})
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Suspense fallback={null}>
-      <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <ScrollToTop />
           <AuthProvider>
@@ -60,7 +44,6 @@ createRoot(document.getElementById('root')).render(
             </LocationProvider>
           </AuthProvider>
         </BrowserRouter>
-      </QueryClientProvider>
     </Suspense>
   </StrictMode>,
 )

@@ -96,20 +96,10 @@ function LoginPage() {
   };
 
   const handleSocialLogin = async (provider) => {
-    if (provider === 'Google') {
-      // Redirect to Django allauth Google OAuth endpoint
-      // Use relative URL to go through Vite proxy in development
-      // In production, this will be handled by the backend directly
-      window.location.href = `/accounts/google/login/?process=login&next=${encodeURIComponent(nextUrl)}`;
-    } else if (provider === 'Apple') {
-      try {
-        await authApi.startAppleLogin({ next: nextUrl });
-      } catch {
-        showToast(t('auth.oauthError'), 'error');
-      }
-    } else {
-      // Other social logins coming soon
-      alert(`${provider} login coming soon!`);
+    try {
+      await authApi.startSocialLogin(provider.toLowerCase(), { next: nextUrl, rememberMe });
+    } catch {
+      showToast(t('auth.oauthError'), 'error');
     }
   };
 

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import Dialog from '../../shared/Dialog';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthProviders } from '../../../hooks/useAuthProviders';
@@ -6,6 +8,7 @@ import profileApi from '../../../services/profile';
 import CollapsibleSection from '../CollapsibleSection';
 import { useToast } from '../../../contexts/ToastContext';
 import './styles.css';
+import useAccountConfirmation from '../../../hooks/useAccountConfirmation';
 
 /**
  * ConnectedAccountsSection - Manage social account connections
@@ -14,24 +17,28 @@ import './styles.css';
  * Receives social accounts from parent to avoid redundant API calls
  */
 function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
+  const confirmation = useAccountConfirmation();
+  const [disconnecting, setDisconnecting] = useState(null);
   const { showToast } = useToast();
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const requestedProvider = params.get('connect');
   const isGuidedLink = ['apple', 'google'].includes(requestedProvider);
   const { data: providers } = useAuthProviders();
-  const connectApple = async () => {
+  const connectProvider = async (provider) => {
     try {
-      await authApi.startAppleLogin({ process: 'connect', next: '/profile?social_connected=true' });
+      if (!await confirmation.confirm()) return;
+      await authApi.startSocialLogin(provider, { process: 'connect', next: '/profile?social_connected=true' });
     } catch {
       showToast(t('auth.oauthError'), 'error');
     }
   };
 
-  const handleDisconnect = async (accountId, providerName) => {
-    if (!window.confirm(`Are you sure you want to disconnect your ${providerName} account?`)) return;
+  const handleDisconnect = async (accountId) => {
+    setDisconnecting(null);
 
     try {
+      if (!await confirmation.confirm()) return;
       const response = await profileApi.disconnectSocialAccount(accountId);
       showToast(response.data.detail, 'success');
       // Refresh the social accounts list from parent
@@ -66,13 +73,26 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
   };
 
   return (
-    <CollapsibleSection title="Connected Accounts" defaultExpanded={isGuidedLink}>
+    <CollapsibleSection title="Connected Accounts" icon="fa-link" defaultExpanded={isGuidedLink}>
+      {confirmation.dialog}
+      {disconnecting && <Dialog title={t('accountConfirmation.disconnectTitle')}
+        onCancel={() => setDisconnecting(null)}>
+        <p>{t('accountConfirmation.disconnectMessage', { provider: disconnecting.provider_name })}</p>
+        <div className="app-dialog-actions">
+          <button type="button" className="btn-secondary" autoFocus onClick={() => setDisconnecting(null)}>{t('accountConfirmation.cancel')}</button>
+          <button type="button" className="btn-danger" onClick={() => handleDisconnect(disconnecting.id)}>{t('accountConfirmation.disconnect')}</button>
+        </div>
+      </Dialog>}
       {isGuidedLink && <p>{t('auth.finishLink')}</p>}
       {socialAccounts.length > 0 ? (
         <div className="connected-accounts-list">
+          <div className="connected-accounts-note">
+            <i className="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <p>Your profile email may differ from your social account email. Both can be used to access your account.</p>
+          </div>
           {socialAccounts.map((account) => (
             <div key={account.id} className="connected-account-item glass-card">
-              <div className="connected-account-icon">
+              <div className="connected-account-icon" aria-hidden="true">
                 <i className={getProviderIcon(account.provider)}></i>
               </div>
               <div className="connected-account-info">
@@ -84,22 +104,16 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
               </div>
               <div className="connected-account-actions">
                 <button
-                  onClick={() => handleDisconnect(account.id, account.provider_name)}
+                  onClick={() => setDisconnecting(account)}
                   className="btn-secondary"
                   style={{ padding: '6px 12px', fontSize: 'var(--text-sm)' }}
                 >
-                  <i className="fa-solid fa-unlink"></i>
+                  <i className="fa-solid fa-unlink" aria-hidden="true"></i>
                   Disconnect
                 </button>
               </div>
             </div>
           ))}
-          <div className="connected-accounts-note">
-            <i className="fa-solid fa-circle-info"></i>
-            <p>
-              Your profile email may differ from your social account email. Both can be used to access your account - your profile email for password login, and your social account for OAuth login.
-            </p>
-          </div>
         </div>
       ) : (
         <div className="connected-accounts-empty glass-card">
@@ -115,12 +129,12 @@ function ConnectedAccountsSection({ socialAccounts = [], onRefresh }) {
       )}
       <div className="connected-account-options">
         {!socialAccounts.some(account => account.provider === 'google') && (
-          <a href="/accounts/google/login/?process=connect&next=/profile%3Fsocial_connected%3Dtrue" className="btn-secondary">
+          <button type="button" onClick={() => connectProvider('google')} className="btn-secondary">
             <i className="fa-brands fa-google" aria-hidden="true"></i> {t('auth.connectGoogle')}
-          </a>
+          </button>
         )}
         {providers?.apple && !socialAccounts.some(account => account.provider === 'apple') && (
-          <button type="button" className="btn-secondary" onClick={connectApple}>
+          <button type="button" className="btn-secondary" onClick={() => connectProvider('apple')}>
             <i className="fa-brands fa-apple" aria-hidden="true"></i> {t('auth.connectApple')}
           </button>
         )}

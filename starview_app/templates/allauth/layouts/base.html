@@ -1,0 +1,37 @@
+{% load i18n static %}
+<!doctype html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block head_title %}{% trans "Account security" %}{% endblock %} | Starview</title>
+  <script src="{% static 'starview_app/js/account-theme.js' %}"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Karla:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'starview-ui/global.css' %}">
+  <link rel="stylesheet" href="{% static 'starview-ui/navigation-brand.css' %}">
+  <link rel="stylesheet" href="{% static 'starview_app/css/account-security.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="account-security-header">
+    <nav class="navbar__container" aria-label="{% trans 'Account navigation' %}">
+      <a class="navbar__logo" href="/" aria-label="{% trans 'Starview home' %}">
+        <div class="navbar__logo-crop">
+          <img class="navbar__logo-img account-security-logo-dark" src="/images/logo-dark.png" alt="Starview">
+          <img class="navbar__logo-img account-security-logo-light" src="/images/logo-light.png" alt="">
+        </div>
+      </a>
+    </nav>
+  </header>
+  <main class="auth-page">
+    <div class="auth-page__content">
+      <div class="auth-page__card glass-card account-security">
+        {% block messages %}{% if messages %}<div class="account-security-notice" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}{% endblock %}
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+  {% block extra_body %}{% endblock %}
+</body>
+</html>

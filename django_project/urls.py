@@ -19,7 +19,12 @@ from django.urls import path, include, re_path
 from django.views.static import serve as static_serve
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-from starview_app.views.views_oauth import apple_login, apple_callback
+from starview_app.views.views_oauth import (
+    apple_login, apple_callback, apple_notifications, google_login,
+    apple_finish_callback, google_callback, unsupported_google_token_login,
+)
+from starview_app.views.views_reauthentication import reauthenticate, manage_security
+from starview_app.views.views_verification_login import verify_login
 from django.http import FileResponse
 from django.contrib.sitemaps.views import sitemap
 
@@ -45,7 +50,6 @@ from starview_app.utils.adapters import (
     PasswordResetKeyDoneRedirectView,
     EmailVerificationSentRedirectView,
     InactiveAccountRedirectView,
-    ReauthenticateRedirectView,
     LoginCodeConfirmRedirectView,
     SocialLoginCancelledRedirectView,
     SocialLoginErrorRedirectView,
@@ -99,7 +103,17 @@ urlpatterns = [
 
     # Misc account redirects
     path('accounts/inactive/', InactiveAccountRedirectView.as_view(), name='account_inactive'),
-    path('accounts/reauthenticate/', ReauthenticateRedirectView.as_view(), name='account_reauthenticate'),
+    path('accounts/reauthenticate/', reauthenticate, name='account_reauthenticate'),
+    path('accounts/2fa/authenticate/', verify_login, name='mfa_authenticate'),
+    path('accounts/2fa/reauthenticate/', reauthenticate, name='mfa_reauthenticate'),
+    path('accounts/2fa/', manage_security, name='mfa_index'),
+    # Legacy bookmarks open the single settings modal. Old forms cannot mutate
+    # authenticators or reveal backup codes through a second set of controllers.
+    path('accounts/2fa/totp/activate/', manage_security, name='mfa_activate_totp'),
+    path('accounts/2fa/totp/deactivate/', manage_security, name='mfa_deactivate_totp'),
+    path('accounts/2fa/recovery-codes/', manage_security, name='mfa_view_recovery_codes'),
+    path('accounts/2fa/recovery-codes/generate/', manage_security, name='mfa_generate_recovery_codes'),
+    path('accounts/2fa/recovery-codes/download/', manage_security, name='mfa_download_recovery_codes'),
     path('accounts/login/code/confirm/', LoginCodeConfirmRedirectView.as_view(), name='account_confirm_login_code'),
 
     # Social account redirects
@@ -113,8 +127,13 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # Allauth URLs (for OAuth callbacks and other functional endpoints)
     # -------------------------------------------------------------------------
+    path('accounts/google/login/', google_login),
+    path('accounts/google/login/callback/', google_callback),
+    path('accounts/google/login/token/', unsupported_google_token_login),
     path('accounts/apple/login/', apple_login),
     path('accounts/apple/login/callback/', csrf_exempt(apple_callback)),
+    path('accounts/apple/login/callback/finish/', apple_finish_callback),
+    path('accounts/apple/notifications/', apple_notifications),
     path('accounts/', include('allauth.urls')),
     path('', include('starview_app.urls')),
 ]

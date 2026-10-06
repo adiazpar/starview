@@ -13,7 +13,7 @@
 # - Error Handling: Uses DRF exceptions caught by the global exception handler                          #
 #                                                                                                       #
 # Architecture:                                                                                         #
-# - ModelViewSet with action-level permissions (public vs authenticated)                                #
+# - GenericViewSet with explicit public reads and authenticated self-service actions                    #
 # - Uses PasswordService for all password operations (single source of truth)                           #
 # - Uses DRF exceptions for consistent error responses via exception handler                            #
 # - Uses safe_delete_file from signals for secure file deletion with MEDIA_ROOT validation              #
@@ -32,6 +32,7 @@ from django.shortcuts import get_object_or_404
 
 # DRF imports:
 from rest_framework.decorators import api_view, permission_classes, action
+from starview_app.utils.throttles import EmailChangeThrottle
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, exceptions
 from rest_framework.response import Response
@@ -80,7 +81,9 @@ from starview_app.utils.signals import safe_delete_file
 # - Password operations use PasswordService for validation                      #
 # - File deletion uses safe_delete_file from signals module                     #
 # ----------------------------------------------------------------------------- #
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(viewsets.GenericViewSet):
+    # Do not inherit generic list/create/update/destroy: private mutations below
+    # are deliberately scoped to request.user, while username routes are public.
     lookup_field = 'username'
     lookup_value_regex = '[^/]+'  # Allow any characters except forward slash
     queryset = User.objects.select_related('userprofile').all()
@@ -356,109 +359,18 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # Body: JSON with new_email                                                     #
     # Returns: DRF Response with verification instructions                          #
     # ----------------------------------------------------------------------------- #
-    @action(detail=False, methods=['patch'], url_path='me/update-email')
+    @action(detail=False, methods=['patch'], url_path='me/update-email', throttle_classes=[EmailChangeThrottle])
     def update_email(self, request):
-        from allauth.account.models import EmailAddress
-        from django.core.mail import EmailMultiAlternatives
-        from django.template.loader import render_to_string
-
-        new_email = request.data.get('new_email', '').strip()
-
-        # Validate the new email
-        if not new_email:
-            raise exceptions.ValidationError('Email address is required.')
-
-        # Validate email format using Django's built-in validator
-        try:
-            validate_email(new_email)
-        except ValidationError:
+        from starview_app.services.email_identity import request_email_change
+        new_email = request.data.get('new_email', '')
+        if not isinstance(new_email, str):
             raise exceptions.ValidationError('Please enter a valid email address.')
-
-        # Check if this is the same as current email
-        if request.user.email.lower() == new_email.lower():
-            raise exceptions.ValidationError('This is already your current email address.')
-
-        # Check if email is already taken by another user
-        if User.objects.filter(email=new_email.lower()).exclude(id=request.user.id).exists():
-            raise exceptions.ValidationError('This email address is already registered.')
-
-        # Check if email is already in use by a social account (from ANY user including self)
-        from allauth.socialaccount.models import SocialAccount
-        for social_account in SocialAccount.objects.all():
-            social_email = social_account.extra_data.get('email', '').lower()
-            if social_email == new_email.lower():
-                # Block the change - this email is used by a social account
-                raise exceptions.ValidationError('This email address is already registered.')
-
-        # Check if email has a pending verification (unverified EmailAddress record)
-        # This prevents race conditions where multiple users try to claim the same email
-        pending_email = EmailAddress.objects.filter(
-            email=new_email.lower(),
-            verified=False
-        ).exclude(user=request.user).first()
-
-        if pending_email:
-            raise exceptions.ValidationError('This email address is already registered.')
-
-        # Send notification to old email address
-        old_email = request.user.email
-        if old_email:
-            from django.contrib.sites.shortcuts import get_current_site
-            from django.utils import translation
-
-            current_site = get_current_site(request)
-            context = {
-                'user': request.user,
-                'old_email': old_email,
-                'new_email': new_email,
-                'site_name': current_site.name,
-            }
-
-            # Get user's language preference for email localization
-            user_lang = getattr(request.user.userprofile, 'language_preference', 'en')
-
-            # Render email templates in user's preferred language
-            with translation.override(user_lang):
-                subject = render_to_string('account/email/email_change_subject.txt', context).strip()
-                html_content = render_to_string('account/email/email_change_message.html', context)
-                text_content = render_to_string('account/email/email_change_message.txt', context)
-
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[old_email]
-            )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=True)
-
-        # Get or create EmailAddress record for new email (unverified)
-        email_address, created = EmailAddress.objects.get_or_create(
-            user=request.user,
-            email=new_email.lower(),
-            defaults={'verified': False, 'primary': False}
-        )
-
-        # If email already exists and is verified, make it primary immediately
-        if not created and email_address.verified:
-            email_address.set_as_primary()
-            # Update User model email
-            request.user.email = new_email.lower()
-            request.user.save()
-            return Response({
-                'detail': 'Email updated successfully.',
-                'new_email': new_email,
-                'verification_required': False
-            }, status=status.HTTP_200_OK)
-
-        # Email is unverified, send verification email
-        email_address.send_confirmation(request)
-
+        request_email_change(request, new_email.strip().lower())
         return Response({
-            'detail': f'Verification email sent to {new_email}. Please check your inbox and click the verification link to complete the email change.',
+            'detail': 'Check your new email for a verification link. Your current email stays active until you confirm it.',
             'verification_required': True,
-            'new_email': new_email
-        }, status=status.HTTP_200_OK)
+            'new_email': new_email.strip().lower(),
+        })
 
 
     # ----------------------------------------------------------------------------- #
@@ -476,37 +388,26 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['patch'], url_path='me/update-password')
     def update_password(self, request):
-        current_password = request.data.get('current_password')
+        from starview_app.services.account_security import locked_account, revoke_account_sessions
+        from starview_app.services.account_events import record_account_event
         new_password = request.data.get('new_password')
-
-        # Validate new password is provided
-        if not new_password:
+        if not isinstance(new_password, str) or not new_password:
             raise exceptions.ValidationError('New password is required.')
-
-        # Check if user has a usable password (not OAuth-only account)
-        if request.user.has_usable_password():
-            # User has existing password - require current password for verification
-            if not current_password:
-                raise exceptions.ValidationError('Current password is required.')
-
-            # Use PasswordService to validate and change password
-            success, error_message = PasswordService.change_password(
-                user=request.user,
-                current_password=current_password,
-                new_password=new_password
-            )
-        else:
-            # User has no password (OAuth signup) - set first password
-            success, error_message = PasswordService.set_password(
-                user=request.user,
-                new_password=new_password
-            )
-
-        if not success:
-            raise exceptions.ValidationError(error_message)
-
-        # Update session to prevent logout after password change
-        update_session_auth_hash(request, request.user)
+        with locked_account(request) as user:
+            if user.has_usable_password():
+                current_password = request.data.get('current_password')
+                if not isinstance(current_password, str) or not current_password:
+                    raise exceptions.ValidationError('Current password is required.')
+                success, error_message = PasswordService.change_password(user, current_password, new_password)
+            else:
+                success, error_message = PasswordService.set_password(user, new_password)
+            if not success:
+                raise exceptions.ValidationError(error_message)
+            record_account_event(request, user, 'password_changed', method='account_settings')
+            revoke_account_sessions(user, keep_request=request)
+            # Refresh the request's password hash as well as the durable version.
+            request.user = user
+            update_session_auth_hash(request, user)
 
         return Response({
             'detail': 'Password updated successfully.'
@@ -671,16 +572,20 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------- #
     @action(detail=False, methods=['delete'], url_path='me/disconnect-social/(?P<account_id>[^/.]+)')
     def disconnect_social(self, request, account_id=None):
+        from starview_app.services.account_security import require_recent
+        require_recent(request)
         from allauth.account.models import EmailAddress
         from allauth.socialaccount.models import SocialAccount
+        from allauth.socialaccount.signals import social_account_removed
+        from starview_app.services.apple_oauth import AppleRevocationError, revoke_apple_credential
 
         # Serialize removals for this user so concurrent requests cannot remove
         # both remaining providers from a passwordless account.
-        with transaction.atomic():
-            user = User.objects.select_for_update().get(pk=request.user.pk)
+        from starview_app.services.account_security import locked_account
+        with locked_account(request) as user:
             try:
                 account = SocialAccount.objects.get(id=account_id, user=user)
-            except SocialAccount.DoesNotExist:
+            except (SocialAccount.DoesNotExist, ValueError, TypeError):
                 raise exceptions.NotFound('Social account not found.')
             has_other_provider = SocialAccount.objects.filter(user=user).exclude(pk=account.pk).exists()
             # Password login also requires a verified primary email in custom_login.
@@ -692,9 +597,23 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                     'detail': 'Before disconnecting your last sign-in method, connect another account or set a password and verify your profile email.'
                 })
             provider_name = account.provider.title()
-            account.delete()
+            revoked = None
+            try:
+                if account.provider == 'apple':
+                    revoked = revoke_apple_credential(account)
+                account.delete()
+            except AppleRevocationError as exc:
+                error = exceptions.APIException(str(exc))
+                error.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                raise error from None
+
+            social_account_removed.send(sender=SocialAccount, request=request, socialaccount=account)
+        detail = f'{provider_name} account disconnected successfully.'
+        if account.provider == 'apple' and revoked is False:
+            detail += ' Also remove Starview under Sign in with Apple in your Apple Account settings; this older connection had no saved revocation credential.'
 
         return Response({
-            'detail': f'{provider_name} account disconnected successfully.',
-            'provider': account.provider
+            'detail': detail,
+            'provider': account.provider,
+            'authorization_revoked': revoked,
         }, status=status.HTTP_200_OK)
