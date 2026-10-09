@@ -3,6 +3,7 @@
 /* ============================================ */
 
 .profile-page {
+  padding-top: var(--space-lg);
   padding-left: var(--space-lg);
   padding-right: var(--space-lg);
   padding-bottom: var(--space-xl);
@@ -11,7 +12,6 @@
 .profile-container {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding-top: var(--space-xl);
 }
 
 /* Tab Navigation - Glass style */
@@ -86,6 +86,7 @@
 
 @media (max-width: 767px) {
   .profile-page {
+    padding-top: var(--space-md);
     padding-left: var(--space-md);
     padding-right: var(--space-md);
   }

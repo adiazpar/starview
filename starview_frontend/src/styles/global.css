@@ -130,7 +130,7 @@
   --navbar-height: 72px;
   --navbar-height-mobile: 64px;
   --navbar-filters-height: 58px;
-  --navbar-total-height: 72px; /* Initial value, updated dynamically by navbar */
+  --navbar-total-height: calc(var(--navbar-height) + 1px); /* Includes the navbar border. */
   --container-max: 1000px;
 
   /* Typography - Observatory aesthetic */
@@ -253,6 +253,15 @@ body {
 
 #root {
   background-color: transparent;
+  /* Keep the fixed navbar's space inside the app, rather than allowing a
+     child's top margin to collapse through the root and body on refresh. */
+  padding-top: var(--navbar-total-height);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --navbar-total-height: calc(var(--navbar-height-mobile) + 1px);
+  }
 }
 
 img {
@@ -376,11 +385,10 @@ h3 {
 /* LAYOUT */
 /* ============================================ */
 
-/* Global wrapper that accounts for navbar height - children can use 100% heights */
+/* The root reserves navbar space; children fill the remaining viewport. */
 .page-wrapper {
   display: flex;
   flex-direction: column;
-  margin-top: var(--navbar-total-height);
   min-height: calc(100vh - var(--navbar-total-height));
 }
 

@@ -19,11 +19,6 @@
   overflow: visible;
 }
 
-/* Clip decorative elements but allow search dropdown to overflow */
-.hero__glow {
-  overflow: hidden;
-}
-
 .hero__container {
   position: relative;
   z-index: 1;
@@ -254,6 +249,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 700px;
+  /* Contain the decoration without clipping the hero's search dropdown. */
+  max-width: 100%;
+  overflow: hidden;
   height: 700px;
   pointer-events: none;
   z-index: 0;

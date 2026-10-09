@@ -3,8 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import useProfileData from '../../hooks/useProfileData';
+import useProfileNavigation from '../../hooks/useProfileNavigation';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import ProfileToolbar from '../../components/profile/ProfileToolbar';
 import SettingsTab from '../../components/profile/SettingsTab';
 import BadgesTab from '../../components/profile/BadgesTab';
 import MyReviewsTab from '../../components/profile/MyReviewsTab';
@@ -16,6 +18,7 @@ function ProfilePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { goToOwnProfile } = useProfileNavigation(user?.username);
   const [activeTab, setActiveTab] = useState('settings');
 
   // Use React Query hook for profile data (cached, deduplicated)
@@ -61,6 +64,9 @@ function ProfilePage() {
   return (
     <div className="profile-page">
       <div className="profile-container">
+        {/* Back always returns to your own public profile */}
+        <ProfileToolbar onBack={goToOwnProfile} />
+
         {/* Profile Header - Using Shared Component */}
         <ProfileHeader
           user={user}

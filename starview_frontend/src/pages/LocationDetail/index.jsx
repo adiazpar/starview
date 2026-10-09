@@ -11,6 +11,7 @@ import { useSEO } from '../../hooks/useSEO';
 import { useNavbarExtension } from '../../contexts/NavbarExtensionContext';
 import { useToast } from '../../contexts/ToastContext';
 import useRequireAuth from '../../hooks/useRequireAuth';
+import useShareLink from '../../hooks/useShareLink';
 import LocationHero from '../../components/location/LocationHero';
 import LocationStats from '../../components/location/LocationStats';
 import SkyQualityPanel from '../../components/location/SkyQualityPanel';
@@ -35,6 +36,7 @@ function LocationDetailPage() {
   const isLoading = locationLoading || photosLoading;
   const { setLocationExtension, updateLocationExtension, setExtensionVisible } = useNavbarExtension();
   const { showToast } = useToast();
+  const shareLink = useShareLink();
   const { requireAuth } = useRequireAuth();
   const toggleFavorite = useToggleFavorite();
   const toggleVisited = useToggleVisited();
@@ -101,24 +103,8 @@ function LocationDetailPage() {
       url: window.location.href,
     };
 
-    try {
-      if (navigator.share && navigator.canShare?.(shareData)) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied to clipboard', 'success');
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          showToast('Link copied to clipboard', 'success');
-        } catch {
-          showToast('Failed to share', 'error');
-        }
-      }
-    }
-  }, [location?.name, showToast]);
+    await shareLink(shareData);
+  }, [location?.name, shareLink]);
 
   // Set up intersection observer for hero visibility (controls navbar extension visibility)
   // Uses static navbar height to prevent feedback loops - extension visibility

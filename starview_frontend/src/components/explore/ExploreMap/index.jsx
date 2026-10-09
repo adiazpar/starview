@@ -175,7 +175,6 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { PmTilesSource } from 'mapbox-pmtiles';
 import * as SunCalc from 'suncalc';
 import { useMapMarkers } from '../../../hooks/useMapMarkers';
 import { useLocation } from '../../../contexts/LocationContext';
@@ -190,10 +189,6 @@ import { getPlatformNavigationUrl } from '../../../utils/navigation';
 import { useToast } from '../../../contexts/ToastContext';
 import MapCard from './MapCard';
 import './styles.css';
-
-// Register PMTiles custom source type for Mapbox GL JS
-// (Mapbox doesn't have addProtocol like MapLibre, so we use setSourceType instead)
-mapboxgl.Style.setSourceType(PmTilesSource.SOURCE_TYPE, PmTilesSource);
 
 /**
  * Calculate the appropriate Mapbox light preset based on sun position.
@@ -1059,9 +1054,9 @@ function ExploreMap({ initialViewport, onViewportChange, initialLightPollution =
     if (map.current.getSource('protected-areas')) return;
 
     // Add PMTiles source (hosted on Cloudflare R2)
-    // Uses mapbox-pmtiles custom source type - direct URL, no pmtiles:// prefix
+    // Mapbox GL JS detects the native PMTiles provider from the .pmtiles URL.
     map.current.addSource('protected-areas', {
-      type: PmTilesSource.SOURCE_TYPE,
+      type: 'vector',
       url: PROTECTED_AREAS_PMTILES_URL,
       promoteId: 'id', // Use 'id' property for feature-state
     });

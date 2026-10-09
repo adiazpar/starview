@@ -202,67 +202,11 @@
   z-index: 10;
 }
 
-/* ============================================
-   BACK BUTTON
-   ============================================ */
-
-.location-hero__back {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: var(--navbar-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-size: var(--text-base);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.location-hero__back:hover {
-  color: var(--text-primary);
-  border-color: var(--text-muted);
-}
-
-.location-hero__back-text {
-  display: none;
-}
-
-/* ============================================
-   ACTION BUTTONS (Favorite, Share)
-   ============================================ */
+/* Favorite, visit, and share layout; button visuals use page-controls.css. */
 
 .location-hero__actions {
   display: flex;
   gap: var(--space-sm);
-}
-
-.location-hero__action {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: var(--navbar-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-size: var(--text-base);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.location-hero__action:hover {
-  color: var(--text-primary);
-  border-color: var(--text-muted);
-}
-
-.location-hero__action-text {
-  display: none;
 }
 
 /* Active state (favorited) */
@@ -474,30 +418,6 @@
 
   .location-hero__arrow--right {
     margin-right: max(var(--space-lg), calc((100vw - 1200px) / 2 + var(--space-lg)));
-  }
-
-  .location-hero__back {
-    width: auto;
-    height: 40px;
-    gap: var(--space-sm);
-    padding: 0 var(--space-md);
-  }
-
-  .location-hero__back-text,
-  .location-hero__action-text {
-    display: inline;
-    font-family: var(--font-technical);
-    font-size: var(--text-xs);
-    font-weight: var(--font-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .location-hero__action {
-    width: auto;
-    height: 40px;
-    gap: var(--space-sm);
-    padding: 0 var(--space-md);
   }
 
   .location-hero__info {

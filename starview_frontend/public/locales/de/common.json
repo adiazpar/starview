@@ -10,7 +10,10 @@
     "getStarted": "Jetzt starten",
     "login": "Anmelden",
     "logout": "Abmelden",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "back": "Zurück",
+    "moreOptions": "Weitere Optionen",
+    "share": "Teilen"
   },
   "labels": {
     "email": "E-Mail",
@@ -44,5 +47,9 @@
   "language": {
     "title": "Sprache auswählen",
     "selectLanguage": "Sprache auswählen"
+  },
+  "sharing": {
+    "linkCopied": "Link in die Zwischenablage kopiert",
+    "failed": "Teilen fehlgeschlagen"
   }
 }

@@ -18,7 +18,7 @@ const SAVED = {
   activate_totp: 'accountSecurity.savedApp',
   remove_totp: 'accountSecurity.savedAppRemoved',
 };
-// Steps with nothing above them: the header arrow closes the dialog there instead of stepping back.
+// Steps with nothing above them use the dialog's X close control.
 const FIRST_LEVEL = ['loading', 'error', 'choose', 'manage'];
 
 /** One modal: optional enrollment, read-only overview, and protected changes. */
@@ -131,13 +131,12 @@ export default function AccountSecurityDialog({ onClose, onChanged }) {
   const back = () => {
     clearSecrets(); setError(''); go(wizard && !status?.enabled ? 'choose' : 'manage');
   };
-  // The header arrow. First-level steps close; setup and email enrollment return to the method choice; what is
+  // Later steps use the header arrow. Setup and email enrollment return to the method choice; what is
   // reached from Manage returns to Manage; backup codes after enrollment return to Manage without undoing the
   // setup; a proof request cancels its pending action and returns to the step it came from.
   const atFirstLevel = FIRST_LEVEL.includes(step);
   const goBack = () => {
     if (step === 'confirm') afterConfirmation(false);
-    else if (atFirstLevel) finish();
     else if (step === 'recovery') { clearSecrets(); setError(''); setWizard(false); go('manage'); }
     else back();
   };
@@ -199,7 +198,7 @@ export default function AccountSecurityDialog({ onClose, onChanged }) {
   else if (step === 'manage') footer = <button className="btn-primary btn-primary--sm" onClick={close} disabled={locked}>{t('buttons.done')}</button>;
   else if (step === 'error') footer = <button className="btn-primary btn-primary--sm" disabled={locked} onClick={() => run(load)}>{t('accountSecurity.retry')}</button>;
 
-  return <Dialog ref={dialog} title={t(title)} onCancel={onClose} onBack={goBack} backLabel={t(atFirstLevel ? 'buttons.close' : 'buttons.back')}
+  return <Dialog ref={dialog} title={t(title)} onCancel={onClose} onBack={atFirstLevel ? undefined : goBack} backLabel={t('buttons.back')}
     dismissDisabled={locked} focusKey={`${step}:${status?.preferred_method || ''}`}
     footer={footer && <div className="app-dialog-actions app-dialog-actions--spread">{footer}</div>}>
     {inWizard && <ol className="security-setup-steps" aria-label={t('accountSecurity.setupProgress')}>

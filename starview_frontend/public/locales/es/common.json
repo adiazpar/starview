@@ -10,7 +10,10 @@
     "getStarted": "Comenzar",
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
-    "register": "Registrarse"
+    "register": "Registrarse",
+    "back": "Atrás",
+    "moreOptions": "Más opciones",
+    "share": "Compartir"
   },
   "labels": {
     "email": "Correo electrónico",
@@ -44,5 +47,9 @@
   "language": {
     "title": "Elige un idioma",
     "selectLanguage": "Elige un idioma"
+  },
+  "sharing": {
+    "linkCopied": "Enlace copiado al portapapeles",
+    "failed": "No se pudo compartir"
   }
 }

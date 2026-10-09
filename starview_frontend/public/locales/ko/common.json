@@ -10,7 +10,10 @@
     "getStarted": "시작하기",
     "login": "로그인",
     "logout": "로그아웃",
-    "register": "회원가입"
+    "register": "회원가입",
+    "back": "뒤로",
+    "moreOptions": "옵션 더보기",
+    "share": "공유"
   },
   "labels": {
     "email": "이메일",
@@ -44,5 +47,9 @@
   "language": {
     "title": "언어 선택",
     "selectLanguage": "언어 선택"
+  },
+  "sharing": {
+    "linkCopied": "링크가 클립보드에 복사되었습니다",
+    "failed": "공유하지 못했습니다"
   }
 }

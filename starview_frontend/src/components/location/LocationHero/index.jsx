@@ -16,6 +16,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect, forwardRef, useMemo } from 'react';
+import '../../../styles/page-controls.css';
 import './styles.css';
 
 // Placeholder for locations without photos
@@ -177,42 +178,42 @@ const LocationHero = forwardRef(function LocationHero({
       {/* Top Navigation Bar */}
       <nav className="location-hero__nav">
         <button
-          className="location-hero__back"
+          className="page-action page-action--labelled location-hero__back"
           onClick={onBack}
           aria-label="Go back"
         >
           <i className="fa-solid fa-arrow-left"></i>
-          <span className="location-hero__back-text">Back</span>
+          <span className="page-action__label">Back</span>
         </button>
 
         <div className="location-hero__actions">
           <button
-            className={`location-hero__action ${isFavorited ? 'location-hero__action--active' : ''}`}
+            className={`page-action page-action--labelled location-hero__action ${isFavorited ? 'location-hero__action--active' : ''}`}
             onClick={onFavorite}
             aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
             <i className={`fa-${isFavorited ? 'solid' : 'regular'} fa-heart`}></i>
-            <span className="location-hero__action-text">
+            <span className="page-action__label">
               {isFavorited ? 'Saved' : 'Save'}
             </span>
           </button>
           <button
-            className={`location-hero__action ${isVisited ? 'location-hero__action--visited' : ''}`}
+            className={`page-action page-action--labelled location-hero__action ${isVisited ? 'location-hero__action--visited' : ''}`}
             onClick={onMarkVisited}
             aria-label={isVisited ? 'Remove visit' : 'Mark as visited'}
           >
             <i className={`fa-${isVisited ? 'solid' : 'regular'} fa-flag`}></i>
-            <span className="location-hero__action-text">
+            <span className="page-action__label">
               {isVisited ? 'Visited' : 'Visit'}
             </span>
           </button>
           <button
-            className="location-hero__action"
+            className="page-action page-action--labelled location-hero__action"
             onClick={onShare}
             aria-label="Share location"
           >
             <i className="fa-solid fa-share"></i>
-            <span className="location-hero__action-text">Share</span>
+            <span className="page-action__label">Share</span>
           </button>
         </div>
       </nav>

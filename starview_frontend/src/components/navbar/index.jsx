@@ -4,7 +4,7 @@
  */
 
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
@@ -130,13 +130,17 @@ function Navbar() {
   // Dynamically measure navbar height and set CSS variable globally
   // Only measures <nav> element - does NOT include extension to prevent jitter
   // Sticky elements that need to account for extension should use separate calculation
-  useEffect(() => {
+  useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
 
     const updateNavbarHeight = () => {
       const height = nav.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--navbar-total-height', `${height}px`);
+      // Suspense can temporarily hide the shell. Keep its last visible height
+      // instead of removing the space reserved for the fixed navbar.
+      if (height > 0) {
+        document.documentElement.style.setProperty('--navbar-total-height', `${height}px`);
+      }
     };
 
     const resizeObserver = new ResizeObserver(updateNavbarHeight);
@@ -144,7 +148,7 @@ function Navbar() {
     updateNavbarHeight();
 
     return () => resizeObserver.disconnect();
-  }, [isExplorePage]);
+  }, [showFilterChips]);
 
   // Listen for system theme changes
   useEffect(() => {

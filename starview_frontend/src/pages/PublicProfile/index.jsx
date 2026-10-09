@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { publicUserApi } from '../../services/profile';
 import usePinnedBadges from '../../hooks/usePinnedBadges';
+import useProfileNavigation from '../../hooks/useProfileNavigation';
+import useShareLink from '../../hooks/useShareLink';
 import { useSEO } from '../../hooks/useSEO';
 import { mapBadgeIdsToBadges } from '../../utils/badges';
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import ProfileToolbar from '../../components/profile/ProfileToolbar';
 import ProfileStats from '../../components/profile/ProfileStats';
 import BadgeSection from '../../components/badges/BadgeSection';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
@@ -17,11 +20,13 @@ import './styles.css';
  * Displays a public profile for any user by username.
  * Shows profile header, badges (expandable), stats, and user's reviews.
  * If viewing your own profile, shows "Edit Profile" button.
+ * Another user's profile adds a Back / options toolbar above the header card.
  */
 function PublicProfilePage() {
   const { username } = useParams();
-  const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const { goBack } = useProfileNavigation(currentUser?.username);
+  const shareLink = useShareLink();
 
   const [profileUser, setProfileUser] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -75,6 +80,10 @@ function PublicProfilePage() {
 
   // Fetch user profile and badges
   useEffect(() => {
+    // Initial session resolution advances the API identity epoch. Starting
+    // before it settles would cancel these requests on a direct page refresh.
+    if (authLoading) return;
+
     const fetchProfile = async () => {
       setLoading(true);
       setError('');
@@ -113,7 +122,7 @@ function PublicProfilePage() {
 
     fetchProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]); // Only re-fetch when username changes
+  }, [username, authLoading]);
 
   // Fetch user reviews
   useEffect(() => {
@@ -166,6 +175,17 @@ function PublicProfilePage() {
   return (
     <div className="public-profile-page">
       <div className="public-profile-container">
+        {/* Back and options for another user's profile; own profile keeps its card actions */}
+        {!isOwnProfile && (
+          <ProfileToolbar
+            onBack={goBack}
+            onShare={() => shareLink({
+              title: `${displayName} (@${username}) | Starview`,
+              url: new URL(`/users/${encodeURIComponent(username)}`, window.location.origin).href,
+            })}
+          />
+        )}
+
         {/* Profile Header */}
         <ProfileHeader
           user={profileUser}

@@ -10,7 +10,10 @@
     "getStarted": "开始使用",
     "login": "登录",
     "logout": "退出",
-    "register": "注册"
+    "register": "注册",
+    "back": "返回",
+    "moreOptions": "更多选项",
+    "share": "分享"
   },
   "labels": {
     "email": "邮箱",
@@ -44,5 +47,9 @@
   "language": {
     "title": "选择语言",
     "selectLanguage": "选择语言"
+  },
+  "sharing": {
+    "linkCopied": "链接已复制到剪贴板",
+    "failed": "分享失败"
   }
 }

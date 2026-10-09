@@ -18,7 +18,7 @@ import './styles.css';
  * Props:
  * - user: User object with profile data
  * - isOwnProfile: Boolean indicating if viewing own profile (shows action button)
- * - onEditPage: Boolean indicating if currently on the edit/settings page (shows "Back to Profile" instead of "Edit Profile")
+ * - onEditPage: Boolean indicating if currently on the edit/settings page (no card actions: ProfileToolbar above the card holds Back and options)
  * - onShowBadgesClick: Optional callback function for "Show Badges" button click
  * - badgesVisible: Optional boolean to show if badges are currently visible
  * - pinnedBadges: Optional array of pinned badge objects to display
@@ -162,28 +162,40 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
 
       {/* Bio - Below header content */}
       {user?.bio && (
-        <p className="profile-bio">
+        <p className={`profile-bio ${onEditPage ? 'profile-bio--last' : ''}`}>
           <span>About Me</span>
           {user.bio}
         </p>
       )}
 
-      {/* Action Buttons */}
-      {isOwnProfile ? (
-        // Own profile: Show edit buttons
+      {/* Action Buttons - none on the edit page, where ProfileToolbar holds Back and options */}
+      {!onEditPage && (
         <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
-          {onEditPage ? (
-            // On edit page: Show "Back to Profile" button
-            <Link to={`/users/${user?.username}`} className="btn-primary">
-              <i className="fa-solid fa-caret-left"></i>
-              Back
-            </Link>
-          ) : (
-            // On public profile: Show "Edit Profile" button
+          {isOwnProfile ? (
+            // Own profile: Show edit button
             <Link to="/profile" className="btn-primary">
               <i className="fa-solid fa-gear"></i>
               Edit Profile
             </Link>
+          ) : (
+            // Other user's profile: Show follow button (redirects to login if not authenticated)
+            <button
+              className="btn-primary"
+              onClick={handleFollowToggle}
+              disabled={isLoadingFollow}
+            >
+              {isLoadingFollow ? (
+                <>
+                  <LoadingSpinner size="xs" inline />
+                  {isFollowing ? 'Unfollowing...' : 'Following...'}
+                </>
+              ) : (
+                <>
+                  <i className={`fa-solid ${isFollowing ? 'fa-minus' : 'fa-plus'}`}></i>
+                  {isFollowing ? 'Unfollow' : 'Follow'}
+                </>
+              )}
+            </button>
           )}
           {onShowBadgesClick && (
             <button onClick={onShowBadgesClick} className="btn-secondary">
@@ -191,39 +203,12 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
               {badgesVisible ? 'Hide' : 'Show'} Badges
             </button>
           )}
-          <Link to="/profile" className="btn-secondary btn-secondary--icon">
-            <i className="fa-solid fa-ellipsis-vertical"></i>
-          </Link>
-        </div>
-      ) : (
-        // Other user's profile: Show follow button (redirects to login if not authenticated)
-        <div className={`profile-actions ${!user?.bio ? 'no-bio' : ''}`}>
-          <button
-            className="btn-primary"
-            onClick={handleFollowToggle}
-            disabled={isLoadingFollow}
-          >
-            {isLoadingFollow ? (
-              <>
-                <LoadingSpinner size="xs" inline />
-                {isFollowing ? 'Unfollowing...' : 'Following...'}
-              </>
-            ) : (
-              <>
-                <i className={`fa-solid ${isFollowing ? 'fa-minus' : 'fa-plus'}`}></i>
-                {isFollowing ? 'Unfollow' : 'Follow'}
-              </>
-            )}
-          </button>
-          {onShowBadgesClick && (
-            <button onClick={onShowBadgesClick} className="btn-secondary">
-              <i className="fa-solid fa-ranking-star"></i>
-              {badgesVisible ? 'Hide' : 'Show'} Badges
-            </button>
+          {isOwnProfile && (
+            // Own profile keeps its ellipsis in the card; other users' sits in ProfileToolbar
+            <Link to="/profile" className="btn-secondary btn-secondary--icon">
+              <i className="fa-solid fa-ellipsis-vertical"></i>
+            </Link>
           )}
-          <button className="btn-secondary btn-secondary--icon">
-            <i className="fa-solid fa-ellipsis-vertical"></i>
-          </button>
         </div>
       )}
 

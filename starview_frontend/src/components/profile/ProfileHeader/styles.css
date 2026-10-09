@@ -145,6 +145,11 @@
   margin-bottom: var(--space-sm);
 }
 
+/* No action row follows (edit page), so the card padding closes the card */
+.profile-bio--last {
+  margin-bottom: 0;
+}
+
 .profile-actions {
   display: flex;
   gap: var(--space-sm);

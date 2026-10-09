@@ -6,7 +6,7 @@ import { LocationProvider } from './contexts/LocationContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { CookieConsentProvider } from './contexts/CookieConsentContext'
 import { NavbarExtensionProvider } from './contexts/NavbarExtensionContext'
-import ErrorBoundary from './components/shared/ErrorBoundary'
+import RouteErrorBoundary from './components/shared/ErrorBoundary/RouteErrorBoundary'
 import ToastContainer from './components/shared/Toast'
 import CookieConsent from './components/CookieConsent'
 import Starfield from './components/starfield'
@@ -31,9 +31,9 @@ createRoot(document.getElementById('root')).render(
                 <Starfield />
                 <Navbar />
                 <div className="page-wrapper">
-                  <ErrorBoundary>
+                  <RouteErrorBoundary>
                     <App />
-                  </ErrorBoundary>
+                  </RouteErrorBoundary>
                   <Footer />
                 </div>
                 <ToastContainer />

@@ -10,7 +10,10 @@
     "getStarted": "始める",
     "login": "ログイン",
     "logout": "ログアウト",
-    "register": "登録"
+    "register": "登録",
+    "back": "戻る",
+    "moreOptions": "その他のオプション",
+    "share": "共有"
   },
   "labels": {
     "email": "メールアドレス",
@@ -44,5 +47,9 @@
   "language": {
     "title": "言語を選択",
     "selectLanguage": "言語を選択"
+  },
+  "sharing": {
+    "linkCopied": "リンクをクリップボードにコピーしました",
+    "failed": "共有できませんでした"
   }
 }

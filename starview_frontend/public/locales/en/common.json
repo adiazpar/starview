@@ -126,7 +126,9 @@
     "logout": "Logout",
     "register": "Register",
     "back": "Back",
-    "done": "Done"
+    "done": "Done",
+    "moreOptions": "More options",
+    "share": "Share"
   },
   "labels": {
     "email": "Email",
@@ -165,5 +167,9 @@
   "language": {
     "title": "Choose a language",
     "selectLanguage": "Choose a language"
+  },
+  "sharing": {
+    "linkCopied": "Link copied to clipboard",
+    "failed": "Failed to share"
   }
 }
