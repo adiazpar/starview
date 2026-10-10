@@ -1,0 +1,45 @@
+/* ============================================ */
+/* PRIVACY SECTION */
+/* ============================================ */
+
+/* Same header row as the other settings (text left, control right), with the switch centered on the text. */
+.profile-form-header.privacy-setting {
+  align-items: center;
+}
+
+/* On / Off / Saving… sit left of the switch. The reserved width keeps the text beside it from reflowing as they change. */
+.privacy-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.privacy-status {
+  min-width: 11ch;
+  text-align: right;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.privacy-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin: var(--space-md) 0 0;
+  font-size: var(--text-sm);
+  color: var(--error);
+}
+
+.privacy-error i {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* On a phone the switch alone keeps the text as wide as possible; it already shows the state. */
+@media (max-width: 480px) {
+  .privacy-status {
+    display: none;
+  }
+}

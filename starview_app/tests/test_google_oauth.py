@@ -58,6 +58,18 @@ class GoogleFlowTests(TestCase):
         self.assertEqual(User.objects.get(pk=account.user_id).email, 'google@example.test')
         self.assertEqual(len(mail.outbox), 1)
 
+    def test_new_oauth_account_gets_optional_birthday_prompt_only_once(self):
+        self.finish(self.start())
+        data = self.client.get('/api/auth/status/').json()
+        self.assertTrue(data['authenticated'])
+        self.assertTrue(data['user']['birth_date_prompt'])
+        self.assertIsNone(data['user']['birth_date'])
+        self.assertEqual(self.client.post('/api/users/me/dismiss-birth-date-prompt/').status_code, 200)
+        self.assertFalse(self.client.get('/api/auth/status/').json()['user']['birth_date_prompt'])
+        self.client.logout()
+        self.finish(self.start())
+        self.assertFalse(self.client.get('/api/auth/status/').json()['user']['birth_date_prompt'])
+
     def test_remember_choice_survives_mfa_and_is_bound_to_each_oauth_attempt(self):
         self.finish(self.start())
         user = SocialAccount.objects.get(provider='google').user
@@ -101,6 +113,26 @@ class GoogleFlowTests(TestCase):
         self.assertFalse(SocialAccount.objects.exists())
         self.finish(self.start(), email='different@example.test')
         self.assertNotEqual(SocialAccount.objects.get(provider='google').user_id, existing.pk)
+
+    def test_explicit_google_connection_enables_email_alias_with_existing_password(self):
+        user = User.objects.create_user(username='alias-owner', email='primary@example.test',
+                                        password='Valid-Password123!')
+        EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
+        self.assertEqual(self.client.post('/api/auth/login/', {
+            'username': user.email, 'password': 'Valid-Password123!',
+        }).status_code, 200)
+        response = self.finish(self.start('connect'), email='linked@gmail.com')
+        self.assertEqual(response.status_code, 302)
+        account = SocialAccount.objects.get(provider='google', user=user)
+        self.assertIs(account.extra_data['email_verified'], True)
+        self.client.logout()
+        response = self.client.post('/api/auth/login/', {
+            'username': ' LINKED@GMAIL.COM ', 'password': 'Valid-Password123!',
+        })
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.client.get('/api/auth/status/').json()['user']['id'], user.pk)
+        user.refresh_from_db()
+        self.assertEqual(user.email, 'primary@example.test')
 
     def test_google_cannot_bypass_mfa_and_wrong_audience_is_rejected(self):
         self.finish(self.start())

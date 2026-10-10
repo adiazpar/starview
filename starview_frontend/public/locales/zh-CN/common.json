@@ -51,5 +51,34 @@
   "sharing": {
     "linkCopied": "链接已复制到剪贴板",
     "failed": "分享失败"
+  },
+  "birthDate": {
+    "title": "出生日期",
+    "private": "仅您本人可见",
+    "month": "月",
+    "day": "日",
+    "year": "年",
+    "select": "选择日期",
+    "optionalLabel": "出生日期（选填）",
+    "notSet": "未设置",
+    "edit": "编辑出生日期",
+    "continue": "继续",
+    "skip": "暂时跳过",
+    "remove": "移除",
+    "saved": "出生日期已更新",
+    "future": "出生日期不能晚于今天。",
+    "invalid": "请选择有效的日期。",
+    "saveFailed": "无法保存您的出生日期，请重试。",
+    "skipFailed": "无法更新您的选择，请重试。"
+  },
+  "profilePrivacy": {
+    "title": "隐私",
+    "private": "私密个人资料",
+    "description": "选择是否将您的个人资料设为私密。",
+    "on": "开启",
+    "off": "关闭",
+    "saving": "正在保存…",
+    "saved": "隐私设置已保存",
+    "saveFailed": "无法保存您的隐私设置，请重试。"
   }
 }

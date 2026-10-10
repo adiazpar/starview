@@ -51,5 +51,34 @@
   "sharing": {
     "linkCopied": "Link in die Zwischenablage kopiert",
     "failed": "Teilen fehlgeschlagen"
+  },
+  "birthDate": {
+    "title": "Geburtsdatum",
+    "private": "Nur für dich sichtbar",
+    "month": "Monat",
+    "day": "Tag",
+    "year": "Jahr",
+    "select": "Datum auswählen",
+    "optionalLabel": "Geburtsdatum (optional)",
+    "notSet": "Nicht angegeben",
+    "edit": "Geburtsdatum bearbeiten",
+    "continue": "Weiter",
+    "skip": "Vorerst überspringen",
+    "remove": "Entfernen",
+    "saved": "Geburtsdatum aktualisiert",
+    "future": "Das Geburtsdatum darf nicht in der Zukunft liegen.",
+    "invalid": "Wähle ein gültiges Datum.",
+    "saveFailed": "Dein Geburtsdatum konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    "skipFailed": "Deine Auswahl konnte nicht gespeichert werden. Bitte versuche es erneut."
+  },
+  "profilePrivacy": {
+    "title": "Datenschutz",
+    "private": "Privates Profil",
+    "description": "Lege fest, ob dein Profil privat sein soll.",
+    "on": "Ein",
+    "off": "Aus",
+    "saving": "Speichern…",
+    "saved": "Datenschutzeinstellung gespeichert",
+    "saveFailed": "Deine Datenschutzeinstellung konnte nicht gespeichert werden. Bitte versuche es erneut."
   }
 }

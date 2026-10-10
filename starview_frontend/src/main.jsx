@@ -9,6 +9,7 @@ import { NavbarExtensionProvider } from './contexts/NavbarExtensionContext'
 import RouteErrorBoundary from './components/shared/ErrorBoundary/RouteErrorBoundary'
 import ToastContainer from './components/shared/Toast'
 import CookieConsent from './components/CookieConsent'
+import BirthDateOnboarding from './components/profile/BirthDateOnboarding'
 import Starfield from './components/starfield'
 import Navbar from './components/navbar'
 import Footer from './components/Footer'
@@ -38,6 +39,7 @@ createRoot(document.getElementById('root')).render(
                 </div>
                 <ToastContainer />
                 <CookieConsent />
+                <BirthDateOnboarding />
               </NavbarExtensionProvider>
               </CookieConsentProvider>
             </ToastProvider>

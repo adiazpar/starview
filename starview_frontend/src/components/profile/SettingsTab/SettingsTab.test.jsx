@@ -9,6 +9,7 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({
 }) }));
 vi.mock('../ProfileSettings', () => ({ default: () => null }));
 vi.mock('../PreferencesSection', () => ({ default: () => null }));
+vi.mock('../PrivacySection', () => ({ default: () => null }));
 vi.mock('../ConnectedAccountsSection', () => ({ default: () => null }));
 vi.mock('../AccountSecurityDialog', () => ({ default: () => <div role="dialog" aria-label="Security setup" /> }));
 

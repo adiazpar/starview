@@ -203,12 +203,6 @@ function ProfileHeader({ user, isOwnProfile = false, onEditPage = false, onShowB
               {badgesVisible ? 'Hide' : 'Show'} Badges
             </button>
           )}
-          {isOwnProfile && (
-            // Own profile keeps its ellipsis in the card; other users' sits in ProfileToolbar
-            <Link to="/profile" className="btn-secondary btn-secondary--icon">
-              <i className="fa-solid fa-ellipsis-vertical"></i>
-            </Link>
-          )}
         </div>
       )}
 

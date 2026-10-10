@@ -1,0 +1,32 @@
+/* The privacy note leads: it reassures before anything is entered. */
+.app-dialog .birth-date-note {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-sm);
+  margin: 0 0 var(--space-md); text-align: center; font-size: var(--text-sm); color: var(--text-secondary);
+}
+.birth-date-note i { font-size: var(--text-xs); color: var(--accent); }
+/* The note above carries the spacing. */
+.app-dialog .birth-date-form { margin-top: 0; }
+
+/* Month names are the longest values, so that column is the widest. */
+.birth-date-fields { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--space-sm); }
+.birth-date-select { position: relative; }
+.birth-date-select select {
+  appearance: none; -webkit-appearance: none;
+  padding: 12px 30px 12px 12px; cursor: pointer; text-overflow: ellipsis; color-scheme: dark;
+}
+[data-theme="light"] .birth-date-select select { color-scheme: light; }
+.birth-date-select select[data-empty] { color: var(--text-muted); }
+/* The open list is drawn by the browser, so give it a readable surface in either theme. */
+.birth-date-select option { color: var(--text-primary); background: var(--bg-elevated); }
+.birth-date-select i {
+  position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
+  font-size: var(--text-2xs); color: var(--text-muted); pointer-events: none;
+}
+.birth-date-select select:focus ~ i { color: var(--accent); }
+.birth-date-select select:disabled ~ i { opacity: .5; }
+
+/* On the narrowest phones the month takes a row of its own so long names are not clipped. */
+@media (max-width: 340px) {
+  .birth-date-fields { grid-template-columns: 1fr 1fr; }
+  .birth-date-fields > :first-child { grid-column: 1 / -1; }
+}

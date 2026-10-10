@@ -118,6 +118,8 @@ class PublicUserSerializer(serializers.ModelSerializer):
 # Used by: GET /api/users/me/                                                   #
 # ----------------------------------------------------------------------------- #
 class PrivateProfileSerializer(serializers.ModelSerializer):
+    is_private = serializers.BooleanField(source='userprofile.is_private', read_only=True)
+    birth_date = serializers.DateField(source='userprofile.birth_date', read_only=True, allow_null=True)
     profile_picture_url = serializers.SerializerMethodField()
     bio = serializers.CharField(source='userprofile.bio', read_only=True)
     is_verified = serializers.BooleanField(source='userprofile.is_verified', read_only=True)
@@ -130,7 +132,7 @@ class PrivateProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined',
                   'profile_picture_url', 'bio', 'is_verified', 'has_usable_password',
-                  'pinned_badge_ids', 'unit_preference', 'language_preference']
+                  'pinned_badge_ids', 'unit_preference', 'language_preference', 'birth_date', 'is_private']
         # This serializer is output-only. Profile changes use validated /me actions.
         read_only_fields = fields
 

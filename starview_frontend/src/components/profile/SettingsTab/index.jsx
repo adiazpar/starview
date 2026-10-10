@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProfileSettings from '../ProfileSettings';
 import PreferencesSection from '../PreferencesSection';
+import PrivacySection from '../PrivacySection';
 import ConnectedAccountsSection from '../ConnectedAccountsSection';
 import CollapsibleSection from '../CollapsibleSection';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +15,7 @@ import './styles.css';
  * Contains reusable account settings sections:
  * - ProfileSettings (profile picture, name, username, email, password, bio, location)
  * - PreferencesSection (theme selection)
+ * - PrivacySection (public/private profile preference)
  * - Account security (two-factor authentication and recovery)
  * - ConnectedAccountsSection (social account connections)
  */
@@ -43,6 +45,7 @@ function SettingsTab({ user, refreshAuth, socialAccounts, onRefreshSocialAccount
       <div className="settings-tab">
         <ProfileSettings user={user} refreshAuth={refreshAuth} />
         <PreferencesSection />
+        <PrivacySection user={user} refreshAuth={refreshAuth} />
         <CollapsibleSection title={t('accountSecurity.title')} icon="fa-lock" defaultExpanded={false}>
           <div className="profile-form-section">
             <h3 className="profile-form-title" id={securityTitleId}>{t('accountSecurity.twoFactor')}</h3>

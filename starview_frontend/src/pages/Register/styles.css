@@ -312,6 +312,25 @@
   padding-right: 48px;
 }
 
+/* Date of birth: a field-shaped button that opens the shared date dialog */
+.register-form .form-input.register-birthdate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.register-birthdate-empty,
+.register-birthdate > i {
+  color: var(--text-muted);
+}
+
+.register-birthdate > i {
+  flex-shrink: 0;
+}
+
 
 /* Submit button uses global .btn-primary .btn-primary--full */
 

@@ -56,6 +56,7 @@ export const authApi = {
    * @param {string} data.last_name - Last name
    * @param {string} data.password1 - Password
    * @param {string} data.password2 - Password confirmation
+   * @param {string} [data.birth_date] - Optional private date of birth as YYYY-MM-DD; omit it to register without one
    * @returns {Promise} - { detail: string, redirect_url: string }
    */
   register: (data) => {

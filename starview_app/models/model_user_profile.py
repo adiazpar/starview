@@ -17,6 +17,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from starview_app.services.birth_dates import validate_birth_date
 
 
 
@@ -43,6 +44,13 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # Profile data:
+    # Private account data: never include in public profile serializers.
+    birth_date = models.DateField(null=True, blank=True, validators=[validate_birth_date])
+    is_private = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text="Saved profile privacy preference; visibility enforcement is not yet active",
+    )
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     bio = models.TextField(
         max_length=150,

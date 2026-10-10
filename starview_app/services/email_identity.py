@@ -1,7 +1,7 @@
 """Contact ownership rules shared by signup, recovery, and account changes.
 
-Provider subjects identify credentials. A provider's current email is descriptive
-metadata, not an additional Starview recovery address or an ownership reservation.
+Provider subjects identify OAuth credentials. A verified linked provider email can
+identify password login, but is not a recovery address or ownership reservation.
 """
 
 from contextlib import contextmanager
@@ -10,6 +10,7 @@ from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Lower, Trim
 from rest_framework.exceptions import ValidationError
 
@@ -27,6 +28,47 @@ def email_owners(email):
     ).filter(
         Q(contact=normalized) | Q(address=normalized),
     ).distinct()
+
+
+def password_login_user(identity):
+    """Resolve a login name without treating provider metadata as proof of login.
+
+    Only server-persisted Google/Apple verification claims enable an alias. The
+    caller must still verify the account's local password, primary contact, and
+    MFA. Primary/pending contact ownership takes precedence over stale aliases;
+    multiple provider subjects may name an alias only for the same account.
+    """
+    users = get_user_model().objects
+    identity = identity.strip().lower()
+    lookup = {'email__iexact': identity} if '@' in identity else {'username__iexact': identity}
+    primary = list(users.filter(**lookup)[:2])
+    if primary or '@' not in identity:
+        return primary[0] if len(primary) == 1 else None
+
+    from allauth.socialaccount.models import SocialAccount
+
+    candidates = SocialAccount.objects.filter(provider__in=('google', 'apple')).alias(
+        login_email=Lower(Trim(KeyTextTransform('email', 'extra_data'))),
+    ).filter(login_email=identity).values('user_id', 'provider', 'extra_data')
+    owners = set()
+    for account in candidates:
+        claims = account['extra_data']
+        # Apple returns either a boolean or the string "true". Google's current
+        # and legacy claim names use booleans; a string "false" is never proof.
+        if account['provider'] == 'apple':
+            verified = claims.get('email_verified')
+            trusted = verified is True or verified == 'true'
+        else:
+            evidence = [claims[key] for key in ('email_verified', 'verified_email') if key in claims]
+            trusted = bool(evidence) and all(value is True for value in evidence)
+        if trusted:
+            owners.add(account['user_id'])
+    if len(owners) != 1:
+        return None
+    owner_id = owners.pop()
+    if email_owners(identity).exclude(pk=owner_id).exists():
+        return None
+    return users.filter(pk=owner_id).first()
 
 
 def is_email_conflict(exc):

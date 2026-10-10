@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import CollapsibleSection from '../CollapsibleSection';
 import ProfilePictureForm from '../forms/ProfilePictureForm';
 import PersonalInfoForm from '../forms/PersonalInfoForm';
+import BirthDateForm from '../forms/BirthDateForm';
 import UsernameForm from '../forms/UsernameForm';
 import EmailForm from '../forms/EmailForm';
 import PasswordForm from '../forms/PasswordForm';
@@ -42,6 +43,7 @@ function ProfileSettings({ user, refreshAuth }) {
       <div className="profile-settings-grid">
         <ProfilePictureForm user={user} refreshAuth={refreshAuth} scrollTo={scrollToPicture} />
         <PersonalInfoForm user={user} refreshAuth={refreshAuth} />
+        <BirthDateForm user={user} refreshAuth={refreshAuth} />
         <UsernameForm user={user} refreshAuth={refreshAuth} />
         <EmailForm user={user} refreshAuth={refreshAuth} />
         <PasswordForm user={user} refreshAuth={refreshAuth} />

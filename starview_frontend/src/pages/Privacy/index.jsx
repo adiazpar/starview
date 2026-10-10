@@ -114,6 +114,7 @@ function PrivacyPage() {
                 <li><strong>Password</strong> — stored securely using industry-standard hashing</li>
                 <li><strong>Profile picture</strong> — optional, uploaded by you</li>
                 <li><strong>Bio and location</strong> — optional profile details you choose to share</li>
+                <li><strong>Date of birth</strong> — optional, private account information you can add or update in General settings. Your birth date is not displayed on your public profile or shared with other users.</li>
               </ul>
 
               <h3 className="privacy-subsection__title">Content You Create</h3>

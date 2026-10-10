@@ -28,11 +28,13 @@ class ProfileSecurityTests(TestCase):
 
     def call_with_stale_user(self, action, data, method='patch'):
         request = getattr(APIRequestFactory(), method)('/api/users/me/', data, format='json')
+        request.session = self.client.session
         force_authenticate(request, user=self.user)
         return UserProfileViewSet.as_view({method: action})(request)
 
     def test_profile_edits_preserve_concurrent_security_change(self):
         cases = (
+            ('update_birth_date', {'birth_date': '2000-02-29'}, 'patch'),
             ('update_bio', {'bio': 'A short bio'}, 'patch'),
             ('update_unit_preference', {'unit_preference': 'imperial'}, 'patch'),
             ('update_language_preference', {'language_preference': 'es'}, 'patch'),

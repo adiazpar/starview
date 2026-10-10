@@ -51,5 +51,34 @@
   "sharing": {
     "linkCopied": "링크가 클립보드에 복사되었습니다",
     "failed": "공유하지 못했습니다"
+  },
+  "birthDate": {
+    "title": "생년월일",
+    "private": "나에게만 표시됩니다",
+    "month": "월",
+    "day": "일",
+    "year": "년",
+    "select": "날짜 선택",
+    "optionalLabel": "생년월일 (선택)",
+    "notSet": "설정되지 않음",
+    "edit": "생년월일 편집",
+    "continue": "계속",
+    "skip": "나중에 하기",
+    "remove": "삭제",
+    "saved": "생년월일이 업데이트되었습니다",
+    "future": "생년월일은 미래 날짜일 수 없습니다.",
+    "invalid": "올바른 날짜를 선택해 주세요.",
+    "saveFailed": "생년월일을 저장하지 못했습니다. 다시 시도해 주세요.",
+    "skipFailed": "선택 사항을 업데이트하지 못했습니다. 다시 시도해 주세요."
+  },
+  "profilePrivacy": {
+    "title": "개인정보 보호",
+    "private": "비공개 프로필",
+    "description": "프로필을 비공개로 설정할지 선택해 주세요.",
+    "on": "켜짐",
+    "off": "꺼짐",
+    "saving": "저장 중…",
+    "saved": "개인정보 보호 설정이 저장되었습니다",
+    "saveFailed": "개인정보 보호 설정을 저장하지 못했습니다. 다시 시도해 주세요."
   }
 }

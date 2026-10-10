@@ -51,5 +51,34 @@
   "sharing": {
     "linkCopied": "Enlace copiado al portapapeles",
     "failed": "No se pudo compartir"
+  },
+  "birthDate": {
+    "title": "Fecha de nacimiento",
+    "private": "Solo visible para ti",
+    "month": "Mes",
+    "day": "Día",
+    "year": "Año",
+    "select": "Seleccionar fecha",
+    "optionalLabel": "Fecha de nacimiento (opcional)",
+    "notSet": "Sin especificar",
+    "edit": "Editar fecha de nacimiento",
+    "continue": "Continuar",
+    "skip": "Omitir por ahora",
+    "remove": "Quitar",
+    "saved": "Fecha de nacimiento actualizada",
+    "future": "La fecha de nacimiento no puede estar en el futuro.",
+    "invalid": "Elige una fecha válida.",
+    "saveFailed": "No pudimos guardar tu fecha de nacimiento. Inténtalo de nuevo.",
+    "skipFailed": "No pudimos actualizar tu elección. Inténtalo de nuevo."
+  },
+  "profilePrivacy": {
+    "title": "Privacidad",
+    "private": "Perfil privado",
+    "description": "Elige si quieres que tu perfil sea privado.",
+    "on": "Activado",
+    "off": "Desactivado",
+    "saving": "Guardando…",
+    "saved": "Preferencia de privacidad guardada",
+    "saveFailed": "No pudimos guardar tu preferencia de privacidad. Inténtalo de nuevo."
   }
 }

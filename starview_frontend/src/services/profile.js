@@ -95,6 +95,24 @@ export const profileApi = {
   },
 
   /**
+   * Set the owner-only date of birth. Never part of a public profile.
+   * @param {Object} data - Date data
+   * @param {string} data.birth_date - Calendar date as YYYY-MM-DD
+   * @returns {Promise} - { detail: string, birth_date: string }
+   */
+  updateBirthDate: (data) => {
+    return api.patch('/users/me/update-birth-date/', data);
+  },
+
+  /**
+   * Stop offering the optional date-of-birth prompt to a newly created OAuth account
+   * @returns {Promise} - { detail: string }
+   */
+  dismissBirthDatePrompt: () => {
+    return api.post('/users/me/dismiss-birth-date-prompt/');
+  },
+
+  /**
    * Update user's unit preference (metric or imperial)
    * @param {Object} data - Unit preference data
    * @param {string} data.unit_preference - 'metric' or 'imperial'
@@ -112,6 +130,17 @@ export const profileApi = {
    */
   updateLanguagePreference: (data) => {
     return api.patch('/users/me/update-language-preference/', data);
+  },
+
+  /**
+   * Save whether the profile is private. This only stores the preference; it does not
+   * change who can view the profile yet.
+   * @param {Object} data - Privacy data
+   * @param {boolean} data.is_private - true for a private profile (the server accepts only a JSON boolean)
+   * @returns {Promise} - { detail: string, is_private: boolean }
+   */
+  updatePrivacy: (data) => {
+    return api.patch('/users/me/update-privacy/', data);
   },
 
   /**

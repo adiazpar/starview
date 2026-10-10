@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import BirthDateDialog from '../../components/profile/BirthDateDialog';
+import { formatBirthDate } from '../../utils/birthDate';
 import './styles.css';
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { t, i18n } = useTranslation();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -22,6 +26,14 @@ function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+
+  // The private date of birth is optional. The draft is sent with the registration, and once the person has
+  // chosen not to give one it is not asked for again. birthDialog is null, 'edit' (the form's own control)
+  // or 'ask' (opened by submitting without a date).
+  const [birthDate, setBirthDate] = useState(null);
+  const [birthDateDeclined, setBirthDateDeclined] = useState(false);
+  const [birthDialog, setBirthDialog] = useState(null);
+  const asking = birthDialog === 'ask';
 
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState({
@@ -76,8 +88,9 @@ function RegisterPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // The one place a registration is sent. The date is passed in rather than read from state, because the
+  // dialog that chooses it runs this from the render that opened it, before the draft has been stored.
+  const submitRegistration = async (selectedBirthDate) => {
     setLoading(true);
 
     try {
@@ -87,7 +100,8 @@ function RegisterPage() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         password1: formData.password1,
-        password2: formData.password2
+        password2: formData.password2,
+        ...(selectedBirthDate && { birth_date: selectedBirthDate })
       });
 
       // Check if email verification is required (production)
@@ -104,7 +118,7 @@ function RegisterPage() {
 
       // Parse field-specific errors from backend
       const newFieldErrors = {};
-      const fieldNames = ['email', 'username', 'firstName', 'lastName', 'password1', 'password2'];
+      const fieldNames = ['email', 'username', 'firstName', 'lastName', 'password1', 'password2', 'birthDate'];
 
       // Backend returns errors as { errors: { field: ["error message"] } }
       fieldNames.forEach(field => {
@@ -126,8 +140,34 @@ function RegisterPage() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Nothing is sent until the person has given a date or chosen not to: the date dialog comes first.
+    if (!birthDate && !birthDateDeclined) setBirthDialog('ask');
+    else submitRegistration(birthDate);
+  };
+
   return (
     <div className="register-container">
+      {birthDialog && (
+        <BirthDateDialog
+          initialValue={birthDate}
+          submitLabel={t(asking ? 'birthDate.continue' : 'buttons.save')}
+          skipLabel={t(asking ? 'birthDate.skip' : 'birthDate.remove')}
+          onSubmit={async (iso) => {
+            setBirthDate(iso);
+            setFieldErrors(prev => ({ ...prev, birthDate: null }));
+            if (asking) await submitRegistration(iso);
+          }}
+          onSkip={asking || birthDate ? async () => {
+            setBirthDate(null);
+            setBirthDateDeclined(true);
+            if (asking) await submitRegistration(null);
+          } : undefined}
+          onClose={() => setBirthDialog(null)}
+        />
+      )}
+
       {/* Hero Panel (Desktop Only) */}
       <div className="register-hero">
         {/* Telescope illustration - SVGRepo (CC0 License) */}
@@ -260,6 +300,32 @@ function RegisterPage() {
                 required
                 autoComplete="email"
               />
+            </div>
+
+            {/* Date of Birth Field (optional and private; opens the shared date dialog) */}
+            <div className="form-group">
+              <label id="birthDate-label" htmlFor="birthDate" className="form-label">{t('birthDate.optionalLabel')}</label>
+              <button
+                type="button"
+                id="birthDate"
+                className={`form-input register-birthdate${fieldErrors.birthDate ? ' error' : ''}`}
+                onClick={() => setBirthDialog('edit')}
+                disabled={loading}
+                aria-haspopup="dialog"
+                aria-labelledby="birthDate-label birthDate-value"
+                aria-describedby="birthDate-hint"
+              >
+                <span id="birthDate-value" className={birthDate ? undefined : 'register-birthdate-empty'}>
+                  {birthDate ? formatBirthDate(birthDate, i18n.resolvedLanguage || i18n.language) : t('birthDate.select')}
+                </span>
+                <i className="fa-solid fa-calendar-days" aria-hidden="true"></i>
+              </button>
+              <div className="form-hints">
+                <span className="form-hint" id="birthDate-hint">
+                  <i className="fa-solid fa-lock"></i>
+                  {t('birthDate.private')}
+                </span>
+              </div>
             </div>
 
             {/* Password Field */}

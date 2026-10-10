@@ -171,5 +171,34 @@
   "sharing": {
     "linkCopied": "Link copied to clipboard",
     "failed": "Failed to share"
+  },
+  "birthDate": {
+    "title": "Date of birth",
+    "private": "Only visible to you",
+    "month": "Month",
+    "day": "Day",
+    "year": "Year",
+    "select": "Select date",
+    "optionalLabel": "Date of birth (Optional)",
+    "notSet": "Not set",
+    "edit": "Edit date of birth",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "remove": "Remove",
+    "saved": "Date of birth updated",
+    "future": "Date of birth can’t be in the future.",
+    "invalid": "Choose a valid date.",
+    "saveFailed": "We couldn’t save your date of birth. Please try again.",
+    "skipFailed": "We couldn’t update your choice. Please try again."
+  },
+  "profilePrivacy": {
+    "title": "Privacy",
+    "private": "Private profile",
+    "description": "Choose whether you want your profile to be private.",
+    "on": "On",
+    "off": "Off",
+    "saving": "Saving…",
+    "saved": "Privacy preference saved",
+    "saveFailed": "We couldn’t save your privacy preference. Please try again."
   }
 }

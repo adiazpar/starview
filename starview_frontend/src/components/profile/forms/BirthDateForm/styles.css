@@ -1,0 +1,4 @@
+/* The lock sits with the note it belongs to. */
+.birth-date-private i {
+  margin-right: var(--space-xs);
+}

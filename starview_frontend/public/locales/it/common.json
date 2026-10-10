@@ -51,5 +51,34 @@
   "sharing": {
     "linkCopied": "Link copiato negli appunti",
     "failed": "Condivisione non riuscita"
+  },
+  "birthDate": {
+    "title": "Data di nascita",
+    "private": "Visibile solo a te",
+    "month": "Mese",
+    "day": "Giorno",
+    "year": "Anno",
+    "select": "Seleziona la data",
+    "optionalLabel": "Data di nascita (facoltativa)",
+    "notSet": "Non impostata",
+    "edit": "Modifica la data di nascita",
+    "continue": "Continua",
+    "skip": "Salta per ora",
+    "remove": "Rimuovi",
+    "saved": "Data di nascita aggiornata",
+    "future": "La data di nascita non può essere nel futuro.",
+    "invalid": "Scegli una data valida.",
+    "saveFailed": "Non è stato possibile salvare la tua data di nascita. Riprova.",
+    "skipFailed": "Non è stato possibile aggiornare la tua scelta. Riprova."
+  },
+  "profilePrivacy": {
+    "title": "Privacy",
+    "private": "Profilo privato",
+    "description": "Scegli se vuoi che il tuo profilo sia privato.",
+    "on": "Attivato",
+    "off": "Disattivato",
+    "saving": "Salvataggio…",
+    "saved": "Preferenza sulla privacy salvata",
+    "saveFailed": "Non è stato possibile salvare la tua preferenza sulla privacy. Riprova."
   }
 }

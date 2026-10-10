@@ -459,6 +459,9 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         try:
             with transaction.atomic():
                 user = super().save_user(request, sociallogin, form)
+                if is_new_user:
+                    from starview_app.services.birth_dates import BIRTH_DATE_PROMPT_KEY
+                    request.session[BIRTH_DATE_PROMPT_KEY] = user.pk
                 if is_new_user and EmailAddress.objects.filter(user=user, verified=True).exists():
                     send_welcome_email(request, user)
                 return user

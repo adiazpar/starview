@@ -193,6 +193,36 @@ class UserProfileViewSet(viewsets.GenericViewSet):
         serializer = PrivateProfileSerializer(request.user)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['patch'], url_path='me/update-privacy')
+    def update_privacy(self, request):
+        """Save the owner's preference; public visibility rules are a later phase."""
+        is_private = _profile_payload(request.data).get('is_private')
+        if not isinstance(is_private, bool):
+            raise exceptions.ValidationError({'is_private': 'Provide a boolean (true or false).'})
+        profile = request.user.userprofile
+        profile.is_private = is_private
+        profile.save(update_fields=['is_private', 'updated_at'])
+        return Response({
+            'detail': 'Profile privacy preference updated.',
+            'is_private': is_private,
+        })
+
+    @action(detail=False, methods=['patch'], url_path='me/update-birth-date')
+    def update_birth_date(self, request):
+        from starview_app.services.birth_dates import BIRTH_DATE_PROMPT_KEY, parse_birth_date
+        birth_date = parse_birth_date(request.data, required=True)
+        profile = request.user.userprofile
+        profile.birth_date = birth_date
+        profile.save(update_fields=['birth_date', 'updated_at'])
+        request.session.pop(BIRTH_DATE_PROMPT_KEY, None)
+        return Response({'detail': 'Date of birth updated.', 'birth_date': birth_date})
+
+    @action(detail=False, methods=['post'], url_path='me/dismiss-birth-date-prompt')
+    def dismiss_birth_date_prompt(self, request):
+        from starview_app.services.birth_dates import BIRTH_DATE_PROMPT_KEY
+        request.session.pop(BIRTH_DATE_PROMPT_KEY, None)
+        return Response({'detail': 'Date of birth reminder dismissed.'})
+
 
     # ----------------------------------------------------------------------------- #
     # Upload new profile picture. Delete the old custom image after saving.          #

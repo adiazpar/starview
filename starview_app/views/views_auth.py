@@ -51,7 +51,7 @@ from axes.handlers.proxy import AxesProxyHandler
 # Service imports:
 from starview_app.services import PasswordService
 from starview_app.services.account_mail import enqueue_account_email
-from starview_app.services.email_identity import email_owners, email_change_transaction, verified_primary
+from starview_app.services.email_identity import email_owners, email_change_transaction, verified_primary, password_login_user
 from starview_app.utils import LoginRateThrottle, PasswordResetThrottle, log_auth_event
 
 
@@ -98,6 +98,8 @@ def _auth_text(data, field, *, strip=True, max_length=None):
 def register(request):
         # Get form data
         data = _auth_payload(request.data)
+        from starview_app.services.birth_dates import parse_birth_date
+        birth_date = parse_birth_date(data)
         username = _auth_text(data, 'username')
         email = _auth_text(data, 'email', max_length=User._meta.get_field('email').max_length)
         first_name = _auth_text(data, 'first_name', max_length=User._meta.get_field('first_name').max_length)
@@ -176,6 +178,9 @@ def register(request):
                 **user_data,
                 password=pass1
             )
+            if birth_date is not None:
+                user.userprofile.birth_date = birth_date
+                user.userprofile.save(update_fields=['birth_date', 'updated_at'])
 
             # Create EmailAddress entry for django-allauth (always unverified)
             email_address = EmailAddress.objects.create(
@@ -251,10 +256,8 @@ def custom_login(request):
                 'Account locked due to too many login attempts. Please try again later.'
             )
 
-        # Try to get user by username or email
-        lookup = {'email__iexact': username_or_email} if '@' in username_or_email else {'username__iexact': username_or_email}
-        candidates = list(User.objects.filter(**lookup)[:2])
-        user_obj = candidates[0] if len(candidates) == 1 else None
+        # Verified linked-provider aliases still require the local password.
+        user_obj = password_login_user(username_or_email)
 
         # Use generic error message to prevent user enumeration
         # Don't reveal whether the username/email exists or password is wrong
@@ -716,6 +719,7 @@ def resend_verification_email(request):
 def auth_status(request):
     if request.user.is_authenticated:
         from starview_app.services.account_security import has_mfa
+        from starview_app.services.birth_dates import should_prompt_birth_date
         return Response({
             'authenticated': True,
             'user': {
@@ -731,6 +735,9 @@ def auth_status(request):
                 'has_usable_password': request.user.has_usable_password(),
                 'mfa_enabled': has_mfa(request.user),
                 'is_staff': request.user.is_staff,
+                'birth_date': request.user.userprofile.birth_date,
+                'is_private': request.user.userprofile.is_private,
+                'birth_date_prompt': should_prompt_birth_date(request),
             }
         }, status=status.HTTP_200_OK)
     else:
